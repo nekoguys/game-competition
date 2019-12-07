@@ -1,14 +1,11 @@
 package com.groudina.ten.demo.jwt;
 
-import com.groudina.ten.demo.datasource.DbUserRepository;
 import io.jsonwebtoken.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.io.Serializable;
 import java.util.Date;
 
 @Component

@@ -8,16 +8,13 @@ import com.groudina.ten.demo.dto.ResponseMessage;
 import com.groudina.ten.demo.jwt.JWTProvider;
 import com.groudina.ten.demo.jwt.JwtResponse;
 import com.groudina.ten.demo.models.DbUser;
-import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -32,7 +29,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@RequestMapping(path="/api/auth")
+@RequestMapping(path="/api/auth", produces = {MediaType.APPLICATION_JSON_VALUE})
 @Controller
 public class AuthController {
     private JWTProvider jwtProvider;
@@ -48,7 +45,7 @@ public class AuthController {
         this.rolesRepository = rolesRepository;
     }
 
-    @PostMapping(value="/signin", headers="Accept=*/*")
+    @PostMapping(value="/signin")
     public Mono<ResponseEntity<? extends Serializable>> authenticateUser(@Valid @RequestBody LoginUser loginUser) {
         return userRepository.findOneByEmail(loginUser.getEmail()).flatMap(user -> {
             if (passwordEncoder.matches(loginUser.getPassword(), user.getPassword())) {
