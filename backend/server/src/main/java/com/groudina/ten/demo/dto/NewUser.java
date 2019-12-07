@@ -19,5 +19,5 @@ public class NewUser implements Serializable {
     @JsonProperty("password")
     private String password;
 
-    private static final long serialVersionUID = -1764970284520387975L;
+    private static final long serialVersionUID = -1764970284520387075L;
 }

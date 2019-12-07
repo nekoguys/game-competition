@@ -1,10 +1,13 @@
 package com.groudina.ten.demo.jwt;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 
 import java.io.Serializable;
 import java.util.Collection;
 
+@Getter
 public class JwtResponse implements Serializable {
     private String accessToken;
     private String email;
@@ -15,18 +18,6 @@ public class JwtResponse implements Serializable {
         this.accessToken = accessToken;
         this.email = email;
         this.authorities = authorities;
-    }
-
-    public String getAccessToken() {
-        return accessToken;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public Collection<GrantedAuthority> getAuthorities() {
-        return authorities;
     }
 
     private static final long serialVersionUID = -1764970284520382345L;

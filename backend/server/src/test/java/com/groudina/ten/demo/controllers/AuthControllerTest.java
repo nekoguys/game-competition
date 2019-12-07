@@ -35,13 +35,10 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @EnableEmbeddedMongo
-//@ActiveProfiles("test")
 class AuthControllerTest {
 
     @Configuration
-    class MongoConfig {
-
-    }
+    class MongoConfig {}
 
     WebTestClient webTestClient;
 
@@ -86,6 +83,41 @@ class AuthControllerTest {
     }
 
     @Test
+    void authenticateUserBadCredentials() {
+        final String password = "1234";
+        userRepository.save(DbUser.builder().email("email").password(encoder.encode(password)).build()).block();
+
+        webTestClient.post().uri("/api/auth/signin")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(BodyInserters.fromValue(LoginUser.builder().email("email").password(password + "2").build()))
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange()
+                .expectStatus().isBadRequest()
+                .expectBody(ResponseMessage.class)
+                .value((respMessage) -> {
+                    assertTrue(respMessage.getMessage().contains("Invalid"));
+                    assertTrue(respMessage.getMessage().contains("credentials"));
+                });
+    }
+
+    @Test
+    void authenticateUserNoSuchUser() {
+        final String password = "1234";
+        userRepository.save(DbUser.builder().email("email").password(encoder.encode(password)).build()).block();
+
+        webTestClient.post().uri("/api/auth/signin")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(BodyInserters.fromValue(LoginUser.builder().email("email1").password(password).build()))
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange()
+                .expectStatus().isBadRequest()
+                .expectBody(ResponseMessage.class)
+                .value((respMessage) -> {
+                    assertTrue(respMessage.getMessage().contains("No user with email"));;
+                });
+    }
+
+    @Test
     void registerUser() {
         final String password = "1234";
         final String email = "email";
@@ -98,6 +130,25 @@ class AuthControllerTest {
                 .expectStatus().isOk()
                 .expectBody(ResponseMessage.class).consumeWith(message -> {
                     assertEquals(userRepository.count().block(), 1);
+        });
+    }
+
+    @Test
+    void registerUserRepeatingEmail() {
+        final String password = "1234";
+        final String email = "email";
+
+        userRepository.save(DbUser.builder().email(email).password(encoder.encode(password)).build()).block();
+
+        webTestClient.post().uri("/api/auth/signup")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(BodyInserters.fromValue(NewUser.builder().email(email).password(password).build()))
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange()
+                .expectStatus().isBadRequest()
+                .expectBody(ResponseMessage.class).value(respMes -> {
+                    assertTrue(respMes.getMessage().contains("User with email"));
+                    assertTrue(respMes.getMessage().contains("already exists"));
         });
     }
 }

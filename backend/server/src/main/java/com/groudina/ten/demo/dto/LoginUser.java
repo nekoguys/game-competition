@@ -1,30 +1,23 @@
 package com.groudina.ten.demo.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.io.Serializable;
 import java.util.Optional;
 
 @Builder
+@Getter
 @AllArgsConstructor
 @NoArgsConstructor
 public class LoginUser implements Serializable {
     @JsonProperty("email")
+    @NonNull
     private String email;
 
     @JsonProperty("password")
+    @NonNull
     private String password;
-
-    public Optional<String> getEmail() {
-        return Optional.ofNullable(email);
-    }
-
-    public Optional<String> getPassword() {
-        return Optional.ofNullable(password);
-    }
 
     private static final long serialVersionUID = -1764970284520387975L;
 }

@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import reactor.core.publisher.Mono;
 
 import javax.validation.Valid;
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -40,28 +41,27 @@ public class AuthController {
     private PasswordEncoder passwordEncoder;
 
     public AuthController(@Autowired DbUserRepository repository, @Autowired DbRolesRepository rolesRepository,
-                          @Autowired PasswordEncoder encoder,
-                          @Autowired JWTProvider jwtProvider) {
+                          @Autowired PasswordEncoder encoder, @Autowired JWTProvider jwtProvider) {
         this.userRepository = repository;
         this.passwordEncoder = encoder;
         this.jwtProvider = jwtProvider;
         this.rolesRepository = rolesRepository;
     }
 
-    @PostMapping("/signin")
-    public Mono<ResponseEntity<?>> authenticateUser(@Valid @RequestBody LoginUser loginUser) {
-        return userRepository.findOneByEmail(loginUser.getEmail().get()).flatMap(user -> {
-            if (passwordEncoder.matches(loginUser.getPassword().get(), user.getPassword())) {
+    @PostMapping(value="/signin", headers="Accept=*/*")
+    public Mono<ResponseEntity<? extends Serializable>> authenticateUser(@Valid @RequestBody LoginUser loginUser) {
+        return userRepository.findOneByEmail(loginUser.getEmail()).flatMap(user -> {
+            if (passwordEncoder.matches(loginUser.getPassword(), user.getPassword())) {
                 var jwt = jwtProvider.generateJwtToken(user.getEmail());
                 List<GrantedAuthority> authorities = user.getRoles().stream()
                         .map(role -> new SimpleGrantedAuthority(role.getName()))
                         .collect(Collectors.toList());
 
-                return Mono.just(ResponseEntity.ok(new JwtResponse(jwt, loginUser.getEmail().get(), authorities)));
+                return Mono.just(ResponseEntity.ok(new JwtResponse(jwt, loginUser.getEmail(), authorities)));
             } else {
                 return Mono.just(new ResponseEntity<>(new ResponseMessage("Invalid credentials"), HttpStatus.BAD_REQUEST));
             }
-        }).switchIfEmpty(Mono.just(new ResponseEntity<>(new ResponseMessage(String.format("No user with email: %s", loginUser.getEmail().get())), HttpStatus.BAD_REQUEST)));
+        }).switchIfEmpty(Mono.just(new ResponseEntity<>(new ResponseMessage(String.format("No user with email: %s", loginUser.getEmail())), HttpStatus.BAD_REQUEST)));
     }
 
     @PostMapping("/signup")
@@ -77,7 +77,7 @@ public class AuthController {
 
     @GetMapping("/test")
     @PreAuthorize("hasRole('STUDENT')")
-    public Mono<ResponseEntity> test() {
+    public Mono<ResponseEntity<?>> test() {
         return Mono.just(ResponseEntity.ok(new ResponseMessage("OK!")));
     }
 }
