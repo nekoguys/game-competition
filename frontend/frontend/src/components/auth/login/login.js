@@ -3,9 +3,11 @@ import Header from "../header";
 import LoginForm from "../login-form";
 import {withRouter} from "react-router-dom";
 import ApiHelper from "../../../helpers/api-helper";
+import 'react-notifications/lib/notifications.css';
 
 
 import "./login.css"
+import {NotificationManager, NotificationContainer} from "react-notifications";
 
 class Login extends React.Component {
     constructor(props) {
@@ -27,14 +29,28 @@ class Login extends React.Component {
 
     onSubmitClick = () => {
         ApiHelper.signin(this.state).then(res => {
+            console.log(res);
             if (res.status >= 300) {
                 console.log("error in signin request");
-                return {}
+                return {success: false, json: res.json()}
             }
-            return res.json();
+            return {success: true, json: res.json()};
         }).then(parsedResponse => {
             console.log(parsedResponse);
-        })
+            parsedResponse.json.then((value) => {
+                console.log({value});
+                if (parsedResponse.success) {
+                    NotificationManager.success(`Welcome, ${value.email}!`, 'Success', 1200);
+                } else {
+                    if (value.message) {
+                        NotificationManager.error(value.message, 'Error', 1200);
+                    } else {
+                        NotificationManager.error('Error occurred', 'Error', 1200, () => {
+                        });
+                    }
+                }
+            });
+        });
     };
 
     onHeaderRegisterClick = () => {
@@ -57,6 +73,7 @@ class Login extends React.Component {
                            onPasswordChanged={this.onPasswordChanged}
                            onSubmit={this.onSubmitClick}
                 />
+                <NotificationContainer/>
             </div>
         )
     }

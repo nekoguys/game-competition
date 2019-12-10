@@ -2,6 +2,7 @@ import React from "react";
 import ApiHelper from "../../../helpers/api-helper";
 import Header from "../header";
 import {withRouter} from "react-router-dom";
+import {NotificationContainer, NotificationManager} from 'react-notifications';
 
 import "../login/login.css";
 import RegisterForm from "../register-form/register-form";
@@ -14,6 +15,7 @@ class Register extends React.Component {
             email: '',
             password: '',
             passwordConf: '',
+            isRegButtonDisabled: true
         }
     }
 
@@ -22,22 +24,49 @@ class Register extends React.Component {
     };
 
     onPasswordChanged = (newPassword) => {
-        this.setState({password: newPassword});
+        this.setState(prevState => {
+            return {
+                password: newPassword,
+                isRegButtonDisabled: !(newPassword === prevState.passwordConf
+                    && newPassword !== ''
+                )
+            }
+        });
     };
 
     onPasswordConfChanged = (newConf) => {
-        this.setState({passwordConf: newConf});
+        this.setState(prevState => {
+            return {
+                passwordConf: newConf,
+                isRegButtonDisabled: !(newConf === prevState.password
+                    && newConf !== ''
+                )
+            }
+        });
     };
 
     onSubmitClick = () => {
         ApiHelper.signup({password: this.state.password, email: this.state.email}).then(res => {
             if (res.status >= 300) {
                 console.log("error in signin request");
-                return {}
+                return {success: false, json: res.json()}
             }
-            return res.json();
+            return {success: true, json: res.json()};
         }).then(parsedResponse => {
             console.log(parsedResponse);
+            parsedResponse.json.then((value) => {
+                console.log({value});
+                if (parsedResponse.success) {
+                    NotificationManager.success(`Registered Successfully!`, 'Success', 1200);
+                } else {
+                    if (value.message) {
+                        NotificationManager.error(value.message, 'Error', 1200);
+                    } else {
+                        NotificationManager.error('Error occurred', 'Error', 1200, () => {
+                        });
+                    }
+                }
+            })
         })
     };
 
@@ -60,7 +89,9 @@ class Register extends React.Component {
                            onPasswordChanged={this.onPasswordChanged}
                            onConfPasswordChanged={this.onPasswordConfChanged}
                            onSubmit={this.onSubmitClick}
+                           isRegButtonDisabled={this.state.isRegButtonDisabled}
                 />
+                <NotificationContainer/>
             </div>
         )
     }

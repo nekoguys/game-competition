@@ -4,7 +4,8 @@ import DefaultSubmitButton from "../../common/default-submit-button";
 
 import "../login-form/login-form.css";
 
-const RegisterForm = ({onEmailChanged = () => {},
+const RegisterForm = ({isRegButtonDisabled = false,
+                          onEmailChanged = () => {},
                           onPasswordChanged = () => {},
                           onConfPasswordChanged = () => {},
                           onSubmit = () => {}}
@@ -26,7 +27,7 @@ const RegisterForm = ({onEmailChanged = () => {},
             <DefaultTextInput style={formInputStyle} placeholder={"Почта"} onChange={onEmailChanged} />
             <DefaultTextInput style={formInputStyle} placeholder={"Пароль"} type={"password"} onChange={onPasswordChanged} />
             <DefaultTextInput style={formInputStyle} placeholder={"Повторите пароль"} type={"password"} onChange={onConfPasswordChanged} />
-            <DefaultSubmitButton text={"Войти"} style={buttonStyle} onClick={onSubmit} />
+            <DefaultSubmitButton text={"Зарегистрироваться"} style={buttonStyle} onClick={onSubmit} isDisabled={isRegButtonDisabled} />
         </div>
     )
 };

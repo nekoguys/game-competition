@@ -20,7 +20,6 @@ export default class ApiHelper {
     static signin(credentials) {
         return fetch(ApiSettings.signinEndPoint(), {
             method: "POST",
-            //mode: 'no-cors',
             headers: {
                 'Content-Type': 'application/json; charset=utf-8',
                 'Access-Control-Allow-Origin': ApiSettings.host() + "*",
@@ -32,7 +31,6 @@ export default class ApiHelper {
     static signup(credentials) {
         return fetch(ApiSettings.signupEndPoint(), {
             method: "POST",
-            //mode: 'no-cors',
             headers: {
                 'Content-Type': 'application/json; charset=utf-8',
                 'Access-Control-Allow-Origin': ApiSettings.host() + "*",
