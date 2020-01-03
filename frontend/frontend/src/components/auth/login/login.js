@@ -1,0 +1,82 @@
+import React from "react";
+import Header from "../header";
+import LoginForm from "../login-form";
+import {withRouter} from "react-router-dom";
+import ApiHelper from "../../../helpers/api-helper";
+import 'react-notifications/lib/notifications.css';
+
+
+import "./login.css"
+import {NotificationManager, NotificationContainer} from "react-notifications";
+
+class Login extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            email: '',
+            password: '',
+        }
+    }
+
+    onEmailChanged = (newEmail) => {
+        this.setState({email: newEmail});
+    };
+
+    onPasswordChanged = (newPassword) => {
+        this.setState({password: newPassword});
+    };
+
+    onSubmitClick = () => {
+        ApiHelper.signin(this.state).then(res => {
+            console.log(res);
+            if (res.status >= 300) {
+                console.log("error in signin request");
+                return {success: false, json: res.json()}
+            }
+            return {success: true, json: res.json()};
+        }).then(parsedResponse => {
+            console.log(parsedResponse);
+            parsedResponse.json.then((value) => {
+                console.log({value});
+                if (parsedResponse.success) {
+                    NotificationManager.success(`Welcome, ${value.email}!`, 'Success', 1200);
+                } else {
+                    if (value.message) {
+                        NotificationManager.error(value.message, 'Error', 1200);
+                    } else {
+                        NotificationManager.error('Error occurred', 'Error', 1200, () => {
+                        });
+                    }
+                }
+            });
+        });
+    };
+
+    onHeaderRegisterClick = () => {
+        this.props.history.push('/auth/signup');
+    };
+
+    render() {
+
+        const headerStyle = {
+            marginRight: "20px"
+        };
+
+        return (
+            <div className={"container login-group"}>
+                <div className={"d-flex headers"}>
+                    <Header text={"Войти"} style={headerStyle} isSelected={true}/>
+                    <Header text={"Регистрация"} isSelected={false} onClick={this.onHeaderRegisterClick} />
+                </div>
+                <LoginForm onEmailChanged={this.onEmailChanged}
+                           onPasswordChanged={this.onPasswordChanged}
+                           onSubmit={this.onSubmitClick}
+                />
+                <NotificationContainer/>
+            </div>
+        )
+    }
+}
+
+export default withRouter(Login);

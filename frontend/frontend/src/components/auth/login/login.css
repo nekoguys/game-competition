@@ -1,0 +1,11 @@
+.login-group {
+    max-width: 500px;
+    margin: 10rem auto;
+    padding-bottom: 0;
+    flex-grow: 1;
+}
+
+.headers {
+    padding-bottom: -0rem;
+    height: 3.3rem;
+}
