@@ -15,4 +15,8 @@ public class ResponseMessage implements Serializable {
     private String message;
 
     private static final long serialVersionUID = -1764970284520387070L;
+
+    public static ResponseMessage of(String message) {
+        return new ResponseMessage(message);
+    }
 }
