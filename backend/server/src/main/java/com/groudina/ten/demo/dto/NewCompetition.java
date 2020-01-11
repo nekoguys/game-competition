@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import javax.validation.constraints.Size;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.List;
 
 @Builder
 @NoArgsConstructor
@@ -21,11 +22,11 @@ public class NewCompetition implements Serializable {
 
     @Size(min=3, max=3)
     @JsonProperty("expenses_formula")
-    private ArrayList<String> expensesFormula;
+    private List<String> expensesFormula;
 
     @Size(min=2, max=2)
     @JsonProperty("demand_formula")
-    private ArrayList<String> demandFormula;
+    private List<String> demandFormula;
 
     @JsonProperty("max_teams_amount")
     private int maxTeamsAmount;

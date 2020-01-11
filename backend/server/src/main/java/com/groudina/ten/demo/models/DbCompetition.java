@@ -2,6 +2,7 @@ package com.groudina.ten.demo.models;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
@@ -9,10 +10,12 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.util.ArrayList;
+import java.util.List;
 
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@Getter
 @Document(collection="competition")
 public class DbCompetition {
     @Id
@@ -34,15 +37,16 @@ public class DbCompetition {
 
     @AllArgsConstructor
     @NoArgsConstructor
+    @Getter
     @Builder
     public static class Parameters {
         private String name;
 
         @Field("expenses_formula")
-        private ArrayList<String> expensesFormula;//polynomial
+        private List<String> expensesFormula;//polynomial
 
         @Field("demand_formula")
-        private ArrayList<String> demandFormula;//constant - constant*Price
+        private List<String> demandFormula;//constant - constant*Price
 
         @Field("max_teams_amount")
         private int maxTeamsAmount;
