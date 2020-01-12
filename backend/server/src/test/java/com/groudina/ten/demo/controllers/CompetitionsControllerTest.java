@@ -93,14 +93,12 @@ class CompetitionsControllerTest {
                         .build()))
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange().expectStatus().isForbidden();
-                //for some reason, it returns 500 error even if access is denied
-                //and 403 status code expected
     }
 
     @Test
     @WithMockUser(value = "email", password = "1234", roles = {"TEACHER"})
     void createCompetition() {
-        userRepository.save(DbUser.builder().password("1234").email("email").roles(rolesRepository.findAll().collect(Collectors.toList()).block()).build()).block();
+        var owner = userRepository.save(DbUser.builder().password("1234").email("email").roles(rolesRepository.findAll().collect(Collectors.toList()).block()).build()).block();
         assertEquals(0, competitionsRepository.findAll().count().block());
 
         webTestClient.post().uri("/api/competitions/create")
@@ -124,5 +122,6 @@ class CompetitionsControllerTest {
                 .expectBody(ResponseMessage.class)
         ;
         assertEquals(1, competitionsRepository.findAll().count().block());
+        assertEquals(competitionsRepository.findAll().collect(Collectors.toList()).block().get(0).getOwner(), owner);
     }
 }
