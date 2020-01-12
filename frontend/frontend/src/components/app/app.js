@@ -7,6 +7,8 @@ import {
 } from "react-router-dom";
 import Login from "../auth/login";
 import Register from "../auth/register/register";
+import CompetitionHistory from "../competition-history/competition-history";
+import CreateCompetition from "../create-competition/create-competition";
 
 export default class App extends React.Component{
     render() {
@@ -20,9 +22,14 @@ export default class App extends React.Component{
                     <Route path={"/auth/signup"}>
                         <Register />
                     </Route>
+                    <Route path={"/competitions/history"}>
+                        <CompetitionHistory/>
+                    </Route>
+                    <Route path={"/competitions/create"}>
+                        <CreateCompetition/>
+                    </Route>
                 </Switch>
             </Router>
-
         )
     }
 }
