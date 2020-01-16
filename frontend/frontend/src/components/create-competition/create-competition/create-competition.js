@@ -10,6 +10,10 @@ class CreateCompetition extends React.Component {
                     <NavbarHeader/>
                 </div>
                 <div style={{paddingTop: "100px"}}>
+                    <div style={{margin: "0 auto", textAlign: "center", fontSize: "36px"}}>
+                        <span>Создание Игры
+                        </span>
+                    </div>
                     <CompetitionParamsForm/>
                 </div>
             </div>
