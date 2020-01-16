@@ -14,6 +14,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -26,6 +27,7 @@ import java.util.List;
 
 @Log4j2
 @RequestMapping(path="/api/competitions", produces = {MediaType.APPLICATION_JSON_VALUE})
+@CrossOrigin(origins = {"*"}, maxAge = 3600)
 @Controller
 public class CompetitionsController {
     private DbCompetitionsRepository competitionsRepository;
