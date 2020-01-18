@@ -7,9 +7,15 @@ class DefaultTextInput extends React.Component {
     constructor(props) {
         super(props);
 
+        const {defaultText = ""} = props;
+
         this.state = {
-            text: ""
+            text: defaultText
         }
+    }
+
+    text() {
+        return this.state.text;
     }
 
     onTextChanged = (event) => {

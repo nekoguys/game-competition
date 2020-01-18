@@ -14,9 +14,11 @@ class DefaultCheckboxButton extends React.Component {
 
     onButtonClick() {
         const {isDisabled = false} = this.props;
+        const {onChange = (_value) => {}} = this.props;
 
         if (!isDisabled) {
             this.setState(state => {
+                onChange(!state.checked);
                 return {checked: !state.checked};
             })
         }
@@ -40,8 +42,10 @@ class DefaultCheckboxButton extends React.Component {
         };
 
         return (
-            <div className={"btn-group-toggle"} data-toggle={"buttons"} style={additionalStyle} onClick={this.onButtonClick}>
-                <label className={className} onClick={this.onButtonClick} style={{...labelStyle, width: "100%"}}>
+            <div className={"btn-group-toggle"} data-toggle={"buttons"} style={additionalStyle}>
+                <label className={className} style={{...labelStyle, width: "100%",
+                    display: "inline-block", textOverflow: "ellipsis", overflow: "hidden",
+                }}>
                     <input type={"checkbox"} autoComplete={"off"} onClick={this.onButtonClick} /> {text}
                 </label>
             </div>
