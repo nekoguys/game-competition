@@ -185,7 +185,7 @@ class CompetitionParamsForm extends React.Component {
                             <div className={"p-2"}>
                                 <DefaultSubmitButton text={"Открыть регистрацию"} style={{height: "100%", fontSize: "26px",
                                     paddingTop: "15.5px", paddingBottom: "15.5px"}}
-                                onClick={() => alert("UNSUPPORTED YET")}/>
+                                    onClick={() => this.props.onOpenRegistrationClick(this.formState)}/>
                             </div>
                     </div>
 

@@ -8,6 +8,17 @@ class CreateCompetition extends React.Component {
 
     onSaveAsDraftClick = (formState) => {
         let obj = {...formState.toJSONObject(), state: "draft"};
+
+        this.onCreateCompetition(obj, () => {});
+    };
+
+    onOpenRegistrationClick = (formState) => {
+        let obj = {...formState.toJSONObject(), state: "registration"};
+
+        this.onCreateCompetition(obj, () => {})
+    };
+
+    onCreateCompetition = (obj, successCallback) => {
         const timeout = 800;
 
         ApiHelper.createCompetition(obj).then(response => {
@@ -19,12 +30,12 @@ class CreateCompetition extends React.Component {
             return {success: true, json: response.json()};
         }).catch(err => {
             console.log(err);
-            NotificationManager.error("Error happened", "Error", timeout);
         }).then(result => {
             if (result.success) {
                 return result.json.then(bodyJson => {
                     console.log(bodyJson);
                     NotificationManager.success("Competition created successfully", "Success!", timeout);
+                    successCallback();
                 })
             } else {
                 console.log("Error");
@@ -44,7 +55,7 @@ class CreateCompetition extends React.Component {
                         <span>Создание Игры
                         </span>
                     </div>
-                    <CompetitionParamsForm onSaveAsDraftClick={this.onSaveAsDraftClick}/>
+                    <CompetitionParamsForm onSaveAsDraftClick={this.onSaveAsDraftClick} onOpenRegistrationClick={this.onOpenRegistrationClick}/>
                     <NotificationContainer/>
                 </div>
             </div>
