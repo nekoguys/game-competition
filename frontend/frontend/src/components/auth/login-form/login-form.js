@@ -8,7 +8,7 @@ const LoginForm = ({onEmailChanged = () => {}, onPasswordChanged = () => {}, onS
     const formInputStyle = {
         width: "75%",
         borderRadius: "20px",
-        lineHeight: "20px",
+        lineHeight: "25px",
         padding: "-10px"
     };
 

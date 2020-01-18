@@ -14,7 +14,7 @@ const RegisterForm = ({isRegButtonDisabled = false,
     const formInputStyle = {
         width: "75%",
         borderRadius: "20px",
-        lineHeight: "20px",
+        lineHeight: "25px",
         padding: "-10px"
     };
 

@@ -40,7 +40,14 @@ class Login extends React.Component {
             parsedResponse.json.then((value) => {
                 console.log({value});
                 if (parsedResponse.success) {
-                    NotificationManager.success(`Welcome, ${value.email}!`, 'Success', 1200);
+                    window.localStorage.setItem("accessToken", value.accessToken);
+                    const timeout = 1200;
+                    NotificationManager.success(`Welcome, ${value.email}!`, 'Success', timeout);
+                    setTimeout(() => {
+                        this.props.history.push('/competitions/history');
+                        console.log("expect redirect to competitions history");
+                    }, timeout);
+
                 } else {
                     if (value.message) {
                         NotificationManager.error(value.message, 'Error', 1200);
