@@ -20,11 +20,11 @@ public class NewCompetition implements Serializable {
 
     private String state;
 
-    @Size(min=3, max=3)
+    @Size(min=3, max=3, message="Expenses formula should contain 3 values separated by ;")
     @JsonProperty("expenses_formula")
     private List<String> expensesFormula;
 
-    @Size(min=2, max=2)
+    @Size(min=2, max=2, message="Expenses formula should contain 2 values separated by ;")
     @JsonProperty("demand_formula")
     private List<String> demandFormula;
 
