@@ -1,8 +1,27 @@
 import React from "react";
 import NavbarHeader from "../../competition-history/navbar-header";
 import CompetitionParamsForm from "../competition-params";
+import ApiHelper from "../../../helpers/api-helper";
+import {NotificationManager, NotificationContainer} from "react-notifications";
 
 class CreateCompetition extends React.Component {
+
+    onSaveAsDraftClick = (formState) => {
+        let obj = {...formState.toJSONObject(), state: "draft"};
+        const timeout = 800;
+
+        ApiHelper.createCompetition(obj).then(response => {
+            console.log(response);
+            return response.json();
+        }).catch(err => {
+            console.log(err);
+            NotificationManager.error("Error happened", "Error", timeout);
+        }).then(bodyJson => {
+            console.log(bodyJson);
+            NotificationManager.success("Competition created successfully", "Success!", timeout);
+        })
+    };
+
     render() {
         return (
             <div>
@@ -14,7 +33,8 @@ class CreateCompetition extends React.Component {
                         <span>Создание Игры
                         </span>
                     </div>
-                    <CompetitionParamsForm/>
+                    <CompetitionParamsForm onSaveAsDraftClick={this.onSaveAsDraftClick}/>
+                    <NotificationContainer/>
                 </div>
             </div>
         )

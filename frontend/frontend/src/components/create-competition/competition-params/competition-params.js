@@ -5,7 +5,6 @@ import DefaultTextInput from "../../common/default-text-input";
 import DefaultCheckboxButton from "../../common/default-checkbox-button";
 import DefaultSubmitButton from "../../common/default-submit-button";
 import toSnakeCase from "../../../helpers/snake-case-helper";
-import ApiHelper from "../../../helpers/api-helper";
 
 class CompetitionParams {
     constructor({initialParams = {}}) {
@@ -68,15 +67,6 @@ class CompetitionParamsForm extends React.Component {
         console.log(this.formState.toJSONObject())
     }
 
-    onSaveAsDraftClick = () => {
-        let obj = {...this.formState.toJSONObject(), state: "draft"};
-        ApiHelper.createCompetition(obj).then(response => {
-            console.log(response);
-            return response.json();
-        }).catch(err => console.log(err)).then(bodyJson => {
-            console.log(bodyJson);
-        })
-    };
 
     render() {
         const defaultTextInputStyle = {
@@ -190,7 +180,7 @@ class CompetitionParamsForm extends React.Component {
                     <div className={"form-group row"} style={{marginTop: "30px", marginLeft: "7.5%", marginRight: "7.5%"}}>
                         <div className={"mr-auto p-2"}>
                             <DefaultSubmitButton text={"Сохранить черновик"} style={{height: "100%", fontSize: "26px",
-                                paddingTop: "15.5px", paddingBottom: "15.5px"}} onClick={this.onSaveAsDraftClick}/>
+                                paddingTop: "15.5px", paddingBottom: "15.5px"}} onClick={() => this.props.onSaveAsDraftClick(this.formState)}/>
                         </div>
                             <div className={"p-2"}>
                                 <DefaultSubmitButton text={"Открыть регистрацию"} style={{height: "100%", fontSize: "26px",

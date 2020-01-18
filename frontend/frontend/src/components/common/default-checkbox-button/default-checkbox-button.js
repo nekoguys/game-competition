@@ -43,7 +43,9 @@ class DefaultCheckboxButton extends React.Component {
 
         return (
             <div className={"btn-group-toggle"} data-toggle={"buttons"} style={additionalStyle}>
-                <label className={className} style={{...labelStyle, width: "100%"}}>
+                <label className={className} style={{...labelStyle, width: "100%",
+                    display: "inline-block", textOverflow: "ellipsis", overflow: "hidden",
+                }}>
                     <input type={"checkbox"} autoComplete={"off"} onClick={this.onButtonClick} /> {text}
                 </label>
             </div>
