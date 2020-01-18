@@ -12,13 +12,24 @@ class CreateCompetition extends React.Component {
 
         ApiHelper.createCompetition(obj).then(response => {
             console.log(response);
-            return response.json();
+            if (response.status >= 300) {
+                return {success: false, response: response.body}
+            }
+
+            return {success: true, json: response.json()};
         }).catch(err => {
             console.log(err);
             NotificationManager.error("Error happened", "Error", timeout);
-        }).then(bodyJson => {
-            console.log(bodyJson);
-            NotificationManager.success("Competition created successfully", "Success!", timeout);
+        }).then(result => {
+            if (result.success) {
+                return result.json.then(bodyJson => {
+                    console.log(bodyJson);
+                    NotificationManager.success("Competition created successfully", "Success!", timeout);
+                })
+            } else {
+                console.log("Error");
+                NotificationManager.error("Invalid competition params", "Error", timeout);
+            }
         })
     };
 
