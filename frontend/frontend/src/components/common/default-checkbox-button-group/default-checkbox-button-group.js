@@ -15,8 +15,8 @@ class DefaultCheckboxButtonGroup extends React.Component {
 
     onChoiceChanged = (choiceIndex) => {
         this.setState(() => {
-            const {onChoiceChanged = (_val) => {}} = this.props;
-            onChoiceChanged(this.choices[choiceIndex]);
+            const {onChoiceChanged = [(_val) => {}]} = this.props;
+            onChoiceChanged[choiceIndex]();
             return {choiceIndex: choiceIndex};
         });
 
@@ -30,9 +30,8 @@ class DefaultCheckboxButtonGroup extends React.Component {
         const innerElements = this.choices.map((value, index) => {
             const isSelected = index === this.state.choiceIndex;
             return (
-                <label className={isSelected ? selectedClassName : notSelectedClassName} style={buttonStyle}
-                       onClick={() => this.onChoiceChanged(index)}>
-                    <input type={"radio"} autoComplete={"off"} checked={isSelected}/>
+                <label className={isSelected ? selectedClassName : notSelectedClassName} style={buttonStyle} key={index}>
+                    <input type={"radio"} autoComplete={"off"} defaultChecked={isSelected} onClick={() => this.onChoiceChanged(index)}/>
                     {value}
                 </label>
             )

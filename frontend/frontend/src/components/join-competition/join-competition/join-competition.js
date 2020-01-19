@@ -5,6 +5,14 @@ import DefaultCheckboxButtonGroup from "../../common/default-checkbox-button-gro
 
 class JoinCompetition extends React.Component {
 
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            currentPage: "capitain"
+        }
+    }
+
     onCreateTeamPageClick = () => {
         console.log("createTeamPageClick");
     };
@@ -18,10 +26,15 @@ class JoinCompetition extends React.Component {
             <div>
                 <div className={"d-flex"}>
                     <div style={{margin: "0 auto", width: "26%"}}>
-                        <DefaultCheckboxButtonGroup choices={["Как капитан", "Как участник"]}
-                                                    buttonStyle={{width: "51%", fontSize: "1.3rem",
-                                                        textOverflow: "ellipsis", overflow: "hidden"}}
-                                                    style={{width: "100%"}}/>
+                        <DefaultCheckboxButtonGroup
+                            choices={["Как капитан", "Как участник"]}
+                            buttonStyle={{width: "51%", fontSize: "1.3rem",
+                                textOverflow: "ellipsis", overflow: "hidden"}}
+                            style={{width: "100%"}}
+                            onChoiceChanged={[
+                                this.onCreateTeamPageClick,
+                                this.onJoinTeamPageClick
+                            ]}/>
                     </div>
                 </div>
                 <JoinCompetitionForm/>
