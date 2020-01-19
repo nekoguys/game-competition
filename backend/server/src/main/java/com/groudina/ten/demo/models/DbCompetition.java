@@ -23,12 +23,20 @@ public class DbCompetition {
 
     private DbCompetition.State state;
 
-    private String pin;
+    private String pin;//TODO
 
     private DbCompetition.Parameters parameters;
 
+    @Builder.Default
+    @DBRef
+    private List<DbTeam> teams = new ArrayList<>();
+
     @DBRef
     private DbUser owner;
+
+    public void addTeam(DbTeam team) {
+        this.teams.add(team);
+    }
 
 
     public static enum State {
