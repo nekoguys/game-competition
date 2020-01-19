@@ -41,6 +41,8 @@ class Login extends React.Component {
                 console.log({value});
                 if (parsedResponse.success) {
                     window.localStorage.setItem("accessToken", value.accessToken);
+                    window.localStorage.setItem("user_email", value.email);
+                    window.localStorage.setItem("roles", value.authorities.map(el => el.authority));
                     const timeout = 1200;
                     NotificationManager.success(`Welcome, ${value.email}!`, 'Success', timeout);
                     setTimeout(() => {
