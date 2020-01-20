@@ -2,6 +2,7 @@ import React from "react";
 import "./join-competition.css"
 import JoinCompetitionForm from "../join-competition-form";
 import DefaultCheckboxButtonGroup from "../../common/default-checkbox-button-group";
+import NavbarHeader from "../../competition-history/navbar-header/navbar-header";
 
 class JoinCompetition extends React.Component {
 
@@ -9,21 +10,31 @@ class JoinCompetition extends React.Component {
         super(props);
 
         this.state = {
-            currentPage: "capitain"
+            currentPage: "captain"
         }
     }
 
     onCreateTeamPageClick = () => {
         console.log("createTeamPageClick");
+        this.setState(() => {
+            return {currentPage: "captain"};
+        })
     };
 
     onJoinTeamPageClick = () => {
         console.log("onJoinTeamPageClick");
+        this.setState(() => {
+            return {currentPage: "player"};
+        })
     };
 
     render() {
         return (
             <div>
+                <div>
+                    <NavbarHeader/>
+                </div>
+            <div style={{paddingTop: "90px"}}>
                 <div className={"d-flex"}>
                     <div style={{margin: "0 auto", width: "26%"}}>
                         <DefaultCheckboxButtonGroup
@@ -38,6 +49,7 @@ class JoinCompetition extends React.Component {
                     </div>
                 </div>
                 <JoinCompetitionForm/>
+            </div>
             </div>
         )
     }
