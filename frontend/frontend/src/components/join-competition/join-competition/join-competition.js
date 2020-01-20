@@ -1,8 +1,10 @@
 import React from "react";
 import "./join-competition.css"
-import JoinCompetitionForm from "../join-competition-form";
+import JoinCompetitionForm from "../join-competition-captain-form";
 import DefaultCheckboxButtonGroup from "../../common/default-checkbox-button-group";
 import NavbarHeader from "../../competition-history/navbar-header/navbar-header";
+import toSnakeCase from "../../../helpers/snake-case-helper";
+import JoinCompetitionPlayerForm from "../join-competition-player-form";
 
 class JoinCompetition extends React.Component {
 
@@ -28,7 +30,22 @@ class JoinCompetition extends React.Component {
         })
     };
 
+    onCreateTeamClick = (formState) => {
+        let obj = {};
+        Object.keys(formState).forEach(key => {
+            obj[toSnakeCase(key)] = formState[key];
+        });
+        console.log(obj);
+    };
+
     render() {
+        let res;
+        if (this.state.currentPage === "captain") {
+            res = <JoinCompetitionForm onFormSubmit={this.onCreateTeamClick}/>
+        } else {
+            res = <JoinCompetitionPlayerForm/>
+        }
+
         return (
             <div>
                 <div>
@@ -48,7 +65,7 @@ class JoinCompetition extends React.Component {
                             ]}/>
                     </div>
                 </div>
-                <JoinCompetitionForm/>
+                {res}
             </div>
             </div>
         )
