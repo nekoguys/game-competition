@@ -25,8 +25,8 @@ class TextInputWithSubmitButton extends React.Component {
         const {type="text", placeholder="", containerStyle={}, buttonStyle={},
             inputStyle={}, imagePath="", onSubmit=(_value) => {}} = this.props;
         return (
-            <div style={{display: "flex", ...containerStyle}}>
-                <input placeholder={placeholder} type={type} style={{flex: "1", ...inputStyle}}
+            <div className={"row"} style={{overflow: "hidden", ...containerStyle}}>
+                <input placeholder={placeholder} type={type} style={{width: "100%", ...inputStyle}}
                        onChange={event => this.onTextChanged(event.target.value)}/>
                 <button style={buttonStyle} onClick={() => onSubmit(this.state.text)} type={"submit"}><img src={imagePath} alt={"submit competition id"}/></button>
             </div>
@@ -35,12 +35,28 @@ class TextInputWithSubmitButton extends React.Component {
 }
 
 class JoinCompetitionPlayerForm extends React.Component {
+
+    constructor(props) {
+        super(props);
+
+        this.gameId = {};
+        this.state = {
+            currentPage: "gameId",
+        }
+    }
+
+    onGameIdSubmitButton = (gameId) => {
+        console.log(gameId);
+        this.gameId = gameId;
+    };
+
     render() {
         const buttonStyle = {
             backgroundColor: "Transparent",
             padding: "-5px",
             border: "none",
             overflow: "hidden",
+            marginLeft: "-50px"
         };
         const inputStyle = {
             border: "none",
@@ -61,7 +77,7 @@ class JoinCompetitionPlayerForm extends React.Component {
             <div style={{marginTop: "40px"}}>
             <div style={innerContainerStyle}>
                 <TextInputWithSubmitButton imagePath={submitButtonImage} containerStyle={{margin: "0 auto"}}
-                                           placeholder={"ID игры"} onSubmit={(val) => console.log(val)}
+                                           placeholder={"ID игры"} onSubmit={this.onGameIdSubmitButton}
                                            buttonStyle={buttonStyle} inputStyle={inputStyle}
                 />
             </div>
