@@ -2,9 +2,7 @@ package com.groudina.ten.demo.controllers;
 
 import com.groudina.ten.demo.datasource.DbCompetitionsRepository;
 import com.groudina.ten.demo.datasource.DbUserRepository;
-import com.groudina.ten.demo.dto.NewCompetition;
-import com.groudina.ten.demo.dto.NewTeam;
-import com.groudina.ten.demo.dto.ResponseMessage;
+import com.groudina.ten.demo.dto.*;
 import com.groudina.ten.demo.exceptions.CaptainAlreadyCreatedGameException;
 import com.groudina.ten.demo.exceptions.IllegalGameStateException;
 import com.groudina.ten.demo.models.DbCompetition;
@@ -18,10 +16,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
 import javax.validation.Valid;
@@ -74,6 +69,17 @@ public class CompetitionsController {
                     new ResponseEntity<>(ResponseMessage.of("Captain is in another team already"), HttpStatus.BAD_REQUEST))
                 .onErrorReturn(IllegalGameStateException.class,
                         new ResponseEntity<>(ResponseMessage.of("Illegal game state"), HttpStatus.BAD_REQUEST));
+    }
+
+    @PostMapping(value = "/check_pin")
+    @PreAuthorize("hasRole('STUDENT')")
+    public Mono<ResponseEntity<GamePinCheckResponse>> checkIfGameExists(@Valid @RequestBody GamePinCheckRequest pinCheck) {
+        return competitionsRepository.findByPin(pinCheck.getPin()).map(comp -> {
+            if (comp.getState() != DbCompetition.State.Registration) {
+                return ResponseEntity.ok(GamePinCheckResponse.of(false));
+            }
+            return ResponseEntity.ok(GamePinCheckResponse.of(true));
+        }).defaultIfEmpty(ResponseEntity.ok(GamePinCheckResponse.of(false)));
     }
 }
 

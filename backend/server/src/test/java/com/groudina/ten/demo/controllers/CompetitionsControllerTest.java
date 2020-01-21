@@ -5,9 +5,7 @@ import com.groudina.ten.demo.datasource.DbCompetitionsRepository;
 import com.groudina.ten.demo.datasource.DbRolesRepository;
 import com.groudina.ten.demo.datasource.DbTeamsRepository;
 import com.groudina.ten.demo.datasource.DbUserRepository;
-import com.groudina.ten.demo.dto.NewCompetition;
-import com.groudina.ten.demo.dto.NewTeam;
-import com.groudina.ten.demo.dto.ResponseMessage;
+import com.groudina.ten.demo.dto.*;
 import com.groudina.ten.demo.models.DbCompetition;
 import com.groudina.ten.demo.models.DbRole;
 import com.groudina.ten.demo.models.DbTeam;
@@ -29,7 +27,7 @@ import org.springframework.web.reactive.function.BodyInserters;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.security.test.web.reactive.server.SecurityMockServerConfigurers.springSecurity;
 
 @SpringBootTest
@@ -219,5 +217,42 @@ class CompetitionsControllerTest {
                 )).accept(MediaType.APPLICATION_JSON)
                 .exchange().expectStatus().isBadRequest()
                 .expectBody(ResponseMessage.class).isEqualTo(ResponseMessage.of("Captain is in another team already"));
+    }
+
+    @Test
+    @WithMockUser(roles = {"STUDENT"})
+    public void testCheckGamePin() {
+        var competition = competitionsRepository.save(DbCompetition.builder().pin("123")
+                .state(DbCompetition.State.Registration).build()).block();
+        var competition2 = competitionsRepository.save(DbCompetition.builder().pin("1234")
+                .state(DbCompetition.State.Draft).build()).block();
+
+        webTestClient.post().uri("/api/competitions/check_pin")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(BodyInserters.fromValue(
+                        GamePinCheckRequest.builder().pin("123").build()
+                )).accept(MediaType.APPLICATION_JSON)
+                .exchange().expectStatus().isOk()
+                .expectBody(GamePinCheckResponse.class).consumeWith((resp) -> {
+                    assertTrue(resp.getResponseBody().isExists());
+        });
+
+        webTestClient.post().uri("/api/competitions/check_pin")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(BodyInserters.fromValue(GamePinCheckRequest.builder().pin("12").build()))
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange().expectStatus().isOk()
+                .expectBody(GamePinCheckResponse.class).consumeWith((resp) -> {
+                    assertFalse(resp.getResponseBody().isExists());
+        });
+
+        webTestClient.post().uri("/api/competitions/check_pin")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(BodyInserters.fromValue(GamePinCheckRequest.builder().pin("1234").build()))
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange().expectStatus().isOk()
+                .expectBody(GamePinCheckResponse.class).consumeWith((resp) -> {
+                    assertFalse(resp.getResponseBody().isExists());
+        });
     }
 }
