@@ -1,6 +1,9 @@
 import React from "react";
 import "./join-competition-player-form.css";
 import submitButtonImage from "./submitButton.png";
+import ApiHelper from "../../../helpers/api-helper";
+
+import {NotificationContainer, NotificationManager} from "react-notifications";
 
 class TextInputWithSubmitButton extends React.Component {
     constructor(props) {
@@ -48,6 +51,31 @@ class JoinCompetitionPlayerForm extends React.Component {
     onGameIdSubmitButton = (gameId) => {
         console.log(gameId);
         this.gameId = gameId;
+        const timeout = 1000;
+        ApiHelper.checkPin({pin: gameId}).then(resp => {
+            if (resp.status >= 300) {
+                return {success: false}
+            }
+            return {success: true, json: resp.json()};
+        }).then(obj => {
+            if (obj.success) {
+                obj.json.then(val => {
+                    console.log({val});
+                    if (val.exists) {
+                        NotificationManager.success("Competition found successfully", "Success", timeout);
+                        setTimeout(() => {
+                            this.setState(prevState => {
+                                return {currentPage: "teamSelection"};
+                            })
+                        }, timeout);
+                    } else {
+                        NotificationManager.error("No such competition or registration is closed", "Error", timeout);
+                    }
+                });
+            } else {
+                NotificationManager.error("Error happened", "Error", timeout);
+            }
+        })
     };
 
     render() {
@@ -75,12 +103,13 @@ class JoinCompetitionPlayerForm extends React.Component {
         };
         return (
             <div style={{marginTop: "40px"}}>
-            <div style={innerContainerStyle}>
-                <TextInputWithSubmitButton imagePath={submitButtonImage} containerStyle={{margin: "0 auto"}}
-                                           placeholder={"ID игры"} onSubmit={this.onGameIdSubmitButton}
-                                           buttonStyle={buttonStyle} inputStyle={inputStyle}
-                />
-            </div>
+                <div style={innerContainerStyle}>
+                    <TextInputWithSubmitButton imagePath={submitButtonImage} containerStyle={{margin: "0 auto"}}
+                                               placeholder={"ID игры"} onSubmit={this.onGameIdSubmitButton}
+                                               buttonStyle={buttonStyle} inputStyle={inputStyle}
+                    />
+                </div>
+                <NotificationContainer/>
             </div>
         )
     }
