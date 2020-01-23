@@ -26,6 +26,8 @@ public class WebSecurityConfig {
 
     @Bean
     SecurityWebFilterChain springWebFilterChain(ServerHttpSecurity http) {
+        //For testing text_event_stream
+        //String[] patterns = new String[] {"/api/auth/signin**", "/api/auth/signup**", "/api/competitions/team_join_events/12345**"};
         String[] patterns = new String[] {"/api/auth/signin**", "/api/auth/signup**"};
         return http.cors().disable()
                 .exceptionHandling()
