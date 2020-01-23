@@ -9,6 +9,7 @@ import Login from "../auth/login";
 import Register from "../auth/register/register";
 import CompetitionHistory from "../competition-history/competition-history";
 import CreateCompetition from "../create-competition/create-competition";
+import JoinCompetition from "../join-competition/join-competition";
 
 export default class App extends React.Component{
     render() {
@@ -27,6 +28,9 @@ export default class App extends React.Component{
                     </Route>
                     <Route path={"/competitions/create"}>
                         <CreateCompetition/>
+                    </Route>
+                    <Route path={"/competitions/join"}>
+                        <JoinCompetition/>
                     </Route>
                 </Switch>
             </Router>
