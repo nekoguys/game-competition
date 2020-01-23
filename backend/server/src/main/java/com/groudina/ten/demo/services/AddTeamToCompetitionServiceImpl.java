@@ -6,6 +6,7 @@ import com.groudina.ten.demo.datasource.DbUserRepository;
 import com.groudina.ten.demo.dto.NewTeam;
 import com.groudina.ten.demo.exceptions.CaptainAlreadyCreatedGameException;
 import com.groudina.ten.demo.exceptions.IllegalGameStateException;
+import com.groudina.ten.demo.exceptions.WrongCompetitionParametersException;
 import com.groudina.ten.demo.models.DbCompetition;
 import com.groudina.ten.demo.models.DbTeam;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,14 +23,18 @@ public class AddTeamToCompetitionServiceImpl implements IAddTeamToCompetitionSer
 
     private ITeamCreationChecker creationChecker;
 
+    private ITeamConnectionNotifyService connectionNotifyService;
+
     public AddTeamToCompetitionServiceImpl(@Autowired DbUserRepository userRepository,
                                            @Autowired DbCompetitionsRepository competitionsRepository,
                                            @Autowired DbTeamsRepository teamsRepository,
-                                           @Autowired ITeamCreationChecker creationChecker) {
+                                           @Autowired ITeamCreationChecker creationChecker,
+                                           @Autowired ITeamConnectionNotifyService connectionNotifyService) {
         this.userRepository = userRepository;
         this.competitionsRepository = competitionsRepository;
         this.teamsRepository = teamsRepository;
         this.creationChecker = creationChecker;
+        this.connectionNotifyService = connectionNotifyService;
     }
 
     @Override
@@ -55,12 +60,14 @@ public class AddTeamToCompetitionServiceImpl implements IAddTeamToCompetitionSer
                             .password(newTeam.getPassword())
                             .captain(captain)
                             .sourceCompetition(competition)
+                            .name(newTeam.getName())
                             //.idInGame() TODO
                             .build();
                     competition.addTeam(dbTeam);
                     return teamsRepository.save(dbTeam).flatMap(team -> {
+                        this.connectionNotifyService.registerTeam(team);
                         return competitionsRepository.save(competition);
-                    }).then(Mono.just(dbTeam));
+                    }).then(Mono.just(dbTeam)).switchIfEmpty(Mono.error(new WrongCompetitionParametersException("Game or captain not found")));
         });
     }
 }

@@ -21,6 +21,9 @@ public class DbTeam {
     private String id;
 
     @Getter
+    private String name;
+
+    @Getter
     private int idInGame;//should be generated sequentially
 
     @Getter

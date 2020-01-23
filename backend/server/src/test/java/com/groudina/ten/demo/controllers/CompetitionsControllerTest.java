@@ -182,6 +182,7 @@ class CompetitionsControllerTest {
                                 .captainEmail("email")
                                 .competitionId("123")
                                 .password("password")
+                                .name("name")
                                 .build()
                 )).accept(MediaType.APPLICATION_JSON)
                 .exchange().expectStatus().isBadRequest()
