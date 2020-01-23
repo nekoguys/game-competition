@@ -133,6 +133,65 @@ class CompetitionsControllerTest {
     }
 
     @Test
+    @WithMockUser(value = "email", password = "1234", roles = {"TEACHER"})
+    void checkPinCompetition() {
+        var owner = userRepository.save(DbUser.builder().password("1234").email("email").roles(rolesRepository.findAll().collect(Collectors.toList()).block()).build()).block();
+        assertEquals(0, competitionsRepository.findAll().count().block());
+
+        webTestClient.post().uri("/api/competitions/create")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(BodyInserters.fromValue(NewCompetition.builder()
+                        .shouldShowStudentPreviousRoundResults(false)
+                        .state("draft")
+                        .maxTeamsAmount(1)
+                        .demandFormula(List.of("1", "2"))
+                        .expensesFormula(List.of("1", "2", "3"))
+                        .instruction("instr")
+                        .name("name")
+                        .roundLength(1)
+                        .roundsCount(2)
+                        .shouldEndRoundBeforeAllAnswered(false)
+                        .shouldShowResultTableInEnd(false)
+                        .maxTeamSize(3)
+                        .build()))
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange().expectStatus().isOk()
+                .expectBody(ResponseMessage.class)
+        ;
+        assertEquals(competitionsRepository.findAll().collect(Collectors.toList()).block().get(0).getPin(), null);
+
+        webTestClient.post().uri("/api/competitions/create")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(BodyInserters.fromValue(NewCompetition.builder()
+                        .shouldShowStudentPreviousRoundResults(false)
+                        .state("registration")
+                        .maxTeamsAmount(1)
+                        .demandFormula(List.of("1", "2"))
+                        .expensesFormula(List.of("1", "2", "3"))
+                        .instruction("instr")
+                        .name("name")
+                        .roundLength(1)
+                        .roundsCount(2)
+                        .shouldEndRoundBeforeAllAnswered(false)
+                        .shouldShowResultTableInEnd(false)
+                        .maxTeamSize(3)
+                        .build()))
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange().expectStatus().isOk()
+                .expectBody(ResponseMessage.class)
+        ;
+
+        var t = competitionsRepository
+                .findAll()
+                .toStream()
+                .filter(x -> x.getPin() != null)
+                .collect(Collectors.toList())
+                .get(0);
+        assertNotEquals(t.getPin(), null);
+        assertEquals(competitionsRepository.findByPin(t.getPin()).block().getPin(), t.getPin());
+    }
+
+    @Test
     @WithMockUser(value = "email", password = "1234", roles = {"STUDENT"})
     public void testTeamCreation() {
         userRepository.save(DbUser.builder()
@@ -150,7 +209,7 @@ class CompetitionsControllerTest {
                                 .captainEmail("email")
                                 .competitionId("123")
                                 .password("password")
-                        .build()
+                                .build()
                 )).accept(MediaType.APPLICATION_JSON)
                 .exchange().expectStatus().isOk()
                 .expectBody(ResponseMessage.class);
@@ -185,7 +244,7 @@ class CompetitionsControllerTest {
                                 .build()
                 )).accept(MediaType.APPLICATION_JSON)
                 .exchange().expectStatus().isBadRequest()
-        .expectBody(ResponseMessage.class).isEqualTo(ResponseMessage.of("Illegal game state"));
+                .expectBody(ResponseMessage.class).isEqualTo(ResponseMessage.of("Illegal game state"));
     }
 
     @Test
@@ -234,7 +293,7 @@ class CompetitionsControllerTest {
                 )).accept(MediaType.APPLICATION_JSON)
                 .exchange().expectStatus().isOk()
                 .expectBody(GamePinCheckResponse.class).consumeWith((resp) -> {
-                    assertTrue(resp.getResponseBody().isExists());
+            assertTrue(resp.getResponseBody().isExists());
         });
 
         webTestClient.post().uri("/api/competitions/check_pin")
@@ -243,7 +302,7 @@ class CompetitionsControllerTest {
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange().expectStatus().isOk()
                 .expectBody(GamePinCheckResponse.class).consumeWith((resp) -> {
-                    assertFalse(resp.getResponseBody().isExists());
+            assertFalse(resp.getResponseBody().isExists());
         });
 
         webTestClient.post().uri("/api/competitions/check_pin")
@@ -252,7 +311,7 @@ class CompetitionsControllerTest {
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange().expectStatus().isOk()
                 .expectBody(GamePinCheckResponse.class).consumeWith((resp) -> {
-                    assertFalse(resp.getResponseBody().isExists());
+            assertFalse(resp.getResponseBody().isExists());
         });
     }
 }
