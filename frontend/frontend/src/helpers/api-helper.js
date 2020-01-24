@@ -4,6 +4,7 @@ class ApiSettings {
     static #signupEndPoint = ApiSettings.#host + "/auth/signup";
     static #createCompetitionEndPoint = ApiSettings.#host + "/competitions/create";
     static #checkPinEndPoint = ApiSettings.#host + "/competitions/check_pin";
+    static #createTeamEndPoint = ApiSettings.#host + "/competitions/create_team";
 
     static host() {
         return ApiSettings.#host;
@@ -23,6 +24,10 @@ class ApiSettings {
 
     static checkPinEndPoint() {
         return ApiSettings.#checkPinEndPoint;
+    }
+
+    static createTeamEndPoint() {
+        return ApiSettings.#createTeamEndPoint;
     }
 }
 
@@ -71,6 +76,14 @@ export default class ApiHelper {
             method: "POST",
             headers: this.authDefaultHeaders(),
             body: JSON.stringify(pin)
+        });
+    }
+
+    static createTeam(team) {
+        return fetch(ApiSettings.createTeamEndPoint(), {
+            method: "POST",
+            headers: this.authDefaultHeaders(),
+            body: JSON.stringify(team)
         });
     }
 }
