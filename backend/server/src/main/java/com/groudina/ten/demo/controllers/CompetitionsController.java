@@ -71,11 +71,11 @@ public class CompetitionsController {
             return ResponseEntity.ok(ResponseMessage.of("Team created successfully"));
         })
                 .onErrorReturn(CaptainAlreadyCreatedGameException.class,
-                    new ResponseEntity<>(ResponseMessage.of("Captain is in another team already"), HttpStatus.BAD_REQUEST))
+                        ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseMessage.of("Captain is in another team already")))
                 .onErrorReturn(IllegalGameStateException.class,
-                        new ResponseEntity<>(ResponseMessage.of("Illegal game state"), HttpStatus.BAD_REQUEST))
+                        ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseMessage.of("Illegal game state")))
                 .onErrorReturn(CaptainAlreadyCreatedGameException.class,
-                        new ResponseEntity<>(ResponseMessage.of("Game not found or user not found"), HttpStatus.BAD_REQUEST));
+                        ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseMessage.of("Game not found or user not found")));
     }
 
     @PostMapping(value = "/check_pin")
