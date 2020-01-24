@@ -3,85 +3,100 @@ package com.groudina.ten.demo.controllers;
 import com.groudina.ten.demo.datasource.DbRolesRepository;
 import com.groudina.ten.demo.datasource.DbUserRepository;
 import com.groudina.ten.demo.dto.ResponseMessage;
-import com.groudina.ten.demo.dto.RoleGetRequest;
-import com.groudina.ten.demo.dto.RolePutRequest;
-import com.groudina.ten.demo.dto.RolesResponse;
+import com.groudina.ten.demo.dto.RolePostRequest;
+import com.groudina.ten.demo.dto.RoleResponse;
+import com.groudina.ten.demo.exceptions.ResponseException;
 import com.groudina.ten.demo.models.DbRole;
+import com.groudina.ten.demo.models.DbUser;
+import com.groudina.ten.demo.services.IRolesMapper;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import javax.validation.Valid;
 import java.security.Principal;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-@RequestMapping(path = "/api/roles")
+@RequestMapping(path = "/api/roles/{email}")
 @Controller
+@Log4j2
+@CrossOrigin(origins = {"*"}, maxAge = 3600)
 public class RolesController {
     private DbUserRepository userRepository;
     private DbRolesRepository rolesRepository;
+    private IRolesMapper rolesMapper;
 
     public RolesController(
             @Autowired DbUserRepository userRepository,
-            @Autowired DbRolesRepository rolesRepository) {
+            @Autowired DbRolesRepository rolesRepository,
+            @Autowired IRolesMapper rolesMapper) {
         this.userRepository = userRepository;
         this.rolesRepository = rolesRepository;
+        this.rolesMapper = rolesMapper;
     }
 
-    @PutMapping(produces = {MediaType.APPLICATION_JSON_VALUE})
+    @PostMapping(produces = {MediaType.APPLICATION_JSON_VALUE})
     @PreAuthorize("hasRole('ADMIN')")
-    public Mono<ResponseEntity> updateRoles(Mono<Principal> principalMono, @Valid @RequestBody RolePutRequest rolePutRequest) {
-        String email = rolePutRequest.getEmail();
-        return principalMono.flatMap(adminEmail -> {
+    public Mono<ResponseEntity> postRoles(
+            Mono<Principal> principalMono,
+            @PathVariable String email,
+            @Valid @RequestBody RolePostRequest rolePostRequest) {
+        String roleName = rolePostRequest.getRole();
+
+        Mono<DbUser> emailNotFoundFallback = Mono.error(
+                new ResponseException(String.format("User with email \"%s\" doesn't exist", email)));
+        Mono<DbUser> targetMono = userRepository.findOneByEmail(email)
+                .switchIfEmpty(emailNotFoundFallback);
+
+        Mono<List<DbRole>> targetRolesMono = rolesMapper.map(roleName);
+
+        return Mono.zip(principalMono, targetMono, targetRolesMono).flatMap(args -> {
+            Principal principal = args.getT1();
+            DbUser target = args.getT2();
+            List<DbRole> targetRoles = args.getT3();
+
             // Check if admin commits suicide.
-            if (email.equals(adminEmail.getName()) && !rolePutRequest.getRole().equals("ROLE_ADMIN"))
-                return Mono.just(ResponseEntity.ok(new ResponseMessage("You are not allowed to remove your admin rights")));
-            else
-                return userRepository.findOneByEmail(rolePutRequest.getEmail())
-                        .flatMap(user ->
-                                Flux.fromStream(getNeededRoles(rolePutRequest.getRole()))
-                                        .flatMap(roleName -> rolesRepository.findByName(roleName))
-                                        .collect(Collectors.toList())
-                                        .flatMap(roles -> {
-                                            user.setRoles(roles);
-                                            ResponseEntity response = ResponseEntity.ok(new RolesResponse(convertRolesToNames(roles), email));
-                                            return userRepository.save(user).thenReturn(response);
-                                        }).switchIfEmpty(Mono.just(ResponseEntity.ok(new ResponseMessage(
-                                        String.format("Role %s not found", rolePutRequest.getRole())))))
-                        ).switchIfEmpty(Mono.just(ResponseEntity.ok(new ResponseMessage("There is no user with such email"))));
+            if (email.equals(principal.getName()) && !roleName.equals("ROLE_ADMIN"))
+                return Mono.error(new ResponseException("You are not allowed to remove your role \"ROLE_ADMIN\""));
+
+            target.setRoles(targetRoles);
+            ResponseEntity response = ResponseEntity.ok(new RoleResponse(roleName));
+            return userRepository.save(target).thenReturn(response);
+        }).onErrorResume(ex -> {
+            return Mono.just(ResponseEntity.badRequest().body(
+                    new ResponseMessage(ex.getMessage())));
         });
     }
 
     @GetMapping(produces = {MediaType.APPLICATION_JSON_VALUE})
-    public Mono<ResponseEntity> getNeededRoles(@Valid @RequestBody RoleGetRequest roleGetRequest) {
-        String email = roleGetRequest.getEmail();
-        return userRepository.findOneByEmail(email).map(user -> {
-            return new ResponseEntity(new RolesResponse(convertRolesToNames(user.getRoles()), email), HttpStatus.OK);
-        }).switchIfEmpty(Mono.just(new ResponseEntity(HttpStatus.BAD_REQUEST)));
-    }
+    public Mono<ResponseEntity> getRoles(@PathVariable String email) {
+        Mono<DbUser> emailNotFoundFallback = Mono.error(
+                new ResponseException(String.format("User with email \"%s\" doesn't exist", email)));
 
-    private List<String> convertRolesToNames(List<DbRole> roles) {
-        return roles.stream().map(DbRole::getName).collect(Collectors.toList());
-    }
+        return userRepository.findOneByEmail(email)
+                .switchIfEmpty(emailNotFoundFallback)
+                .map(user -> {
+                    var roleNames = user.getRoles().stream()
+                            .map(DbRole::getName)
+                            .collect(Collectors.toList());
 
-    private Stream<String> getNeededRoles(String topRoleName) {
-        switch (topRoleName) {
-            case "ROLE_ADMIN":
-                return Stream.of("ROLE_ADMIN", "ROLE_TEACHER", "ROLE_STUDENT");
-            case "ROLE_TEACHER":
-                return Stream.of("ROLE_TEACHER", "ROLE_STUDENT");
-            case "ROLE_STUDENT":
-                return Stream.of("ROLE_STUDENT");
-            default:
-                return Stream.of(topRoleName);
-        }
+                    if (roleNames.contains("ROLE_ADMIN"))
+                        return "ROLE_ADMIN";
+                    if (roleNames.contains("ROLE_TEACHER"))
+                        return "ROLE_TEACHER";
+                    if (roleNames.contains("ROLE_STUDENT"))
+                        return "ROLE_STUDENT";
+
+                    throw new ResponseException("User doesn't have any roles");
+                }).map(role -> {
+                    return (ResponseEntity) ResponseEntity.ok(new RoleResponse(role));
+                }).onErrorResume(ex -> Mono.just(ResponseEntity.badRequest().body(
+                        new ResponseMessage(ex.getMessage()))));
     }
 }

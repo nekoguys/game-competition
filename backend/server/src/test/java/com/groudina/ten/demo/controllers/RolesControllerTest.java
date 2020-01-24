@@ -12,6 +12,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -20,12 +21,17 @@ import org.springframework.web.reactive.function.BodyInserters;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.springframework.security.test.web.reactive.server.SecurityMockServerConfigurers.springSecurity;
 
 @SpringBootTest
 @EnableEmbeddedMongo
 class RolesControllerTest {
+
+    @Autowired
+    ApplicationContext context;
 
     WebTestClient webTestClient;
     @Autowired
@@ -37,10 +43,20 @@ class RolesControllerTest {
 
     @BeforeEach
     void setUp() {
-        webTestClient = WebTestClient.bindToController(controller).build();
+        webTestClient = WebTestClient.bindToApplicationContext(this.context).apply(springSecurity()).configureClient().build();
         rolesRepository.saveAll(List.of(DbRole.builder().name("ROLE_STUDENT").build(),
                 DbRole.builder().name("ROLE_TEACHER").build(),
                 DbRole.builder().name("ROLE_ADMIN").build())).blockLast();
+
+        userRepository.save(DbUser.builder()
+                .password("1234")
+                .email("admin@hse.ru")
+                .roles(rolesRepository
+                        .findAll()
+                        .collectList()
+                        .block())
+                .build()
+        ).block();
 
         userRepository.save(DbUser.builder()
                 .password("1234")
@@ -53,15 +69,6 @@ class RolesControllerTest {
                 .build()
         ).block();
 
-        userRepository.save(DbUser.builder()
-                .password("1234")
-                .email("admin@hse.ru")
-                .roles(rolesRepository
-                        .findAll()
-                        .collectList()
-                        .block())
-                .build()
-        ).block();
     }
 
     @AfterEach
@@ -71,8 +78,8 @@ class RolesControllerTest {
     }
 
     @Test
-    @WithMockUser(value = "target@hse.ru", password = "1234", roles = {"STUDENT"})
-    void putRolesForbidden() {
+    @WithMockUser(username = "target@hse.ru", password = "1234", roles = {"STUDENT"})
+    void postRolesForbidden() {
         webTestClient.post().uri("/api/roles/target@hse.ru")
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(BodyInserters.fromValue(new RolePostRequest("ROLE_ADMIN")))
