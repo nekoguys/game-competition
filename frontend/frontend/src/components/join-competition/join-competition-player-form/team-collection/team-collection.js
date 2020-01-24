@@ -35,14 +35,13 @@ class TeamCollectionElement extends React.Component {
 class TeamCollection extends React.Component {
     constructor(props) {
         super(props);
-
-        this.items = this.props.items;
     }
 
     render() {
-        const items = this.items.map(item => {
+        console.log(this.props.items);
+        const items = this.props.items.map(item => {
             return (
-                <div>
+                <div key={item.teamName}>
                     <TeamCollectionElement name={item.teamName}/>
                 </div>
             )

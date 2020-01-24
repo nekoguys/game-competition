@@ -47,6 +47,7 @@ class JoinCompetitionPlayerForm extends React.Component {
         this.gameId = {};
         this.state = {
             currentPage: "gamePinPage",
+            items: []
         }
     }
 
@@ -79,6 +80,35 @@ class JoinCompetitionPlayerForm extends React.Component {
             }
         })
     };
+
+    setupTeamEventConnections() {
+        if (this.eventSource === undefined) {
+            this.eventSource = ApiHelper.teamCreationEventSource(this.gameId);
+            this.eventSource.addEventListener("error",
+                (err) => {
+                    console.log("EventSource failed: ", err)
+                });
+            this.eventSource.addEventListener("message", (event) => {
+                console.log({data: event.data});
+                this.setState((prevState) => {
+                    let arr = prevState.items.slice(0);
+                    const elem = JSON.parse(event.data);
+                    if (!arr.some((el) => {return el.teamName === elem.teamName}))
+                        arr.push(elem);
+                    return {items: arr}
+                });
+            });
+        }
+    }
+
+    closeTeamEventConnections() {
+        if (this.eventSource !== undefined)
+            this.eventSource.close();
+    }
+
+    componentWillUnmount() {
+        this.closeTeamEventConnections();
+    }
 
     gamePinPage() {
         const buttonStyle = {
@@ -117,14 +147,7 @@ class JoinCompetitionPlayerForm extends React.Component {
     }
 
     enterTeamPage() {
-        const items = [
-            {
-                teamName: "team1"
-            },
-            {
-                teamName: "team2"
-            }
-        ];
+        const items = this.state.items;
         return (
             <div style={{marginTop: "30px"}}>
                 <div style={{marginTop: "10px", width: "50%", margin:"0 auto"}}>
@@ -145,10 +168,12 @@ class JoinCompetitionPlayerForm extends React.Component {
 
     render() {
         let res;
-        if (this.state.currentPage === "gameId") {
+        if (this.state.currentPage === "gamePinPage") {
             res = this.gamePinPage();
+            this.closeTeamEventConnections();
         } else {
             res = this.enterTeamPage();
+            this.setupTeamEventConnections()
         }
         return (
             <div>
