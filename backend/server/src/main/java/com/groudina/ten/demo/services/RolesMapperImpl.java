@@ -42,6 +42,7 @@ public class RolesMapperImpl implements IRolesMapper {
         return Flux.fromIterable(roleNames)
                 .flatMap(roleName -> rolesRepository.findByName(roleName))
                 .collectList()
+                .flatMap(list -> list.isEmpty() ? roleNotFoundFallback : Mono.just(list))
                 .switchIfEmpty(roleNotFoundFallback);
     }
 }
