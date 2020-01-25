@@ -64,13 +64,13 @@ class UserControllerTest {
 
     @Test
     @WithMockUser(roles = {"ADMIN"})
-    void createAdminUser() {
+    void createTeacherUser() {
         NewUserWithRole user = NewUserWithRole.builder()
                 .email("email")
                 .password(encoder.encode("password"))
-                .role("ROLE_ADMIN").build();
+                .role("ROLE_TEACHER").build();
 
-        webTestClient.post().uri("api/users/create")
+        webTestClient.post().uri("/api/users/create")
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(BodyInserters.fromValue(user))
                 .accept(MediaType.APPLICATION_JSON)
@@ -78,5 +78,52 @@ class UserControllerTest {
                 .expectStatus().isOk()
                 .expectBody(ResponseMessage.class)
                 .value(resp -> assertEquals(resp.getMessage(), "User created successfully!"));
+
+        var dbUser = userRepository.findOneByEmail(user.getEmail()).block();
+        assert dbUser != null;
+        assertEquals(2, dbUser.getRoles().size());
+    }
+
+    @Test
+    @WithMockUser(roles = {"ADMIN"})
+    void createAdminUser() {
+        NewUserWithRole user = NewUserWithRole.builder()
+                .email("email")
+                .password(encoder.encode("password"))
+                .role("ROLE_ADMIN").build();
+
+        webTestClient.post().uri("/api/users/create")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(BodyInserters.fromValue(user))
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody(ResponseMessage.class)
+                .value(resp -> assertEquals(resp.getMessage(), "User created successfully!"));
+    }
+
+    @Test
+    @WithMockUser(roles = {"ADMIN"})
+    void createUserWithAlreadyExistingEmail() {
+        NewUserWithRole user = NewUserWithRole.builder()
+                .email("duplicateEmail")
+                .password(encoder.encode("password"))
+                .role("ROLE_ADMIN").build();
+
+        webTestClient.post().uri("/api/users/create")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(BodyInserters.fromValue(user))
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange()
+                .expectStatus().isOk();
+
+        webTestClient.post().uri("/api/users/create")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(BodyInserters.fromValue(user))
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange()
+                .expectStatus().is4xxClientError()
+                .expectBody(ResponseMessage.class)
+                .value(resp -> assertTrue(resp.getMessage().contains("duplicate")));
     }
 }
