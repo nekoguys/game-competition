@@ -1,3 +1,5 @@
+import {EventSourcePolyfill} from 'event-source-polyfill';
+
 class ApiSettings {
     static #host = "http://localhost:8080/api";
     static #signinEndPoint = ApiSettings.#host + "/auth/signin";
@@ -5,6 +7,7 @@ class ApiSettings {
     static #createCompetitionEndPoint = ApiSettings.#host + "/competitions/create";
     static #checkPinEndPoint = ApiSettings.#host + "/competitions/check_pin";
     static #createTeamEndPoint = ApiSettings.#host + "/competitions/create_team";
+    static #teamCreationEvents = ApiSettings.#host + "/competitions/team_join_events/";
 
     static host() {
         return ApiSettings.#host;
@@ -28,6 +31,10 @@ class ApiSettings {
 
     static createTeamEndPoint() {
         return ApiSettings.#createTeamEndPoint;
+    }
+
+    static teamCreationEvents(pin) {
+        return ApiSettings.#teamCreationEvents + pin;
     }
 }
 
@@ -85,5 +92,13 @@ export default class ApiHelper {
             headers: this.authDefaultHeaders(),
             body: JSON.stringify(team)
         });
+    }
+
+    static teamCreationEventSource(pin) {
+        return new EventSourcePolyfill(ApiSettings.teamCreationEvents(pin),
+            {
+                headers: this.authDefaultHeaders(),
+                //heartbeatTimeout: 1000*60*60
+            });
     }
 }
