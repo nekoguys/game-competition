@@ -46,9 +46,13 @@ public class DbTeam {
     }
 
     public List<DbUser> getAllPlayers() {
-        var players = new ArrayList<>(allPlayers);
-        players.add(captain);
+        if (captain != null) {
+            var players = new ArrayList<>(allPlayers);
+            players.add(captain);
 
-        return players;
+            return players;
+        }
+
+        return allPlayers;
     }
 }

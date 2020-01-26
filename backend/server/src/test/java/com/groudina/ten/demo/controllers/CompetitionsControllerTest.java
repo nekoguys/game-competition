@@ -11,7 +11,10 @@ import com.groudina.ten.demo.models.DbRole;
 import com.groudina.ten.demo.models.DbTeam;
 import com.groudina.ten.demo.models.DbUser;
 import com.groudina.ten.demo.services.IAddTeamToCompetitionService;
+import com.groudina.ten.demo.services.ITeamConnectionNotifyService;
 import com.groudina.ten.demo.services.ITeamCreationChecker;
+import com.groudina.ten.demo.services.ITeamJoinService;
+import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,6 +35,7 @@ import static org.springframework.security.test.web.reactive.server.SecurityMock
 
 @SpringBootTest
 @EnableEmbeddedMongo
+@Log4j2
 class CompetitionsControllerTest {
 
     @Autowired
@@ -58,10 +62,16 @@ class CompetitionsControllerTest {
     DbTeamsRepository teamsRepository;
 
     @Autowired
-    IAddTeamToCompetitionService teamJoinService;
+    IAddTeamToCompetitionService addTeamToCompetitionService;
 
     @Autowired
     ITeamCreationChecker checker;
+
+    @Autowired
+    ITeamConnectionNotifyService notifyService;
+
+    @Autowired
+    ITeamJoinService teamJoinService;
 
     @BeforeEach
     void setup() {
@@ -202,7 +212,7 @@ class CompetitionsControllerTest {
                 .state(DbCompetition.State.Registration)
                 .pin("123").build()).block();
 
-        DbTeam dbTeam = teamsRepository.save(DbTeam.builder().captain(user).sourceCompetition(competition).build()).block();
+        DbTeam dbTeam = teamsRepository.save(DbTeam.builder().name("oldname").captain(user).sourceCompetition(competition).build()).block();
 
         competition.addTeam(dbTeam);
         competitionsRepository.save(competition).block();
@@ -211,6 +221,7 @@ class CompetitionsControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(BodyInserters.fromValue(
                         NewTeam.builder()
+                                .name("teamname")
                                 .captainEmail("email")
                                 .competitionId("123")
                                 .password("password")
@@ -254,6 +265,200 @@ class CompetitionsControllerTest {
                 .exchange().expectStatus().isOk()
                 .expectBody(GamePinCheckResponse.class).consumeWith((resp) -> {
                     assertFalse(resp.getResponseBody().isExists());
+        });
+    }
+
+    private List<Object> testTeamJoinCommon() {
+        var user = userRepository.save(DbUser.builder()
+                .email("email")
+                .password("1234")
+                .roles(rolesRepository.findAll().collect(Collectors.toList()).block())
+                .build()).block();
+
+        var competition = competitionsRepository.save(DbCompetition.builder()
+                .state(DbCompetition.State.Registration)
+                .pin("12345")
+                .build()).block();
+
+        var team = teamsRepository.save(DbTeam.builder()
+                .sourceCompetition(competition)
+                .name("TEAMNAME")
+                .password("password")
+                .idInGame(0)
+                .build()).block();
+
+        competition.addTeam(team);
+        competition = competitionsRepository.save(competition).block();
+
+        return List.of(user, competition, team);
+    }
+
+    @Test
+    @WithMockUser(value = "email", password = "1234", roles = {"STUDENT"})
+    public void testTeamJoin() {
+        testTeamJoinCommon();
+
+
+        webTestClient.post().uri("/api/competitions/join_team")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(BodyInserters.fromValue(
+                        JoinTeamRequest
+                                .builder()
+                                .competitionPin("12345")
+                                .password("password")
+                                .teamName("TEAMNAME").build()
+                )).accept(MediaType.APPLICATION_JSON)
+                .exchange().expectStatus().isOk()
+                .expectBody(JoinTeamResponse.class).value((resp) -> {
+                    assertEquals(resp.getCurrentTeamName(), "TEAMNAME");
+        });
+    }
+
+    @Test
+    @WithMockUser(value = "email", password = "1234", roles = {"STUDENT"})
+    public void testTeamJoinNoSuchTeam() {
+        testTeamJoinCommon();
+
+        webTestClient.post().uri("/api/competitions/join_team")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(BodyInserters.fromValue(
+                        JoinTeamRequest
+                                .builder()
+                                .competitionPin("12345")
+                                .password("password")
+                                .teamName("NONE").build()
+                )).accept(MediaType.APPLICATION_JSON)
+                .exchange().expectStatus().isBadRequest()
+                .expectBody(ResponseMessage.class).value(resp -> {
+                    System.out.println(resp.getMessage());
+                    assertTrue(resp.getMessage().contains("No team in competition with name"));
+        });
+    }
+
+    @Test
+    @WithMockUser(value = "email", password = "1234", roles = {"STUDENT"})
+    public void testTeamJoinNoSuchCompetition() {
+        testTeamJoinCommon();
+
+        webTestClient.post().uri("/api/competitions/join_team")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(BodyInserters.fromValue(
+                        JoinTeamRequest
+                                .builder()
+                                .competitionPin("NONE")
+                                .password("password")
+                                .teamName("TEAMNAME").build()
+                )).accept(MediaType.APPLICATION_JSON)
+                .exchange().expectStatus().isBadRequest()
+                .expectBody(ResponseMessage.class).value(resp -> {
+                    System.out.println(resp.getMessage());
+                    assertTrue(resp.getMessage().contains("No competition with pin"));
+        });
+    }
+
+    @Test
+    @WithMockUser(value = "email", password = "1234", roles = {"STUDENT"})
+    public void testTeamJoinWrongPassword() {
+        testTeamJoinCommon();
+
+        webTestClient.post().uri("/api/competitions/join_team")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(BodyInserters.fromValue(
+                        JoinTeamRequest
+                                .builder()
+                                .competitionPin("12345")
+                                .password("wrongpassword")
+                                .teamName("TEAMNAME").build()
+                )).accept(MediaType.APPLICATION_JSON)
+                .exchange().expectStatus().isBadRequest()
+                .expectBody(ResponseMessage.class).value(resp -> {
+                    System.out.println(resp.getMessage());
+                    assertEquals("Wrong team password", resp.getMessage());
+        });
+    }
+
+    @Test
+    @WithMockUser(value = "email", password = "1234", roles = {"STUDENT"})
+    public void testTeamJoinUserInAnotherTeam() {
+        var lst = testTeamJoinCommon();
+        DbUser user = (DbUser)lst.get(0);
+        DbCompetition competition = (DbCompetition)lst.get(1);
+
+        var anotherTeam = teamsRepository.save(DbTeam
+                .builder()
+                .sourceCompetition(competition)
+                .name("ANOTHERNAME")
+                .password("pass")
+                .allPlayers(List.of(user))
+                .build()).block();
+        competition.addTeam(anotherTeam);
+
+        competitionsRepository.save(competition).block();
+
+        webTestClient.post().uri("/api/competitions/join_team")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(BodyInserters.fromValue(
+                        JoinTeamRequest
+                                .builder()
+                                .competitionPin("12345")
+                                .password("password")
+                                .teamName("TEAMNAME").build()
+                )).accept(MediaType.APPLICATION_JSON)
+                .exchange().expectStatus().isBadRequest()
+                .expectBody(ResponseMessage.class).value((resp) -> {
+                    System.out.println(resp.getMessage());
+                    assertTrue(resp.getMessage().contains("another team"));
+        });
+    }
+
+    @Test
+    @WithMockUser(value = "email", password = "1234", roles = {"STUDENT"})
+    public void testTeamJoinAlreadyInThisTeam() {
+        var lst = testTeamJoinCommon();
+        DbUser user = (DbUser)lst.get(0);
+        DbTeam team = (DbTeam)lst.get(2);
+
+        team.addPlayer(user);
+        teamsRepository.save(team).block();
+
+        webTestClient.post().uri("/api/competitions/join_team")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(BodyInserters.fromValue(
+                        JoinTeamRequest
+                                .builder()
+                                .competitionPin("12345")
+                                .password("password")
+                                .teamName("TEAMNAME").build()
+                )).accept(MediaType.APPLICATION_JSON)
+                .exchange().expectStatus().isBadRequest()
+                .expectBody(ResponseMessage.class).value(resp -> {
+            System.out.println(resp.getMessage());
+            assertTrue(resp.getMessage().contains("another team"));
+        });
+    }
+
+    @Test
+    @WithMockUser(value = "email", password = "1234", roles = {"STUDENT"})
+    public void testTeamJoinWrongGameState() {
+        var lst = testTeamJoinCommon();
+        DbCompetition competition = (DbCompetition)lst.get(1);
+        competition.setState(DbCompetition.State.InProcess);
+
+        competitionsRepository.save(competition).block();
+
+        webTestClient.post().uri("/api/competitions/join_team")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(BodyInserters.fromValue(
+                        JoinTeamRequest
+                                .builder()
+                                .competitionPin("12345")
+                                .password("password")
+                                .teamName("TEAMNAME").build()
+                )).accept(MediaType.APPLICATION_JSON)
+                .exchange().expectStatus().isBadRequest()
+                .expectBody(ResponseMessage.class).value((resp) -> {
+                    System.out.println(resp.getMessage());
+                    assertEquals("Illegal competition state", resp.getMessage());
         });
     }
 }

@@ -6,12 +6,15 @@ import com.groudina.ten.demo.datasource.DbUserRepository;
 import com.groudina.ten.demo.dto.NewTeam;
 import com.groudina.ten.demo.exceptions.CaptainAlreadyCreatedGameException;
 import com.groudina.ten.demo.exceptions.IllegalGameStateException;
+import com.groudina.ten.demo.exceptions.RepeatingTeamNameException;
 import com.groudina.ten.demo.exceptions.WrongCompetitionParametersException;
 import com.groudina.ten.demo.models.DbCompetition;
 import com.groudina.ten.demo.models.DbTeam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
+
+import java.util.Objects;
 
 @Component
 public class AddTeamToCompetitionServiceImpl implements IAddTeamToCompetitionService {
@@ -45,6 +48,10 @@ public class AddTeamToCompetitionServiceImpl implements IAddTeamToCompetitionSer
                 flatMap((captainAndCompTuple) -> {
                     var captain = captainAndCompTuple.getT1();
                     var competition = captainAndCompTuple.getT2();
+
+                    if (competition.getTeams().stream().anyMatch(team -> Objects.equals(team.getName(), newTeam.getName()))) {
+                        return Mono.error(new RepeatingTeamNameException("There is another team with same name"));
+                    }
 
                     if (competition.getState() != DbCompetition.State.Registration) {
                         return Mono.error(new IllegalGameStateException("This game is in state " +

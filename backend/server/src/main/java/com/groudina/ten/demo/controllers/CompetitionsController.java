@@ -1,14 +1,15 @@
 package com.groudina.ten.demo.controllers;
 
 import com.groudina.ten.demo.datasource.DbCompetitionsRepository;
+import com.groudina.ten.demo.datasource.DbTeamsRepository;
 import com.groudina.ten.demo.datasource.DbUserRepository;
 import com.groudina.ten.demo.dto.*;
-import com.groudina.ten.demo.exceptions.CaptainAlreadyCreatedGameException;
-import com.groudina.ten.demo.exceptions.IllegalGameStateException;
+import com.groudina.ten.demo.exceptions.*;
 import com.groudina.ten.demo.models.DbCompetition;
 import com.groudina.ten.demo.services.IAddTeamToCompetitionService;
 import com.groudina.ten.demo.services.IEntitiesMapper;
 import com.groudina.ten.demo.services.ITeamConnectionNotifyService;
+import com.groudina.ten.demo.services.ITeamJoinService;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.util.Pair;
@@ -32,20 +33,26 @@ import java.util.List;
 public class CompetitionsController {
     private DbCompetitionsRepository competitionsRepository;
     private DbUserRepository userRepository;
+    private DbTeamsRepository teamsRepository;
     private IEntitiesMapper<NewCompetition, DbCompetition> competitionMapper;
-    private IAddTeamToCompetitionService teamJoinService;
+    private IAddTeamToCompetitionService addTeamToCompetitionService;
     private ITeamConnectionNotifyService teamConnectionNotifyService;
+    private ITeamJoinService teamJoinService;
 
     public CompetitionsController(@Autowired DbCompetitionsRepository repository,
                                   @Autowired DbUserRepository userRepository,
+                                  @Autowired DbTeamsRepository teamsRepository,
                                   @Autowired IEntitiesMapper<NewCompetition, DbCompetition> mapper,
-                                  @Autowired IAddTeamToCompetitionService teamJoinService,
-                                  @Autowired ITeamConnectionNotifyService teamConnectionNotifyService) {
+                                  @Autowired IAddTeamToCompetitionService addTeamToCompetitionService,
+                                  @Autowired ITeamConnectionNotifyService teamConnectionNotifyService,
+                                  @Autowired ITeamJoinService teamJoinService) {
         this.competitionsRepository = repository;
         this.userRepository = userRepository;
+        this.teamsRepository = teamsRepository;
         this.competitionMapper = mapper;
-        this.teamJoinService = teamJoinService;
+        this.addTeamToCompetitionService = addTeamToCompetitionService;
         this.teamConnectionNotifyService = teamConnectionNotifyService;
+        this.teamJoinService = teamJoinService;
     }
 
     @PostMapping(value = "/create")
@@ -67,9 +74,11 @@ public class CompetitionsController {
     @PostMapping(value = "/create_team")
     @PreAuthorize("hasRole('STUDENT')")
     public Mono<ResponseEntity<ResponseMessage>> joinTeam(@Valid @RequestBody NewTeam newTeam) {
-        return this.teamJoinService.addTeamToCompetition(newTeam).map(team -> {
+        return this.addTeamToCompetitionService.addTeamToCompetition(newTeam).map(team -> {
             return ResponseEntity.ok(ResponseMessage.of("Team created successfully"));
         })
+                .onErrorReturn(RepeatingTeamNameException.class,
+                        ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseMessage.of("There is team with same name already")))
                 .onErrorReturn(CaptainAlreadyCreatedGameException.class,
                         ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseMessage.of("Captain is in another team already")))
                 .onErrorReturn(IllegalGameStateException.class,
@@ -92,6 +101,38 @@ public class CompetitionsController {
     @RequestMapping(value = "/team_join_events/{pin}", produces = {MediaType.TEXT_EVENT_STREAM_VALUE})
     public Flux<ServerSentEvent<?>> subscribeToTeamJoinEvents(@PathVariable String pin) {
         return teamConnectionNotifyService.getTeamEventForGame(pin).map(e -> ServerSentEvent.builder(e).build());
+    }
+
+    @PostMapping(value = "/join_team")
+    @PreAuthorize("hasRole('STUDENT')")
+    public Mono<ResponseEntity> joinTeam(Mono<Principal> principalMono, @Valid @RequestBody JoinTeamRequest joinTeamRequest) {
+        var compMono = this.competitionsRepository.findByPin(joinTeamRequest.getCompetitionPin());
+
+        var userMono = principalMono
+                .map(Principal::getName)
+                .flatMap(userEmail -> {
+                    return userRepository.findOneByEmail(userEmail);
+                });
+
+        return Mono.zip(compMono, userMono).flatMap(tuple -> {
+            var user = tuple.getT2();
+            var competition = tuple.getT1();
+
+            return teamJoinService.joinTeam(competition, joinTeamRequest, user);
+        }).map(team -> {
+            this.teamConnectionNotifyService.registerTeam(team);
+            return (ResponseEntity)ResponseEntity
+                    .ok(JoinTeamResponse.builder().currentTeamName(team.getName()).build());
+        }).onErrorReturn(UserTriedToJoinManyTeamsException.class,
+                        ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseMessage.of("This user is in another team already")))
+                .onErrorReturn(NoSuchTeamNameInCompetitionException.class,
+                        ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseMessage.of("No team in competition with name: " + joinTeamRequest.getTeamName())))
+                .onErrorReturn(WrongTeamJoinPasswordException.class,
+                        ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseMessage.of("Wrong team password")))
+                .onErrorReturn(IllegalGameStateException.class,
+                        ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseMessage.of("Illegal competition state")))
+                .defaultIfEmpty(
+                        ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseMessage.of("No competition with pin: " + joinTeamRequest.getCompetitionPin())));
     }
 }
 
