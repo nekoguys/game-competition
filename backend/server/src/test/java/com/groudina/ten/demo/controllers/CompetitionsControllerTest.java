@@ -26,6 +26,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.reactive.function.BodyInserters;
+import reactor.test.StepVerifier;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -460,5 +461,41 @@ class CompetitionsControllerTest {
                     System.out.println(resp.getMessage());
                     assertEquals("Illegal competition state", resp.getMessage());
         });
+    }
+
+    @Test
+    @WithMockUser(value = "email", password = "1234", roles = {"STUDENT"})
+    public void testTeamEvents() {
+        var lst = testTeamJoinCommon();
+        DbUser user = (DbUser)lst.get(0);
+        DbTeam team = (DbTeam)lst.get(2);
+
+        this.notifyService.registerTeam(team);
+
+        var tempResult = webTestClient.get().uri("/api/competitions/team_join_events/12345")
+                .accept(MediaType.TEXT_EVENT_STREAM)
+                .exchange()
+                .expectStatus().isOk();
+
+        webTestClient.post().uri("/api/competitions/join_team")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(BodyInserters.fromValue(
+                        JoinTeamRequest
+                                .builder()
+                                .competitionPin("12345")
+                                .password("password")
+                                .teamName("TEAMNAME").build()
+                )).accept(MediaType.APPLICATION_JSON)
+                .exchange().expectStatus().isOk()
+                .expectBody(JoinTeamResponse.class).value((resp) -> {
+            assertEquals(resp.getCurrentTeamName(), "TEAMNAME");
+        });
+
+        var flux = tempResult.returnResult(TeamCreationEventDto.class).getResponseBody();
+        StepVerifier.create(flux)
+                .expectNextMatches(event -> event.getTeamName().equals("TEAMNAME") && event.getTeamMembers().size() == 0)
+                .expectNextMatches(event -> event.getTeamName().equals("TEAMNAME") && event.getTeamMembers().size() == 1)
+                .thenCancel()
+                .verify();
     }
 }
