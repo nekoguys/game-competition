@@ -8,6 +8,9 @@ import com.groudina.ten.demo.exceptions.*;
 import com.groudina.ten.demo.models.DbCompetition;
 import com.groudina.ten.demo.services.IAddTeamToCompetitionService;
 import com.groudina.ten.demo.services.IEntitiesMapper;
+import com.groudina.ten.demo.services.IPinGenerator;
+import com.groudina.ten.demo.services.NewCompetitionToDbMapper;
+import com.groudina.ten.demo.services.PinGenerator;
 import com.groudina.ten.demo.services.ITeamConnectionNotifyService;
 import com.groudina.ten.demo.services.ITeamJoinService;
 import lombok.extern.log4j.Log4j2;
@@ -23,7 +26,9 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import javax.validation.Valid;
+import java.io.Console;
 import java.security.Principal;
+import java.util.ArrayList;
 import java.util.List;
 
 @Log4j2
@@ -35,6 +40,7 @@ public class CompetitionsController {
     private DbUserRepository userRepository;
     private DbTeamsRepository teamsRepository;
     private IEntitiesMapper<NewCompetition, DbCompetition> competitionMapper;
+    private IPinGenerator pinGenerator;
     private IAddTeamToCompetitionService addTeamToCompetitionService;
     private ITeamConnectionNotifyService teamConnectionNotifyService;
     private ITeamJoinService teamJoinService;
@@ -43,6 +49,7 @@ public class CompetitionsController {
                                   @Autowired DbUserRepository userRepository,
                                   @Autowired DbTeamsRepository teamsRepository,
                                   @Autowired IEntitiesMapper<NewCompetition, DbCompetition> mapper,
+                                  @Autowired IPinGenerator pinGenerator,
                                   @Autowired IAddTeamToCompetitionService addTeamToCompetitionService,
                                   @Autowired ITeamConnectionNotifyService teamConnectionNotifyService,
                                   @Autowired ITeamJoinService teamJoinService) {
@@ -50,6 +57,7 @@ public class CompetitionsController {
         this.userRepository = userRepository;
         this.teamsRepository = teamsRepository;
         this.competitionMapper = mapper;
+        this.pinGenerator = pinGenerator;
         this.addTeamToCompetitionService = addTeamToCompetitionService;
         this.teamConnectionNotifyService = teamConnectionNotifyService;
         this.teamJoinService = teamJoinService;
@@ -64,7 +72,12 @@ public class CompetitionsController {
         }).flatMap(userEmail -> {
             return userRepository.findOneByEmail(userEmail);
         }).flatMap(dbUser -> {
-            var dbCompetition = competitionMapper.map(competition, List.of(Pair.of("owner", dbUser)));
+            ArrayList<Pair<String, ?>> params = new ArrayList<Pair<String, ?>>();
+            params.add(Pair.of("owner", dbUser));
+            System.out.println(competition.getState());
+            if (competition.getState().equals(DbCompetition.State.Registration.toString().toLowerCase()))
+                params.add(Pair.of("pin", pinGenerator.generate()));
+            var dbCompetition = competitionMapper.map(competition, params);
             return competitionsRepository.save(dbCompetition);
         }).map(newCompetition -> {
             return ResponseEntity.ok(ResponseMessage.of("Competition Created Successfully"));
@@ -135,6 +148,3 @@ public class CompetitionsController {
                         ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseMessage.of("No competition with pin: " + joinTeamRequest.getCompetitionPin())));
     }
 }
-
-
-
