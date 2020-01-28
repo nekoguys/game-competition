@@ -3,7 +3,6 @@ import React from "react";
 import "./competition-params.css"
 import DefaultTextInput from "../../common/default-text-input";
 import DefaultCheckboxButton from "../../common/default-checkbox-button";
-import DefaultSubmitButton from "../../common/default-submit-button";
 import toSnakeCase from "../../../helpers/snake-case-helper";
 
 class CompetitionParams {
@@ -64,9 +63,16 @@ class CompetitionParamsForm extends React.Component {
     updateFormStateField(fieldName, value) {
         this.formState[fieldName] = value;
         console.log(this.formState);
-        console.log(this.formState.toJSONObject())
+        console.log(this.formState.toJSONObject());
+
+        this.onFormStateUpdated();
     }
 
+    onFormStateUpdated = () => {
+        const {onFormStateUpdated} = this.props;
+
+        onFormStateUpdated(this.formState);
+    };
 
     render() {
         const defaultTextInputStyle = {
@@ -89,7 +95,7 @@ class CompetitionParamsForm extends React.Component {
         };
 
        return (
-            <div className={"competition-form-holder"}>
+
                 <form>
                     <div className={"form-group row"}>
                         <label className={"col-sm-3 col-form-label text-right"} style={{float: "right"}}>Название игры</label>
@@ -177,20 +183,9 @@ class CompetitionParamsForm extends React.Component {
                         />
                     </div>
 
-                    <div className={"form-group row"} style={{marginTop: "30px", marginLeft: "7.5%", marginRight: "7.5%"}}>
-                        <div className={"mr-auto p-2"}>
-                            <DefaultSubmitButton text={"Сохранить черновик"} style={{height: "100%", fontSize: "26px",
-                                paddingTop: "15.5px", paddingBottom: "15.5px"}} onClick={() => this.props.onSaveAsDraftClick(this.formState)}/>
-                        </div>
-                            <div className={"p-2"}>
-                                <DefaultSubmitButton text={"Открыть регистрацию"} style={{height: "100%", fontSize: "26px",
-                                    paddingTop: "15.5px", paddingBottom: "15.5px"}}
-                                    onClick={() => this.props.onOpenRegistrationClick(this.formState)}/>
-                            </div>
-                    </div>
+
 
                 </form>
-            </div>
        )
     }
 }
