@@ -35,7 +35,7 @@ public class CompetitionsController {
     private IAddTeamToCompetitionService addTeamToCompetitionService;
     private ITeamConnectionNotifyService teamConnectionNotifyService;
     private ITeamJoinService teamJoinService;
-    private IEntitiesMapper<DbCompetition, CompetitionInfoResponse> competitionInfoMapper;
+    private IEntitiesMapper<DbCompetition, CompetitionCloneInfoResponse> competitionInfoMapper;
 
     public CompetitionsController(@Autowired DbCompetitionsRepository repository,
                                   @Autowired DbUserRepository userRepository,
@@ -45,7 +45,7 @@ public class CompetitionsController {
                                   @Autowired IAddTeamToCompetitionService addTeamToCompetitionService,
                                   @Autowired ITeamConnectionNotifyService teamConnectionNotifyService,
                                   @Autowired ITeamJoinService teamJoinService,
-                                  @Autowired IEntitiesMapper<DbCompetition, CompetitionInfoResponse> competitionInfoMapper) {
+                                  @Autowired IEntitiesMapper<DbCompetition, CompetitionCloneInfoResponse> competitionInfoMapper) {
         this.competitionsRepository = repository;
         this.userRepository = userRepository;
         this.teamsRepository = teamsRepository;
@@ -78,7 +78,7 @@ public class CompetitionsController {
         });
     }
 
-    @GetMapping(value = "/get_info/{pin}")
+    @GetMapping(value = "/get_clone_info/{pin}")
     @PreAuthorize("hasRole('TEACHER')")
     public Mono<ResponseEntity> getCompetitionInfo(@PathVariable String pin) {
         return this.competitionsRepository.findByPin(pin).map(comp -> {

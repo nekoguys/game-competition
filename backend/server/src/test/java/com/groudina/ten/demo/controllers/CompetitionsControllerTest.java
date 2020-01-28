@@ -636,7 +636,7 @@ class CompetitionsControllerTest {
         var comp = DbCompetition.builder().pin("12345").parameters(params).build();
         comp = competitionsRepository.save(comp).block();
 
-        webTestClient.get().uri("/api/competitions/get_info/12345")
+        webTestClient.get().uri("/api/competitions/get_clone_info/12345")
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange().expectStatus().isOk()
                 .expectBody()

@@ -7,9 +7,9 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class DbCompetitionToCompetitionInfoResponseMapperTest {
+class DbCompetitionToCompetitionCloneInfoResponseMapperTest {
 
-    private DbCompetitionToCompetitionInfoResponseMapper mapper = new DbCompetitionToCompetitionInfoResponseMapper();
+    private DbCompetitionToCompetitionCloneInfoResponseMapper mapper = new DbCompetitionToCompetitionCloneInfoResponseMapper();
 
     @Test
     void map() {

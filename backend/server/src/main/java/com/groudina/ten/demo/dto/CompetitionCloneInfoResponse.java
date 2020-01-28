@@ -12,7 +12,7 @@ import java.io.Serializable;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class CompetitionInfoResponse implements Serializable {
+public class CompetitionCloneInfoResponse implements Serializable {
     private static final long serialVersionUID = -7097916956509073156L;
 
     private String name;
