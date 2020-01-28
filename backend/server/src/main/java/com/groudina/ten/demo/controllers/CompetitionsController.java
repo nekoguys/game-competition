@@ -35,6 +35,7 @@ public class CompetitionsController {
     private IAddTeamToCompetitionService addTeamToCompetitionService;
     private ITeamConnectionNotifyService teamConnectionNotifyService;
     private ITeamJoinService teamJoinService;
+    private IEntitiesMapper<DbCompetition, CompetitionInfoResponse> competitionInfoMapper;
 
     public CompetitionsController(@Autowired DbCompetitionsRepository repository,
                                   @Autowired DbUserRepository userRepository,
@@ -43,7 +44,8 @@ public class CompetitionsController {
                                   @Autowired IPinGenerator pinGenerator,
                                   @Autowired IAddTeamToCompetitionService addTeamToCompetitionService,
                                   @Autowired ITeamConnectionNotifyService teamConnectionNotifyService,
-                                  @Autowired ITeamJoinService teamJoinService) {
+                                  @Autowired ITeamJoinService teamJoinService,
+                                  @Autowired IEntitiesMapper<DbCompetition, CompetitionInfoResponse> competitionInfoMapper) {
         this.competitionsRepository = repository;
         this.userRepository = userRepository;
         this.teamsRepository = teamsRepository;
@@ -52,6 +54,7 @@ public class CompetitionsController {
         this.addTeamToCompetitionService = addTeamToCompetitionService;
         this.teamConnectionNotifyService = teamConnectionNotifyService;
         this.teamJoinService = teamJoinService;
+        this.competitionInfoMapper = competitionInfoMapper;
     }
 
     @PostMapping(value = "/create")
@@ -73,6 +76,17 @@ public class CompetitionsController {
         }).map(newCompetition -> {
             return ResponseEntity.ok(ResponseMessage.of("Competition Created Successfully"));
         });
+    }
+
+    @GetMapping(value = "/get_info/{pin}")
+    @PreAuthorize("hasRole('TEACHER')")
+    public Mono<ResponseEntity> getCompetitionInfo(@PathVariable String pin) {
+        return this.competitionsRepository.findByPin(pin).map(comp -> {
+            var compInfo = competitionInfoMapper.map(comp, null);
+            return (ResponseEntity)ResponseEntity.ok(compInfo);
+        }).defaultIfEmpty(
+                ResponseEntity.badRequest().body(ResponseMessage.of("No such competition with pin: " + pin))
+        );
     }
 
     @PostMapping(value = "/create_team")
