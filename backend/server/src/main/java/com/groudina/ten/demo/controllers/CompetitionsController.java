@@ -8,9 +8,7 @@ import com.groudina.ten.demo.exceptions.IllegalGameStateException;
 import com.groudina.ten.demo.models.DbCompetition;
 import com.groudina.ten.demo.services.IAddTeamToCompetitionService;
 import com.groudina.ten.demo.services.IEntitiesMapper;
-import com.groudina.ten.demo.services.IPinGenerator;
-import com.groudina.ten.demo.services.NewCompetitionToDbMapper;
-import com.groudina.ten.demo.services.PinGenerator;
+import com.groudina.ten.demo.services.ICompetitionPinGenerator;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.util.Pair;
@@ -23,10 +21,8 @@ import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
 import javax.validation.Valid;
-import java.io.Console;
 import java.security.Principal;
 import java.util.ArrayList;
-import java.util.List;
 
 @Log4j2
 @RequestMapping(path="/api/competitions", produces = {MediaType.APPLICATION_JSON_VALUE})
@@ -36,13 +32,13 @@ public class CompetitionsController {
     private DbCompetitionsRepository competitionsRepository;
     private DbUserRepository userRepository;
     private IEntitiesMapper<NewCompetition, DbCompetition> competitionMapper;
-    private IPinGenerator pinGenerator;
+    private ICompetitionPinGenerator pinGenerator;
     private IAddTeamToCompetitionService teamJoinService;
 
     public CompetitionsController(@Autowired DbCompetitionsRepository repository,
                                   @Autowired DbUserRepository userRepository,
                                   @Autowired IEntitiesMapper<NewCompetition, DbCompetition> mapper,
-                                  @Autowired IPinGenerator pinGenerator,
+                                  @Autowired ICompetitionPinGenerator pinGenerator,
                                   @Autowired IAddTeamToCompetitionService teamJoinService) {
         this.competitionsRepository = repository;
         this.userRepository = userRepository;

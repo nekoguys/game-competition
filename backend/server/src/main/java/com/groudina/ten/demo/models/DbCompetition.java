@@ -23,7 +23,7 @@ public class DbCompetition {
 
     private DbCompetition.State state;
 
-    private String pin;//TODO
+    private String pin;
 
     private DbCompetition.Parameters parameters;
 
