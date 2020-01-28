@@ -10,6 +10,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Document("team")
 @Builder
@@ -54,5 +55,9 @@ public class DbTeam {
         }
 
         return allPlayers;
+    }
+
+    public int getTeamSize() {
+        return allPlayers.size() + (Objects.isNull(captain) ? 1 : 0);
     }
 }

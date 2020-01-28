@@ -210,7 +210,13 @@ class CompetitionsControllerTest {
                 .build()).block();
         competitionsRepository.save(DbCompetition.builder()
                 .state(DbCompetition.State.Registration)
-                .pin("123").build()).block();
+                .pin("123")
+                .parameters(DbCompetition.Parameters
+                        .builder()
+                        .maxTeamSize(20)
+                        .maxTeamsAmount(20)
+                        .build()).build())
+                .block();
 
         webTestClient.post().uri("/api/competitions/create_team")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -240,7 +246,13 @@ class CompetitionsControllerTest {
 
         var competition = competitionsRepository.save(DbCompetition.builder()
                 .state(DbCompetition.State.Draft)
-                .pin("123").build()).block();
+                .pin("123")
+                .parameters(DbCompetition.Parameters
+                        .builder()
+                        .maxTeamSize(20)
+                        .maxTeamsAmount(20)
+                        .build())
+                .build()).block();
 
         DbTeam dbTeam = teamsRepository.save(DbTeam.builder().captain(user).sourceCompetition(competition).build()).block();
 
@@ -255,7 +267,8 @@ class CompetitionsControllerTest {
                                 .build()
                 )).accept(MediaType.APPLICATION_JSON)
                 .exchange().expectStatus().isBadRequest()
-                .expectBody(ResponseMessage.class).isEqualTo(ResponseMessage.of("Illegal game state"));
+                .expectBody(ResponseMessage.class).value((resp) ->
+                assertTrue(resp.getMessage().contains("Illegal game state")));
     }
 
     @Test
@@ -269,7 +282,13 @@ class CompetitionsControllerTest {
 
         var competition = competitionsRepository.save(DbCompetition.builder()
                 .state(DbCompetition.State.Registration)
-                .pin("123").build()).block();
+                .pin("123")
+                .parameters(DbCompetition.Parameters
+                        .builder()
+                        .maxTeamSize(20)
+                        .maxTeamsAmount(20)
+                        .build())
+                .build()).block();
 
         DbTeam dbTeam = teamsRepository.save(DbTeam.builder().name("oldname").captain(user).sourceCompetition(competition).build()).block();
 
@@ -287,7 +306,47 @@ class CompetitionsControllerTest {
                                 .build()
                 )).accept(MediaType.APPLICATION_JSON)
                 .exchange().expectStatus().isBadRequest()
-                .expectBody(ResponseMessage.class).isEqualTo(ResponseMessage.of("Captain is in another team already"));
+                .expectBody(ResponseMessage.class).value(resp -> {
+                    assertTrue(resp.getMessage().contains("is Captain and is in another team already"));
+        });
+    }
+
+    @Test
+    @WithMockUser(value = "email", password = "1234", roles = {"STUDENT"})
+    public void testTeamCreationTooMuchTeams() {
+        var user = userRepository.save(DbUser.builder()
+                .email("email")
+                .roles(List.of(rolesRepository.findByName("ROLE_STUDENT").block()))
+                .build()).block();
+
+
+        var competition = competitionsRepository.save(DbCompetition.builder()
+                .state(DbCompetition.State.Registration)
+                .pin("123")
+                .parameters(DbCompetition.Parameters
+                        .builder()
+                        .maxTeamSize(20)
+                        .maxTeamsAmount(1)
+                        .build())
+                .build()).block();
+
+        DbTeam dbTeam = teamsRepository.save(DbTeam.builder().name("oldname").captain(user).sourceCompetition(competition).build()).block();
+
+        competition.addTeam(dbTeam);
+        competitionsRepository.save(competition).block();
+
+        webTestClient.post().uri("/api/competitions/create_team")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(BodyInserters.fromValue(
+                        NewTeam.builder()
+                                .name("teamname")
+                                .captainEmail("email")
+                                .competitionId("123")
+                                .password("password")
+                                .build()
+                )).accept(MediaType.APPLICATION_JSON)
+                .exchange().expectStatus().isBadRequest()
+                .expectBody(ResponseMessage.class).isEqualTo(ResponseMessage.of("There are too much teams in competition max amount: 1"));
     }
 
     @Test
@@ -327,7 +386,7 @@ class CompetitionsControllerTest {
         });
     }
 
-    private List<Object> testTeamJoinCommon() {
+    private List<Object> testTeamJoinCommon(int teamSize) {
         var user = userRepository.save(DbUser.builder()
                 .email("email")
                 .password("1234")
@@ -337,6 +396,10 @@ class CompetitionsControllerTest {
         var competition = competitionsRepository.save(DbCompetition.builder()
                 .state(DbCompetition.State.Registration)
                 .pin("12345")
+                .parameters(DbCompetition.Parameters
+                        .builder()
+                        .maxTeamSize(teamSize)
+                        .build())
                 .build()).block();
 
         var team = teamsRepository.save(DbTeam.builder()
@@ -355,7 +418,7 @@ class CompetitionsControllerTest {
     @Test
     @WithMockUser(value = "email", password = "1234", roles = {"STUDENT"})
     public void testTeamJoin() {
-        testTeamJoinCommon();
+        testTeamJoinCommon(20);
 
 
         webTestClient.post().uri("/api/competitions/join_team")
@@ -376,7 +439,7 @@ class CompetitionsControllerTest {
     @Test
     @WithMockUser(value = "email", password = "1234", roles = {"STUDENT"})
     public void testTeamJoinNoSuchTeam() {
-        testTeamJoinCommon();
+        testTeamJoinCommon(20);
 
         webTestClient.post().uri("/api/competitions/join_team")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -397,7 +460,7 @@ class CompetitionsControllerTest {
     @Test
     @WithMockUser(value = "email", password = "1234", roles = {"STUDENT"})
     public void testTeamJoinNoSuchCompetition() {
-        testTeamJoinCommon();
+        testTeamJoinCommon(20);
 
         webTestClient.post().uri("/api/competitions/join_team")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -418,7 +481,7 @@ class CompetitionsControllerTest {
     @Test
     @WithMockUser(value = "email", password = "1234", roles = {"STUDENT"})
     public void testTeamJoinWrongPassword() {
-        testTeamJoinCommon();
+        testTeamJoinCommon(20);
 
         webTestClient.post().uri("/api/competitions/join_team")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -439,7 +502,7 @@ class CompetitionsControllerTest {
     @Test
     @WithMockUser(value = "email", password = "1234", roles = {"STUDENT"})
     public void testTeamJoinUserInAnotherTeam() {
-        var lst = testTeamJoinCommon();
+        var lst = testTeamJoinCommon(20);
         DbUser user = (DbUser)lst.get(0);
         DbCompetition competition = (DbCompetition)lst.get(1);
 
@@ -473,7 +536,7 @@ class CompetitionsControllerTest {
     @Test
     @WithMockUser(value = "email", password = "1234", roles = {"STUDENT"})
     public void testTeamJoinAlreadyInThisTeam() {
-        var lst = testTeamJoinCommon();
+        var lst = testTeamJoinCommon(20);
         DbUser user = (DbUser)lst.get(0);
         DbTeam team = (DbTeam)lst.get(2);
 
@@ -499,7 +562,7 @@ class CompetitionsControllerTest {
     @Test
     @WithMockUser(value = "email", password = "1234", roles = {"STUDENT"})
     public void testTeamJoinWrongGameState() {
-        var lst = testTeamJoinCommon();
+        var lst = testTeamJoinCommon(20);
         DbCompetition competition = (DbCompetition)lst.get(1);
         competition.setState(DbCompetition.State.InProcess);
 
@@ -518,6 +581,27 @@ class CompetitionsControllerTest {
                 .expectBody(ResponseMessage.class).value((resp) -> {
                     System.out.println(resp.getMessage());
                     assertEquals("Illegal competition state", resp.getMessage());
+        });
+    }
+
+    @Test
+    @WithMockUser(value = "email", password = "1234", roles = {"STUDENT"})
+    public void testTeamJoinTeamOverflow() {
+        testTeamJoinCommon(0);
+
+        webTestClient.post().uri("/api/competitions/join_team")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(BodyInserters.fromValue(
+                        JoinTeamRequest
+                                .builder()
+                                .competitionPin("12345")
+                                .password("password")
+                                .teamName("TEAMNAME").build()
+                )).accept(MediaType.APPLICATION_JSON)
+                .exchange().expectStatus().isBadRequest()
+                .expectBody(ResponseMessage.class).value((resp) -> {
+            System.out.println(resp.getMessage());
+            assertEquals("There are too much team members already, max amount: 0", resp.getMessage());
         });
     }
 }

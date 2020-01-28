@@ -4,15 +4,8 @@ import com.groudina.ten.demo.datasource.DbCompetitionsRepository;
 import com.groudina.ten.demo.datasource.DbTeamsRepository;
 import com.groudina.ten.demo.datasource.DbUserRepository;
 import com.groudina.ten.demo.dto.*;
-import com.groudina.ten.demo.exceptions.*;
 import com.groudina.ten.demo.models.DbCompetition;
-import com.groudina.ten.demo.services.IAddTeamToCompetitionService;
-import com.groudina.ten.demo.services.IEntitiesMapper;
-import com.groudina.ten.demo.services.IPinGenerator;
-import com.groudina.ten.demo.services.NewCompetitionToDbMapper;
-import com.groudina.ten.demo.services.PinGenerator;
-import com.groudina.ten.demo.services.ITeamConnectionNotifyService;
-import com.groudina.ten.demo.services.ITeamJoinService;
+import com.groudina.ten.demo.services.*;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.util.Pair;
@@ -26,10 +19,8 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import javax.validation.Valid;
-import java.io.Console;
 import java.security.Principal;
 import java.util.ArrayList;
-import java.util.List;
 
 @Log4j2
 @RequestMapping(path="/api/competitions", produces = {MediaType.APPLICATION_JSON_VALUE})
@@ -89,15 +80,8 @@ public class CompetitionsController {
     public Mono<ResponseEntity<ResponseMessage>> joinTeam(@Valid @RequestBody NewTeam newTeam) {
         return this.addTeamToCompetitionService.addTeamToCompetition(newTeam).map(team -> {
             return ResponseEntity.ok(ResponseMessage.of("Team created successfully"));
-        })
-                .onErrorReturn(RepeatingTeamNameException.class,
-                        ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseMessage.of("There is team with same name already")))
-                .onErrorReturn(CaptainAlreadyCreatedGameException.class,
-                        ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseMessage.of("Captain is in another team already")))
-                .onErrorReturn(IllegalGameStateException.class,
-                        ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseMessage.of("Illegal game state")))
-                .onErrorReturn(CaptainAlreadyCreatedGameException.class,
-                        ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseMessage.of("Game not found or user not found")));
+        }).onErrorResume(ex ->
+                Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseMessage.of(ex.getMessage()))));
     }
 
     @PostMapping(value = "/check_pin")
@@ -136,14 +120,9 @@ public class CompetitionsController {
             this.teamConnectionNotifyService.registerTeam(team);
             return (ResponseEntity)ResponseEntity
                     .ok(JoinTeamResponse.builder().currentTeamName(team.getName()).build());
-        }).onErrorReturn(UserTriedToJoinManyTeamsException.class,
-                        ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseMessage.of("This user is in another team already")))
-                .onErrorReturn(NoSuchTeamNameInCompetitionException.class,
-                        ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseMessage.of("No team in competition with name: " + joinTeamRequest.getTeamName())))
-                .onErrorReturn(WrongTeamJoinPasswordException.class,
-                        ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseMessage.of("Wrong team password")))
-                .onErrorReturn(IllegalGameStateException.class,
-                        ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseMessage.of("Illegal competition state")))
+        })
+                .onErrorResume(ex ->
+                        Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseMessage.of(ex.getMessage()))))
                 .defaultIfEmpty(
                         ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseMessage.of("No competition with pin: " + joinTeamRequest.getCompetitionPin())));
     }
