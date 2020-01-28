@@ -4,13 +4,14 @@ import com.groudina.ten.demo.datasource.DbCompetitionsRepository;
 import com.groudina.ten.demo.datasource.DbTeamsRepository;
 import com.groudina.ten.demo.datasource.DbUserRepository;
 import com.groudina.ten.demo.dto.NewTeam;
-import com.groudina.ten.demo.exceptions.CaptainAlreadyCreatedGameException;
-import com.groudina.ten.demo.exceptions.IllegalGameStateException;
+import com.groudina.ten.demo.exceptions.*;
 import com.groudina.ten.demo.models.DbCompetition;
 import com.groudina.ten.demo.models.DbTeam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
+
+import java.util.Objects;
 
 @Component
 public class AddTeamToCompetitionServiceImpl implements IAddTeamToCompetitionService {
@@ -22,14 +23,18 @@ public class AddTeamToCompetitionServiceImpl implements IAddTeamToCompetitionSer
 
     private ITeamCreationChecker creationChecker;
 
+    private ITeamConnectionNotifyService connectionNotifyService;
+
     public AddTeamToCompetitionServiceImpl(@Autowired DbUserRepository userRepository,
                                            @Autowired DbCompetitionsRepository competitionsRepository,
                                            @Autowired DbTeamsRepository teamsRepository,
-                                           @Autowired ITeamCreationChecker creationChecker) {
+                                           @Autowired ITeamCreationChecker creationChecker,
+                                           @Autowired ITeamConnectionNotifyService connectionNotifyService) {
         this.userRepository = userRepository;
         this.competitionsRepository = competitionsRepository;
         this.teamsRepository = teamsRepository;
         this.creationChecker = creationChecker;
+        this.connectionNotifyService = connectionNotifyService;
     }
 
     @Override
@@ -41,26 +46,38 @@ public class AddTeamToCompetitionServiceImpl implements IAddTeamToCompetitionSer
                     var captain = captainAndCompTuple.getT1();
                     var competition = captainAndCompTuple.getT2();
 
+                    int maxTeamsAmount = competition.getParameters().getMaxTeamsAmount();
+                    if (competition.getTeams().size() >= maxTeamsAmount) {
+                        return Mono.error(new TooMuchTeamsInCompetitionException("There are too much teams in competition" +
+                                " max amount: " + maxTeamsAmount));
+                    }
+
+                    if (competition.getTeams().stream().anyMatch(team -> Objects.equals(team.getName(), newTeam.getName()))) {
+                        return Mono.error(new RepeatingTeamNameException("There is team with same name already"));
+                    }
+
                     if (competition.getState() != DbCompetition.State.Registration) {
-                        return Mono.error(new IllegalGameStateException("This game is in state " +
+                        return Mono.error(new IllegalGameStateException("Illegal game state. This game is in state " +
                                 competition.getState().name() + " but not in registration state"));
                     }
 
                     if (!creationChecker.checkCreation(competition, captain)) {
                         return Mono.error(new CaptainAlreadyCreatedGameException(newTeam.getCaptainEmail() +
-                                " is already in another team"));
+                                " is Captain and is in another team already"));
                     }
 
                     var dbTeam = DbTeam.builder()
                             .password(newTeam.getPassword())
                             .captain(captain)
                             .sourceCompetition(competition)
+                            .name(newTeam.getName())
                             //.idInGame() TODO
                             .build();
                     competition.addTeam(dbTeam);
                     return teamsRepository.save(dbTeam).flatMap(team -> {
+                        this.connectionNotifyService.registerTeam(team);
                         return competitionsRepository.save(competition);
-                    }).then(Mono.just(dbTeam));
+                    }).then(Mono.just(dbTeam)).switchIfEmpty(Mono.error(new WrongCompetitionParametersException("Game or captain not found")));
         });
     }
 }

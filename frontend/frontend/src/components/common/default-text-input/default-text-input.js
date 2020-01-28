@@ -28,7 +28,8 @@ class DefaultTextInput extends React.Component {
     };
 
     render() {
-        const {style, placeholder, type = "text"} = this.props;
+        const {style, placeholder, type = "text",
+            onKeyDown=(_v) => {}, onFocus=()=>{}, onClick=()=>{}} = this.props;
         return (
             <input className={"form-control text-input"}
                    style={style}
@@ -36,6 +37,9 @@ class DefaultTextInput extends React.Component {
                    value={this.state.text}
                    type={type}
                    onChange={this.onTextChanged}
+                   onKeyDown={(ev) => onKeyDown(ev)}
+                   onFocus={onFocus}
+                   onClick={onClick}
             />
         )
     }
