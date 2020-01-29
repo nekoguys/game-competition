@@ -6,26 +6,22 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import javax.validation.constraints.Size;
 import java.io.Serializable;
-import java.util.List;
 
 @Builder
+@Getter
 @NoArgsConstructor
 @AllArgsConstructor
-@Getter
-public class NewCompetition implements Serializable {
+public class CompetitionCloneInfoResponse implements Serializable {
+    private static final long serialVersionUID = -7097916956509073156L;
+
     private String name;
 
-    private String state;
-
-    @Size(min=3, max=3, message="Expenses formula should contain 3 values separated by ;")
     @JsonProperty("expenses_formula")
-    private List<String> expensesFormula;
+    private String expensesFormula;
 
-    @Size(min=2, max=2, message="Expenses formula should contain 2 values separated by ;")
     @JsonProperty("demand_formula")
-    private List<String> demandFormula;
+    private String demandFormula;
 
     @JsonProperty("max_teams_amount")
     private int maxTeamsAmount;

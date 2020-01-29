@@ -1,19 +1,26 @@
 import React from "react";
 import NavbarHeader from "../../competition-history/navbar-header";
 import CompetitionParamsForm from "../competition-params";
+import "../competition-params/competition-params.css";
 import ApiHelper from "../../../helpers/api-helper";
-import {NotificationManager, NotificationContainer} from "react-notifications";
+import {NotificationContainer, NotificationManager} from "react-notifications";
+import DefaultSubmitButton from "../../common/default-submit-button";
 
 class CreateCompetition extends React.Component {
+    constructor(props) {
+        super(props);
 
-    onSaveAsDraftClick = (formState) => {
-        let obj = {...formState.toJSONObject(), state: "draft"};
+        this.formState = {};
+    }
+
+    onSaveAsDraftClick = () => {
+        let obj = {...this.formState.toJSONObject(), state: "draft"};
 
         this.onCreateCompetition(obj, () => {});
     };
 
-    onOpenRegistrationClick = (formState) => {
-        let obj = {...formState.toJSONObject(), state: "registration"};
+    onOpenRegistrationClick = () => {
+        let obj = {...this.formState.toJSONObject(), state: "registration"};
 
         this.onCreateCompetition(obj, () => {})
     };
@@ -44,6 +51,10 @@ class CreateCompetition extends React.Component {
         })
     };
 
+    onFormStateUpdated = (formState) => {
+        this.formState = formState;
+    };
+
     render() {
         return (
             <div>
@@ -55,9 +66,23 @@ class CreateCompetition extends React.Component {
                         <span>Создание Игры
                         </span>
                     </div>
-                    <CompetitionParamsForm onSaveAsDraftClick={this.onSaveAsDraftClick} onOpenRegistrationClick={this.onOpenRegistrationClick}/>
-                    <NotificationContainer/>
+                    <div className={"competition-form-holder"}>
+                        <CompetitionParamsForm onFormStateUpdated={(formState) => this.onFormStateUpdated(formState)}/>
+                        <div className={"form-group row"} style={{marginTop: "30px", marginLeft: "7.5%", marginRight: "7.5%"}}>
+                            <div className={"mr-auto p-2"}>
+                                <DefaultSubmitButton text={"Сохранить черновик"} style={{height: "100%", fontSize: "26px",
+                                    paddingTop: "15.5px", paddingBottom: "15.5px"}} onClick={() => this.onSaveAsDraftClick()}/>
+                            </div>
+                            <div className={"p-2"}>
+                                <DefaultSubmitButton text={"Открыть регистрацию"} style={{height: "100%", fontSize: "26px",
+                                    paddingTop: "15.5px", paddingBottom: "15.5px"}}
+                                                     onClick={() => this.onOpenRegistrationClick()}/>
+                            </div>
+                        </div>
+                    </div>
                 </div>
+                <NotificationContainer/>
+
             </div>
         )
     }
