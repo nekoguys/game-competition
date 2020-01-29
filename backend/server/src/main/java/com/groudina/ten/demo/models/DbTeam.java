@@ -10,6 +10,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Document("team")
 @Builder
@@ -19,6 +20,9 @@ public class DbTeam {
     @Id
     @Getter
     private String id;
+
+    @Getter
+    private String name;
 
     @Getter
     private int idInGame;//should be generated sequentially
@@ -43,9 +47,17 @@ public class DbTeam {
     }
 
     public List<DbUser> getAllPlayers() {
-        var players = new ArrayList<>(allPlayers);
-        players.add(captain);
+        if (captain != null) {
+            var players = new ArrayList<>(allPlayers);
+            players.add(captain);
 
-        return players;
+            return players;
+        }
+
+        return allPlayers;
+    }
+
+    public int getTeamSize() {
+        return allPlayers.size() + (Objects.isNull(captain) ? 1 : 0);
     }
 }

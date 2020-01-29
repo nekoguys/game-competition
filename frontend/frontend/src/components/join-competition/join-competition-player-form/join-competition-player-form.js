@@ -4,6 +4,8 @@ import submitButtonImage from "./submitButton.png";
 import ApiHelper from "../../../helpers/api-helper";
 
 import {NotificationContainer, NotificationManager} from "react-notifications";
+import TeamCollection from "./team-collection";
+import DefaultTextInput from "../../common/default-text-input";
 
 class TextInputWithSubmitButton extends React.Component {
     constructor(props) {
@@ -44,7 +46,8 @@ class JoinCompetitionPlayerForm extends React.Component {
 
         this.gameId = {};
         this.state = {
-            currentPage: "gameId",
+            currentPage: "gamePinPage",
+            items: []
         }
     }
 
@@ -65,7 +68,7 @@ class JoinCompetitionPlayerForm extends React.Component {
                         NotificationManager.success("Competition found successfully", "Success", timeout);
                         setTimeout(() => {
                             this.setState(prevState => {
-                                return {currentPage: "teamSelection"};
+                                return {currentPage: "enterTeamPage"};
                             })
                         }, timeout);
                     } else {
@@ -78,7 +81,41 @@ class JoinCompetitionPlayerForm extends React.Component {
         })
     };
 
-    render() {
+    setupTeamEventConnections() {
+        if (this.eventSource === undefined) {
+            this.eventSource = ApiHelper.teamCreationEventSource(this.gameId);
+            this.eventSource.addEventListener("error",
+                (err) => {
+                    console.log("EventSource failed: ", err)
+                });
+            this.eventSource.addEventListener("message", (event) => {
+                console.log({data: event.data});
+                this.setState((prevState) => {
+                    let arr = prevState.items.slice(0);
+                    const elem = JSON.parse(event.data);
+                    const index = arr.findIndex(el => {return el.teamName === elem.teamName});
+                    if (index === -1) {
+                        arr.push(elem);
+                    } else {
+                        arr[index] = elem;
+                    }
+                    
+                    return {items: arr}
+                });
+            });
+        }
+    }
+
+    closeTeamEventConnections() {
+        if (this.eventSource !== undefined)
+            this.eventSource.close();
+    }
+
+    componentWillUnmount() {
+        this.closeTeamEventConnections();
+    }
+
+    gamePinPage() {
         const buttonStyle = {
             backgroundColor: "Transparent",
             padding: "-5px",
@@ -101,6 +138,7 @@ class JoinCompetitionPlayerForm extends React.Component {
             paddingBottom: "5px",
             backgroundColor: "white"
         };
+
         return (
             <div style={{marginTop: "40px"}}>
                 <div style={innerContainerStyle}>
@@ -109,6 +147,75 @@ class JoinCompetitionPlayerForm extends React.Component {
                                                buttonStyle={buttonStyle} inputStyle={inputStyle}
                     />
                 </div>
+            </div>
+        )
+    }
+
+    enterTeamPage() {
+        const items = this.state.items;
+        return (
+            <div style={{marginTop: "30px"}}>
+                <div style={{marginTop: "10px", width: "50%", margin:"0 auto"}}>
+                    <DefaultTextInput
+                        placeholder={"Найти команду"}
+                        style={{
+                            width: "100%",
+                            borderRadius: "20px",
+                            paddingTop: "11px",
+                            paddingBottom: "11px"
+                          }}
+                    />
+                </div>
+                <div style={{margin: "70px 15% 20px 15%",}}>
+                <TeamCollection items={items} gamePin={this.gameId} onSubmit={this.onSubmit}
+                />
+                </div>
+            </div>
+        )
+    }
+
+    onSubmit = (teamName, password) => {
+        console.log({teamName, password, props: this.gameId});
+        const obj = {
+            competitionPin: this.gameId,
+            teamName: teamName,
+            password: password
+        };
+
+        const timeout = 1200;
+
+        ApiHelper.joinTeam(obj).then(resp => {
+            if (resp.status >= 300) {
+                return {success: false, json: resp.json()};
+            } else {
+                return {success: true, json: resp.json()};
+            }
+        }).then(resp => {
+            resp.json.then(obj => {
+                console.log(obj);
+                if (resp.success) {
+                    const teamName = obj.currentTeamName;
+                    window.localStorage.setItem("currentTeamName", teamName);
+                    NotificationManager.success("You joined team " + teamName, "Success", timeout)
+                } else {
+                    NotificationManager.error(obj.message, "Error", timeout);
+                }
+            })
+        })
+    };
+
+    render() {
+        let res;
+        if (this.state.currentPage === "gamePinPage") {
+            res = this.gamePinPage();
+            this.closeTeamEventConnections();
+        } else {
+            res = this.enterTeamPage();
+            this.setupTeamEventConnections()
+        }
+        return (
+            <div>
+                {res}
                 <NotificationContainer/>
             </div>
         )

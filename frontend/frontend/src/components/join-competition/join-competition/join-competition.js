@@ -5,6 +5,9 @@ import DefaultCheckboxButtonGroup from "../../common/default-checkbox-button-gro
 import NavbarHeader from "../../competition-history/navbar-header/navbar-header";
 import toSnakeCase from "../../../helpers/snake-case-helper";
 import JoinCompetitionPlayerForm from "../join-competition-player-form";
+import ApiHelper from "../../../helpers/api-helper";
+
+import {NotificationContainer, NotificationManager} from "react-notifications";
 
 class JoinCompetition extends React.Component {
 
@@ -31,11 +34,29 @@ class JoinCompetition extends React.Component {
     };
 
     onCreateTeamClick = (formState) => {
-        let obj = {};
+        let obj = {captain_email: window.localStorage.getItem('user_email')};
         Object.keys(formState).forEach(key => {
             obj[toSnakeCase(key)] = formState[key];
         });
         console.log(obj);
+        const timeout = 1200;
+        ApiHelper.createTeam(obj).then(resp => {
+            console.log(resp);
+            resp.clone().text().then(res => console.log(res));
+            if (resp.status >= 300) {
+                return {success: false, json: resp.clone().json()};
+            }
+            return {success: true, json: resp.clone().json()};
+        }).then(obj => {
+            obj.json.then(respMessage => {
+                console.log(respMessage);
+                if (obj.success) {
+                    NotificationManager.success("Team created successfully", "Success", timeout);
+                } else {
+                    NotificationManager.error(respMessage.message, "Error", timeout);
+                }
+            })
+        })
     };
 
     render() {
@@ -67,6 +88,7 @@ class JoinCompetition extends React.Component {
                 </div>
                 {res}
             </div>
+                <NotificationContainer/>
             </div>
         )
     }
