@@ -1,5 +1,5 @@
 package com.groudina.ten.demo.services;
 
-public interface IPinGenerator {
+public interface ICompetitionPinGenerator {
     String generate();
 }

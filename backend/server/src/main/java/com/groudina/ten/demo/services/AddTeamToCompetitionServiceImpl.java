@@ -23,17 +23,21 @@ public class AddTeamToCompetitionServiceImpl implements IAddTeamToCompetitionSer
 
     private ITeamCreationChecker creationChecker;
 
+    private ITeamIdGenerator teamIdGenerator;
+
     private ITeamConnectionNotifyService connectionNotifyService;
 
     public AddTeamToCompetitionServiceImpl(@Autowired DbUserRepository userRepository,
                                            @Autowired DbCompetitionsRepository competitionsRepository,
                                            @Autowired DbTeamsRepository teamsRepository,
                                            @Autowired ITeamCreationChecker creationChecker,
+                                           @Autowired ITeamIdGenerator teamIdGenerator,
                                            @Autowired ITeamConnectionNotifyService connectionNotifyService) {
         this.userRepository = userRepository;
         this.competitionsRepository = competitionsRepository;
         this.teamsRepository = teamsRepository;
         this.creationChecker = creationChecker;
+        this.teamIdGenerator = teamIdGenerator;
         this.connectionNotifyService = connectionNotifyService;
     }
 
@@ -70,8 +74,8 @@ public class AddTeamToCompetitionServiceImpl implements IAddTeamToCompetitionSer
                             .password(newTeam.getPassword())
                             .captain(captain)
                             .sourceCompetition(competition)
+                            .idInGame(teamIdGenerator.generate(competition))
                             .name(newTeam.getName())
-                            //.idInGame() TODO
                             .build();
                     competition.addTeam(dbTeam);
                     return teamsRepository.save(dbTeam).flatMap(team -> {
