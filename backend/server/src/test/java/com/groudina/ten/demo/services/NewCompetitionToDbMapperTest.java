@@ -7,10 +7,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.util.Pair;
 
-import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class NewCompetitionToDbMapperTest {
 
@@ -26,7 +25,7 @@ class NewCompetitionToDbMapperTest {
                 .expensesFormula(List.of("1", "2", "3"))
                 .instruction("instr")
                 .maxTeamsAmount(2)
-                .maxTeamsAmount(5)
+                .maxTeamSize(5)
                 .name("name")
                 .roundLength(6)
                 .roundsCount(7)
@@ -45,9 +44,9 @@ class NewCompetitionToDbMapperTest {
         assertEquals(competitionDto.getRoundLength(), result.getParameters().getRoundLengthInSeconds());
         assertEquals(competitionDto.getRoundsCount(), result.getParameters().getRoundsCount());
         assertEquals(competitionDto.getState(), result.getState().name());
-        assertEquals(competitionDto.isShouldEndRoundBeforeAllAnswered(), result.getParameters().isShouldEndRoundBeforeAllAnswered());
-        assertEquals(competitionDto.isShouldShowResultTableInEnd(), result.getParameters().isShouldShowResultTableInEnd());
-        assertEquals(competitionDto.isShouldShowStudentPreviousRoundResults(), result.getParameters().isShouldShowStudentPreviousRoundResults());
+        assertEquals(competitionDto.getShouldEndRoundBeforeAllAnswered(), result.getParameters().isShouldEndRoundBeforeAllAnswered());
+        assertEquals(competitionDto.getShouldShowResultTableInEnd(), result.getParameters().isShouldShowResultTableInEnd());
+        assertEquals(competitionDto.getShouldShowStudentPreviousRoundResults(), result.getParameters().isShouldShowStudentPreviousRoundResults());
 
     }
 

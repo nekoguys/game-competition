@@ -28,25 +28,25 @@ public class NewCompetition implements Serializable {
     private List<String> demandFormula;
 
     @JsonProperty("max_teams_amount")
-    private int maxTeamsAmount;
+    private Integer maxTeamsAmount;
 
     @JsonProperty("max_team_size")
-    private int maxTeamSize;
+    private Integer maxTeamSize;
 
     @JsonProperty("rounds_count")
-    private int roundsCount;
+    private Integer roundsCount;
 
     @JsonProperty("round_length")
-    private int roundLength;
+    private Integer roundLength;
 
     private String instruction;
 
     @JsonProperty("should_show_student_previous_round_results")
-    private boolean shouldShowStudentPreviousRoundResults;
+    private Boolean shouldShowStudentPreviousRoundResults;
 
     @JsonProperty("should_end_round_before_all_answered")
-    private boolean shouldEndRoundBeforeAllAnswered;
+    private Boolean shouldEndRoundBeforeAllAnswered;
 
     @JsonProperty("should_show_result_table_in_end")
-    private boolean shouldShowResultTableInEnd;
+    private Boolean shouldShowResultTableInEnd;
 }

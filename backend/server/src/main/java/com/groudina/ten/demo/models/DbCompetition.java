@@ -13,12 +13,12 @@ import java.util.List;
 @NoArgsConstructor
 @Builder
 @Getter
+@Setter
 @Document(collection="competition")
 public class DbCompetition {
     @Id
     private String id;
 
-    @Setter
     private DbCompetition.State state;
 
     private String pin;//TODO
@@ -44,6 +44,7 @@ public class DbCompetition {
     @AllArgsConstructor
     @NoArgsConstructor
     @Getter
+    @Setter
     @Builder
     public static class Parameters {
         private String name;

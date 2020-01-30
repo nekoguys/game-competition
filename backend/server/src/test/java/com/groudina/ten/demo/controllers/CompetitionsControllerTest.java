@@ -142,13 +142,44 @@ class CompetitionsControllerTest {
         var competition = competitionsRepository.findAll().collectList().block().get(0);
         assertEquals(owner, competition.getOwner());
         assertEquals(params.getState(), competition.getState().name().toLowerCase());
-        assertEquals(params.isShouldEndRoundBeforeAllAnswered(), competition.getParameters().isShouldEndRoundBeforeAllAnswered());
-        assertEquals(params.isShouldShowStudentPreviousRoundResults(), competition.getParameters().isShouldShowStudentPreviousRoundResults());
-        assertEquals(params.isShouldShowResultTableInEnd(), competition.getParameters().isShouldShowResultTableInEnd());
+        assertEquals(params.getShouldEndRoundBeforeAllAnswered(), competition.getParameters().isShouldEndRoundBeforeAllAnswered());
+        assertEquals(params.getShouldShowStudentPreviousRoundResults(), competition.getParameters().isShouldShowStudentPreviousRoundResults());
+        assertEquals(params.getShouldShowResultTableInEnd(), competition.getParameters().isShouldShowResultTableInEnd());
         assertEquals(params.getName(), competition.getParameters().getName());
         assertEquals(params.getRoundLength(), competition.getParameters().getRoundLengthInSeconds());
         assertEquals(params.getMaxTeamSize(), competition.getParameters().getMaxTeamSize());
         assertEquals(params.getMaxTeamsAmount(), competition.getParameters().getMaxTeamsAmount());
+    }
+
+    @Test
+    @WithMockUser(value = "email", password = "1234", roles = {"TEACHER"})
+    void createCompetitionRegistration() {
+        var owner = userRepository.save(DbUser.builder().password("1234").email("email").roles(rolesRepository.findAll().collect(Collectors.toList()).block()).build()).block();
+        assertEquals(0, competitionsRepository.findAll().count().block());
+        var params = NewCompetition.builder()
+                .shouldShowStudentPreviousRoundResults(false)
+                .state("registration")
+                .maxTeamsAmount(1)
+                .demandFormula(List.of("1", "2"))
+                .expensesFormula(List.of("1", "2", "3"))
+                .instruction("instr")
+                .name("name")
+                .roundLength(1)
+                .roundsCount(2)
+                .shouldEndRoundBeforeAllAnswered(true)
+                .shouldShowResultTableInEnd(true)
+                .maxTeamSize(3)
+                .build();
+        webTestClient.post().uri("/api/competitions/create")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(BodyInserters.fromValue(params))
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange().expectStatus().isOk()
+                .expectBody(CompetitionCreationResponse.class)
+                .value((resp) -> {
+                    assertNotNull(resp.getPin());
+                })
+        ;
     }
 
     @Test
