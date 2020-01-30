@@ -5,6 +5,8 @@ import "../competition-params/competition-params.css";
 import ApiHelper from "../../../helpers/api-helper";
 import {NotificationContainer, NotificationManager} from "react-notifications";
 import DefaultSubmitButton from "../../common/default-submit-button";
+import {withRouter} from "react-router-dom";
+
 
 class CreateCompetition extends React.Component {
     constructor(props) {
@@ -22,7 +24,10 @@ class CreateCompetition extends React.Component {
     onOpenRegistrationClick = () => {
         let obj = {...this.formState.toJSONObject(), state: "registration"};
 
-        this.onCreateCompetition(obj, () => {})
+        this.onCreateCompetition(obj, () => {
+            console.log({pin: this.pin});
+            this.props.history.push("/competitions/after_registration_opened/" + this.pin);
+        })
     };
 
     onCreateCompetition = (obj, successCallback) => {
@@ -41,6 +46,11 @@ class CreateCompetition extends React.Component {
             if (result.success) {
                 return result.json.then(bodyJson => {
                     console.log(bodyJson);
+
+                    if ("pin" in bodyJson) {
+                        this.pin = bodyJson.pin;
+                    }
+
                     NotificationManager.success("Competition created successfully", "Success!", timeout);
                     successCallback();
                 })
@@ -88,4 +98,4 @@ class CreateCompetition extends React.Component {
     }
 }
 
-export default CreateCompetition;
+export default withRouter(CreateCompetition);
