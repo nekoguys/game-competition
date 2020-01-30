@@ -82,7 +82,7 @@ class AfterRegistrationOpenedComponent extends React.Component {
         ApiHelper.updateCompetition(pin, jsonObj).then(resp => {
             console.log({resp});
             if (resp.status >= 300) {
-                return {success: false, json: resp.json()}
+                return {success: false, json: resp.text()}
             }
             return {success: true, json: resp.json()}
         }).then(resp => {
@@ -91,10 +91,9 @@ class AfterRegistrationOpenedComponent extends React.Component {
                     console.log({bodyJson});
                     console.log({camel: toCamelCase(bodyJson)});
                     successCallback(toCamelCase(bodyJson));
-                    // this.setState({formState: toCamelCase(bodyJson)});
-                    // NotificationManager.success("Competition updated successfully", "Success", 900);
                 } else {
-                    NotificationManager.error(bodyJson.message, "Error", 1200);
+                    const mes = bodyJson.message || bodyJson;
+                    NotificationManager.error(mes, "Error", 1200);
                 }
             })
         })
