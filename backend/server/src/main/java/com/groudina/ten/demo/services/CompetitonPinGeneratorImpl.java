@@ -3,7 +3,7 @@ package com.groudina.ten.demo.services;
 import org.springframework.stereotype.Component;
 
 @Component
-public class PinGenerator implements IPinGenerator {
+public class CompetitonPinGeneratorImpl implements ICompetitionPinGenerator {
     @Override
     public String generate() {
 

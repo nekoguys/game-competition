@@ -31,7 +31,7 @@ public class CompetitionsController {
     private DbUserRepository userRepository;
     private DbTeamsRepository teamsRepository;
     private IEntitiesMapper<NewCompetition, DbCompetition> competitionMapper;
-    private IPinGenerator pinGenerator;
+    private ICompetitionPinGenerator pinGenerator;
     private IAddTeamToCompetitionService addTeamToCompetitionService;
     private ITeamConnectionNotifyService teamConnectionNotifyService;
     private ITeamJoinService teamJoinService;
@@ -42,7 +42,7 @@ public class CompetitionsController {
                                   @Autowired DbUserRepository userRepository,
                                   @Autowired DbTeamsRepository teamsRepository,
                                   @Autowired IEntitiesMapper<NewCompetition, DbCompetition> mapper,
-                                  @Autowired IPinGenerator pinGenerator,
+                                  @Autowired ICompetitionPinGenerator pinGenerator,
                                   @Autowired IAddTeamToCompetitionService addTeamToCompetitionService,
                                   @Autowired ITeamConnectionNotifyService teamConnectionNotifyService,
                                   @Autowired ITeamJoinService teamJoinService,
@@ -158,3 +158,4 @@ public class CompetitionsController {
                         ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseMessage.of("No competition with pin: " + joinTeamRequest.getCompetitionPin())));
     }
 }
+
