@@ -675,4 +675,56 @@ class CompetitionsControllerTest {
                 .jsonPath("$.demand_formula").isEqualTo("1;2")
                 .jsonPath("$.should_show_student_previous_round_results").isEqualTo(true);//test some fields for correct json paths
     }
+
+    @Test
+    @WithMockUser(value = "email", password = "1234", roles = {"TEACHER"})
+    public void testUpdateCompetition() {
+        var user = userRepository.save(DbUser.builder().email("email").password("1234")
+                .roles(rolesRepository.findAll().collectList().block()).build()).block();
+        var params = DbCompetition.Parameters.builder()
+                .maxTeamsAmount(1)
+                .maxTeamSize(2)
+                .name("name")
+                .demandFormula(List.of("1", "2"))
+                .expensesFormula(List.of("1", "2", "3"))
+                .instruction("instr")
+                .roundLengthInSeconds(60)
+                .roundsCount(3)
+                .shouldEndRoundBeforeAllAnswered(true)
+                .shouldShowResultTableInEnd(false)
+                .shouldShowStudentPreviousRoundResults(true)
+                .build();
+        var comp = DbCompetition.builder().pin("12345").parameters(params).build();
+        comp = competitionsRepository.save(comp).block();
+
+        var newParams = NewCompetition.builder()
+                .maxTeamsAmount(5)
+                .maxTeamSize(6)
+                .name("namename")
+                .demandFormula(List.of("2", "3"))
+                .expensesFormula(List.of("2", "3", "4"))
+                .build();
+
+        webTestClient.post().uri("/api/competitions/update_competition/12345")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(BodyInserters.fromValue(newParams))
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange().expectStatus().isOk()
+                .expectBody(CompetitionCloneInfoResponse.class)
+                .value((resp) -> {
+                    assertEquals(resp.getMaxTeamsAmount(), 5);
+                    assertEquals(resp.getMaxTeamSize(), 6);
+                    assertEquals(resp.getName(), "namename");
+                    assertEquals(resp.getDemandFormula(), "2;3");
+                    assertEquals(resp.getExpensesFormula(), "2;3;4");
+                });
+        comp = competitionsRepository.findByPin("12345").block();
+
+        assertEquals(comp.getParameters().getMaxTeamSize(), 6);
+        assertEquals(comp.getParameters().getMaxTeamsAmount(), 5);
+        assertEquals(comp.getParameters().getName(), "namename");
+        assertIterableEquals(comp.getParameters().getDemandFormula(), List.of("2", "3"));
+        assertIterableEquals(comp.getParameters().getExpensesFormula(), List.of("2", "3", "4"));
+    }
+
 }
