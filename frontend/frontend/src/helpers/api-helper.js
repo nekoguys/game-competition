@@ -9,6 +9,8 @@ class ApiSettings {
     static #createTeamEndPoint = ApiSettings.#host + "/competitions/create_team";
     static #teamCreationEvents = ApiSettings.#host + "/competitions/team_join_events/";
     static #joinTeamEndPoint = ApiSettings.#host + "/competitions/join_team";
+    static #getCloneInfoEndPoint = ApiSettings.#host + "/competitions/get_clone_info/";
+    static #updateCompetitionParams = ApiSettings.#host + "/competitions/update_competition/";
 
     static host() {
         return ApiSettings.#host;
@@ -40,6 +42,14 @@ class ApiSettings {
 
     static joinTeamEndPoint() {
         return ApiSettings.#joinTeamEndPoint;
+    }
+
+    static getCloneInfoEndPoint(pin) {
+        return ApiSettings.#getCloneInfoEndPoint + pin;
+    }
+
+    static updateCompetition(pin) {
+        return ApiSettings.#updateCompetitionParams + pin;
     }
 }
 
@@ -113,5 +123,20 @@ export default class ApiHelper {
                 headers: this.authDefaultHeaders(),
                 //heartbeatTimeout: 1000*60*60
             });
+    }
+
+    static getCompetitionCloneInfo(pin) {
+        return fetch(ApiSettings.getCloneInfoEndPoint(pin), {
+            method: "GET",
+            headers: this.authDefaultHeaders()
+        })
+    }
+
+    static updateCompetition(pin, params) {
+        return fetch(ApiSettings.updateCompetition(pin), {
+            method: "POST",
+            headers: this.authDefaultHeaders(),
+            body: JSON.stringify(params)
+        })
     }
 }

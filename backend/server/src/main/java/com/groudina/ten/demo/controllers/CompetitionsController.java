@@ -1,4 +1,3 @@
-
 package com.groudina.ten.demo.controllers;
 
 import com.groudina.ten.demo.datasource.DbCompetitionsRepository;
@@ -37,6 +36,7 @@ public class CompetitionsController {
     private ITeamConnectionNotifyService teamConnectionNotifyService;
     private ITeamJoinService teamJoinService;
     private IEntitiesMapper<DbCompetition, CompetitionCloneInfoResponse> competitionInfoMapper;
+    private IEntityUpdater<DbCompetition, NewCompetition> competitionEntityUpdater;
 
     public CompetitionsController(@Autowired DbCompetitionsRepository repository,
                                   @Autowired DbUserRepository userRepository,
@@ -46,7 +46,8 @@ public class CompetitionsController {
                                   @Autowired IAddTeamToCompetitionService addTeamToCompetitionService,
                                   @Autowired ITeamConnectionNotifyService teamConnectionNotifyService,
                                   @Autowired ITeamJoinService teamJoinService,
-                                  @Autowired IEntitiesMapper<DbCompetition, CompetitionCloneInfoResponse> competitionInfoMapper) {
+                                  @Autowired IEntitiesMapper<DbCompetition, CompetitionCloneInfoResponse> competitionInfoMapper,
+                                  @Autowired IEntityUpdater<DbCompetition, NewCompetition> competitionUpdater) {
         this.competitionsRepository = repository;
         this.userRepository = userRepository;
         this.teamsRepository = teamsRepository;
@@ -56,6 +57,18 @@ public class CompetitionsController {
         this.teamConnectionNotifyService = teamConnectionNotifyService;
         this.teamJoinService = teamJoinService;
         this.competitionInfoMapper = competitionInfoMapper;
+        this.competitionEntityUpdater = competitionUpdater;
+    }
+
+    @PostMapping(value = "/update_competition/{pin}")
+    @PreAuthorize("hasRole('TEACHER')")
+    public Mono<ResponseEntity> updateCompetition(@PathVariable String pin, @Valid @RequestBody NewCompetition competition) {
+        return competitionsRepository.findByPin(pin).flatMap(dbCompetition -> {
+            return competitionEntityUpdater.update(dbCompetition, competition);
+        }).map(competition1 -> {
+            var compInfo = competitionInfoMapper.map(competition1, null);
+            return (ResponseEntity)ResponseEntity.ok(compInfo);
+        }).defaultIfEmpty(ResponseEntity.badRequest().body(ResponseMessage.of("There is no competition with such pin")));
     }
 
     @PostMapping(value = "/create")
@@ -70,11 +83,14 @@ public class CompetitionsController {
             ArrayList<Pair<String, ?>> params = new ArrayList<Pair<String, ?>>();
             params.add(Pair.of("owner", dbUser));
             System.out.println(competition.getState());
-            if (competition.getState().equals(DbCompetition.State.Registration.toString().toLowerCase()))
+            if (competition.getState().equalsIgnoreCase(DbCompetition.State.Registration.toString()))
                 params.add(Pair.of("pin", pinGenerator.generate()));
             var dbCompetition = competitionMapper.map(competition, params);
             return competitionsRepository.save(dbCompetition);
         }).map(newCompetition -> {
+            if (competition.getState().equalsIgnoreCase(DbCompetition.State.Registration.toString())) {
+                return ResponseEntity.ok(CompetitionCreationResponse.builder().pin(newCompetition.getPin()).build());
+            }
             return ResponseEntity.ok(ResponseMessage.of("Competition Created Successfully"));
         });
     }
@@ -142,3 +158,4 @@ public class CompetitionsController {
                         ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseMessage.of("No competition with pin: " + joinTeamRequest.getCompetitionPin())));
     }
 }
+

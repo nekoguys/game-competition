@@ -4,6 +4,7 @@ import "./competition-params.css"
 import DefaultTextInput from "../../common/default-text-input";
 import DefaultCheckboxButton from "../../common/default-checkbox-button";
 import toSnakeCase from "../../../helpers/snake-case-helper";
+import getValueForJsonObject from "../../../helpers/competition-params-helper";
 
 class CompetitionParams {
     constructor({initialParams = {}}) {
@@ -24,26 +25,12 @@ class CompetitionParams {
         }
     }
 
-    getValueForJsonObject(fieldName, value) {
-        const parseFormula = (formula) => {return formula.split(";").filter(x => x)};
-        const identity = (val) => val;
-        const rules = {
-            expensesFormula: parseFormula,
-            demandFormula: parseFormula,
-            roundsCount: parseInt,
-            roundLength: parseInt,
-            maxTeamSize: parseInt,
-            maxTeamsAmount: parseInt,
-        };
-
-        return (rules[fieldName] || identity)(value);
-    }
 
     toJSONObject() {
         let jsonObj = {};
 
         Object.keys(this).forEach(key => {
-            jsonObj[toSnakeCase(key)] = this.getValueForJsonObject(key, this[key]);
+            jsonObj[toSnakeCase(key)] = getValueForJsonObject(key, this[key]);
         });
 
         return jsonObj;

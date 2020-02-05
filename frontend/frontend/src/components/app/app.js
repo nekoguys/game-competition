@@ -1,15 +1,11 @@
 import React from "react";
-import {
-    BrowserRouter as Router,
-    Switch,
-    Route,
-    Redirect,
-} from "react-router-dom";
+import {BrowserRouter as Router, Redirect, Route, Switch,} from "react-router-dom";
 import Login from "../auth/login";
 import Register from "../auth/register/register";
 import CompetitionHistory from "../competition-history/competition-history";
 import CreateCompetition from "../create-competition/create-competition";
 import JoinCompetition from "../join-competition/join-competition";
+import AfterRegistrationOpenedComponent from "../after-registration-opened";
 
 export default class App extends React.Component{
     render() {
@@ -32,7 +28,8 @@ export default class App extends React.Component{
                     <Route path={"/competitions/join"}>
                         <JoinCompetition/>
                     </Route>
-                </Switch>
+                    <Route path={"/competitions/after_registration_opened/:pin"} component={AfterRegistrationOpenedComponent}/>
+                    </Switch>
             </Router>
         )
     }
