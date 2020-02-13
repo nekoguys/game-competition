@@ -1,19 +1,28 @@
 package com.groudina.ten.demo.services;
 
+import com.groudina.ten.demo.datasource.DbAnswersRepository;
+import com.groudina.ten.demo.datasource.DbCompetitionProcessInfosRepository;
+import com.groudina.ten.demo.datasource.DbCompetitionRoundInfosRepository;
 import com.groudina.ten.demo.datasource.DbCompetitionsRepository;
 import com.groudina.ten.demo.dto.EndRoundEventDto;
+import com.groudina.ten.demo.dto.ITypedEvent;
 import com.groudina.ten.demo.dto.NewRoundEventDto;
 import com.groudina.ten.demo.dto.RoundTeamAnswerDto;
-import com.groudina.ten.demo.models.DbAnswer;
-import com.groudina.ten.demo.models.DbCompetition;
-import com.groudina.ten.demo.models.DbCompetitionProcessInfo;
-import com.groudina.ten.demo.models.DbTeam;
+import com.groudina.ten.demo.exceptions.CompetitionRoundsOverflowException;
+import com.groudina.ten.demo.exceptions.RoundEndInNotStartedCompetitionException;
+import com.groudina.ten.demo.exceptions.RoundLengthIncreaseInNotStartedCompException;
+import com.groudina.ten.demo.models.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-import reactor.core.publisher.*;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.FluxSink;
+import reactor.core.publisher.Mono;
+import reactor.core.publisher.ReplayProcessor;
 
+import java.time.Clock;
+import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Map;
 import java.util.Objects;
@@ -23,21 +32,27 @@ import java.util.concurrent.ConcurrentHashMap;
 @Scope(value = ConfigurableBeanFactory.SCOPE_SINGLETON)
 public class GameManagementServiceImpl implements IGameManagementService {
     private DbCompetitionsRepository competitionsRepository;
+    private DbCompetitionRoundInfosRepository roundInfosRepository;
+    private DbCompetitionProcessInfosRepository processInfosRepository;
+    private DbAnswersRepository answersRepository;
 
     private Map<String, Flux<RoundTeamAnswerDto>> teamAnswersStorage = new ConcurrentHashMap<>();
     private Map<String, FluxSink<RoundTeamAnswerDto>> teamAnswersSinks = new ConcurrentHashMap<>();
 
-    private Map<String, Flux<EndRoundEventDto>> endRoundEventsStorage = new ConcurrentHashMap<>();
-    private Map<String, FluxSink<EndRoundEventDto>> endRoundEventsSinks = new ConcurrentHashMap<>();
-
-    private Map<String, Flux<NewRoundEventDto>> newRoundEventsStorage = new ConcurrentHashMap<>();
-    private Map<String, FluxSink<NewRoundEventDto>> newRoundEventsSinks = new ConcurrentHashMap<>();
+    private Map<String, Flux<ITypedEvent>> beginEndRoundEventsStorage = new ConcurrentHashMap<>();
+    private Map<String, FluxSink<ITypedEvent>> beginEndRoundEventsSinks = new ConcurrentHashMap<>();
 
 
     public GameManagementServiceImpl(
-            @Autowired DbCompetitionsRepository competitionsRepository
+            @Autowired DbCompetitionsRepository competitionsRepository,
+            @Autowired DbCompetitionRoundInfosRepository roundInfosRepository,
+            @Autowired DbCompetitionProcessInfosRepository processInfosRepository,
+            @Autowired DbAnswersRepository answersRepository
     ) {
         this.competitionsRepository = competitionsRepository;
+        this.roundInfosRepository = roundInfosRepository;
+        this.processInfosRepository = processInfosRepository;
+        this.answersRepository = answersRepository;
     }
 
     private Flux<RoundTeamAnswerDto> createTeamAnswersProcessor(DbCompetition competition) {
@@ -69,38 +84,39 @@ public class GameManagementServiceImpl implements IGameManagementService {
         return processor;
     }
 
-    private Flux<NewRoundEventDto> createNewRoundsProcessor(DbCompetition competition) {
+    private Flux<ITypedEvent> createBeginEndRoundsProcessor(DbCompetition competition) {
         String pin = competition.getPin();
-        var processor = ReplayProcessor.<NewRoundEventDto>create(1).serialize();
+        var processor = ReplayProcessor.<ITypedEvent>create(1).serialize();
 
-        newRoundEventsSinks.computeIfAbsent(pin, (__) -> {
+        beginEndRoundEventsSinks.computeIfAbsent(pin, (__) -> {
             var sink = processor.sink();
 
             var currentRound = competition.getCompetitionProcessInfo().getCurrentRoundNumber();
 
-            var lastRoundInfo = competition.getCompetitionProcessInfo().getCurrentRound();
+            if (currentRound != 0) {
+                var lastRoundInfo = competition.getCompetitionProcessInfo().getCurrentRound();
 
-            sink.next(
-                    NewRoundEventDto
-                            .builder()
-                            .beginTime(lastRoundInfo.getStartTime().atOffset(ZoneOffset.UTC).toEpochSecond())// IMPORTANT
-                            .roundLength(competition.getParameters().getRoundLengthInSeconds() + lastRoundInfo.getAdditionalMinutes() * 60)
-                            .roundNumber(currentRound)
-                            .build()
-            );
+                if (!lastRoundInfo.isEnded()) {
+                    sink.next(
+                            NewRoundEventDto
+                                    .builder()
+                                    .beginTime(lastRoundInfo.getStartTime().atOffset(ZoneOffset.UTC).toEpochSecond())// IMPORTANT
+                                    .roundLength(competition.getParameters().getRoundLengthInSeconds() + lastRoundInfo.getAdditionalMinutes() * 60)
+                                    .roundNumber(currentRound)
+                                    .build()
+                    );
+                } else {
+                    sink.next(
+                            EndRoundEventDto
+                                    .builder()
+                                    .isEndOfGame(currentRound == competition.getParameters().getRoundsCount())
+                                    .roundNumber(currentRound)
+                                    .build()
+                    );
+                }
+            }
 
             return sink;
-        });
-
-        return processor;
-    }
-
-    private Flux<EndRoundEventDto> createEndRoundsProcessor(DbCompetition competition) {
-        String pin = competition.getPin();
-        var processor = DirectProcessor.<EndRoundEventDto>create().serialize();
-
-        endRoundEventsSinks.computeIfAbsent(pin, (__) -> {
-            return processor.sink();
         });
 
         return processor;
@@ -114,29 +130,36 @@ public class GameManagementServiceImpl implements IGameManagementService {
 
         competition.setState(DbCompetition.State.InProcess);
         DbCompetitionProcessInfo processInfo = DbCompetitionProcessInfo.builder().currentRoundNumber(0).build();
-        //TODO start first round
-        competition.setCompetitionProcessInfo(processInfo);
 
-        return competitionsRepository.save(competition).then();
+        return processInfosRepository.save(processInfo).flatMap((savedProcessInfo) -> {
+            competition.setCompetitionProcessInfo(savedProcessInfo);
+
+            return this.startNewRound(competition);
+        });
     }
 
     @Override
     public Mono<Void> addMinuteToCurrentRound(DbCompetition competition) {
+        if (competition.getCompetitionProcessInfo().getCurrentRoundNumber() == 0) {
+            return Mono.error(new RoundLengthIncreaseInNotStartedCompException("Tried to add minute to current round but" +
+                    "there is no current round, game rounds are empty"));
+        }
         var round = competition.getCompetitionProcessInfo().getCurrentRound();
         round.addOneMinute();
 
         return competitionsRepository.save(competition).map(savedComp -> {
+            var savedRound = savedComp.getCompetitionProcessInfo().getCurrentRound();
             var event = NewRoundEventDto
                     .builder()
-                    .beginTime(round.getStartTime().atOffset(ZoneOffset.UTC).toEpochSecond())// IMPORTANT
-                    .roundLength(savedComp.getParameters().getRoundLengthInSeconds() + round.getAdditionalMinutes() * 60)
+                    .beginTime(savedRound.getStartTime().atOffset(ZoneOffset.UTC).toEpochSecond())// IMPORTANT
+                    .roundLength(savedComp.getParameters().getRoundLengthInSeconds() + savedRound.getAdditionalMinutes() * 60)
                     .roundNumber(savedComp.getCompetitionProcessInfo().getCurrentRoundNumber())
                     .build();
-            newRoundEventsStorage.compute(savedComp.getPin(), (pin, prev) -> {
+            beginEndRoundEventsStorage.compute(savedComp.getPin(), (pin, prev) -> {
                 if (Objects.isNull(prev)) {
-                    return createNewRoundsProcessor(savedComp);
+                    return createBeginEndRoundsProcessor(savedComp);
                 } else {
-                    newRoundEventsSinks.get(pin).next(event);
+                    beginEndRoundEventsSinks.get(pin).next(event);
                     return prev;
                 }
             });
@@ -147,9 +170,16 @@ public class GameManagementServiceImpl implements IGameManagementService {
 
     @Override
     public Mono<Void> submitAnswer(DbCompetition competition, DbTeam team, int answer) {
-        competition.getCompetitionProcessInfo().getCurrentRound().addAnswer(DbAnswer.builder().submitter(team).value(answer).build());
+        if (competition.getCompetitionProcessInfo().getCurrentRoundNumber() == 0) {
+            return Mono.error(new RoundLengthIncreaseInNotStartedCompException("Tried to submit answer in game with no rounds"));
 
-        return competitionsRepository.save(competition).map(savedCompetition -> {
+        }
+        var dbTeamAnswer = DbAnswer.builder().submitter(team).value(answer).build();
+
+        return answersRepository.save(dbTeamAnswer).map((savedAnswer) -> {
+            competition.getCompetitionProcessInfo().getCurrentRound().addAnswer(savedAnswer);
+            return savedAnswer;
+        }).then(competitionsRepository.save(competition).map(savedCompetition -> {
                     String pin = savedCompetition.getPin();
                     teamAnswersStorage.compute(pin, (__, before) -> {
                         if (before == null)
@@ -168,21 +198,95 @@ public class GameManagementServiceImpl implements IGameManagementService {
                     });
                     return savedCompetition;
                 }
-        ).then();
+        )).then();
     }
 
     @Override
     public Flux<RoundTeamAnswerDto> teamsAnswersEvents(DbCompetition competition) {
-        return teamAnswersStorage.get(competition.getPin());
+        return teamAnswersStorage.computeIfAbsent(competition.getPin(), (pin) -> {
+            return createTeamAnswersProcessor(competition);
+        });
     }
 
     @Override
-    public Flux<EndRoundEventDto> getEndRoundEvents(DbCompetition competition) {
-        return endRoundEventsStorage.get(competition.getPin());
+    public Flux<ITypedEvent> beginEndRoundEvents(DbCompetition competition) {
+        return beginEndRoundEventsStorage.computeIfAbsent(competition.getPin(), (pin) -> {
+            return createBeginEndRoundsProcessor(competition);
+        });
     }
 
     @Override
-    public Flux<NewRoundEventDto> getNewRoundEvents(DbCompetition competition) {
-        return newRoundEventsStorage.get(competition.getPin());
+    public Mono<Void> endCurrentRound(DbCompetition competition) {
+        int currentRoundNumber = competition.getCompetitionProcessInfo().getCurrentRoundNumber();
+        if (currentRoundNumber == 0) {
+            return Mono.error(new RoundEndInNotStartedCompetitionException("Attempt to end round, but there is no rounds"));
+        }
+
+        var lastRound = competition.getCompetitionProcessInfo().getCurrentRound();
+        lastRound.setEnded(true);
+
+        //TODO calc results
+
+        return competitionsRepository.save(competition)
+                .doOnNext((savedCompetition) -> {
+                    String pin = savedCompetition.getPin();
+                    beginEndRoundEventsStorage.compute(pin, (__, before) -> {
+                        if (Objects.isNull(before)) {
+                            return createBeginEndRoundsProcessor(savedCompetition);
+                        } else {
+                            beginEndRoundEventsSinks.get(pin)
+                                    .next(EndRoundEventDto.builder()
+                                            .roundNumber(currentRoundNumber)
+                                            .isEndOfGame(currentRoundNumber == savedCompetition.getParameters().getRoundsCount())
+                                            .build()
+                                    );
+
+                            return before;
+                        }
+                    });
+                }).then();
     }
+
+    @Override
+    public Mono<Void> startNewRound(DbCompetition competition) {
+        var processInfo = competition.getCompetitionProcessInfo();
+        int currentRound = processInfo.getCurrentRoundNumber();
+        if (currentRound == competition.getParameters().getRoundsCount()) {
+            return Mono.error(new CompetitionRoundsOverflowException("Amount of rounds exceeded"));
+        }
+
+        var newRoundInfo = DbCompetitionRoundInfo
+                .builder()
+                .additionalMinutes(0)
+                .isEnded(false)
+                .startTime(LocalDateTime.now(Clock.systemUTC()))
+                .build();
+
+        return roundInfosRepository.save(newRoundInfo).flatMap((savedRoundInfo) -> {
+            processInfo.addRoundInfo(savedRoundInfo);
+
+            return competitionsRepository.save(competition)
+                    .doOnNext((savedCompetition) -> {
+                        String pin = savedCompetition.getPin();
+                        beginEndRoundEventsStorage.compute(pin, (__, before) -> {
+                            if (Objects.isNull(before)) {
+                                return createBeginEndRoundsProcessor(savedCompetition);
+                            } else {
+                                beginEndRoundEventsSinks.get(pin).next(
+                                        NewRoundEventDto
+                                                .builder()
+                                                .roundNumber(currentRound + 1)
+                                                .roundLength(savedCompetition.getParameters().getRoundLengthInSeconds())
+                                                .beginTime(LocalDateTime.now().atOffset(ZoneOffset.UTC).toEpochSecond())
+                                                .build()
+                                );
+
+                                return before;
+                            }
+                        });
+                    });
+        }).then();
+
+    }
+
 }

@@ -1,7 +1,6 @@
 package com.groudina.ten.demo.services;
 
-import com.groudina.ten.demo.dto.EndRoundEventDto;
-import com.groudina.ten.demo.dto.NewRoundEventDto;
+import com.groudina.ten.demo.dto.ITypedEvent;
 import com.groudina.ten.demo.dto.RoundTeamAnswerDto;
 import com.groudina.ten.demo.models.DbCompetition;
 import com.groudina.ten.demo.models.DbTeam;
@@ -15,11 +14,11 @@ public interface IGameManagementService {
 
     Mono<Void> submitAnswer(DbCompetition competition, DbTeam team, int answer);
 
-    //Mono<RoundResultDto> endCurrentRound(DbCompetition competition);
-
     Flux<RoundTeamAnswerDto> teamsAnswersEvents(DbCompetition competition);//computable flux for teacher
 
-    Flux<EndRoundEventDto> getEndRoundEvents(DbCompetition competition);
+    Flux<ITypedEvent> beginEndRoundEvents(DbCompetition competition);
 
-    Flux<NewRoundEventDto> getNewRoundEvents(DbCompetition competition);//if same round number is produced then round length was changed
+    Mono<Void> endCurrentRound(DbCompetition competition);
+
+    Mono<Void> startNewRound(DbCompetition competition);
 }

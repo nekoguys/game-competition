@@ -16,5 +16,7 @@ public class EndRoundEventDto implements ITypedEvent {
     @Builder.Default
     private String type = "EndRound";
 
+    private int roundNumber;
+
     private boolean isEndOfGame;
 }

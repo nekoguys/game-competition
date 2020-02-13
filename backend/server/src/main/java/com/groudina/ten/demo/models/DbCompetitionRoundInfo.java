@@ -1,9 +1,7 @@
 package com.groudina.ten.demo.models;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -17,8 +15,15 @@ import java.util.List;
 @AllArgsConstructor
 @Document(collection = "comp_round_info")
 public class DbCompetitionRoundInfo {
+
+    @Id
+    private String id;
+
     private LocalDateTime startTime;
     private int additionalMinutes;
+
+    @Setter
+    private boolean isEnded;
 
     @DBRef
     @Builder.Default
