@@ -24,12 +24,20 @@ public class DbCompetitionProcessInfo {
     @Builder.Default
     private List<DbCompetitionRoundInfo> roundInfos = new ArrayList<>();
 
+    @DBRef
+    @Builder.Default
+    private List<DbCompetitionMessage> messages = new ArrayList<>();
+
     @Builder.Default
     private int currentRoundNumber = 0;
 
     public void addRoundInfo(DbCompetitionRoundInfo roundInfo) {
         roundInfos.add(roundInfo);
         currentRoundNumber++;
+    }
+
+    public void addMessage(DbCompetitionMessage message) {
+        this.messages.add(message);
     }
 
     public DbCompetitionRoundInfo getCurrentRound() {

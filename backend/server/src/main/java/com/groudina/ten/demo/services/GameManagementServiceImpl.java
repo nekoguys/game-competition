@@ -1,14 +1,9 @@
 package com.groudina.ten.demo.services;
 
-import com.groudina.ten.demo.datasource.DbAnswersRepository;
-import com.groudina.ten.demo.datasource.DbCompetitionProcessInfosRepository;
-import com.groudina.ten.demo.datasource.DbCompetitionRoundInfosRepository;
-import com.groudina.ten.demo.datasource.DbCompetitionsRepository;
-import com.groudina.ten.demo.dto.EndRoundEventDto;
-import com.groudina.ten.demo.dto.ITypedEvent;
-import com.groudina.ten.demo.dto.NewRoundEventDto;
-import com.groudina.ten.demo.dto.RoundTeamAnswerDto;
+import com.groudina.ten.demo.datasource.*;
+import com.groudina.ten.demo.dto.*;
 import com.groudina.ten.demo.exceptions.CompetitionRoundsOverflowException;
+import com.groudina.ten.demo.exceptions.IllegalAnswerSubmissionException;
 import com.groudina.ten.demo.exceptions.RoundEndInNotStartedCompetitionException;
 import com.groudina.ten.demo.exceptions.RoundLengthIncreaseInNotStartedCompException;
 import com.groudina.ten.demo.models.*;
@@ -31,10 +26,12 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 @Scope(value = ConfigurableBeanFactory.SCOPE_SINGLETON)
 public class GameManagementServiceImpl implements IGameManagementService {
+    private final int secondsOffset = 2;
     private DbCompetitionsRepository competitionsRepository;
     private DbCompetitionRoundInfosRepository roundInfosRepository;
     private DbCompetitionProcessInfosRepository processInfosRepository;
     private DbAnswersRepository answersRepository;
+    private DbCompetitionMessagesRepository messagesRepository;
 
     private Map<String, Flux<RoundTeamAnswerDto>> teamAnswersStorage = new ConcurrentHashMap<>();
     private Map<String, FluxSink<RoundTeamAnswerDto>> teamAnswersSinks = new ConcurrentHashMap<>();
@@ -42,17 +39,43 @@ public class GameManagementServiceImpl implements IGameManagementService {
     private Map<String, Flux<ITypedEvent>> beginEndRoundEventsStorage = new ConcurrentHashMap<>();
     private Map<String, FluxSink<ITypedEvent>> beginEndRoundEventsSinks = new ConcurrentHashMap<>();
 
+    private Map<String, Flux<CompetitionMessageDto>> messagesStorage = new ConcurrentHashMap<>();
+    private Map<String, FluxSink<CompetitionMessageDto>> messagesSinks = new ConcurrentHashMap<>();
 
     public GameManagementServiceImpl(
             @Autowired DbCompetitionsRepository competitionsRepository,
             @Autowired DbCompetitionRoundInfosRepository roundInfosRepository,
             @Autowired DbCompetitionProcessInfosRepository processInfosRepository,
-            @Autowired DbAnswersRepository answersRepository
+            @Autowired DbAnswersRepository answersRepository,
+            @Autowired DbCompetitionMessagesRepository messagesRepository
     ) {
         this.competitionsRepository = competitionsRepository;
         this.roundInfosRepository = roundInfosRepository;
         this.processInfosRepository = processInfosRepository;
         this.answersRepository = answersRepository;
+        this.messagesRepository = messagesRepository;
+    }
+
+    private Flux<CompetitionMessageDto> createMessagesProcessor(DbCompetition competition) {
+        String pin = competition.getPin();
+        var processor = ReplayProcessor.<CompetitionMessageDto>create().serialize();
+
+        messagesSinks.computeIfAbsent(pin, (__) -> {
+            var sink = processor.sink();
+
+            competition.getCompetitionProcessInfo().getMessages().forEach(message -> {
+                sink.next(
+                        CompetitionMessageDto
+                                .builder()
+                                .message(message.getMessage())
+                                .sendTime(message.getSendTime().atOffset(ZoneOffset.UTC).toEpochSecond())
+                                .build()
+                );
+            });
+           return sink;
+        });
+
+        return processor;
     }
 
     private Flux<RoundTeamAnswerDto> createTeamAnswersProcessor(DbCompetition competition) {
@@ -169,11 +192,23 @@ public class GameManagementServiceImpl implements IGameManagementService {
     }
 
     @Override
-    public Mono<Void> submitAnswer(DbCompetition competition, DbTeam team, int answer) {
-        if (competition.getCompetitionProcessInfo().getCurrentRoundNumber() == 0) {
-            return Mono.error(new RoundLengthIncreaseInNotStartedCompException("Tried to submit answer in game with no rounds"));
-
+    public Mono<Void> submitAnswer(DbCompetition competition, DbTeam team, int answer, int roundNumber) {
+        if (Objects.isNull(competition.getCompetitionProcessInfo())) {
+            return Mono.error(new IllegalAnswerSubmissionException("Tried to submit in not started game"));
         }
+        if (competition.getCompetitionProcessInfo().getCurrentRoundNumber() != roundNumber) {
+            return Mono.error(new IllegalAnswerSubmissionException("Tried to submit answer in invalid round"));
+        }
+
+        var currTimeInSeconds = LocalDateTime.now().atOffset(ZoneOffset.UTC).toEpochSecond();
+        var round = competition.getCompetitionProcessInfo().getCurrentRound();
+        var approxRoundEndSeconds = round.getStartTime().plusSeconds(round.getAdditionalMinutes() * 60).atOffset(ZoneOffset.UTC).toEpochSecond();
+
+        if (approxRoundEndSeconds + secondsOffset >= currTimeInSeconds) {
+            return Mono.error(new IllegalAnswerSubmissionException("Tried to submit answer in ended round"));
+        }
+
+
         var dbTeamAnswer = DbAnswer.builder().submitter(team).value(answer).build();
 
         return answersRepository.save(dbTeamAnswer).map((savedAnswer) -> {
@@ -216,6 +251,13 @@ public class GameManagementServiceImpl implements IGameManagementService {
     }
 
     @Override
+    public Flux<CompetitionMessageDto> getCompetitionMessages(DbCompetition competition) {
+        return messagesStorage.computeIfAbsent(competition.getPin(), (pin) -> {
+            return createMessagesProcessor(competition);
+        });
+    }
+
+    @Override
     public Mono<Void> endCurrentRound(DbCompetition competition) {
         int currentRoundNumber = competition.getCompetitionProcessInfo().getCurrentRoundNumber();
         if (currentRoundNumber == 0) {
@@ -225,10 +267,12 @@ public class GameManagementServiceImpl implements IGameManagementService {
         var lastRound = competition.getCompetitionProcessInfo().getCurrentRound();
         lastRound.setEnded(true);
 
-        //TODO calc results
 
         return competitionsRepository.save(competition)
                 .doOnNext((savedCompetition) -> {
+
+                    //TODO calc results
+
                     String pin = savedCompetition.getPin();
                     beginEndRoundEventsStorage.compute(pin, (__, before) -> {
                         if (Objects.isNull(before)) {
@@ -287,6 +331,36 @@ public class GameManagementServiceImpl implements IGameManagementService {
                     });
         }).then();
 
+    }
+
+    @Override
+    public Mono<Void> addMessage(DbCompetition competition, CompetitionMessageRequest request) {
+        var message = DbCompetitionMessage.builder().message(request.getMessage()).sendTime(LocalDateTime.now()).build();
+
+        return messagesRepository.save(message).flatMap(savedMessage -> {
+            competition.getCompetitionProcessInfo().addMessage(savedMessage);
+            return Mono.zip(competitionsRepository.save(competition), Mono.just(savedMessage));
+        }).doOnNext(competitionSavedMessageTuple -> {
+            DbCompetitionMessage savedMessage = competitionSavedMessageTuple.getT2();
+            DbCompetition savedComp = competitionSavedMessageTuple.getT1();
+
+            String pin = savedComp.getPin();
+
+            messagesStorage.compute(pin, (__, before) -> {
+                if (Objects.isNull(before)) {
+                    return createMessagesProcessor(savedComp);
+                } else {
+                    messagesSinks.get(pin).next(
+                            CompetitionMessageDto
+                                    .builder()
+                                    .message(savedMessage.getMessage())
+                                    .sendTime(savedMessage.getSendTime().atOffset(ZoneOffset.UTC).toEpochSecond())
+                                    .build()
+                    );
+                    return before;
+                }
+            });
+        }).then();
     }
 
 }

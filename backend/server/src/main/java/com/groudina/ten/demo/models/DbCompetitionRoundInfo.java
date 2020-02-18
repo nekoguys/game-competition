@@ -44,4 +44,6 @@ public class DbCompetitionRoundInfo {
     public void addRoundResult(DbRoundResultElement element) {
         this.roundResult.add(element);
     }
+
+
 }
