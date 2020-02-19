@@ -2,8 +2,8 @@ package com.groudina.ten.demo.services;
 
 import com.groudina.ten.demo.datasource.*;
 import com.groudina.ten.demo.dto.*;
-import com.groudina.ten.demo.exceptions.CompetitionRoundsOverflowException;
 import com.groudina.ten.demo.exceptions.IllegalAnswerSubmissionException;
+import com.groudina.ten.demo.exceptions.IllegalGameStateException;
 import com.groudina.ten.demo.exceptions.RoundEndInNotStartedCompetitionException;
 import com.groudina.ten.demo.exceptions.RoundLengthIncreaseInNotStartedCompException;
 import com.groudina.ten.demo.models.*;
@@ -193,28 +193,42 @@ public class GameManagementServiceImpl implements IGameManagementService {
 
     @Override
     public Mono<Void> submitAnswer(DbCompetition competition, DbTeam team, int answer, int roundNumber) {
-        if (Objects.isNull(competition.getCompetitionProcessInfo())) {
+        if (competition.getState() != DbCompetition.State.InProcess) {
             return Mono.error(new IllegalAnswerSubmissionException("Tried to submit in not started game"));
         }
         if (competition.getCompetitionProcessInfo().getCurrentRoundNumber() != roundNumber) {
             return Mono.error(new IllegalAnswerSubmissionException("Tried to submit answer in invalid round"));
         }
 
-        var currTimeInSeconds = LocalDateTime.now().atOffset(ZoneOffset.UTC).toEpochSecond();
         var round = competition.getCompetitionProcessInfo().getCurrentRound();
-        var approxRoundEndSeconds = round.getStartTime().plusSeconds(round.getAdditionalMinutes() * 60).atOffset(ZoneOffset.UTC).toEpochSecond();
 
-        if (approxRoundEndSeconds + secondsOffset >= currTimeInSeconds) {
-            return Mono.error(new IllegalAnswerSubmissionException("Tried to submit answer in ended round"));
-        }
+        // TODO add after integrating auto-ending round
+
+//        var currTimeInSeconds = LocalDateTime.now().atOffset(ZoneOffset.UTC).toEpochSecond();
+//        var approxRoundEndSeconds = round.getStartTime().plusSeconds(round.getAdditionalMinutes() * 60).atOffset(ZoneOffset.UTC).toEpochSecond();
+//
+//        if (approxRoundEndSeconds + secondsOffset >= currTimeInSeconds) {
+//            return Mono.error(new IllegalAnswerSubmissionException("Tried to submit answer in ended round"));
+//        }
 
 
         var dbTeamAnswer = DbAnswer.builder().submitter(team).value(answer).build();
+        var prevAnswer = round.getAnswerList().stream()
+                .filter((checkingTeam) ->
+                        checkingTeam.getSubmitter().getId().equals(team.getId())
+                ).findAny();
 
-        return answersRepository.save(dbTeamAnswer).map((savedAnswer) -> {
-            competition.getCompetitionProcessInfo().getCurrentRound().addAnswer(savedAnswer);
-            return savedAnswer;
-        }).then(competitionsRepository.save(competition).map(savedCompetition -> {
+        var prevStep = Mono.just(1).then();
+
+        if (prevAnswer.isPresent()) {
+            prevStep = answersRepository.delete(prevAnswer.get()).then();
+        }
+
+        return prevStep.then(
+                answersRepository.save(dbTeamAnswer).map((savedAnswer) -> {
+                    competition.getCompetitionProcessInfo().getCurrentRound().addAnswer(savedAnswer);
+                    return savedAnswer;
+                }).then(competitionsRepository.save(competition).map(savedCompetition -> {
                     String pin = savedCompetition.getPin();
                     teamAnswersStorage.compute(pin, (__, before) -> {
                         if (before == null)
@@ -233,7 +247,8 @@ public class GameManagementServiceImpl implements IGameManagementService {
                     });
                     return savedCompetition;
                 }
-        )).then();
+                ))
+        ).then();
     }
 
     @Override
@@ -259,14 +274,16 @@ public class GameManagementServiceImpl implements IGameManagementService {
 
     @Override
     public Mono<Void> endCurrentRound(DbCompetition competition) {
-        int currentRoundNumber = competition.getCompetitionProcessInfo().getCurrentRoundNumber();
-        if (currentRoundNumber == 0) {
-            return Mono.error(new RoundEndInNotStartedCompetitionException("Attempt to end round, but there is no rounds"));
+        if (competition.getState() != DbCompetition.State.InProcess) {
+            return Mono.error(new RoundEndInNotStartedCompetitionException("Attempt to end round but game not started"));
         }
-
+        int currentRoundNumber = competition.getCompetitionProcessInfo().getCurrentRoundNumber();
         var lastRound = competition.getCompetitionProcessInfo().getCurrentRound();
         lastRound.setEnded(true);
 
+        if (currentRoundNumber == competition.getParameters().getRoundsCount()) {
+            competition.setState(DbCompetition.State.Ended);
+        }
 
         return competitionsRepository.save(competition)
                 .doOnNext((savedCompetition) -> {
@@ -293,11 +310,12 @@ public class GameManagementServiceImpl implements IGameManagementService {
 
     @Override
     public Mono<Void> startNewRound(DbCompetition competition) {
+        if (competition.getState() != DbCompetition.State.InProcess) {
+            return Mono.error(new IllegalGameStateException("Attempt to start round but game not in process"));
+        }
+
         var processInfo = competition.getCompetitionProcessInfo();
         int currentRound = processInfo.getCurrentRoundNumber();
-        if (currentRound == competition.getParameters().getRoundsCount()) {
-            return Mono.error(new CompetitionRoundsOverflowException("Amount of rounds exceeded"));
-        }
 
         var newRoundInfo = DbCompetitionRoundInfo
                 .builder()
@@ -361,6 +379,18 @@ public class GameManagementServiceImpl implements IGameManagementService {
                 }
             });
         }).then();
+    }
+
+    @Override
+    public Mono<Void> clear() {
+        teamAnswersStorage.clear();
+        teamAnswersSinks.clear();
+        messagesStorage.clear();
+        messagesSinks.clear();
+        beginEndRoundEventsStorage.clear();
+        beginEndRoundEventsSinks.clear();
+
+        return Mono.just(1).then();
     }
 
 }

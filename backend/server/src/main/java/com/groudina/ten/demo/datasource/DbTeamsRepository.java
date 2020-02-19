@@ -9,5 +9,5 @@ import reactor.core.publisher.Mono;
 public interface DbTeamsRepository extends ReactiveMongoRepository<DbTeam, String> {
     Flux<DbTeam> findDbTeamBySourceCompetition(DbCompetition competition);
 
-    Mono<DbTeam> findByName(String name);
+    Mono<DbTeam> findOneBySourceCompetition_PinAndName(String pin, String name);
 }

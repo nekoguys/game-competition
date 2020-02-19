@@ -6,6 +6,8 @@ import com.groudina.ten.demo.dto.CompetitionMessageRequest;
 import com.groudina.ten.demo.dto.EndRoundEventDto;
 import com.groudina.ten.demo.dto.NewRoundEventDto;
 import com.groudina.ten.demo.exceptions.IllegalAnswerSubmissionException;
+import com.groudina.ten.demo.exceptions.IllegalGameStateException;
+import com.groudina.ten.demo.exceptions.RoundEndInNotStartedCompetitionException;
 import com.groudina.ten.demo.models.DbCompetition;
 import com.groudina.ten.demo.models.DbRole;
 import com.groudina.ten.demo.models.DbTeam;
@@ -16,6 +18,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.domain.Sort;
 import reactor.test.StepVerifier;
 
 import java.time.LocalDateTime;
@@ -29,6 +32,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @EnableEmbeddedMongo
 @Log4j2
 class GameManagementServiceImplTest {
+
+    final static int roundsCountDefault = 2;
 
     @Autowired
     DbUserRepository userRepository;
@@ -80,14 +85,15 @@ class GameManagementServiceImplTest {
         competitionProcessInfosRepository.deleteAll().block();
         competitionRoundInfosRepository.deleteAll().block();
         roundResultElementsRepository.deleteAll().block();
+        messagesRepository.deleteAll().block();
+        gameManagementService.clear().block();
     }
 
-    @Test
-    void testTeamAnswersAndRoundEventsFlux() {
+    DbCompetition commonPart() {
         var competitionParams = DbCompetition.Parameters.builder()
                 .maxTeamSize(3)
                 .maxTeamsAmount(3)
-                .roundsCount(2)
+                .roundsCount(roundsCountDefault)
                 .roundLengthInSeconds(60)
                 .build();
         var comp = DbCompetition.builder()
@@ -106,17 +112,25 @@ class GameManagementServiceImplTest {
 
         comp = competitionsRepository.save(comp).block();
 
+        return comp;
+    }
+
+    @Test
+    void testTeamAnswersAndRoundEventsFlux() {
+        var comp = commonPart();
         gameManagementService.startCompetition(comp).block();
-        //comp = competitionsRepository.findAll().blockFirst();
+
+        var teams = teamsRepository.findAll(Sort.by(Sort.Direction.ASC, "idInGame")).collectList().block();
+
         assertEquals(comp.getCompetitionProcessInfo().getCurrentRoundNumber(), 1);
 
         var answersVerifier = StepVerifier.create(gameManagementService.teamsAnswersEvents(comp));
 
-        gameManagementService.submitAnswer(comp, team1, 20, 1).block();
+        gameManagementService.submitAnswer(comp, teams.get(0), 20, 1).block();
 
         assertEquals(comp.getCompetitionProcessInfo().getCurrentRound().getAnswerList().size(), 1);
 
-        gameManagementService.submitAnswer(comp, team2, 10, 1).block();
+        gameManagementService.submitAnswer(comp, teams.get(1), 10, 1).block();
 
         answersVerifier.consumeNextWith((roundTeamAnswerDto) -> {
             assertEquals(roundTeamAnswerDto.getRoundNumber(), 1);
@@ -124,7 +138,7 @@ class GameManagementServiceImplTest {
             assertEquals(roundTeamAnswerDto.getTeamIdInGame(), 0);
         }).expectNextCount(1).thenCancel().verify();
 
-        StepVerifier.create(gameManagementService.submitAnswer(comp, team2, 30, 0))
+        StepVerifier.create(gameManagementService.submitAnswer(comp, teams.get(1), 30, 0))
                 .expectError(IllegalAnswerSubmissionException.class).verify();
 
         DbCompetition finalComp = comp;
@@ -213,5 +227,75 @@ class GameManagementServiceImplTest {
                     assertEquals(competitionMessageDto.getMessage(), "2");
                     assertTrue(Math.abs(competitionMessageDto.getSendTime() - LocalDateTime.now().atOffset(ZoneOffset.UTC).toEpochSecond()) <= 2);
                 }).thenCancel().verify();
+    }
+
+    @Test
+    void testSubmitInNotStartedGame() {
+        var comp = commonPart();
+
+        StepVerifier.create(gameManagementService.submitAnswer(comp, null, 1, 1))
+                .expectErrorSatisfies((ex) -> {
+                    assertTrue(ex instanceof IllegalAnswerSubmissionException);
+                    assertTrue(ex.getMessage().contains("not started"));
+                }).verify();
+    }
+
+    @Test
+    void testSubmitWrongRound() {
+        var comp = commonPart();
+
+        gameManagementService.startCompetition(comp).block();
+
+        StepVerifier.create(gameManagementService.submitAnswer(comp, null, 1, -229))
+                .expectErrorSatisfies((ex) -> {
+                    assertTrue(ex instanceof IllegalAnswerSubmissionException);
+                    assertTrue(ex.getMessage().contains("round"));
+                }).verify();
+    }
+
+    @Test
+    void submitTwice() {
+        var comp = commonPart();
+
+        gameManagementService.startCompetition(comp).block();
+
+        var team = teamsRepository.findAll().collectList().block().get(0);
+        StepVerifier.create(gameManagementService.submitAnswer(comp, team, 10, 1))
+                .verifyComplete();
+
+        StepVerifier.create(gameManagementService.submitAnswer(comp, team, 20, 1))
+                .verifyComplete();
+
+        var allAnswers = answersRepository.findAll().collectList().block();
+        assertEquals(allAnswers.size(), 1);
+        assertEquals(allAnswers.get(0).getValue(), 20);
+    }
+
+    @Test
+    void testEndRoundInNotStartedGame() {
+        var comp = commonPart();
+
+        StepVerifier.create(gameManagementService.endCurrentRound(comp))
+                .expectErrorSatisfies((ex) -> {
+                    assertTrue(ex instanceof RoundEndInNotStartedCompetitionException);
+                    assertTrue(ex.getMessage().contains("not started"));
+                }).verify();
+    }
+
+    @Test
+    void testStartRoundGameNotInProcess() {
+        var comp = commonPart();
+
+        StepVerifier.create(gameManagementService.startNewRound(comp))
+                .expectError(IllegalGameStateException.class).verify();
+
+        gameManagementService.startCompetition(comp).block();
+        gameManagementService.endCurrentRound(comp).block();
+        gameManagementService.startNewRound(comp).block();
+        gameManagementService.endCurrentRound(comp).block();
+
+        StepVerifier.create(gameManagementService.startNewRound(comp))
+                .expectError(IllegalGameStateException.class).verify();
+        assertEquals(comp.getState(), DbCompetition.State.Ended);
     }
 }

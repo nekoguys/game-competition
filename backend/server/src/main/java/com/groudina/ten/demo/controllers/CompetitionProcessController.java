@@ -1,0 +1,113 @@
+package com.groudina.ten.demo.controllers;
+
+import com.groudina.ten.demo.datasource.DbCompetitionsRepository;
+import com.groudina.ten.demo.datasource.DbTeamsRepository;
+import com.groudina.ten.demo.dto.CompetitionAnswerRequestDto;
+import com.groudina.ten.demo.dto.CompetitionMessageRequest;
+import com.groudina.ten.demo.dto.ResponseMessage;
+import com.groudina.ten.demo.exceptions.IllegalAnswerSubmissionException;
+import com.groudina.ten.demo.models.DbCompetition;
+import com.groudina.ten.demo.models.DbTeam;
+import com.groudina.ten.demo.services.IGameManagementService;
+import lombok.extern.log4j.Log4j2;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Mono;
+
+import javax.validation.Valid;
+import java.security.Principal;
+import java.util.function.Function;
+import java.util.function.Supplier;
+
+@Log4j2
+@RequestMapping(path="/api/competition_process/{pin}", produces = {MediaType.APPLICATION_JSON_VALUE})
+@CrossOrigin(origins = {"*"}, maxAge = 3600)
+@RestController
+public class CompetitionProcessController {
+    private DbTeamsRepository teamsRepository;
+    private DbCompetitionsRepository competitionsRepository;
+    private IGameManagementService gameManagementService;
+
+    public CompetitionProcessController(
+            @Autowired IGameManagementService gameManagementService,
+            @Autowired DbCompetitionsRepository competitionsRepository,
+            @Autowired DbTeamsRepository teamsRepository
+    ) {
+        this.gameManagementService = gameManagementService;
+        this.competitionsRepository = competitionsRepository;
+        this.teamsRepository = teamsRepository;
+    }
+
+    private <U, T> Mono<ResponseEntity> routine(Mono<U> source, Function<? super U, ? extends Mono<? extends T>> mapper,
+                                                Supplier<String> success, Supplier<String> empty) {
+        return source.flatMap(mapper).thenReturn(
+                (ResponseEntity)ResponseEntity.ok(ResponseMessage.of(success.get()))
+        ).onErrorResume((ex) -> {
+            return Mono.just(ResponseEntity.badRequest().body(ResponseMessage.of(ex.getMessage())));
+        }).switchIfEmpty(Mono.defer(() -> {
+            return Mono.just(ResponseEntity.badRequest().body(ResponseMessage.of(empty.get())));
+        }));
+    }
+
+    //TEACHER BEGIN
+
+    @GetMapping("/start_competition")
+    @PreAuthorize("hasRole('TEACHER')")
+    public Mono<ResponseEntity> startCompetition(@PathVariable String pin) {
+        return routine(competitionsRepository.findByPin(pin), (competition) -> {
+            return gameManagementService.startCompetition(competition);
+        }, () -> "Competition started successfully", () -> "Competition with pin: " + pin + " not found");
+    }
+
+    @GetMapping("/end_round")
+    @PreAuthorize("hasRole('TEACHER')")
+    public Mono<ResponseEntity> endRound(@PathVariable String pin) {
+        return routine(competitionsRepository.findByPin(pin), (competition) -> {
+            return gameManagementService.endCurrentRound(competition);
+        }, () -> "Round ended successfully", () -> "Competition with pin: " + pin + " not found");
+    }
+
+    @GetMapping("/start_round")
+    @PreAuthorize("hasRole('TEACHER')")
+    public Mono<ResponseEntity> startNewRound(@PathVariable String pin) {
+        return routine(competitionsRepository.findByPin(pin), (competition) -> {
+            return gameManagementService.startNewRound(competition);
+        }, () -> "Round has started successfully", () -> "Competition with pin: " + pin + " not found");
+    }
+
+    @PostMapping("/send_message")
+    @PreAuthorize("hasRole('TEACHER')")
+    public Mono<ResponseEntity> sendTeacherMessage(@PathVariable String pin, @Valid @RequestBody CompetitionMessageRequest request) {
+        return routine(competitionsRepository.findByPin(pin), (competition) -> {
+            return gameManagementService.addMessage(competition, request);
+        }, () -> "Message sent successfully", () -> "Competition with pin: " + pin + " not found");
+    }
+
+    //TEACHER END
+    //STUDENT BEGIN
+
+    @PostMapping("/submit_answer")
+    @PreAuthorize("hasRole('TEACHER')")
+    public Mono<ResponseEntity> submitAnswer(Mono<Principal> principalMono, @PathVariable String pin, @Valid @RequestBody CompetitionAnswerRequestDto answerDto) {
+        var competitionAndTeamMono = Mono.zip(
+                competitionsRepository.findByPin(pin),
+                teamsRepository.findOneBySourceCompetition_PinAndName(pin, answerDto.getTeamName()),
+                principalMono
+        );
+
+        return routine(competitionAndTeamMono, (tuple) -> {
+            DbCompetition competition = tuple.getT1();
+            DbTeam team = tuple.getT2();
+            String submitterEmail = tuple.getT3().getName();
+
+            if (team.getCaptain().getEmail().equals(submitterEmail)) {
+                return gameManagementService.submitAnswer(competition, team, answerDto.getAnswer(), answerDto.getRoundNumber());
+            } else {
+                return Mono.error(new IllegalAnswerSubmissionException("User with email: " + submitterEmail + " is not team \"" + team.getName() + "\" captain"));
+            }
+        }, () -> "Answer submitted successfully", () -> "Competition with pin: " + pin + " or team with name: " + answerDto.getTeamName() + " not found");
+    }
+}

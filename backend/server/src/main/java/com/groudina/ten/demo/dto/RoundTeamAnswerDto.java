@@ -16,5 +16,5 @@ public class RoundTeamAnswerDto implements Serializable {
 
     private int roundNumber;
 
-    private double teamAnswer;
+    private int teamAnswer;
 }

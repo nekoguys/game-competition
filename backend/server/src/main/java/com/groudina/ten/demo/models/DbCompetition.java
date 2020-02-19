@@ -40,7 +40,6 @@ public class DbCompetition {
         this.teams.add(team);
     }
 
-
     public static enum State {
         Draft, Registration, InProcess, Ended
     }

@@ -27,4 +27,6 @@ public interface IGameManagementService {
     Mono<Void> startNewRound(DbCompetition competition);
 
     Mono<Void> addMessage(DbCompetition competition, CompetitionMessageRequest request);
+
+    Mono<Void> clear();
 }
