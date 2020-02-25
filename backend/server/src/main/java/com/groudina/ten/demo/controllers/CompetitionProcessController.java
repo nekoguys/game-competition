@@ -13,8 +13,10 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import javax.validation.Valid;
@@ -43,7 +45,7 @@ public class CompetitionProcessController {
 
     private <U, T> Mono<ResponseEntity> routine(Mono<U> source, Function<? super U, ? extends Mono<? extends T>> mapper,
                                                 Supplier<String> success, Supplier<String> empty) {
-        return source.flatMap(mapper).thenReturn(
+        return source.flatMap(mapper).map(__ ->
                 (ResponseEntity)ResponseEntity.ok(ResponseMessage.of(success.get()))
         ).onErrorResume((ex) -> {
             return Mono.just(ResponseEntity.badRequest().body(ResponseMessage.of(ex.getMessage())));
@@ -58,7 +60,7 @@ public class CompetitionProcessController {
     @PreAuthorize("hasRole('TEACHER')")
     public Mono<ResponseEntity> startCompetition(@PathVariable String pin) {
         return routine(competitionsRepository.findByPin(pin), (competition) -> {
-            return gameManagementService.startCompetition(competition);
+            return gameManagementService.startCompetition(competition).thenReturn(false);
         }, () -> "Competition started successfully", () -> "Competition with pin: " + pin + " not found");
     }
 
@@ -66,7 +68,7 @@ public class CompetitionProcessController {
     @PreAuthorize("hasRole('TEACHER')")
     public Mono<ResponseEntity> endRound(@PathVariable String pin) {
         return routine(competitionsRepository.findByPin(pin), (competition) -> {
-            return gameManagementService.endCurrentRound(competition);
+            return gameManagementService.endCurrentRound(competition).thenReturn(false);
         }, () -> "Round ended successfully", () -> "Competition with pin: " + pin + " not found");
     }
 
@@ -74,7 +76,7 @@ public class CompetitionProcessController {
     @PreAuthorize("hasRole('TEACHER')")
     public Mono<ResponseEntity> startNewRound(@PathVariable String pin) {
         return routine(competitionsRepository.findByPin(pin), (competition) -> {
-            return gameManagementService.startNewRound(competition);
+            return gameManagementService.startNewRound(competition).thenReturn(false);
         }, () -> "Round has started successfully", () -> "Competition with pin: " + pin + " not found");
     }
 
@@ -82,19 +84,31 @@ public class CompetitionProcessController {
     @PreAuthorize("hasRole('TEACHER')")
     public Mono<ResponseEntity> sendTeacherMessage(@PathVariable String pin, @Valid @RequestBody CompetitionMessageRequest request) {
         return routine(competitionsRepository.findByPin(pin), (competition) -> {
-            return gameManagementService.addMessage(competition, request);
+            return gameManagementService.addMessage(competition, request).thenReturn(false);
         }, () -> "Message sent successfully", () -> "Competition with pin: " + pin + " not found");
+    }
+
+    @RequestMapping(value = "/answers_stream", produces = {MediaType.TEXT_EVENT_STREAM_VALUE})
+    public Flux<ServerSentEvent<?>> getTeamsAnswers(@PathVariable String pin) {
+        return competitionsRepository.findByPin(pin)
+                .flatMapMany(comp -> gameManagementService.teamsAnswersEvents(comp))
+                .map(dto -> {
+                    return ServerSentEvent.builder().data(dto).build();
+                });
     }
 
     //TEACHER END
     //STUDENT BEGIN
 
     @PostMapping("/submit_answer")
-    @PreAuthorize("hasRole('TEACHER')")
+    @PreAuthorize("hasRole('STUDENT')")
     public Mono<ResponseEntity> submitAnswer(Mono<Principal> principalMono, @PathVariable String pin, @Valid @RequestBody CompetitionAnswerRequestDto answerDto) {
+        var comp = competitionsRepository.findByPin(pin);
+
         var competitionAndTeamMono = Mono.zip(
-                competitionsRepository.findByPin(pin),
-                teamsRepository.findOneBySourceCompetition_PinAndName(pin, answerDto.getTeamName()),
+                comp,
+                comp.flatMap(competition -> teamsRepository.findDbTeamBySourceCompetition(competition)
+                        .filter(t -> t.getName().equalsIgnoreCase(answerDto.getTeamName())).next()),
                 principalMono
         );
 
@@ -104,7 +118,7 @@ public class CompetitionProcessController {
             String submitterEmail = tuple.getT3().getName();
 
             if (team.getCaptain().getEmail().equals(submitterEmail)) {
-                return gameManagementService.submitAnswer(competition, team, answerDto.getAnswer(), answerDto.getRoundNumber());
+                return gameManagementService.submitAnswer(competition, team, answerDto.getAnswer(), answerDto.getRoundNumber()).thenReturn(false);
             } else {
                 return Mono.error(new IllegalAnswerSubmissionException("User with email: " + submitterEmail + " is not team \"" + team.getName() + "\" captain"));
             }

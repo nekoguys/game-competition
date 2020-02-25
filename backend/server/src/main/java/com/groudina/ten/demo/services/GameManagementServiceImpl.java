@@ -228,26 +228,27 @@ public class GameManagementServiceImpl implements IGameManagementService {
                 answersRepository.save(dbTeamAnswer).map((savedAnswer) -> {
                     competition.getCompetitionProcessInfo().getCurrentRound().addAnswer(savedAnswer);
                     return savedAnswer;
-                }).then(competitionsRepository.save(competition).map(savedCompetition -> {
-                    String pin = savedCompetition.getPin();
-                    teamAnswersStorage.compute(pin, (__, before) -> {
-                        if (before == null)
-                            return createTeamAnswersProcessor(savedCompetition);
-                        else {
-                            teamAnswersSinks.get(pin).next(
-                                    RoundTeamAnswerDto
-                                            .builder()
-                                            .teamIdInGame(team.getIdInGame())
-                                            .teamAnswer(answer)
-                                            .roundNumber(savedCompetition.getCompetitionProcessInfo().getCurrentRoundNumber())
-                                            .build()
-                            );
-                            return before;
-                        }
-                    });
-                    return savedCompetition;
-                }
-                ))
+                }).then(roundInfosRepository.save(competition.getCompetitionProcessInfo().getCurrentRound()))
+                        .then(processInfosRepository.save(competition.getCompetitionProcessInfo()))
+                        .then(competitionsRepository.save(competition).map(savedCompetition -> {
+                            String pin = savedCompetition.getPin();
+                            teamAnswersStorage.compute(pin, (__, before) -> {
+                                if (before == null)
+                                    return createTeamAnswersProcessor(savedCompetition);
+                                else {
+                                    teamAnswersSinks.get(pin).next(
+                                            RoundTeamAnswerDto
+                                                    .builder()
+                                                    .teamIdInGame(team.getIdInGame())
+                                                    .teamAnswer(answer)
+                                                    .roundNumber(savedCompetition.getCompetitionProcessInfo().getCurrentRoundNumber())
+                                                    .build()
+                                    );
+                                    return before;
+                                }
+                            });
+                            return savedCompetition;
+                        }))
         ).then();
     }
 
@@ -285,7 +286,7 @@ public class GameManagementServiceImpl implements IGameManagementService {
             competition.setState(DbCompetition.State.Ended);
         }
 
-        return competitionsRepository.save(competition)
+        return roundInfosRepository.save(lastRound).then(competitionsRepository.save(competition)
                 .doOnNext((savedCompetition) -> {
 
                     //TODO calc results
@@ -305,7 +306,7 @@ public class GameManagementServiceImpl implements IGameManagementService {
                             return before;
                         }
                     });
-                }).then();
+                })).then();
     }
 
     @Override
@@ -327,7 +328,7 @@ public class GameManagementServiceImpl implements IGameManagementService {
         return roundInfosRepository.save(newRoundInfo).flatMap((savedRoundInfo) -> {
             processInfo.addRoundInfo(savedRoundInfo);
 
-            return competitionsRepository.save(competition)
+            return processInfosRepository.save(processInfo).then(competitionsRepository.save(competition)
                     .doOnNext((savedCompetition) -> {
                         String pin = savedCompetition.getPin();
                         beginEndRoundEventsStorage.compute(pin, (__, before) -> {
@@ -346,7 +347,7 @@ public class GameManagementServiceImpl implements IGameManagementService {
                                 return before;
                             }
                         });
-                    });
+                    }));
         }).then();
 
     }
@@ -357,7 +358,10 @@ public class GameManagementServiceImpl implements IGameManagementService {
 
         return messagesRepository.save(message).flatMap(savedMessage -> {
             competition.getCompetitionProcessInfo().addMessage(savedMessage);
-            return Mono.zip(competitionsRepository.save(competition), Mono.just(savedMessage));
+            return Mono.zip(
+                    processInfosRepository.save(competition.getCompetitionProcessInfo()).thenReturn(competition),
+                    Mono.just(savedMessage)
+            );
         }).doOnNext(competitionSavedMessageTuple -> {
             DbCompetitionMessage savedMessage = competitionSavedMessageTuple.getT2();
             DbCompetition savedComp = competitionSavedMessageTuple.getT1();
