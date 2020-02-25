@@ -89,6 +89,7 @@ public class CompetitionProcessController {
     }
 
     @RequestMapping(value = "/answers_stream", produces = {MediaType.TEXT_EVENT_STREAM_VALUE})
+    @PreAuthorize("hasRole('TEACHER')")
     public Flux<ServerSentEvent<?>> getTeamsAnswers(@PathVariable String pin) {
         return competitionsRepository.findByPin(pin)
                 .flatMapMany(comp -> gameManagementService.teamsAnswersEvents(comp))
@@ -124,4 +125,19 @@ public class CompetitionProcessController {
             }
         }, () -> "Answer submitted successfully", () -> "Competition with pin: " + pin + " or team with name: " + answerDto.getTeamName() + " not found");
     }
+
+    @RequestMapping(value = "/messages_stream", produces = {MediaType.TEXT_EVENT_STREAM_VALUE})
+    @PreAuthorize("hasRole('STUDENT')")
+    public Flux<ServerSentEvent<?>> getCompetitionMessages(@PathVariable String pin) {
+        return competitionsRepository.findByPin(pin).flatMapMany(comp -> gameManagementService.getCompetitionMessages(comp))
+                .map(e -> ServerSentEvent.builder().data(e).build());
+    }
+
+    @RequestMapping(value = "/rounds_stream", produces = {MediaType.TEXT_EVENT_STREAM_VALUE})
+    @PreAuthorize("hasRole('STUDENT')")
+    public Flux<ServerSentEvent<?>> getCompetitionRoundEvents(@PathVariable String pin) {
+        return competitionsRepository.findByPin(pin).flatMapMany(comp -> gameManagementService.beginEndRoundEvents(comp))
+                .map(e -> ServerSentEvent.builder().data(e).build());
+    }
+
 }

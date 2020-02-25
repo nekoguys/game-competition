@@ -2,10 +2,7 @@ package com.groudina.ten.demo.controllers;
 
 import com.groudina.ten.demo.EnableEmbeddedMongo;
 import com.groudina.ten.demo.datasource.*;
-import com.groudina.ten.demo.dto.CompetitionAnswerRequestDto;
-import com.groudina.ten.demo.dto.CompetitionMessageRequest;
-import com.groudina.ten.demo.dto.ResponseMessage;
-import com.groudina.ten.demo.dto.RoundTeamAnswerDto;
+import com.groudina.ten.demo.dto.*;
 import com.groudina.ten.demo.models.DbCompetition;
 import com.groudina.ten.demo.models.DbRole;
 import com.groudina.ten.demo.models.DbTeam;
@@ -26,7 +23,10 @@ import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
 import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
+import java.util.TimeZone;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.security.test.web.reactive.server.SecurityMockServerConfigurers.springSecurity;
@@ -78,6 +78,8 @@ class CompetitionProcessControllerTest {
 
     @BeforeEach
     void setup() {
+        TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
+
         webTestClient = WebTestClient.bindToApplicationContext(this.context).apply(springSecurity()).configureClient().build().mutate().responseTimeout(Duration.ofSeconds(10000)).build();
         rolesRepository.saveAll(List.of(DbRole.builder().name("ROLE_STUDENT").build(),
                 DbRole.builder().name("ROLE_TEACHER").build(),
@@ -141,7 +143,7 @@ class CompetitionProcessControllerTest {
     }
 
     @Test
-    @WithMockUser(value = "email", password = "1234", roles = {"TEACHER"})
+    @WithMockUser(value = "email", password = "1234", roles = {"TEACHER", "STUDENT"})
     void testStartEndRound() {
         var owner = userRepository.save(DbUser.builder().password("1234").email("email").roles(rolesRepository.findAll().collectList().block()).build()).block();
 
@@ -161,6 +163,31 @@ class CompetitionProcessControllerTest {
                 .value(responseMessage -> {
                     assertTrue(responseMessage.getMessage().contains("started"));
                 });
+
+        var roundStream = webTestClient.get().uri("/api/competition_process/1234/rounds_stream")
+                .accept(MediaType.TEXT_EVENT_STREAM)
+                .exchange()
+                .expectStatus().isOk()
+                .returnResult(ITypedEvent.class).getResponseBody();
+
+        var verifier = StepVerifier.create(roundStream)
+                .consumeNextWith(event -> {
+                    assertEquals(event.getType(), "NewRound");
+                    NewRoundEventDto roundEventDto = (NewRoundEventDto)event;
+                    assertEquals(roundEventDto.getRoundNumber(), 1);
+                    assertEquals(roundEventDto.getRoundLength(), 0);
+                    assertTrue(Math.abs(roundEventDto.getBeginTime() - LocalDateTime.now().atOffset(ZoneOffset.UTC).toEpochSecond()) <= 100);
+                }).consumeNextWith(event -> {
+                    assertEquals(event.getType(), "EndRound");
+                    EndRoundEventDto endRoundEventDto = (EndRoundEventDto)event;
+                    assertFalse(endRoundEventDto.isEndOfGame());
+                    assertEquals(endRoundEventDto.getRoundNumber(), 1);
+                }).consumeNextWith(event -> {
+                    NewRoundEventDto roundEventDto = (NewRoundEventDto)event;
+                    assertEquals(roundEventDto.getRoundNumber(), 2);
+                    assertEquals(roundEventDto.getRoundLength(), 0);
+                    assertTrue(Math.abs(roundEventDto.getBeginTime() - LocalDateTime.now().atOffset(ZoneOffset.UTC).toEpochSecond()) <= 100);
+                }).thenCancel().verifyLater();
 
         var comp = competitionsRepository.findByPin("1234").block();
         assertEquals(comp.getState(), DbCompetition.State.InProcess);
@@ -187,13 +214,13 @@ class CompetitionProcessControllerTest {
                 .value(responseMessage -> {
                     assertTrue(responseMessage.getMessage().contains("success"));
                 });
-
+        verifier.verify();
         comp = competitionsRepository.findByPin("1234").block();
         assertEquals(comp.getCompetitionProcessInfo().getCurrentRoundNumber(), 2);
     }
 
     @Test
-    @WithMockUser(value = "email", password = "1234", roles = {"TEACHER"})
+    @WithMockUser(value = "email", password = "1234", roles = {"TEACHER", "STUDENT"})
     void testSendMessage() {
         var owner = userRepository.save(DbUser.builder().password("1234").email("email").roles(rolesRepository.findAll().collectList().block()).build()).block();
 
@@ -214,13 +241,26 @@ class CompetitionProcessControllerTest {
                 .isOk()
                 .expectBody(ResponseMessage.class)
                 .value(responseMessage -> assertTrue(responseMessage.getMessage().contains("success")));
+
+        var messages = webTestClient.get().uri("/api/competition_process/1234/messages_stream")
+                .accept(MediaType.TEXT_EVENT_STREAM)
+                .exchange()
+                .expectStatus()
+                .isOk()
+                .returnResult(CompetitionMessageDto.class).getResponseBody();
+
+        StepVerifier.create(messages).consumeNextWith(message -> {
+            assertEquals(message.getMessage(), "message");
+            assertTrue(Math.abs(message.getSendTime() - LocalDateTime.now().atOffset(ZoneOffset.UTC).toEpochSecond()) <= 1);
+        }).thenCancel().verify();
+
         var comp = competitionsRepository.findByPin("1234").block();
 
         assertEquals(comp.getCompetitionProcessInfo().getMessages().size(), 1);
     }
 
     @Test
-    @WithMockUser(value = "email", password = "1234", roles = {"STUDENT"})
+    @WithMockUser(value = "email", password = "1234", roles = {"STUDENT", "TEACHER"})
     void testSubmitAnswer() {
         var captain = userRepository.save(DbUser.builder().password("1234").email("email").roles(rolesRepository.findAll().collectList().block()).build()).block();
         var competition = competitionsRepository.save(DbCompetition.builder()
@@ -229,7 +269,9 @@ class CompetitionProcessControllerTest {
                 .parameters(DbCompetition.Parameters.builder().roundsCount(2).build())
                 .build()).block();
         var team = teamsRepository.save(DbTeam.builder().captain(captain).name("abac").sourceCompetition(competition).build()).block();
+        var team2 = teamsRepository.save(DbTeam.builder().captain(captain).name("name").idInGame(1).sourceCompetition(competition).build()).block();
         competition.addTeam(team);
+        competition.addTeam(team2);
         competition = competitionsRepository.save(competition).block();
 
         gameManagementService.startCompetition(competition).block();
@@ -241,6 +283,15 @@ class CompetitionProcessControllerTest {
                 .exchange()
                 .expectStatus()
                 .isOk()
+                .expectBody(ResponseMessage.class)
+                .value(responseMessage -> assertTrue(responseMessage.getMessage().contains("success")));
+
+        webTestClient.post().uri("/api/competition_process/1234/submit_answer")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .body(BodyInserters.fromValue(CompetitionAnswerRequestDto.builder().answer(20).roundNumber(1).teamName("name").build()))
+                .exchange()
+                .expectStatus().isOk()
                 .expectBody(ResponseMessage.class)
                 .value(responseMessage -> assertTrue(responseMessage.getMessage().contains("success")));
 
@@ -256,10 +307,13 @@ class CompetitionProcessControllerTest {
             assertEquals(roundTeamAnswerDto.getRoundNumber(), 1);
             assertEquals(roundTeamAnswerDto.getTeamIdInGame(), 0);
             assertEquals(roundTeamAnswerDto.getTeamAnswer(), 10);
+        }).consumeNextWith(roundTeamAnswerDto -> {
+            assertEquals(roundTeamAnswerDto.getTeamAnswer(), 20);
+            assertEquals(roundTeamAnswerDto.getTeamIdInGame(), 1);
         }).thenCancel().verify();
 
         var comp = competitionsRepository.findByPin("1234").block();
-        assertEquals(comp.getCompetitionProcessInfo().getCurrentRound().getAnswerList().size(), 1);
+        assertEquals(comp.getCompetitionProcessInfo().getCurrentRound().getAnswerList().size(), 2);
     }
 
     @Test

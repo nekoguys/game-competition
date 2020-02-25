@@ -114,6 +114,10 @@ public class GameManagementServiceImpl implements IGameManagementService {
         beginEndRoundEventsSinks.computeIfAbsent(pin, (__) -> {
             var sink = processor.sink();
 
+            if (Objects.isNull(competition.getCompetitionProcessInfo())) {
+                return sink;
+            }
+
             var currentRound = competition.getCompetitionProcessInfo().getCurrentRoundNumber();
 
             if (currentRound != 0) {
