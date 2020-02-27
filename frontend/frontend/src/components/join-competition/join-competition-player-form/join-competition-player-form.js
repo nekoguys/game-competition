@@ -7,7 +7,7 @@ import {NotificationContainer, NotificationManager} from "react-notifications";
 import TeamCollection from "./team-collection";
 import DefaultTextInput from "../../common/default-text-input";
 
-class TextInputWithSubmitButton extends React.Component {
+export class TextInputWithSubmitButton extends React.Component {
     constructor(props) {
         super(props);
 
@@ -28,12 +28,12 @@ class TextInputWithSubmitButton extends React.Component {
 
     render() {
         const {type="text", placeholder="", containerStyle={}, buttonStyle={},
-            inputStyle={}, imagePath="", onSubmit=(_value) => {}} = this.props;
+            inputStyle={}, imagePath="", onSubmit=(_value) => {}, alt="submit competition id"} = this.props;
         return (
             <div className={"row"} style={{overflow: "hidden", ...containerStyle}}>
                 <input placeholder={placeholder} type={type} style={{width: "100%", ...inputStyle}}
                        onChange={event => this.onTextChanged(event.target.value)}/>
-                <button style={buttonStyle} onClick={() => onSubmit(this.state.text)} type={"submit"}><img src={imagePath} alt={"submit competition id"}/></button>
+                <button style={buttonStyle} onClick={() => onSubmit(this.state.text)} type={"submit"}><img src={imagePath} alt={alt}/></button>
             </div>
         )
     }
