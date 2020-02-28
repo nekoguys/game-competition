@@ -1,5 +1,4 @@
 import React from "react";
-import {NotificationContainer} from "react-notifications";
 
 import "./root.css";
 import NavbarHeader from "../../../competition-history/navbar-header/navbar-header";
@@ -26,11 +25,7 @@ class CompetitionProcessTeacherRootComponent extends React.Component {
 
 
                     <div>
-                        <CompetitionProcessTeacherBody/>
-                    </div>
-
-                    <div>
-                        <NotificationContainer/>
+                        <CompetitionProcessTeacherBody pin={pin}/>
                     </div>
                 </div>
             </div>

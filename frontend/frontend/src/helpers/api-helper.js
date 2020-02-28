@@ -51,6 +51,34 @@ class ApiSettings {
     static updateCompetition(pin) {
         return ApiSettings.#updateCompetitionParams + pin;
     }
+
+    static competitionMessagesEvents(pin) {
+        return ApiSettings.host() + "/competition_process/" + pin + "/messages_stream";
+    }
+
+    static sendCompetitionMessageEndPoint(pin) {
+        return ApiSettings.host() + "/competition_process/" + pin + "/send_message";
+    }
+
+    static startCompetitionEndPoint(pin) {
+        return ApiSettings.host() + "/competition_process/" + pin + "/start_competition";
+    }
+
+    static competitionRoundsEventsStream(pin) {
+        return ApiSettings.host() + "/competition_process/" + pin + "/rounds_stream";
+    }
+
+    static competitionAnswersStream(pin) {
+        return ApiSettings.host() + "/competition_process/" + pin + "/answers_stream";
+    }
+
+    static endRoundEndPoint(pin) {
+        return ApiSettings.host() + "/competition_process/" + pin + "/end_round";
+    }
+
+    static startRoundEndPoint(pin) {
+        return ApiSettings.host() + "/competition_process/" + pin + "/start_round";
+    }
 }
 
 export default class ApiHelper {
@@ -137,6 +165,56 @@ export default class ApiHelper {
             method: "POST",
             headers: this.authDefaultHeaders(),
             body: JSON.stringify(params)
+        })
+    }
+
+    static competitionMessagesEventSource(pin) {
+        return new EventSourcePolyfill(ApiSettings.competitionMessagesEvents(pin),
+            {
+                headers: this.authDefaultHeaders(),
+            });
+    }
+
+    static sendCompetitionMessage(pin, message) {
+        return fetch(ApiSettings.sendCompetitionMessageEndPoint(pin), {
+            method: "POST",
+            headers: this.authDefaultHeaders(),
+            body: JSON.stringify({message: message})
+        });
+    }
+
+    static startCompetition(pin) {
+        return fetch(ApiSettings.startCompetitionEndPoint(pin), {
+            method: "GET",
+            headers: this.authDefaultHeaders(),
+        })
+    }
+
+    static competitionRoundEventsStream(pin) {
+        return new EventSourcePolyfill(ApiSettings.competitionRoundsEventsStream(pin), {
+            headers: this.authDefaultHeaders(),
+            heartbeatTimeout: 1000*60*60
+        })
+    }
+
+    static competitionAnswersStream(pin) {
+        return new EventSourcePolyfill(ApiSettings.competitionAnswersStream(pin), {
+            headers: this.authDefaultHeaders(),
+            heartbeatTimeout: 1000*60*60
+        })
+    }
+
+    static startNewCompetitionRound(pin) {
+        return fetch(ApiSettings.startRoundEndPoint(pin), {
+            method: "GET",
+            headers: this.authDefaultHeaders()
+        })
+    }
+
+    static endCompetitionRound(pin) {
+        return fetch(ApiSettings.endRoundEndPoint(pin), {
+            method: "GET",
+            headers: this.authDefaultHeaders()
         })
     }
 }

@@ -68,6 +68,26 @@ class AfterRegistrationOpenedComponent extends React.Component {
         })
     }
 
+    startCompetition = (successCallback) => {
+        const {pin} = this.props.match.params;
+
+        ApiHelper.startCompetition(pin).then(resp => {
+            if (resp.status >= 300) {
+                return {success: false, json: resp.text()}
+            }
+            return {success: true, json: resp.json()}
+        }).then(resp => {
+            resp.json.then(bodyJson => {
+                if (resp.success) {
+                    successCallback(bodyJson.message);
+                } else {
+                    const mes = bodyJson.message || bodyJson;
+                    NotificationManager.error(mes, "Error", 1200);
+                }
+            })
+        })
+    };
+
     updateCompetition = (additionalParams={}, successCallback=()=>{}) => {
         const {pin} = this.props.match.params;
 
@@ -166,7 +186,10 @@ class AfterRegistrationOpenedComponent extends React.Component {
                     </div>
                     <div style={{paddingTop: "40px", width: "25%", margin: "0 auto"}}>
                         <DefaultSubmitButton text={"Начать игру"} onClick={() => {
-                            this.updateCompetition({state: "InProcess"}, () => {
+                            // this.updateCompetition({state: "InProcess"}, () => {
+                            //     NotificationManager.success("Competition Started!", "Success", 1500);
+                            // });
+                            this.startCompetition(() => {
                                 NotificationManager.success("Competition Started!", "Success", 1500);
                             });
                         }} style={{padding: "10px 20px"}}/>

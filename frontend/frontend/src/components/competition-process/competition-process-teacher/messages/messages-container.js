@@ -32,6 +32,9 @@ class MessagesContainer extends React.Component {
                                                placeholder={""}
                                                inputStyle={inputStyle}
                                                buttonStyle={buttonStyle}
+                                               onSubmit={this.props.sendMessageCallBack}
+                                               clearOnSubmit={true}
+                                               submitOnKey={'enter'}
                     />
                     <div style={{paddingLeft: "40px"}}>
                         <MessagesListContainer messages={this.props.messages}/>
@@ -48,7 +51,7 @@ class MessagesListContainer extends React.Component {
         return (
             <div style={{paddingRight: "15px"}}>
                     {messages.map(el => {
-                        return <div style={{marginTop: "7px"}}><SingleMessageContainer message={el}/></div>
+                        return <div key={el.dateStr+el.message} style={{marginTop: "7px"}}><SingleMessageContainer message={el}/></div>
                     })}
             </div>
         )

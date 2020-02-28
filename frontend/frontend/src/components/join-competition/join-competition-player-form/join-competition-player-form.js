@@ -11,6 +11,8 @@ export class TextInputWithSubmitButton extends React.Component {
     constructor(props) {
         super(props);
 
+        this.input = {};
+
         this.state = {
             text: ""
         }
@@ -28,12 +30,39 @@ export class TextInputWithSubmitButton extends React.Component {
 
     render() {
         const {type="text", placeholder="", containerStyle={}, buttonStyle={},
-            inputStyle={}, imagePath="", onSubmit=(_value) => {}, alt="submit competition id"} = this.props;
+            inputStyle={}, imagePath="", onSubmit=(_value) => {}, alt="submit competition id",
+            clearOnSubmit=false
+        } = this.props;
+
+        let addProps = {};
+
+        if (this.props.submitOnKey !== undefined) {
+            addProps.onKeyDown = event => {
+                if (event.key.toLowerCase() === this.props.submitOnKey) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    onSubmit(this.state.text);
+                    if (clearOnSubmit) {
+                        this.input.value = "";
+                        this.input.focus();
+                    }
+                }
+            }
+        }
+
         return (
             <div className={"row"} style={{overflow: "hidden", ...containerStyle}}>
                 <input placeholder={placeholder} type={type} style={{width: "100%", ...inputStyle}}
-                       onChange={event => this.onTextChanged(event.target.value)}/>
-                <button style={buttonStyle} onClick={() => onSubmit(this.state.text)} type={"submit"}><img src={imagePath} alt={alt}/></button>
+                       onChange={event => this.onTextChanged(event.target.value)} ref={el => this.input = el}
+                       {...addProps}
+                />
+                <button style={buttonStyle} onClick={() => {
+                    onSubmit(this.state.text);
+                    if (clearOnSubmit) {
+                        this.input.value = "";
+                        this.input.focus();
+                    }
+                }} type={"submit"}><img src={imagePath} alt={alt}/></button>
             </div>
         )
     }

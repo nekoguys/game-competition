@@ -11,18 +11,18 @@ class CompetitionResultsTable extends React.Component{
         const toStr = (x) => (oneColWidth * x) + "%";
         return (
             <tr>
-                <td colSpan={4} width={toStr(4)} style={{textAlign: "center"}}>
+                <td colSpan={4} width={toStr(4)} style={{textAlign: "center"}} key={0}>
                     {"Раунд/Команда"}
                 </td>
                 {
                     this.range(1, teamsCount).map(el => {
-                        return (<td>{el}</td>);
+                        return (<td key={el}>{el}</td>);
                     })
                 }
-                <td>
+                <td key={teamsCount+1}>
                     {"Q"}
                 </td>
-                <td>
+                <td key={teamsCount+2}>
                     {"P"}
                 </td>
             </tr>
@@ -37,49 +37,56 @@ class CompetitionResultsTable extends React.Component{
         return (
             this.range(1, roundsCount*2 + 1).concat([0]).map(el => {
                 if (el % 2 === 1) {
+                    const roundNumber = (el + 1) / 2;
                     return (
-                        <tr>
-                            <td rowSpan={2} colSpan={3} width={toStr(3)}>
-                                {Math.ceil(el / 2)}
+                        <tr key={el}>
+                            <td rowSpan={2} colSpan={3} width={toStr(3)} key={-1}>
+                                {roundNumber}
                             </td>
-                            <td width={toStr(1)}>
+                            <td width={toStr(1)} key={0}>
                                 {"q"}
                             </td>
 
-                            {this.range(1, teamsCount).map(() => {
+                            {this.range(1, teamsCount).map(teamInd => {
+                                let ans = "";
+                                if (roundNumber in this.props.answers) {
+                                    if (teamInd in this.props.answers[roundNumber]) {
+                                        ans = this.props.answers[roundNumber][teamInd];
+                                    }
+                                }
                                 return (
-                                    <td width={toStr(1)}/>
+                                    <td width={toStr(1)} key={teamInd}>{ans}</td>
                                 );
                             })}
-                            <td width={toStr(1)}/>
-                            <td width={toStr(1)}/>
+                            <td width={toStr(1)} key={teamsCount + 1}/>
+                            <td width={toStr(1)} key={teamsCount + 2}/>
                         </tr>
                     )
                 } else if (el !== 0) {
                     return (
-                        <tr>
-                            <td width={toStr(1)}>{"П"}</td>
-                            {this.range(1, teamsCount).map(() => {
+                        <tr key={el}>
+                            <td width={toStr(1)} key={0}>{"П"}</td>
+                            {this.range(1, teamsCount).map(el => {
                                 return (
-                                    <td width={toStr(1)}/>
+                                    <td width={toStr(1)} key={el}/>
                                 )
                             })}
-                            <td width={toStr(1)}/>
-                            <td width={toStr(1)}/>
+                            <td width={toStr(1)} key={teamsCount + 1}/>
+                            <td width={toStr(1)} key={teamsCount + 2}/>
                         </tr>
                     )
                 } else {
                     return (
-                        <tr>
-                            <td colSpan={4} width={toStr(4)}>
+                        <tr key={roundsCount* 2 + 2}>
+                            <td colSpan={4} width={toStr(4)} key={0}>
                                 {"ΣП"}
                             </td>
-                            {this.range(1, teamsCount).map(() => {
+                            {this.range(1, teamsCount).map(el => {
                                 return (
-                                    <td width={toStr(1)}/>
+                                    <td width={toStr(1)} key={el}/>
                                 )
                             })}
-                            <td colSpan={2}/>
+                            <td colSpan={2} key={teamsCount + 1}/>
                         </tr>
                     )
                 }
@@ -101,8 +108,10 @@ class CompetitionResultsTable extends React.Component{
                     {"Статистика"}
                 </div>
                 <table style={{width: "100%"}}>
+                    <tbody>
                     {this.firstRow(teamsCount)}
                     {this.roundRows(teamsCount, roundsCount)}
+                    </tbody>
                 </table>
             </div>
         )
