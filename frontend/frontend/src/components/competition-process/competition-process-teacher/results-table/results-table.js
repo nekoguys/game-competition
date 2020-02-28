@@ -15,7 +15,7 @@ class CompetitionResultsTable extends React.Component{
                     {"Раунд/Команда"}
                 </td>
                 {
-                    this.range(1, teamsCount).map(el => {
+                    this.range(1, teamsCount + 1).map(el => {
                         return (<td key={el}>{el}</td>);
                     })
                 }
@@ -47,7 +47,7 @@ class CompetitionResultsTable extends React.Component{
                                 {"q"}
                             </td>
 
-                            {this.range(1, teamsCount).map(teamInd => {
+                            {this.range(1, teamsCount + 1).map(teamInd => {
                                 let ans = "";
                                 if (roundNumber in this.props.answers) {
                                     if (teamInd in this.props.answers[roundNumber]) {
@@ -58,7 +58,23 @@ class CompetitionResultsTable extends React.Component{
                                     <td width={toStr(1)} key={teamInd}>{ans}</td>
                                 );
                             })}
-                            <td width={toStr(1)} key={teamsCount + 1}/>
+
+                            {
+                                <td width={toStr(1)} key={teamsCount + 1}>
+                                    {
+                                        this.range(1, teamsCount + 1).map(teamInd => {
+                                            let ans = 0;
+                                            if (roundNumber in this.props.answers) {
+                                                if (teamInd in this.props.answers[roundNumber]) {
+                                                    ans = this.props.answers[roundNumber][teamInd];
+                                                }
+                                            }
+                                            return ans;
+                                        }).reduce((prev, curr) => prev + curr)
+                                    }
+                                </td>
+                            }
+
                             <td width={toStr(1)} key={teamsCount + 2}/>
                         </tr>
                     )
@@ -66,7 +82,7 @@ class CompetitionResultsTable extends React.Component{
                     return (
                         <tr key={el}>
                             <td width={toStr(1)} key={0}>{"П"}</td>
-                            {this.range(1, teamsCount).map(el => {
+                            {this.range(1, teamsCount + 1).map(el => {
                                 return (
                                     <td width={toStr(1)} key={el}/>
                                 )
@@ -81,7 +97,7 @@ class CompetitionResultsTable extends React.Component{
                             <td colSpan={4} width={toStr(4)} key={0}>
                                 {"ΣП"}
                             </td>
-                            {this.range(1, teamsCount).map(el => {
+                            {this.range(1, teamsCount + 1).map(el => {
                                 return (
                                     <td width={toStr(1)} key={el}/>
                                 )

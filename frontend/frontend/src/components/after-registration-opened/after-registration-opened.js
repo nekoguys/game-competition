@@ -9,6 +9,8 @@ import DefaultSubmitButton from "../common/default-submit-button";
 import toSnakeCase from "../../helpers/snake-case-helper";
 import {NotificationContainer, NotificationManager} from "react-notifications";
 import getValueForJsonObject from "../../helpers/competition-params-helper";
+import {withRouter} from "react-router-dom";
+
 
 class AfterRegistrationOpenedComponent extends React.Component {
     constructor(props) {
@@ -66,6 +68,12 @@ class AfterRegistrationOpenedComponent extends React.Component {
                 }
             })
         })
+    }
+
+    componentWillUnmount() {
+        if (this.eventSource !== undefined) {
+            this.eventSource.close();
+        }
     }
 
     startCompetition = (successCallback) => {
@@ -186,11 +194,12 @@ class AfterRegistrationOpenedComponent extends React.Component {
                     </div>
                     <div style={{paddingTop: "40px", width: "25%", margin: "0 auto"}}>
                         <DefaultSubmitButton text={"Начать игру"} onClick={() => {
-                            // this.updateCompetition({state: "InProcess"}, () => {
-                            //     NotificationManager.success("Competition Started!", "Success", 1500);
-                            // });
+
                             this.startCompetition(() => {
                                 NotificationManager.success("Competition Started!", "Success", 1500);
+                                setTimeout(() => {
+                                    this.props.history.push("/competitions/process_teacher/" + pin)
+                                }, 1500);
                             });
                         }} style={{padding: "10px 20px"}}/>
                     </div>
@@ -201,4 +210,4 @@ class AfterRegistrationOpenedComponent extends React.Component {
     }
 }
 
-export default AfterRegistrationOpenedComponent;
+export default withRouter(AfterRegistrationOpenedComponent);

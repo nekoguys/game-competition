@@ -79,6 +79,10 @@ class ApiSettings {
     static startRoundEndPoint(pin) {
         return ApiSettings.host() + "/competition_process/" + pin + "/start_round";
     }
+
+    static competitionInfoForResultsTable(pin) {
+        return ApiSettings.host() + "/competition_process/" + pin + "/comp_info";
+    }
 }
 
 export default class ApiHelper {
@@ -213,6 +217,13 @@ export default class ApiHelper {
 
     static endCompetitionRound(pin) {
         return fetch(ApiSettings.endRoundEndPoint(pin), {
+            method: "GET",
+            headers: this.authDefaultHeaders()
+        })
+    }
+
+    static competitionInfoForResultsTable(pin) {
+        return fetch(ApiSettings.competitionInfoForResultsTable(pin), {
             method: "GET",
             headers: this.authDefaultHeaders()
         })

@@ -18,6 +18,9 @@ class CompetitionProcessTeacherBody extends React.Component {
             currentRoundNumber: 0,
             timeTillRoundEnd: 0,
             isCurrentRoundEnded: false,
+            name: "",
+            teamsCount: 10,
+            roundsCount: 6,
             answers: {},
             messages: []
         }
@@ -32,6 +35,8 @@ class CompetitionProcessTeacherBody extends React.Component {
             answers={this.state.answers}
             sendMessageCallBack={this.sendMessageCallback}
             rightButtonClick={this.onStartOrEndRoundButtonClick}
+            teamsCount={this.state.teamsCount}
+            roundsCount={this.state.roundsCount}
         />);
 
         return (
@@ -50,12 +55,40 @@ class CompetitionProcessTeacherBody extends React.Component {
         this.setupCompetitionMessagesEvents();
         this.setupRoundsEvents();
         this.setupAnswerEvents();
+        this.getCompetitionInfo();
     }
 
     componentWillUnmount() {
         this.closeCompetitionMessagesEvents();
         this.closeRoundEvents();
         this.closeAnswersEvents();
+    }
+
+    getCompetitionInfo() {
+        const {pin} = this.props;
+
+        ApiHelper.competitionInfoForResultsTable(pin).then(resp => {
+            if (resp.status >= 300) {
+                return {success: false, json: resp.text()};
+            }
+
+            return {success: true, json: resp.json()};
+        }).then(resp => {
+            resp.json.then(jsonBody => {
+                if (resp.success) {
+                    this.setState(prevState => {
+                        this.props.updateCompetitionNameCallback(jsonBody.name);
+                        return {
+                            name: jsonBody.name,
+                            teamsCount: jsonBody.connectedTeamsCount,
+                            roundsCount: jsonBody.roundsCount
+                        }
+                    })
+                } else {
+                    NotificationManager.error(jsonBody.message, "Error", 1500);
+                }
+            })
+        })
     }
 
     setupAnswerEvents() {
@@ -248,7 +281,7 @@ class CompetitionProcessTeacherActive extends React.Component {
                     </div>
                 </div>
                 <div style={{paddingTop: "20px"}}>
-                    <CompetitionResultsTable style={{width: "100%"}} teamsCount={10} roundsCount={6} answers={this.props.answers} />
+                    <CompetitionResultsTable style={{width: "100%"}} teamsCount={this.props.teamsCount} roundsCount={this.props.roundsCount} answers={this.props.answers} />
                 </div>
                 <div style={{paddingTop: "20px"}}>
                     <MessagesContainer messages={this.props.messages} sendMessageCallBack={this.props.sendMessageCallBack}/>

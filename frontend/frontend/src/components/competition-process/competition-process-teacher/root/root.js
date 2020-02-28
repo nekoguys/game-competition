@@ -5,8 +5,21 @@ import NavbarHeader from "../../../competition-history/navbar-header/navbar-head
 import CompetitionProcessTeacherBody from "../body";
 
 class CompetitionProcessTeacherRootComponent extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            competitionName: ""
+        }
+    }
+
+    updateCompetitionNameCallback = (name) => {
+        this.setState({competitionName: name});
+    };
+
     render() {
         const {pin} = this.props.match.params;
+        const {competitionName} = this.state;
 
         return (
             <div>
@@ -16,7 +29,7 @@ class CompetitionProcessTeacherRootComponent extends React.Component {
                 <div style={{paddingTop: "80px"}}>
                     <div style={{fontSize: "26px"}}>
                         <div style={{textAlign: "center"}}>
-                            {"Игра: " + "Название игры"}
+                            {"Игра: " + competitionName}
                         </div>
                         <div style={{textAlign: "center"}}>
                             {"ID: " + pin}
@@ -25,7 +38,7 @@ class CompetitionProcessTeacherRootComponent extends React.Component {
 
 
                     <div>
-                        <CompetitionProcessTeacherBody pin={pin}/>
+                        <CompetitionProcessTeacherBody pin={pin} updateCompetitionNameCallback={this.updateCompetitionNameCallback}/>
                     </div>
                 </div>
             </div>
