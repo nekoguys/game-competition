@@ -98,6 +98,14 @@ public class CompetitionProcessController {
                 });
     }
 
+    @RequestMapping(value = "/results_stream", produces = {MediaType.TEXT_EVENT_STREAM_VALUE})
+    @PreAuthorize("hasRole('TEACHER')")
+    public Flux<ServerSentEvent<?>> getResultsEvents(@PathVariable String pin) {
+        return competitionsRepository.findByPin(pin)
+                .flatMapMany(comp -> gameManagementService.getRoundResultsEvents(comp))
+                .map(roundTeamResultDto -> ServerSentEvent.builder(roundTeamResultDto).build());
+    }
+
     //TEACHER END
     //STUDENT BEGIN
 

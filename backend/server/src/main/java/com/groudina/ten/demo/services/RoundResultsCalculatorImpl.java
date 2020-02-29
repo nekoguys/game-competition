@@ -7,22 +7,36 @@ import com.groudina.ten.demo.models.DbRoundResultElement;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Component
 public class RoundResultsCalculatorImpl implements IRoundResultsCalculator {
 
     @Override
-    public List<DbRoundResultElement> calculateResults(DbCompetitionRoundInfo roundInfo, DbCompetition.Parameters competitionParameters) {
-        double price = calculatePrice(roundInfo, competitionParameters);
+    public List<DbRoundResultElement> calculateResults(DbCompetitionRoundInfo roundInfo, DbCompetition competition) {
+        double price = calculatePrice(roundInfo, competition.getParameters());
         List<DbRoundResultElement> results = new ArrayList<>();
-
+        Set<Integer> visited = new HashSet<>();
         for (var answer : roundInfo.getAnswerList()) {
-            double totalCost = getTotalCosts(answer.getValue(), competitionParameters);
+            double totalCost = getTotalCosts(answer.getValue(), competition.getParameters());
             double income = answer.getValue() * price - totalCost;
+
+            visited.add(answer.getSubmitter().getIdInGame());
 
             results.add(DbRoundResultElement.builder().income(income).team(answer.getSubmitter()).build());
         }
+
+        competition.getTeams().stream()
+                .filter(team -> !visited.contains(team.getIdInGame()))
+                .forEach(el -> {
+                    results.add(DbRoundResultElement.builder()
+                            .income(-getTotalCosts(0, competition.getParameters()))
+                            .team(el)
+                            .build()
+                    );
+                });
 
         return results;
     }

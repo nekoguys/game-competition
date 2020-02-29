@@ -97,6 +97,7 @@ class CompetitionProcessControllerTest {
         processInfosRepository.deleteAll().block();
         roundInfosRepository.deleteAll().block();
         roundResultElementsRepository.deleteAll().block();
+        gameManagementService.clear().block();
     }
 
     @Test
@@ -150,7 +151,10 @@ class CompetitionProcessControllerTest {
         var competition = competitionsRepository.save(DbCompetition.builder()
                 .state(DbCompetition.State.Registration)
                 .pin("1234")
-                .parameters(DbCompetition.Parameters.builder().roundsCount(2).build())
+                .parameters(DbCompetition.Parameters.builder().roundsCount(2)
+                        .expensesFormula(List.of("1", "2", "3"))
+                        .demandFormula(List.of("1", "2"))
+                        .build())
                 .owner(owner)
                 .build()).block();
 
@@ -344,4 +348,47 @@ class CompetitionProcessControllerTest {
         var comp = competitionsRepository.findByPin("1234").block();
         assertEquals(comp.getCompetitionProcessInfo().getCurrentRound().getAnswerList().size(), 0);
     }
+
+    @Test
+    @WithMockUser(value = "email", password = "1234", roles = {"TEACHER","STUDENT"})
+    void testResultsEvents() {
+        var user = userRepository.save(DbUser.builder().password("1234").email("email").roles(rolesRepository.findAll().collectList().block()).build()).block();
+        var captain = userRepository.save(DbUser.builder().password("1234").email("anotherEmail").roles(rolesRepository.findAll().collectList().block()).build()).block();
+        var competition = competitionsRepository.save(DbCompetition.builder()
+                .state(DbCompetition.State.Registration)
+                .pin("1234")
+                .parameters(DbCompetition.Parameters.builder()
+                        .roundsCount(2)
+                        .expensesFormula(List.of("1", "2", "3"))
+                        .demandFormula(List.of("100", "10"))
+                        .build())
+                .build()).block();
+        var team = teamsRepository.save(DbTeam.builder().captain(captain).idInGame(0).name("abac").sourceCompetition(competition).build()).block();
+        var team2 = teamsRepository.save(DbTeam.builder().captain(captain).idInGame(1).name("kuks").sourceCompetition(competition).build()).block();
+        competition.addTeam(team);
+        competition.addTeam(team2);
+        competition = competitionsRepository.save(competition).block();
+
+        gameManagementService.startCompetition(competition).block();
+
+        gameManagementService.submitAnswer(competition, team, 10, 1).block();
+        gameManagementService.submitAnswer(competition, team2, 30, 1).block();
+
+        gameManagementService.endCurrentRound(competition).block();
+
+        var results = webTestClient.get().uri("/api/competition_process/1234/results_stream")
+                .accept(MediaType.TEXT_EVENT_STREAM)
+                .exchange()
+                .expectStatus().isOk()
+                .returnResult(RoundTeamResultDto.class).getResponseBody();
+
+        StepVerifier.create(results)
+                .consumeNextWith(roundTeamResultDto -> {
+                    assertEquals(roundTeamResultDto.getTeamIdInGame(), 0);
+                    assertEquals(roundTeamResultDto.getIncome(), -63.0, 0.001);
+                    assertEquals(roundTeamResultDto.getRoundNumber(), 1);
+                }).expectNextCount(1).thenCancel().verify();
+
+    }
+
 }
