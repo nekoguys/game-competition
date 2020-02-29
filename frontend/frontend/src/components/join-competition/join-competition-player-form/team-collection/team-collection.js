@@ -91,9 +91,6 @@ class TeamCollectionElement extends React.Component {
 }
 
 class TeamCollection extends React.Component {
-    constructor(props) {
-        super(props);
-    }
 
     render() {
         console.log(this.props.items);

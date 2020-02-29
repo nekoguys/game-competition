@@ -6,6 +6,7 @@ import CompetitionHistory from "../competition-history/competition-history";
 import CreateCompetition from "../create-competition/create-competition";
 import JoinCompetition from "../join-competition/join-competition";
 import AfterRegistrationOpenedComponent from "../after-registration-opened";
+import WaitingRoom from "../join-competition/waiting-room";
 
 export default class App extends React.Component{
     render() {
@@ -29,7 +30,8 @@ export default class App extends React.Component{
                         <JoinCompetition/>
                     </Route>
                     <Route path={"/competitions/after_registration_opened/:pin"} component={AfterRegistrationOpenedComponent}/>
-                    </Switch>
+                    <Route path={"/competitions/waiting_room/:pin"} component={WaitingRoom} />
+                </Switch>
             </Router>
         )
     }
