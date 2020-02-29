@@ -23,6 +23,10 @@ class WaitingRoom extends React.Component {
                 <div>
                     <NavbarHeader/>
                 </div>
+                <p>a</p>
+                <p>a</p>
+                <p>a</p>
+                <p>a</p>
                 <div>
                     <RoomTeammatesCollection items={items}/>
                 </div>
@@ -32,50 +36,55 @@ class WaitingRoom extends React.Component {
     }
 
     setupTeamEventConnection() {
-        const {pin} = this.props.match.params;
+        if (this.eventSource === undefined)
+        {
 
-        this.eventSource = ApiHelper.teamCreationEventSource(pin);
-        this.eventSource.addEventListener("error",
-            (err) => {
-                console.log("EventSource failed: ", err)
-            });
-        this.eventSource.addEventListener("message", (event) => {
-            console.log({data: event.data});
-            this.setState((prevState) => {
-                let arr = prevState.items.slice(0);
-                const elem = JSON.parse(event.data);
-                let index = arr.findIndex(el => {
-                    return el.teamName === elem.teamName
+            const {pin} = this.props.match.params;
+
+            this.eventSource = ApiHelper.teamCreationEventSource(pin);
+            this.eventSource.addEventListener("error",
+                (err) => {
+                    console.log("EventSource failed: ", err)
                 });
-                if (index === -1) {
-                    arr.push(elem);
-                } else {
-                    arr[index] = elem;
-                }
-                index = arr.findIndex(el => {
-                    return el.teamName === elem.teamName
-                });
-
-                let retArr;
-
-                console.log("IMPOTAND: ");
-                arr.forEach(x => {
-                    console.log(x)
-                });
-
-                arr.forEach(x => {
-                    if (x.teamMembers
-                        .findIndex(el => {
-                            return el === window.localStorage.getItem("user_email")
-                        }) !== -1) {
-                        retArr = x;
+            this.eventSource.addEventListener("message", (event) => {
+                console.log({data: event.data});
+                this.setState((prevState) => {
+                    if (prevState === undefined)
+                        return "oops";
+                    if (prevState.items === undefined)
+                        return "oops";
+                    let arr = prevState.items.slice(0);
+                    if (arr === undefined)
+                        return ("oops");
+                    const elem = JSON.parse(event.data);
+                    let index = arr.findIndex(el => {
+                        return el.teamName === elem.teamName
+                    });
+                    if (index === -1) {
+                        arr.push(elem);
+                    } else {
+                        arr[index] = elem;
                     }
+
+                    let retArr;
+                    arr.forEach(x => {
+                        if (x.teamMembers !== undefined) {
+                            if (x.teamMembers
+                                .findIndex(el => {
+                                    return el === window.localStorage.getItem("user_email")
+                                }) !== -1) {
+                                retArr = x.teamMembers;
+                            }
+                        }
+                    });
+
+                    if (retArr === undefined)
+                        return {items: arr[0].teamMembers};
+                    else
+                        return {items: retArr}
                 });
-                if (retArr !== undefined)
-                    return prevState;
-                return {items: retArr}
             });
-        });
+        }
     }
 
 }

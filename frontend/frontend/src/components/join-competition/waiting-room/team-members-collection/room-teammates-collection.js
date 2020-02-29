@@ -8,7 +8,13 @@ class RoomTeammatesCollection extends React.Component {
         const {items} = this.props;
 
         if (items === undefined)
-            return;
+            return (
+              <div>
+                  <p>items are undefined</p>
+              </div>
+            );
+
+        console.log(items);
 
         const elems = items.map(el => {
             return (<li key={el}>
