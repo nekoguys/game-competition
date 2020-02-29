@@ -32,10 +32,13 @@ public class DbCompetition {
     @DBRef
     private DbUser owner;
 
+    @Setter
+    @DBRef
+    private DbCompetitionProcessInfo competitionProcessInfo;
+
     public void addTeam(DbTeam team) {
         this.teams.add(team);
     }
-
 
     public static enum State {
         Draft, Registration, InProcess, Ended
