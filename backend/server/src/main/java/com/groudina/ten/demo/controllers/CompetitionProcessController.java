@@ -3,6 +3,7 @@ package com.groudina.ten.demo.controllers;
 import com.groudina.ten.demo.datasource.DbCompetitionsRepository;
 import com.groudina.ten.demo.datasource.DbTeamsRepository;
 import com.groudina.ten.demo.dto.CompetitionAnswerRequestDto;
+import com.groudina.ten.demo.dto.CompetitionInfoForResultsTableDto;
 import com.groudina.ten.demo.dto.CompetitionMessageRequest;
 import com.groudina.ten.demo.dto.ResponseMessage;
 import com.groudina.ten.demo.exceptions.IllegalAnswerSubmissionException;
@@ -104,6 +105,22 @@ public class CompetitionProcessController {
         return competitionsRepository.findByPin(pin)
                 .flatMapMany(comp -> gameManagementService.getRoundResultsEvents(comp))
                 .map(roundTeamResultDto -> ServerSentEvent.builder(roundTeamResultDto).build());
+    }
+
+    @GetMapping(value = "/comp_info", produces = {MediaType.APPLICATION_JSON_VALUE})
+    @PreAuthorize("hasRole('TEACHER')")
+    public Mono<ResponseEntity> getCompetitionInfoForResultsTable(@PathVariable String pin) {
+        return competitionsRepository.findByPin(pin)
+                .flatMap(comp -> {
+                    var dto = CompetitionInfoForResultsTableDto.builder()
+                            .connectedTeamsCount(comp.getTeams().size())
+                            .roundsCount(comp.getParameters().getRoundsCount())
+                            .name(comp.getParameters().getName())
+                            .build();
+                    return Mono.just((ResponseEntity) ResponseEntity.ok(dto));
+                }).switchIfEmpty(Mono.defer(() -> {
+                    return Mono.just(ResponseEntity.badRequest().body(ResponseMessage.of("No competition with such pin")));
+                }));
     }
 
     //TEACHER END
