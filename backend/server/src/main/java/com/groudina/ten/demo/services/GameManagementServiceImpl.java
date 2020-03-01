@@ -32,6 +32,8 @@ public class GameManagementServiceImpl implements IGameManagementService {
     private DbCompetitionProcessInfosRepository processInfosRepository;
     private DbAnswersRepository answersRepository;
     private DbCompetitionMessagesRepository messagesRepository;
+    private IRoundResultsCalculator roundResultsCalculator;
+    private DbRoundResultElementsRepository roundResultElementsRepository;
 
     private Map<String, Flux<RoundTeamAnswerDto>> teamAnswersStorage = new ConcurrentHashMap<>();
     private Map<String, FluxSink<RoundTeamAnswerDto>> teamAnswersSinks = new ConcurrentHashMap<>();
@@ -42,18 +44,50 @@ public class GameManagementServiceImpl implements IGameManagementService {
     private Map<String, Flux<CompetitionMessageDto>> messagesStorage = new ConcurrentHashMap<>();
     private Map<String, FluxSink<CompetitionMessageDto>> messagesSinks = new ConcurrentHashMap<>();
 
+    private Map<String, Flux<RoundTeamResultDto>> teamResultsStorage = new ConcurrentHashMap<>();
+    private Map<String, FluxSink<RoundTeamResultDto>> teamResultsSinks = new ConcurrentHashMap<>();
+
     public GameManagementServiceImpl(
             @Autowired DbCompetitionsRepository competitionsRepository,
             @Autowired DbCompetitionRoundInfosRepository roundInfosRepository,
             @Autowired DbCompetitionProcessInfosRepository processInfosRepository,
             @Autowired DbAnswersRepository answersRepository,
-            @Autowired DbCompetitionMessagesRepository messagesRepository
+            @Autowired DbCompetitionMessagesRepository messagesRepository,
+            @Autowired DbRoundResultElementsRepository roundResultElementsRepository,
+            @Autowired IRoundResultsCalculator roundResultsCalculator
     ) {
         this.competitionsRepository = competitionsRepository;
         this.roundInfosRepository = roundInfosRepository;
         this.processInfosRepository = processInfosRepository;
         this.answersRepository = answersRepository;
         this.messagesRepository = messagesRepository;
+        this.roundResultElementsRepository = roundResultElementsRepository;
+        this.roundResultsCalculator = roundResultsCalculator;
+    }
+
+    private Flux<RoundTeamResultDto> createTeamResultsProcessor(DbCompetition competition) {
+        String pin = competition.getPin();
+        var processor = ReplayProcessor.<RoundTeamResultDto>create().serialize();
+
+        teamResultsSinks.computeIfAbsent(pin, (__) -> {
+            var sink = processor.sink();
+
+            var roundInfos = competition.getCompetitionProcessInfo().getRoundInfos();
+            for (int roundNumber = 0; roundNumber < roundInfos.size(); ++roundNumber) {
+                int finalRoundNumber = roundNumber + 1;
+                roundInfos.get(roundNumber).getRoundResult().forEach(roundResultElement -> {
+                    var roundResultDto = RoundTeamResultDto.builder()
+                            .roundNumber(finalRoundNumber)
+                            .income(roundResultElement.getIncome())
+                            .teamIdInGame(roundResultElement.getTeam().getIdInGame())
+                            .build();
+                    sink.next(roundResultDto);
+                });
+            }
+            return sink;
+        });
+
+        return processor;
     }
 
     private Flux<CompetitionMessageDto> createMessagesProcessor(DbCompetition competition) {
@@ -278,6 +312,13 @@ public class GameManagementServiceImpl implements IGameManagementService {
     }
 
     @Override
+    public Flux<RoundTeamResultDto> getRoundResultsEvents(DbCompetition competition) {
+        return teamResultsStorage.computeIfAbsent(competition.getPin(), (pin) -> {
+            return createTeamResultsProcessor(competition);
+        });
+    }
+
+    @Override
     public Mono<Void> endCurrentRound(DbCompetition competition) {
         if (competition.getState() != DbCompetition.State.InProcess) {
             return Mono.error(new RoundEndInNotStartedCompetitionException("Attempt to end round but game not started"));
@@ -290,11 +331,32 @@ public class GameManagementServiceImpl implements IGameManagementService {
             competition.setState(DbCompetition.State.Ended);
         }
 
-        return roundInfosRepository.save(lastRound).then(competitionsRepository.save(competition)
+
+        return roundResultElementsRepository.saveAll(
+                roundResultsCalculator.calculateResults(lastRound, competition)
+        ).collectList().doOnNext(savedRoundResults -> {
+            lastRound.addRoundResults(savedRoundResults);
+
+            teamResultsStorage.compute(competition.getPin(), (pin, before) -> {
+                if (Objects.isNull(before)) {
+                    return createTeamResultsProcessor(competition);
+                } else {
+                    savedRoundResults.forEach(dbRoundResultElement -> {
+                        teamResultsSinks.get(pin).next(
+                                RoundTeamResultDto.builder()
+                                        .income(dbRoundResultElement.getIncome())
+                                        .roundNumber(currentRoundNumber)
+                                        .teamIdInGame(dbRoundResultElement.getTeam().getIdInGame())
+                                        .build()
+                        );
+                    });
+
+                    return before;
+                }
+            });
+        })
+                .then(roundInfosRepository.save(lastRound).then(competitionsRepository.save(competition)
                 .doOnNext((savedCompetition) -> {
-
-                    //TODO calc results
-
                     String pin = savedCompetition.getPin();
                     beginEndRoundEventsStorage.compute(pin, (__, before) -> {
                         if (Objects.isNull(before)) {
@@ -310,7 +372,7 @@ public class GameManagementServiceImpl implements IGameManagementService {
                             return before;
                         }
                     });
-                })).then();
+                }))).then();
     }
 
     @Override
@@ -397,6 +459,8 @@ public class GameManagementServiceImpl implements IGameManagementService {
         messagesSinks.clear();
         beginEndRoundEventsStorage.clear();
         beginEndRoundEventsSinks.clear();
+        teamResultsStorage.clear();
+        teamResultsSinks.clear();
 
         return Mono.just(1).then();
     }

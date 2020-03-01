@@ -21,6 +21,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.Sort;
 import reactor.test.StepVerifier;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
@@ -87,6 +88,7 @@ class GameManagementServiceImplTest {
         roundResultElementsRepository.deleteAll().block();
         messagesRepository.deleteAll().block();
         gameManagementService.clear().block();
+        gameManagementService.clear().block();
     }
 
     DbCompetition commonPart() {
@@ -94,6 +96,8 @@ class GameManagementServiceImplTest {
                 .maxTeamSize(3)
                 .maxTeamsAmount(3)
                 .roundsCount(roundsCountDefault)
+                .expensesFormula(List.of("1", "2", "3"))
+                .demandFormula(List.of("100", "10"))
                 .roundLengthInSeconds(60)
                 .build();
         var comp = DbCompetition.builder()
@@ -297,5 +301,31 @@ class GameManagementServiceImplTest {
         StepVerifier.create(gameManagementService.startNewRound(comp))
                 .expectError(IllegalGameStateException.class).verify();
         assertEquals(comp.getState(), DbCompetition.State.Ended);
+    }
+
+    @Test
+    void testResultsStream() {
+        var comp = commonPart();
+
+        var teams = teamsRepository.findAll().collectList().block();
+
+        gameManagementService.startCompetition(comp).block();
+
+        gameManagementService.submitAnswer(comp, teams.get(0), 10, 1).block();
+
+        var verifier = StepVerifier.create(gameManagementService.getRoundResultsEvents(comp))
+                .consumeNextWith(ans -> {
+                    assertEquals(ans.getIncome(), -63, 0.001);
+                    assertEquals(ans.getRoundNumber(), 1);
+                    assertEquals(ans.getTeamIdInGame(), 0);
+                })
+                .expectNextCount(1)
+                .expectNoEvent(Duration.ofSeconds(1))
+                .thenCancel().verifyLater();
+
+        gameManagementService.submitAnswer(comp, teams.get(1), 30, 1).block();
+        gameManagementService.endCurrentRound(comp).block();
+
+        verifier.verify();
     }
 }

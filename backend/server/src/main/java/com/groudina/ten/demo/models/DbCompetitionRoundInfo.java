@@ -7,6 +7,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 @Builder
@@ -43,6 +44,10 @@ public class DbCompetitionRoundInfo {
 
     public void addRoundResult(DbRoundResultElement element) {
         this.roundResult.add(element);
+    }
+
+    public void addRoundResults(Collection<DbRoundResultElement> elements) {
+        this.roundResult.addAll(elements);
     }
 
 
