@@ -47,6 +47,9 @@ public class GameManagementServiceImpl implements IGameManagementService {
     private Map<String, Flux<RoundTeamResultDto>> teamResultsStorage = new ConcurrentHashMap<>();
     private Map<String, FluxSink<RoundTeamResultDto>> teamResultsSinks = new ConcurrentHashMap<>();
 
+    private Map<String, Flux<PriceInRoundDto>> roundPricesStorage = new ConcurrentHashMap<>();
+    private Map<String, FluxSink<PriceInRoundDto>> roundPricesSinks = new ConcurrentHashMap<>();
+
     public GameManagementServiceImpl(
             @Autowired DbCompetitionsRepository competitionsRepository,
             @Autowired DbCompetitionRoundInfosRepository roundInfosRepository,
@@ -63,6 +66,29 @@ public class GameManagementServiceImpl implements IGameManagementService {
         this.messagesRepository = messagesRepository;
         this.roundResultElementsRepository = roundResultElementsRepository;
         this.roundResultsCalculator = roundResultsCalculator;
+    }
+
+    private Flux<PriceInRoundDto> createPricesProcessor(DbCompetition competition) {
+        String pin = competition.getPin();
+        var processor = ReplayProcessor.<PriceInRoundDto>create().serialize();
+
+        roundPricesSinks.computeIfAbsent(pin, (__) -> {
+            var sink = processor.sink();
+
+            var roundInfos = competition.getCompetitionProcessInfo().getRoundInfos();
+            for (int roundNumber = 0; roundNumber < roundInfos.size(); ++roundNumber) {
+                if (roundInfos.get(roundNumber).isEnded()) {
+                    sink.next(PriceInRoundDto.builder()
+                            .price(roundInfos.get(roundNumber).getPrice())
+                            .roundNumber(roundNumber + 1)
+                            .build());
+                }
+            }
+
+            return sink;
+        });
+
+        return processor;
     }
 
     private Flux<RoundTeamResultDto> createTeamResultsProcessor(DbCompetition competition) {
@@ -319,6 +345,13 @@ public class GameManagementServiceImpl implements IGameManagementService {
     }
 
     @Override
+    public Flux<PriceInRoundDto> getRoundPricesEvents(DbCompetition competition) {
+        return roundPricesStorage.computeIfAbsent(competition.getPin(), (pin) -> {
+            return createPricesProcessor(competition);
+        });
+    }
+
+    @Override
     public Mono<Void> endCurrentRound(DbCompetition competition) {
         if (competition.getState() != DbCompetition.State.InProcess) {
             return Mono.error(new RoundEndInNotStartedCompetitionException("Attempt to end round but game not started"));
@@ -331,11 +364,27 @@ public class GameManagementServiceImpl implements IGameManagementService {
             competition.setState(DbCompetition.State.Ended);
         }
 
-
+        var results = roundResultsCalculator.calculateResults(lastRound, competition);
         return roundResultElementsRepository.saveAll(
-                roundResultsCalculator.calculateResults(lastRound, competition)
+                results.getResults()
         ).collectList().doOnNext(savedRoundResults -> {
             lastRound.addRoundResults(savedRoundResults);
+            lastRound.setPrice(results.getPrice());
+
+            roundPricesStorage.compute(competition.getPin(), (pin, before) -> {
+                if (Objects.isNull(before)) {
+                    return createPricesProcessor(competition);
+                } else {
+                    roundPricesSinks.get(pin)
+                            .next(
+                                    PriceInRoundDto.builder()
+                                    .roundNumber(currentRoundNumber)
+                                    .price(results.getPrice())
+                                    .build()
+                            );
+                    return before;
+                }
+            });
 
             teamResultsStorage.compute(competition.getPin(), (pin, before) -> {
                 if (Objects.isNull(before)) {
@@ -461,6 +510,8 @@ public class GameManagementServiceImpl implements IGameManagementService {
         beginEndRoundEventsSinks.clear();
         teamResultsStorage.clear();
         teamResultsSinks.clear();
+        roundPricesSinks.clear();
+        roundPricesStorage.clear();
 
         return Mono.just(1).then();
     }

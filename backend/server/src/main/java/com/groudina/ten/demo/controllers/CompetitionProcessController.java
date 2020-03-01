@@ -107,6 +107,14 @@ public class CompetitionProcessController {
                 .map(roundTeamResultDto -> ServerSentEvent.builder(roundTeamResultDto).build());
     }
 
+    @RequestMapping(value = "/prices_stream", produces = {MediaType.TEXT_EVENT_STREAM_VALUE})
+    @PreAuthorize("hasRole('TEACHER')")
+    public Flux<ServerSentEvent<?>> getPricesEvents(@PathVariable String pin) {
+        return competitionsRepository.findByPin(pin)
+                .flatMapMany(comp -> gameManagementService.getRoundPricesEvents(comp))
+                .map(dto -> ServerSentEvent.builder(dto).build());
+    }
+
     @GetMapping(value = "/comp_info", produces = {MediaType.APPLICATION_JSON_VALUE})
     @PreAuthorize("hasRole('TEACHER')")
     public Mono<ResponseEntity> getCompetitionInfoForResultsTable(@PathVariable String pin) {
