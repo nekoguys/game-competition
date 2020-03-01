@@ -10,7 +10,7 @@ class CompetitionResultsTable extends React.Component{
 
         const toStr = (x) => (oneColWidth * x) + "%";
         return (
-            <tr>
+            <tr key={-1}>
                 <td colSpan={4} width={toStr(4)} style={{textAlign: "center"}} key={0}>
                     {"Раунд/Команда"}
                 </td>
@@ -36,8 +36,9 @@ class CompetitionResultsTable extends React.Component{
 
         return (
             this.range(1, roundsCount*2 + 1).concat([0]).map(el => {
+                const roundNumber = Math.ceil((el + 1) / 2);
+
                 if (el % 2 === 1) {
-                    const roundNumber = (el + 1) / 2;
                     return (
                         <tr key={el}>
                             <td rowSpan={2} colSpan={3} width={toStr(3)} key={-1}>
@@ -82,9 +83,16 @@ class CompetitionResultsTable extends React.Component{
                     return (
                         <tr key={el}>
                             <td width={toStr(1)} key={0}>{"П"}</td>
-                            {this.range(1, teamsCount + 1).map(el => {
+                            {this.range(1, teamsCount + 1).map(teamInd => {
+                                let ans = "";
+
+                                if (roundNumber in this.props.results) {
+                                    if (teamInd in this.props.results[roundNumber]) {
+                                        ans = this.props.results[roundNumber][teamInd];
+                                    }
+                                }
                                 return (
-                                    <td width={toStr(1)} key={el}/>
+                                    <td width={toStr(1)} key={teamInd}>{ans}</td>
                                 )
                             })}
                             <td width={toStr(1)} key={teamsCount + 1}/>

@@ -22,6 +22,7 @@ class CompetitionProcessTeacherBody extends React.Component {
             teamsCount: 10,
             roundsCount: 6,
             answers: {},
+            results: {},
             messages: []
         }
     }
@@ -37,6 +38,7 @@ class CompetitionProcessTeacherBody extends React.Component {
             rightButtonClick={this.onStartOrEndRoundButtonClick}
             teamsCount={this.state.teamsCount}
             roundsCount={this.state.roundsCount}
+            results={this.state.results}
         />);
 
         return (
@@ -56,12 +58,14 @@ class CompetitionProcessTeacherBody extends React.Component {
         this.setupRoundsEvents();
         this.setupAnswerEvents();
         this.getCompetitionInfo();
+        this.setupResultsEvents();
     }
 
     componentWillUnmount() {
         this.closeCompetitionMessagesEvents();
         this.closeRoundEvents();
         this.closeAnswersEvents();
+        this.closeCompetitionResultsEvents();
     }
 
     getCompetitionInfo() {
@@ -87,6 +91,36 @@ class CompetitionProcessTeacherBody extends React.Component {
                 } else {
                     NotificationManager.error(jsonBody.message, "Error", 1500);
                 }
+            })
+        })
+    }
+
+    setupResultsEvents() {
+        const {pin} = this.props;
+
+        this.resultsEventSource = ApiHelper.competitionResultsStream(pin);
+
+        this.resultsEventSource.addEventListener("error", (err) => {
+            console.log("resultsEventSource error: ");
+            console.log({err});
+        });
+
+        this.resultsEventSource.addEventListener("message", (message) => {
+            const resultsData = JSON.parse(message.data);
+            const teamIdInGame = resultsData.teamIdInGame;
+            const round = resultsData.roundNumber;
+            const income = resultsData.income;
+
+            this.setState(prevState => {
+                const results = {...prevState.results};
+
+                if (!(round in results)) {
+                    results[round] = {[teamIdInGame]: income};
+                } else {
+                    results[round][teamIdInGame] = income;
+                }
+
+                return {results: results};
             })
         })
     }
@@ -138,7 +172,7 @@ class CompetitionProcessTeacherBody extends React.Component {
                     const timeTillRoundEnd = messageData.roundLength - (Math.round((new Date().getTime())/1000) - messageData.beginTime);
                     return {currentRoundNumber: messageData.roundNumber, timeTillRoundEnd: timeTillRoundEnd, isCurrentRoundEnded: false};
                 } else {
-                    return {isCurrentRoundEnded: true};
+                    return {isCurrentRoundEnded: true, currentRoundNumber: messageData.roundNumber};
                 }
             });
         });
@@ -186,6 +220,12 @@ class CompetitionProcessTeacherBody extends React.Component {
         })
     }
 
+    closeCompetitionResultsEvents() {
+        if (this.resultsEventSource !== undefined) {
+            this.resultsEventSource.close();
+        }
+    }
+
     closeCompetitionMessagesEvents() {
         if (this.eventSource !== undefined)
             this.eventSource.close();
@@ -217,7 +257,7 @@ class CompetitionProcessTeacherBody extends React.Component {
             if (resp.status >= 300) {
                 return {success: false, json: resp.text()};
             }
-
+            
             return {success: true, json: resp.json()};
         }).then(resp => {
             resp.json.then(jsonBody => {
@@ -281,7 +321,11 @@ class CompetitionProcessTeacherActive extends React.Component {
                     </div>
                 </div>
                 <div style={{paddingTop: "20px"}}>
-                    <CompetitionResultsTable style={{width: "100%"}} teamsCount={this.props.teamsCount} roundsCount={this.props.roundsCount} answers={this.props.answers} />
+                    <CompetitionResultsTable style={{width: "100%"}} teamsCount={this.props.teamsCount}
+                                             roundsCount={this.props.roundsCount}
+                                             answers={this.props.answers}
+                                             results={this.props.results}
+                    />
                 </div>
                 <div style={{paddingTop: "20px"}}>
                     <MessagesContainer messages={this.props.messages} sendMessageCallBack={this.props.sendMessageCallBack}/>
