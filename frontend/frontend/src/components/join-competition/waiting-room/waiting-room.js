@@ -2,7 +2,7 @@ import React from "react";
 import "./waiting-room.css";
 import ApiHelper from "../../../helpers/api-helper";
 
-import {NotificationContainer, NotificationManager} from "react-notifications";
+import {NotificationContainer} from "react-notifications";
 import NavbarHeader from "../../competition-history/navbar-header";
 import RoomTeammatesCollection from "./room-teammates-collection";
 
@@ -22,12 +22,11 @@ class WaitingRoom extends React.Component {
                 <div>
                     <NavbarHeader/>
                 </div>
-                <p>a</p>
-                <p>a</p>
-                <p>a</p>
-                <p>a</p>
                 <div>
-                    <RoomTeammatesCollection items={items}/>
+                    <RoomTeammatesCollection items={items}
+                                             style={{paddingTop: "100px", fontSize: "20px"}}
+                                             ulstyle={{listStyle: "none"}}
+                    />
                 </div>
                 <NotificationContainer/>
             </div>

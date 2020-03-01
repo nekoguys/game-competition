@@ -10,11 +10,11 @@ class RoomTeammatesCollection extends React.Component {
 
         const elems = items.map(el => {
             return (<li key={el.idInGame}>
-                <p>Team Name: {el.teamName}</p>
+                <p>Команда "{el.teamName}":</p>
                 <RoomTeammatesMembersCollection
                     items={el.teamMembers}
                     style={{marginRight: "20px", marginLeft: "20px"}}
-                    ulstyle={{paddingTop: "20px", paddingBottom: "20px", marginBottom: "0"}}/>
+                    ulstyle={{paddingBottom: "20px", paddingTop: "0px"}}/>
             </li>)
         });
 
