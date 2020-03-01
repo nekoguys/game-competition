@@ -1,5 +1,6 @@
 import React from "react";
 import "./room-teammates-collection.css";
+import RoomTeammatesMembersCollection from "./room-teammates-members-collection";
 
 class RoomTeammatesCollection extends React.Component {
     render() {
@@ -7,18 +8,13 @@ class RoomTeammatesCollection extends React.Component {
         const {ulstyle = {}} = this.props;
         const {items} = this.props;
 
-        if (items === undefined)
-            return (
-              <div>
-                  <p>items are undefined</p>
-              </div>
-            );
-
-        console.log(items);
-
         const elems = items.map(el => {
-            return (<li key={el}>
-                {el}
+            return (<li key={el.idInGame}>
+                <p>Team Name: {el.teamName}</p>
+                <RoomTeammatesMembersCollection
+                    items={el.teamMembers}
+                    style={{marginRight: "20px", marginLeft: "20px"}}
+                    ulstyle={{paddingTop: "20px", paddingBottom: "20px", marginBottom: "0"}}/>
             </li>)
         });
 

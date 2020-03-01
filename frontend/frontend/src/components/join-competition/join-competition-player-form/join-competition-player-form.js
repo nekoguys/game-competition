@@ -6,6 +6,7 @@ import ApiHelper from "../../../helpers/api-helper";
 import {NotificationContainer, NotificationManager} from "react-notifications";
 import TeamCollection from "./team-collection";
 import DefaultTextInput from "../../common/default-text-input";
+import {withRouter} from "react-router-dom";
 
 class TextInputWithSubmitButton extends React.Component {
     constructor(props) {
@@ -196,7 +197,9 @@ class JoinCompetitionPlayerForm extends React.Component {
                 if (resp.success) {
                     const teamName = obj.currentTeamName;
                     window.localStorage.setItem("currentTeamName", teamName);
-                    NotificationManager.success("You joined team " + teamName, "Success", timeout)
+                    NotificationManager.success("You joined team " + teamName, "Success", timeout);
+                    this.props.history.push("/competitions/waiting_room/" + this.gameId);
+
                 } else {
                     NotificationManager.error(obj.message, "Error", timeout);
                 }
@@ -222,4 +225,4 @@ class JoinCompetitionPlayerForm extends React.Component {
     }
 }
 
-export default JoinCompetitionPlayerForm;
+export default withRouter(JoinCompetitionPlayerForm);

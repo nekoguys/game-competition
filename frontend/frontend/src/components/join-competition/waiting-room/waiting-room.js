@@ -4,8 +4,7 @@ import ApiHelper from "../../../helpers/api-helper";
 
 import {NotificationContainer, NotificationManager} from "react-notifications";
 import NavbarHeader from "../../competition-history/navbar-header";
-import TeamCollection from "../join-competition-player-form/team-collection";
-import RoomTeammatesCollection from "./team-members-collection";
+import RoomTeammatesCollection from "./room-teammates-collection";
 
 class WaitingRoom extends React.Component {
     constructor(props) {
@@ -36,8 +35,7 @@ class WaitingRoom extends React.Component {
     }
 
     setupTeamEventConnection() {
-        if (this.eventSource === undefined)
-        {
+        if (this.eventSource === undefined) {
 
             const {pin} = this.props.match.params;
 
@@ -49,13 +47,10 @@ class WaitingRoom extends React.Component {
             this.eventSource.addEventListener("message", (event) => {
                 console.log({data: event.data});
                 this.setState((prevState) => {
-                    if (prevState === undefined)
-                        return "oops";
-                    if (prevState.items === undefined)
-                        return "oops";
+
                     let arr = prevState.items.slice(0);
-                    if (arr === undefined)
-                        return ("oops");
+
+                    console.log(prevState.items);
                     const elem = JSON.parse(event.data);
                     let index = arr.findIndex(el => {
                         return el.teamName === elem.teamName
@@ -66,27 +61,20 @@ class WaitingRoom extends React.Component {
                         arr[index] = elem;
                     }
 
-                    let retArr;
-                    arr.forEach(x => {
-                        if (x.teamMembers !== undefined) {
-                            if (x.teamMembers
-                                .findIndex(el => {
-                                    return el === window.localStorage.getItem("user_email")
-                                }) !== -1) {
-                                retArr = x.teamMembers;
-                            }
-                        }
-                    });
-
-                    if (retArr === undefined)
-                        return {items: arr[0].teamMembers};
-                    else
-                        return {items: retArr}
+                    return {items: arr}
                 });
             });
+
+            // TODO: can we do smth like this?
+            /*
+            this.eventSource.addEventListener("gamestart", (event) => {
+               console.log("GAME HAS STARTED!");
+               // TODO: redirect to game
+            });
+
+             */
         }
     }
-
 }
 
 export default WaitingRoom;
