@@ -23,6 +23,7 @@ class CompetitionProcessTeacherBody extends React.Component {
             roundsCount: 6,
             answers: {},
             results: {},
+            prices: {},
             messages: []
         }
     }
@@ -39,6 +40,7 @@ class CompetitionProcessTeacherBody extends React.Component {
             teamsCount={this.state.teamsCount}
             roundsCount={this.state.roundsCount}
             results={this.state.results}
+            prices={this.state.prices}
         />);
 
         return (
@@ -59,6 +61,7 @@ class CompetitionProcessTeacherBody extends React.Component {
         this.setupAnswerEvents();
         this.getCompetitionInfo();
         this.setupResultsEvents();
+        this.setupPricesEvents();
     }
 
     componentWillUnmount() {
@@ -66,6 +69,7 @@ class CompetitionProcessTeacherBody extends React.Component {
         this.closeRoundEvents();
         this.closeAnswersEvents();
         this.closeCompetitionResultsEvents();
+        this.closePricesEvents();
     }
 
     getCompetitionInfo() {
@@ -95,6 +99,23 @@ class CompetitionProcessTeacherBody extends React.Component {
         })
     }
 
+    setupPricesEvents() {
+        const {pin} = this.props;
+
+        this.pricesEventSource = ApiHelper.competitionRoundPricesStream(pin);
+
+        this.pricesEventSource.addEventListener("message", (message) => {
+            const {price, roundNumber} = JSON.parse(message.data);
+
+            this.setState(prevState => {
+                const prices = {...prevState.prices};
+
+                prices[roundNumber] = price;
+                return {prices};
+            })
+        })
+    }
+
     setupResultsEvents() {
         const {pin} = this.props;
 
@@ -107,6 +128,7 @@ class CompetitionProcessTeacherBody extends React.Component {
 
         this.resultsEventSource.addEventListener("message", (message) => {
             const resultsData = JSON.parse(message.data);
+            console.log({resultsData});
             const teamIdInGame = resultsData.teamIdInGame;
             const round = resultsData.roundNumber;
             const income = resultsData.income;
@@ -231,6 +253,12 @@ class CompetitionProcessTeacherBody extends React.Component {
             this.eventSource.close();
     }
 
+    closePricesEvents() {
+        if (this.pricesEventSource !== undefined) {
+            this.pricesEventSource.close();
+        }
+    }
+
     closeAnswersEvents() {
         if (this.answersEventSource !== undefined) {
             this.answersEventSource.close();
@@ -325,6 +353,7 @@ class CompetitionProcessTeacherActive extends React.Component {
                                              roundsCount={this.props.roundsCount}
                                              answers={this.props.answers}
                                              results={this.props.results}
+                                             prices={this.props.prices}
                     />
                 </div>
                 <div style={{paddingTop: "20px"}}>

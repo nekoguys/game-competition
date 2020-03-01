@@ -36,7 +36,12 @@ class CompetitionResultsTable extends React.Component{
 
         return (
             this.range(1, roundsCount*2 + 1).concat([0]).map(el => {
-                const roundNumber = Math.ceil((el + 1) / 2);
+                const roundNumber = Math.ceil(el / 2);
+                let price = "";
+
+                if (roundNumber in this.props.prices) {
+                    price = this.props.prices[roundNumber];
+                }
 
                 if (el % 2 === 1) {
                     return (
@@ -61,7 +66,7 @@ class CompetitionResultsTable extends React.Component{
                             })}
 
                             {
-                                <td width={toStr(1)} key={teamsCount + 1}>
+                                <td width={toStr(1)} key={teamsCount + 1} rowSpan={2}>
                                     {
                                         this.range(1, teamsCount + 1).map(teamInd => {
                                             let ans = 0;
@@ -71,12 +76,11 @@ class CompetitionResultsTable extends React.Component{
                                                 }
                                             }
                                             return ans;
-                                        }).reduce((prev, curr) => prev + curr)
+                                        }).reduce((prev, curr) => prev + curr, 0)
                                     }
                                 </td>
                             }
-
-                            <td width={toStr(1)} key={teamsCount + 2}/>
+                            <td width={toStr(1)} key={teamsCount + 2} rowSpan={2}>{price}</td>
                         </tr>
                     )
                 } else if (el !== 0) {
@@ -95,8 +99,6 @@ class CompetitionResultsTable extends React.Component{
                                     <td width={toStr(1)} key={teamInd}>{ans}</td>
                                 )
                             })}
-                            <td width={toStr(1)} key={teamsCount + 1}/>
-                            <td width={toStr(1)} key={teamsCount + 2}/>
                         </tr>
                     )
                 } else {

@@ -87,6 +87,10 @@ class ApiSettings {
     static competitionResultsStream(pin) {
         return ApiSettings.host() + "/competition_process/" + pin + "/results_stream";
     }
+
+    static competitionRoundPricesStream(pin) {
+        return ApiSettings.host() + "/competition_process/" + pin + "/prices_stream";
+    }
 }
 
 export default class ApiHelper {
@@ -235,6 +239,13 @@ export default class ApiHelper {
 
     static competitionResultsStream(pin) {
         return new EventSourcePolyfill(ApiSettings.competitionResultsStream(pin), {
+            headers: this.authDefaultHeaders(),
+            heartbeatTimeout: 1000*60*60
+        })
+    }
+
+    static competitionRoundPricesStream(pin) {
+        return new EventSourcePolyfill(ApiSettings.competitionRoundPricesStream(pin), {
             headers: this.authDefaultHeaders(),
             heartbeatTimeout: 1000*60*60
         })
