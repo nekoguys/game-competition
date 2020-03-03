@@ -13,6 +13,10 @@ class NavbarHeader extends React.Component {
         this.props.history.push('/competitions/history');
     };
 
+    onEnterGameClick = () => {
+        this.props.history.push('/competitions/join')
+    };
+
     render() {
         const buttonsStyle = {
             marginBottom: "0.7rem",
@@ -22,14 +26,21 @@ class NavbarHeader extends React.Component {
             paddingLeft: "20px",
             paddingRight: "20px"
         };
+
+        let navbarButton;
+        if (window.localStorage.getItem("roles").length === 4)
+            navbarButton = <DefaultSubmitButton text="Войти в игру" style={buttonsStyle} onClick={this.onEnterGameClick}/>;
+        else
+            navbarButton = <DefaultSubmitButton text="Создать игру" style={buttonsStyle} onClick={this.onCreateGameClick}/>;
+
         return (
             <div className="navbar-header-fixed-top">
                 <div className={"d-flex"} style={{marginTop: "20px", marginLeft: "40px"}}>
                     <DefaultSubmitButton text="История игр" style={{...buttonsStyle, marginRight: "50px"}} onClick={this.onGameHistoryClick}/>
-                    <DefaultSubmitButton text="Создать игру" style={buttonsStyle} onClick={this.onCreateGameClick}/>
+                    {navbarButton}
                 </div>
             </div>
-        )
+        );
     }
 }
 

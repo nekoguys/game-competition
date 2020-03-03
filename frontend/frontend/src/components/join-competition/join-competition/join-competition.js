@@ -39,7 +39,7 @@ class JoinCompetition extends React.Component {
             obj[toSnakeCase(key)] = formState[key];
         });
         console.log(obj);
-        const timeout = 1200;
+        const timeout = 2000;
         ApiHelper.createTeam(obj).then(resp => {
             console.log(resp);
             resp.clone().text().then(res => console.log(res));
@@ -76,7 +76,7 @@ class JoinCompetition extends React.Component {
                 <div className={"d-flex"}>
                     <div style={{margin: "0 auto", width: "26%"}}>
                         <DefaultCheckboxButtonGroup
-                            choices={["Как капитан", "Как участник"]}
+                            choices={["Капитан", "Участник"]}
                             buttonStyle={{width: "51%", fontSize: "1.3rem",
                                 textOverflow: "ellipsis", overflow: "hidden"}}
                             style={{width: "100%"}}

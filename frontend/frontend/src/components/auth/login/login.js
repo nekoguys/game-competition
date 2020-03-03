@@ -39,11 +39,12 @@ class Login extends React.Component {
             console.log(parsedResponse);
             parsedResponse.json.then((value) => {
                 console.log({value});
+                const timeout = 1200;
+
                 if (parsedResponse.success) {
                     window.localStorage.setItem("accessToken", value.accessToken);
                     window.localStorage.setItem("user_email", value.email);
                     window.localStorage.setItem("roles", value.authorities.map(el => el.authority));
-                    const timeout = 1200;
                     NotificationManager.success(`Welcome, ${value.email}!`, 'Success', timeout);
                     setTimeout(() => {
                         this.props.history.push('/competitions/history');
@@ -52,9 +53,9 @@ class Login extends React.Component {
 
                 } else {
                     if (value.message) {
-                        NotificationManager.error(value.message, 'Error', 1200);
+                        NotificationManager.error(value.message, 'Error', timeout);
                     } else {
-                        NotificationManager.error('Error occurred', 'Error', 1200, () => {
+                        NotificationManager.error('Error occurred', 'Error', timeout, () => {
                         });
                     }
                 }

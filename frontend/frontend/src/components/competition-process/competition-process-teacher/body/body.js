@@ -175,7 +175,7 @@ class CompetitionProcessTeacherBody extends React.Component {
                     return el.message === messageElem.message && el.timestamp === messageElem.timestamp;
                 });
 
-                if (index == -1) {
+                if (index === -1) {
                     arr = [messageElem].concat(arr);
                 } else {
                     arr[index] = messageElem;
