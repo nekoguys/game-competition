@@ -45,7 +45,7 @@ class MessagesContainer extends React.Component {
     }
 }
 
-class MessagesListContainer extends React.Component {
+export class MessagesListContainer extends React.Component {
     render() {
         const {messages = []} = this.props;
         return (
