@@ -35,7 +35,7 @@ class MessagesContainer extends React.Component {
 
         return (
             <div className={"d-flex justify-content-center"}>
-                <div className={"col-6"}>
+                <div className={"col-6"} style={{minWidth: "250px"}}>
                     <div className={"show-messages"} style={{width: "40%", margin: "0 auto"}} onClick={this.expandOrCollapse}>
                         <div>
                         <div style={{display: "inline"}}>
