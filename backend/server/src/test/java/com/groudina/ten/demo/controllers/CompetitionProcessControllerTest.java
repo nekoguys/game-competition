@@ -270,12 +270,10 @@ class CompetitionProcessControllerTest {
         var competition = competitionsRepository.save(DbCompetition.builder()
                 .state(DbCompetition.State.Registration)
                 .pin("1234")
-                .parameters(DbCompetition.Parameters.builder().roundsCount(2).build())
+                .parameters(DbCompetition.Parameters.builder().roundsCount(2).demandFormula(List.of("1", "2")).expensesFormula(List.of("1","2", "3")).build())
                 .build()).block();
         var team = teamsRepository.save(DbTeam.builder().captain(captain).name("abac").sourceCompetition(competition).build()).block();
-        var team2 = teamsRepository.save(DbTeam.builder().captain(captain).name("name").idInGame(1).sourceCompetition(competition).build()).block();
         competition.addTeam(team);
-        competition.addTeam(team2);
         competition = competitionsRepository.save(competition).block();
 
         gameManagementService.startCompetition(competition).block();
@@ -283,17 +281,22 @@ class CompetitionProcessControllerTest {
         webTestClient.post().uri("/api/competition_process/1234/submit_answer")
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
-                .body(BodyInserters.fromValue(CompetitionAnswerRequestDto.builder().answer(10).roundNumber(1).teamName("abac").build()))
+                .body(BodyInserters.fromValue(CompetitionAnswerRequestDto.builder().answer(10).roundNumber(1).build()))
                 .exchange()
                 .expectStatus()
                 .isOk()
                 .expectBody(ResponseMessage.class)
                 .value(responseMessage -> assertTrue(responseMessage.getMessage().contains("success")));
 
+        competition =  competitionsRepository.findByPin("1234").block();
+
+        gameManagementService.endCurrentRound(competition).block();
+        gameManagementService.startNewRound(competition).block();
+
         webTestClient.post().uri("/api/competition_process/1234/submit_answer")
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
-                .body(BodyInserters.fromValue(CompetitionAnswerRequestDto.builder().answer(20).roundNumber(1).teamName("name").build()))
+                .body(BodyInserters.fromValue(CompetitionAnswerRequestDto.builder().answer(20).roundNumber(2).build()))
                 .exchange()
                 .expectStatus().isOk()
                 .expectBody(ResponseMessage.class)
@@ -313,11 +316,13 @@ class CompetitionProcessControllerTest {
             assertEquals(roundTeamAnswerDto.getTeamAnswer(), 10);
         }).consumeNextWith(roundTeamAnswerDto -> {
             assertEquals(roundTeamAnswerDto.getTeamAnswer(), 20);
-            assertEquals(roundTeamAnswerDto.getTeamIdInGame(), 1);
+            assertEquals(roundTeamAnswerDto.getTeamIdInGame(), 0);
+            assertEquals(roundTeamAnswerDto.getRoundNumber(), 2);
         }).thenCancel().verify();
 
         var comp = competitionsRepository.findByPin("1234").block();
-        assertEquals(comp.getCompetitionProcessInfo().getCurrentRound().getAnswerList().size(), 2);
+        assertEquals(comp.getCompetitionProcessInfo().getCurrentRound().getAnswerList().size(), 1);
+        assertEquals(comp.getCompetitionProcessInfo().getRoundInfos().get(0).getAnswerList().size(), 1);
     }
 
     @Test
@@ -330,7 +335,7 @@ class CompetitionProcessControllerTest {
                 .pin("1234")
                 .parameters(DbCompetition.Parameters.builder().roundsCount(2).build())
                 .build()).block();
-        var team = teamsRepository.save(DbTeam.builder().captain(captain).name("abac").sourceCompetition(competition).build()).block();
+        var team = teamsRepository.save(DbTeam.builder().captain(captain).name("abac").allPlayers(List.of(user)).sourceCompetition(competition).build()).block();
         competition.addTeam(team);
         competition = competitionsRepository.save(competition).block();
 
@@ -339,7 +344,7 @@ class CompetitionProcessControllerTest {
         webTestClient.post().uri("/api/competition_process/1234/submit_answer")
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
-                .body(BodyInserters.fromValue(CompetitionAnswerRequestDto.builder().answer(10).roundNumber(1).teamName("abac").build()))
+                .body(BodyInserters.fromValue(CompetitionAnswerRequestDto.builder().answer(10).roundNumber(1).build()))
                 .exchange()
                 .expectStatus()
                 .isBadRequest()
@@ -465,4 +470,90 @@ class CompetitionProcessControllerTest {
                 });
     }
 
+    @Test
+    @WithMockUser(value = "anotherEmail", password = "1234", roles = {"TEACHER","STUDENT"})
+    void testStudentCompetitionInfo() {
+        var user = userRepository.save(DbUser.builder().password("1234").email("anotherEmail").roles(rolesRepository.findAll().collectList().block()).build()).block();
+        var competition = competitionsRepository.save(DbCompetition.builder()
+                .state(DbCompetition.State.Registration)
+                .pin("1234")
+                .parameters(DbCompetition.Parameters.builder()
+                        .roundsCount(3)
+                        .name("name")
+                        .expensesFormula(List.of("1", "2", "3"))
+                        .demandFormula(List.of("100", "10"))
+                        .maxTeamsAmount(100)
+                        .shouldShowStudentPreviousRoundResults(true)
+                        .instruction("instr")
+                        .build())
+                .build()).block();
+        competition = competitionsRepository.save(competition).block();
+        var team = teamsRepository.save(DbTeam.builder().sourceCompetition(competition).name("tutu").idInGame(0).captain(user).build()).block();
+        competition.addTeam(team);
+        competition = competitionsRepository.save(competition).block();
+
+        webTestClient.get().uri("/api/competition_process/1234/student_comp_info")
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody(CompetitionInfoForStudentResultsTableDto.class).value(el -> {
+                    assertEquals(el.getDescription(), "instr");
+                    assertEquals(el.getName(), "name");
+                    assertEquals(el.getRoundsCount(), 3);
+                    assertTrue(el.isShouldShowResultTable());
+                    assertEquals(el.getTeamName(), "tutu");
+        });
+    }
+
+    @Test
+    @WithMockUser(value = "anotherEmail", password = "1234", roles = {"TEACHER","STUDENT"})
+    void testMyTeamAnswerStream() {
+        var user = userRepository.save(DbUser.builder().password("1234").email("anotherEmail").roles(rolesRepository.findAll().collectList().block()).build()).block();
+        var secUser = userRepository.save(DbUser.builder().password("1234").email("email").roles(rolesRepository.findAll().collectList().block()).build()).block();
+        var competition = competitionsRepository.save(DbCompetition.builder()
+                .state(DbCompetition.State.Registration)
+                .pin("1234")
+                .parameters(DbCompetition.Parameters.builder()
+                        .roundsCount(3)
+                        .name("name")
+                        .expensesFormula(List.of("1", "2", "3"))
+                        .demandFormula(List.of("100", "10"))
+                        .maxTeamsAmount(100)
+                        .shouldShowStudentPreviousRoundResults(true)
+                        .instruction("instr")
+                        .build())
+                .build()).block();
+        competition = competitionsRepository.save(competition).block();
+        var team = teamsRepository.save(DbTeam.builder().sourceCompetition(competition).name("tutu").idInGame(0).captain(user).build()).block();
+        var team2 = teamsRepository.save(DbTeam.builder().sourceCompetition(competition).name("abab").idInGame(1).captain(secUser).build()).block();
+
+        competition.addTeam(team);
+        competition.addTeam(team2);
+
+        gameManagementService.startCompetition(competition).block();
+        gameManagementService.submitAnswer(competition, team, 10, 1).block();
+        gameManagementService.submitAnswer(competition, team2, 20, 1).block();
+
+        var answersFlux = webTestClient.get().uri("/api/competition_process/1234/my_answers_stream")
+                .accept(MediaType.TEXT_EVENT_STREAM)
+                .exchange()
+                .expectStatus().isOk()
+                .returnResult(RoundTeamAnswerDto.class)
+                .getResponseBody();
+        var verifier = StepVerifier.create(answersFlux).consumeNextWith(el -> {
+            assertEquals(el.getRoundNumber(), 1);
+            assertEquals(el.getTeamAnswer(), 10);
+            assertEquals(el.getTeamIdInGame(), 0);
+        }).consumeNextWith(el -> {
+            assertEquals(el.getRoundNumber(), 2);
+            assertEquals(el.getTeamAnswer(), 20);
+            assertEquals(el.getTeamIdInGame(), 0);
+        }).thenCancel().verifyLater();
+
+        gameManagementService.endCurrentRound(competition).block();
+        gameManagementService.startNewRound(competition).block();
+
+        gameManagementService.submitAnswer(competition, team, 20, 2).block();
+        verifier.verify();
+    }
 }

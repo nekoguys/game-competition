@@ -2,14 +2,11 @@ package com.groudina.ten.demo.controllers;
 
 import com.groudina.ten.demo.datasource.DbCompetitionsRepository;
 import com.groudina.ten.demo.datasource.DbTeamsRepository;
-import com.groudina.ten.demo.dto.CompetitionAnswerRequestDto;
-import com.groudina.ten.demo.dto.CompetitionInfoForResultsTableDto;
-import com.groudina.ten.demo.dto.CompetitionMessageRequest;
-import com.groudina.ten.demo.dto.ResponseMessage;
+import com.groudina.ten.demo.dto.*;
 import com.groudina.ten.demo.exceptions.IllegalAnswerSubmissionException;
 import com.groudina.ten.demo.models.DbCompetition;
-import com.groudina.ten.demo.models.DbTeam;
 import com.groudina.ten.demo.services.IGameManagementService;
+import com.groudina.ten.demo.services.IStudentTeamFinder;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -33,15 +30,18 @@ public class CompetitionProcessController {
     private DbTeamsRepository teamsRepository;
     private DbCompetitionsRepository competitionsRepository;
     private IGameManagementService gameManagementService;
+    private IStudentTeamFinder teamFinder;
 
     public CompetitionProcessController(
             @Autowired IGameManagementService gameManagementService,
             @Autowired DbCompetitionsRepository competitionsRepository,
-            @Autowired DbTeamsRepository teamsRepository
+            @Autowired DbTeamsRepository teamsRepository,
+            @Autowired IStudentTeamFinder teamFinder
     ) {
         this.gameManagementService = gameManagementService;
         this.competitionsRepository = competitionsRepository;
         this.teamsRepository = teamsRepository;
+        this.teamFinder = teamFinder;
     }
 
     private <U, T> Mono<ResponseEntity> routine(Mono<U> source, Function<? super U, ? extends Mono<? extends T>> mapper,
@@ -108,7 +108,7 @@ public class CompetitionProcessController {
     }
 
     @RequestMapping(value = "/prices_stream", produces = {MediaType.TEXT_EVENT_STREAM_VALUE})
-    @PreAuthorize("hasRole('TEACHER')")
+    @PreAuthorize("hasRole('STUDENT')")
     public Flux<ServerSentEvent<?>> getPricesEvents(@PathVariable String pin) {
         return competitionsRepository.findByPin(pin)
                 .flatMapMany(comp -> gameManagementService.getRoundPricesEvents(comp))
@@ -134,6 +134,35 @@ public class CompetitionProcessController {
     //TEACHER END
     //STUDENT BEGIN
 
+    @GetMapping(value = "/student_comp_info")
+    @PreAuthorize("hasRole('STUDENT')")
+    public Mono<ResponseEntity> getStudentCompetitionInfo(Mono<Principal> principalMono, @PathVariable String pin) {
+        return Mono.zip(principalMono, competitionsRepository.findByPin(pin))
+                .flatMap(tuple -> {
+                    var competition = tuple.getT2();
+                    var email = tuple.getT1().getName();
+                    DbCompetition.Parameters parameters = competition.getParameters();
+
+                    var team = teamFinder.findTeamForStudent(competition, email);
+
+                    if (team.isEmpty()) {
+                        return Mono.empty();
+                    }
+
+                    var dto = CompetitionInfoForStudentResultsTableDto.builder()
+                            .description(parameters.getInstruction())
+                            .name(parameters.getName())
+                            .roundsCount(parameters.getRoundsCount())
+                            .teamName(team.get().getName())
+                            .shouldShowResultTable(parameters.isShouldShowStudentPreviousRoundResults())
+                            .teamIdInGame(team.get().getIdInGame())
+                            .build();
+                    return Mono.just((ResponseEntity) ResponseEntity.ok(dto));
+                }).switchIfEmpty(Mono.defer(() -> {
+                    return Mono.just((ResponseEntity)ResponseEntity.badRequest().body(ResponseMessage.of("No competition with such pin")));
+                }));
+    }
+
     @PostMapping("/submit_answer")
     @PreAuthorize("hasRole('STUDENT')")
     public Mono<ResponseEntity> submitAnswer(Mono<Principal> principalMono, @PathVariable String pin, @Valid @RequestBody CompetitionAnswerRequestDto answerDto) {
@@ -141,22 +170,24 @@ public class CompetitionProcessController {
 
         var competitionAndTeamMono = Mono.zip(
                 comp,
-                comp.flatMap(competition -> teamsRepository.findDbTeamBySourceCompetition(competition)
-                        .filter(t -> t.getName().equalsIgnoreCase(answerDto.getTeamName())).next()),
                 principalMono
         );
 
         return routine(competitionAndTeamMono, (tuple) -> {
             DbCompetition competition = tuple.getT1();
-            DbTeam team = tuple.getT2();
-            String submitterEmail = tuple.getT3().getName();
+            String submitterEmail = tuple.getT2().getName();
+            var team = teamFinder.findTeamForStudent(competition, submitterEmail);
 
-            if (team.getCaptain().getEmail().equals(submitterEmail)) {
-                return gameManagementService.submitAnswer(competition, team, answerDto.getAnswer(), answerDto.getRoundNumber()).thenReturn(false);
-            } else {
-                return Mono.error(new IllegalAnswerSubmissionException("User with email: " + submitterEmail + " is not team \"" + team.getName() + "\" captain"));
+            if (team.isEmpty()) {
+                return Mono.error(new IllegalAnswerSubmissionException("User with email: " + submitterEmail + " has no team"));
             }
-        }, () -> "Answer submitted successfully", () -> "Competition with pin: " + pin + " or team with name: " + answerDto.getTeamName() + " not found");
+
+            if (team.get().getCaptain().getEmail().equals(submitterEmail)) {
+                return gameManagementService.submitAnswer(competition, team.get(), answerDto.getAnswer(), answerDto.getRoundNumber()).thenReturn(false);
+            } else {
+                return Mono.error(new IllegalAnswerSubmissionException("User with email: " + submitterEmail + " is not team \"" + team.get().getName() + "\" captain"));
+            }
+        }, () -> "Answer submitted successfully", () -> "Competition with pin: " + pin + " not found");
     }
 
     @RequestMapping(value = "/messages_stream", produces = {MediaType.TEXT_EVENT_STREAM_VALUE})
@@ -171,6 +202,45 @@ public class CompetitionProcessController {
     public Flux<ServerSentEvent<?>> getCompetitionRoundEvents(@PathVariable String pin) {
         return competitionsRepository.findByPin(pin).flatMapMany(comp -> gameManagementService.beginEndRoundEvents(comp))
                 .map(e -> ServerSentEvent.builder().data(e).build());
+    }
+
+    @RequestMapping(value = "/my_answers_stream", produces = {MediaType.TEXT_EVENT_STREAM_VALUE})
+    @PreAuthorize("hasRole('STUDENT')")
+    public Flux<ServerSentEvent<?>> getMyTeamAnswersEvents(Mono<Principal> principalMono, @PathVariable String pin) {
+        return Mono.zip(principalMono, competitionsRepository.findByPin(pin))
+                .flatMapMany(tuple -> {
+                    var comp = tuple.getT2();
+                    var email = tuple.getT1().getName();
+                    var team = this.teamFinder.findTeamForStudent(comp, email);
+
+                    if (team.isEmpty()) {
+                        return Flux.empty();
+                    }
+
+                    return gameManagementService.teamsAnswersEvents(comp).filter(roundTeamAnswerDto -> {
+                        return roundTeamAnswerDto.getTeamIdInGame() == team.get().getIdInGame();
+                    });
+                }).map(e -> ServerSentEvent.builder().data(e).build());
+    }
+
+    @RequestMapping(value = "/my_results_stream", produces = {MediaType.TEXT_EVENT_STREAM_VALUE})
+    @PreAuthorize("hasRole('STUDENT')")
+    public Flux<ServerSentEvent<?>> getMyTeamResultsEvents(Mono<Principal> principalMono, @PathVariable String pin) {
+        return Mono.zip(principalMono, competitionsRepository.findByPin(pin))
+                .flatMapMany(tuple -> {
+                    var comp = tuple.getT2();
+                    var email = tuple.getT1().getName();
+                    var team = this.teamFinder.findTeamForStudent(comp, email);
+
+                    if (team.isEmpty()) {
+                        return Flux.empty();
+                    }
+
+                    return gameManagementService.getRoundResultsEvents(comp)
+                            .filter(roundTeamResultDto -> {
+                                return roundTeamResultDto.getTeamIdInGame() == team.get().getIdInGame();
+                            });
+                }).map(e -> ServerSentEvent.builder(e).build());
     }
 
 }
