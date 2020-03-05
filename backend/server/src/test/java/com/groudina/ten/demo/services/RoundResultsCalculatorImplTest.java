@@ -36,9 +36,11 @@ class RoundResultsCalculatorImplTest {
                         ))
                 .build();
 
-        var results = roundResultsCalculator.calculateResults(roundInfo, competition);
+        var results_ = roundResultsCalculator.calculateResults(roundInfo, competition);
+        var results = results_.getResults();
+        assertEquals(6, results_.getPrice(), 0.01);
         assertEquals(results.get(0).getTeam().getId(), team1.getId());
-        double expectedPrice = 6;
+
         assertEquals(results.get(0).getIncome(), 6 * 10 - 10*10 - 10*2 - 3);
         assertEquals(results.get(1).getTeam().getId(), team2.getId());
         assertEquals(results.get(1).getIncome(), 6 * 30 - 30*30 - 30*2 - 3);
