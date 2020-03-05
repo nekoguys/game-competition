@@ -6,6 +6,8 @@ import CompetitionResultsTable from "../results-table";
 import MessagesContainer from "../messages";
 import ApiHelper from "../../../../helpers/api-helper";
 import {NotificationContainer, NotificationManager} from "react-notifications";
+import processRoundsEvents from "../../../../helpers/rounds-event-source-helper";
+import processMessagesEvents from "../../../../helpers/messages-event-source-helper";
 
 
 class CompetitionProcessTeacherBody extends React.Component {
@@ -184,18 +186,8 @@ class CompetitionProcessTeacherBody extends React.Component {
             (err) => console.log("competitionRoundEventSource failed: " + err))
 
         this.competitionRoundEventSource.addEventListener("message", (message) => {
-            console.log({competitionRoundEventSourceData: message.data});
-            const messageData = JSON.parse(message.data);
-            console.log({messageData});
-
             this.setState((prevState) => {
-                if (messageData.type.toLowerCase() === 'newround') {
-                    console.log({tmstmp : new Date().getTime()});
-                    const timeTillRoundEnd = messageData.roundLength - (Math.round((new Date().getTime())/1000) - messageData.beginTime);
-                    return {currentRoundNumber: messageData.roundNumber, timeTillRoundEnd: timeTillRoundEnd, isCurrentRoundEnded: false};
-                } else {
-                    return {isCurrentRoundEnded: true, currentRoundNumber: messageData.roundNumber};
-                }
+                return processRoundsEvents(message);
             });
         });
     }
@@ -207,38 +199,9 @@ class CompetitionProcessTeacherBody extends React.Component {
         this.eventsSource.addEventListener("error", (err) => console.log("EventSource failed: " + err));
 
         this.eventsSource.addEventListener("message", event => {
-            console.log(event.data);
-            this.setState((prevState) => {
-                const prevMessages = prevState.messages;
-                let arr = prevMessages.slice(0);
-                const elem = JSON.parse(event.data);
-                const date = new Date(elem.sendTime * 1000);
-
-                const dateStr = date.toLocaleDateString("en-US", {
-                    hour: 'numeric',
-                    minute: 'numeric',
-                    day: 'numeric',
-                    month: 'short',
-                });
-
-                const messageElem = {
-                    message: elem.message,
-                    dateStr: dateStr,
-                    timestamp: elem.sendTime
-                };
-
-                const index = arr.findIndex(el => {
-                    return el.message === messageElem.message && el.timestamp === messageElem.timestamp;
-                });
-
-                if (index == -1) {
-                    arr = [messageElem].concat(arr);
-                } else {
-                    arr[index] = messageElem;
-                }
-
-                return {messages: arr};
-            })
+            this.setState(prevState => {
+                return processMessagesEvents(event, [...prevState.messages]);
+            });
         })
     }
 
@@ -272,12 +235,15 @@ class CompetitionProcessTeacherBody extends React.Component {
     }
 
     onStartOrEndRoundButtonClick = () => {
+        console.log("click on start/end round button");
         const {pin} = this.props;
         let pr;
         if (this.state.isCurrentRoundEnded) {
             pr = ApiHelper.startNewCompetitionRound(pin);
+            console.log("start");
         } else {
             pr = ApiHelper.endCompetitionRound(pin);
+            console.log("end");
         }
 
         pr.then(resp => {
