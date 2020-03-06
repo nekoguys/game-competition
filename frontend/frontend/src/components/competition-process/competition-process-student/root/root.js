@@ -10,6 +10,7 @@ import ApiHelper from "../../../../helpers/api-helper";
 import processMessagesEvents from "../../../../helpers/messages-event-source-helper";
 import processRoundsEvents from "../../../../helpers/rounds-event-source-helper";
 import {NotificationContainer, NotificationManager} from "react-notifications";
+import OneRoundResultsTable from "../one-round-results-table";
 
 
 class CompetitionProcessStudentRoot extends React.Component {
@@ -208,6 +209,20 @@ class CompetitionProcessStudentRoot extends React.Component {
         let instr = this.state.description;
         const {competitionName, roundsCount, prices, answers, results, currentRoundNumber, timeTillRoundEnd} = this.state;
 
+        let table;
+
+        if (this.state.shouldShowResultTable) {
+            table = (
+                <StudentResultsTable roundsCount={roundsCount} prices={prices} answers={answers} results={results}/>
+            );
+        } else {
+            table = (
+                <OneRoundResultsTable roundsCount={roundsCount} prices={prices}
+                                      answers={answers} results={results}
+                                      currentRoundNumber={this.state.currentRoundNumber}/>
+            );
+        }
+
         return (
             <div>
                 <div>
@@ -222,7 +237,7 @@ class CompetitionProcessStudentRoot extends React.Component {
                             <div className={"col-4"}>
                                 <div>
                                     <div style={{textAlign: "center", fontSize: "23px"}}>
-                                        {"Текущий раунд: " + currentRoundNumber}
+                                        {"Текущий раунд: " + currentRoundNumber + (this.state.isCurrentRoundEnded ? " закончен" : "")}
                                     </div>
                                 </div>
                             </div>
@@ -236,7 +251,7 @@ class CompetitionProcessStudentRoot extends React.Component {
                             {"Команда " + this.state.teamIdInGame + ": " + this.state.teamName}
                         </div>
                         <div style={{paddingTop: "10px", width: "100%"}}>
-                            <StudentResultsTable roundsCount={roundsCount} prices={prices} answers={answers} results={results}/>
+                            {table}
                         </div>
                         <div style={{paddingTop: "30px"}}>
                             <SendAnswer onSubmit={this.submitAnswer}/>
