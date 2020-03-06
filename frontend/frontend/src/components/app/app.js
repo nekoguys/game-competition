@@ -7,6 +7,8 @@ import CreateCompetition from "../create-competition/create-competition";
 import JoinCompetition from "../join-competition/join-competition";
 import AfterRegistrationOpenedComponent from "../after-registration-opened";
 import WaitingRoom from "../join-competition/waiting-room";
+import CompetitionProcessTeacherRootComponent from "../competition-process/competition-process-teacher/root";
+import CompetitionProcessStudentRoot from "../competition-process/competition-process-student/root";
 
 export default class App extends React.Component{
     render() {
@@ -30,7 +32,12 @@ export default class App extends React.Component{
                         <JoinCompetition/>
                     </Route>
                     <Route path={"/competitions/after_registration_opened/:pin"} component={AfterRegistrationOpenedComponent}/>
+                    
                     <Route path={"/competitions/waiting_room/:pin"} component={WaitingRoom} />
+
+                    <Route path={"/competitions/process_teacher/:pin"} component={CompetitionProcessTeacherRootComponent} />
+
+                    <Route path={"/competitions/process_captain/:pin"} component={CompetitionProcessStudentRoot}/>
                 </Switch>
             </Router>
         )

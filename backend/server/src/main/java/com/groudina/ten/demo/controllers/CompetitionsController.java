@@ -112,7 +112,8 @@ public class CompetitionsController {
         return this.addTeamToCompetitionService.addTeamToCompetition(newTeam).map(team -> {
             return ResponseEntity.ok(ResponseMessage.of("Team created successfully"));
         }).onErrorResume(ex ->
-                Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseMessage.of(ex.getMessage()))));
+                Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseMessage.of(ex.getMessage())))
+        ).switchIfEmpty(Mono.defer(() -> Mono.just(ResponseEntity.badRequest().body(ResponseMessage.of("Game with pin: " + newTeam.getCompetitionId() + " not found")))));
     }
 
     @PostMapping(value = "/check_pin")
