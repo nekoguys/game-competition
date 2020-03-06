@@ -37,6 +37,7 @@ public class CompetitionsController {
     private ITeamJoinService teamJoinService;
     private IEntitiesMapper<DbCompetition, CompetitionCloneInfoResponse> competitionInfoMapper;
     private IEntityUpdater<DbCompetition, NewCompetition> competitionEntityUpdater;
+    private IEntitiesMapper<DbCompetition, CompetitionInfoResponse> competitionCloneInfoMapper;
 
     public CompetitionsController(@Autowired DbCompetitionsRepository repository,
                                   @Autowired DbUserRepository userRepository,
@@ -47,7 +48,8 @@ public class CompetitionsController {
                                   @Autowired ITeamConnectionNotifyService teamConnectionNotifyService,
                                   @Autowired ITeamJoinService teamJoinService,
                                   @Autowired IEntitiesMapper<DbCompetition, CompetitionCloneInfoResponse> competitionInfoMapper,
-                                  @Autowired IEntityUpdater<DbCompetition, NewCompetition> competitionUpdater) {
+                                  @Autowired IEntityUpdater<DbCompetition, NewCompetition> competitionUpdater,
+                                  @Autowired IEntitiesMapper<DbCompetition,CompetitionInfoResponse> competitionCloneInfoMapper) {
         this.competitionsRepository = repository;
         this.userRepository = userRepository;
         this.teamsRepository = teamsRepository;
@@ -58,6 +60,7 @@ public class CompetitionsController {
         this.teamJoinService = teamJoinService;
         this.competitionInfoMapper = competitionInfoMapper;
         this.competitionEntityUpdater = competitionUpdater;
+        this.competitionCloneInfoMapper = competitionCloneInfoMapper;
     }
 
     @PostMapping(value = "/update_competition/{pin}")
@@ -157,6 +160,18 @@ public class CompetitionsController {
                         Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseMessage.of(ex.getMessage()))))
                 .defaultIfEmpty(
                         ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseMessage.of("No competition with pin: " + joinTeamRequest.getCompetitionPin())));
+    }
+
+    @GetMapping(value = "/created_competitions/{amount}", produces = {MediaType.APPLICATION_JSON_VALUE})
+    @PreAuthorize("hasRole('TEACHER')")
+    public Mono<ResponseEntity> getCreatedCompetitionsEvents(Mono<Principal> principalMono, @PathVariable Integer amount) {
+        return principalMono
+                .flatMap(principal -> userRepository.findOneByEmail(principal.getName()))
+                .flatMapMany(owner -> competitionsRepository.findAllByOwner(owner))
+                .map(competition -> competitionCloneInfoMapper.map(competition, null))
+                .take(amount)
+                .collectList()
+                .map(ResponseEntity::ok);
     }
 }
 

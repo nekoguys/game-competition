@@ -11,6 +11,7 @@ class ApiSettings {
     static #joinTeamEndPoint = ApiSettings.#host + "/competitions/join_team";
     static #getCloneInfoEndPoint = ApiSettings.#host + "/competitions/get_clone_info/";
     static #updateCompetitionParams = ApiSettings.#host + "/competitions/update_competition/";
+    static #createdCompetitionsPoint = ApiSettings.#host + "/competitions/created_competitions/";
 
     static host() {
         return ApiSettings.#host;
@@ -82,6 +83,10 @@ class ApiSettings {
 
     static competitionInfoForResultsTable(pin) {
         return ApiSettings.host() + "/competition_process/" + pin + "/comp_info";
+    }
+
+    static createdCompetitions(amount) {
+        return ApiSettings.#createdCompetitionsPoint + amount;
     }
 }
 
@@ -224,6 +229,13 @@ export default class ApiHelper {
 
     static competitionInfoForResultsTable(pin) {
         return fetch(ApiSettings.competitionInfoForResultsTable(pin), {
+            method: "GET",
+            headers: this.authDefaultHeaders()
+        })
+    }
+
+    static createdCompetitions(amount) {
+        return fetch(ApiSettings.createdCompetitions(amount), {
             method: "GET",
             headers: this.authDefaultHeaders()
         })
