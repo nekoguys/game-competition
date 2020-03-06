@@ -25,7 +25,7 @@ class WaitingRoom extends React.Component {
                 <div>
                     <RoomTeammatesCollection items={items}
                                              style={{paddingTop: "100px", fontSize: "20px"}}
-                                             ulstyle={{listStyle: "none"}}
+                                             ulstyle={{listStyle: "none", MarginTop: "-10px"}}
                     />
                 </div>
                 <NotificationContainer/>
