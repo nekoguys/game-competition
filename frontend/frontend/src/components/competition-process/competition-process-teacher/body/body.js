@@ -20,7 +20,7 @@ class CompetitionProcessTeacherBody extends React.Component {
             isCurrentRoundEnded: false,
             name: "",
             teamsCount: 10,
-            roundsCount: 6,
+            roundsCount: 0,
             answers: {},
             results: {},
             prices: {},
@@ -86,6 +86,11 @@ class CompetitionProcessTeacherBody extends React.Component {
                 if (resp.success) {
                     this.setState(prevState => {
                         this.props.updateCompetitionNameCallback(jsonBody.name);
+
+                        if (jsonBody.roundsCount === prevState.currentRoundNumber && jsonBody.roundsCount !== 0) {
+                            this.props.onEndCallback();
+                        }
+
                         return {
                             name: jsonBody.name,
                             teamsCount: jsonBody.connectedTeamsCount,
@@ -194,6 +199,10 @@ class CompetitionProcessTeacherBody extends React.Component {
                     const timeTillRoundEnd = messageData.roundLength - (Math.round((new Date().getTime())/1000) - messageData.beginTime);
                     return {currentRoundNumber: messageData.roundNumber, timeTillRoundEnd: timeTillRoundEnd, isCurrentRoundEnded: false};
                 } else {
+                    console.log({currNumber: messageData.roundNumber, roundCount: prevState.roundsCount});
+                    if (messageData.roundNumber === prevState.roundsCount) {
+                        this.props.onEndCallback();
+                    }
                     return {isCurrentRoundEnded: true, currentRoundNumber: messageData.roundNumber};
                 }
             });

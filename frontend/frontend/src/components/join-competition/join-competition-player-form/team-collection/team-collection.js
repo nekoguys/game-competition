@@ -16,7 +16,7 @@ class TeamCollectionElement extends React.Component {
     }
 
     getName() {
-        return "Команда " + this.props.name;
+        return "Команда " + (this.props.idInGame !== undefined ? this.props.idInGame.toString() + " :" : "") + this.props.name;
     }
 
     render() {
@@ -106,6 +106,7 @@ class TeamCollection extends React.Component {
                     <TeamCollectionElement
                         name={item.teamName}
                         members={item.teamMembers}
+                        idInGame={item.idInGame}
                         onSubmit={this.props.onSubmit}
                         isReadOnly={isReadOnly}
                     />
