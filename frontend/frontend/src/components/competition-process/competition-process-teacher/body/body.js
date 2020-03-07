@@ -72,6 +72,16 @@ class CompetitionProcessTeacherBody extends React.Component {
         this.closeAnswersEvents();
         this.closeCompetitionResultsEvents();
         this.closePricesEvents();
+
+        clearInterval(this.timerId);
+    }
+
+    setupTimer() {
+        this.timerId = setInterval(() => {
+            this.setState(prevState => {
+                return {timeTillRoundEnd: prevState.timeTillRoundEnd - 1};
+            })
+        }, 1000);
     }
 
     getCompetitionInfo() {
@@ -92,6 +102,10 @@ class CompetitionProcessTeacherBody extends React.Component {
                             name: jsonBody.name,
                             teamsCount: jsonBody.connectedTeamsCount,
                             roundsCount: jsonBody.roundsCount
+                        }
+                    }, () => {
+                        if (!this.state.isCurrentRoundEnded) {
+                            this.setupTimer();
                         }
                     })
                 } else {
@@ -183,11 +197,18 @@ class CompetitionProcessTeacherBody extends React.Component {
 
         this.competitionRoundEventSource = ApiHelper.competitionRoundEventsStream(pin);
         this.competitionRoundEventSource.addEventListener("error",
-            (err) => console.log("competitionRoundEventSource failed: " + err))
+            (err) => console.log("competitionRoundEventSource failed: " + err));
 
         this.competitionRoundEventSource.addEventListener("message", (message) => {
             this.setState((prevState) => {
                 return processRoundsEvents(message);
+            }, () => {
+                if (this.state.isCurrentRoundEnded) {
+                    clearInterval(this.timerId);
+                } else {
+                    clearInterval(this.timerId);
+                    this.setupTimer();
+                }
             });
         });
     }
