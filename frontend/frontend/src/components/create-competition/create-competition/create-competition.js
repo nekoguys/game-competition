@@ -15,6 +15,11 @@ class CreateCompetition extends React.Component {
         this.formState = {};
     }
 
+    componentDidMount() {
+        if (this.props.history.location.state)
+            this.initialState = this.props.history.location.state.initialState;
+    }
+
     onSaveAsDraftClick = () => {
         let obj = {...this.formState.toJSONObject(), state: "draft"};
 
@@ -77,7 +82,7 @@ class CreateCompetition extends React.Component {
                         </span>
                     </div>
                     <div className={"competition-form-holder"}>
-                        <CompetitionParamsForm onFormStateUpdated={(formState) => this.onFormStateUpdated(formState)}/>
+                        <CompetitionParamsForm onFormStateUpdated={(formState) => this.onFormStateUpdated(formState)} initialState={this.initialState}/>
                         <div className={"form-group row"} style={{marginTop: "30px", marginLeft: "7.5%", marginRight: "7.5%"}}>
                             <div className={"mr-auto p-2"}>
                                 <DefaultSubmitButton text={"Сохранить черновик"} style={{height: "100%", fontSize: "26px",

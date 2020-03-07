@@ -27,6 +27,7 @@ public class DbCompetitionToCompetitionInfoResponseMapper implements IEntitiesMa
                 .shouldShowStudentPreviousRoundResults(params.isShouldShowStudentPreviousRoundResults())
                 .lastUpdateTime(getLastUpdateTime(from))
                 .pin(from.getPin())
+                .state(from.getState())
                 .build();
     }
 
