@@ -15,7 +15,7 @@ class CompetitionHistory extends React.Component {
     }
 
     componentDidMount() {
-        ApiHelper.createdCompetitions(10).then(resp => {
+        ApiHelper.createdCompetitions(2, 1000).then(resp => {
             resp.json().then(json => {
                 console.log(json);
                 this.setState({items: json});
@@ -25,7 +25,7 @@ class CompetitionHistory extends React.Component {
 
     render() {
         const competitions = this.state.items.map(x => {
-            return <div key={x.name}>
+            return <div key={x.pin}>
                 {x.name}
             </div>
         });
