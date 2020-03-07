@@ -49,4 +49,6 @@ public class CompetitionInfoResponse implements Serializable {
 
     @JsonProperty("last_update_time")
     private LocalDateTime lastUpdateTime;
+
+    private String pin;
 }
