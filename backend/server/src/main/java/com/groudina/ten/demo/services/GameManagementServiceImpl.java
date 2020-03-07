@@ -266,6 +266,10 @@ public class GameManagementServiceImpl implements IGameManagementService {
 
         var round = competition.getCompetitionProcessInfo().getCurrentRound();
 
+        if (round.isEnded()) {
+            return Mono.error(new IllegalAnswerSubmissionException("Tried to submit in ended round"));
+        }
+
         // TODO add after integrating auto-ending round
 
 //        var currTimeInSeconds = LocalDateTime.now().atOffset(ZoneOffset.UTC).toEpochSecond();

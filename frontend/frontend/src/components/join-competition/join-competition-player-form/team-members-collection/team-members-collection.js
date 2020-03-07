@@ -14,7 +14,7 @@ class TeamMembersCollection extends React.Component {
         });
 
         return (
-            <div className={"team-members-collection"} style={style}>
+            <div className={"rounded"} style={style}>
                 <ul style={ulstyle}>
                     {elems}
                 </ul>
@@ -22,6 +22,5 @@ class TeamMembersCollection extends React.Component {
         )
     }
 }
-
 
 export default TeamMembersCollection;

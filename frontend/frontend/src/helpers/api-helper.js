@@ -95,6 +95,22 @@ class ApiSettings {
     static competitionAllResults(pin) {
         return ApiSettings.host() + "/competitions/competition_results/" + pin;
     }
+    
+    static studentCompetitionInfo(pin) {
+        return ApiSettings.host() + "/competition_process/" + pin + "/student_comp_info";
+    }
+
+    static submitAnswerEndPoint(pin) {
+        return ApiSettings.host() + "/competition_process/" + pin + "/submit_answer";
+    }
+
+    static myCompetitionAnswersEvents(pin) {
+        return ApiSettings.host() + "/competition_process/" + pin + "/my_answers_stream";
+    }
+
+    static myResultsEvents(pin) {
+        return ApiSettings.host() + "/competition_process/" + pin + "/my_results_stream";
+    }
 }
 
 export default class ApiHelper {
@@ -165,7 +181,7 @@ export default class ApiHelper {
         return new EventSourcePolyfill(ApiSettings.teamCreationEvents(pin),
             {
                 headers: this.authDefaultHeaders(),
-                //heartbeatTimeout: 1000*60*60
+                heartbeatTimeout: 1000*60*60
             });
     }
 
@@ -188,6 +204,7 @@ export default class ApiHelper {
         return new EventSourcePolyfill(ApiSettings.competitionMessagesEvents(pin),
             {
                 headers: this.authDefaultHeaders(),
+                heartbeatTimeout: 1000*60*60
             });
     }
 
@@ -259,6 +276,35 @@ export default class ApiHelper {
         return fetch(ApiSettings.competitionAllResults(pin), {
             method: "GET",
             headers: this.authDefaultHeaders()
+        })
+    }
+
+    static studentCompetitionInfo(pin) {
+        return fetch(ApiSettings.studentCompetitionInfo(pin), {
+            method: "GET",
+            headers: this.authDefaultHeaders()
+        })
+    }
+
+    static submitAnswer(pin, obj) {
+        return fetch(ApiSettings.submitAnswerEndPoint(pin), {
+            method: "POST",
+            headers: this.authDefaultHeaders(),
+            body: JSON.stringify(obj)
+        });
+    }
+
+    static myAnswersStream(pin) {
+        return new EventSourcePolyfill(ApiSettings.myCompetitionAnswersEvents(pin), {
+            headers: this.authDefaultHeaders(),
+            heartbeatTimeout: 1000*60*60
+        })
+    }
+
+    static myResultsStream(pin) {
+        return new EventSourcePolyfill(ApiSettings.myResultsEvents(pin), {
+            headers: this.authDefaultHeaders(),
+            heartbeatTimeout: 1000*60*60
         })
     }
 }

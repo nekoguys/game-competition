@@ -67,11 +67,11 @@ class SingleMessageContainer extends React.Component {
         };
         return (
             <div style={messageStyle}>
-                <div style={{fontSize: "19px", display: "flex", flexDirection: "column", justifyContent: "space-between"}}>
-                    <div style={{paddingTop: "2px", paddingLeft: "10px", marginBottom: "-10px"}}>
+                <div style={{fontSize: "19px", display: "flex", flexDirection: "column", justifyContent: "space-between", paddingTop: "2px"}}>
+                    <div style={{paddingTop: "2px", paddingLeft: "10px", marginBottom: "-10px", wordBreak: "break-all"}}>
                         {message.message}
                     </div>
-                    <div style={{ textAlign: "right", fontSize: "11px", paddingRight: "20px"}}>
+                    <div style={{ textAlign: "right", fontSize: "11px", paddingRight: "20px", paddingTop: "5px"}}>
                         {message.dateStr}
                     </div>
                 </div>
