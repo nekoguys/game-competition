@@ -36,6 +36,8 @@ class SendAnswer extends React.Component {
                         buttonStyle={buttonStyle}
                         inputStyle={inputStyle}
                         clearOnSubmit={true}
+                        onSubmit={this.props.onSubmit}
+                        submitOnKey={'enter'}
                     />
                 </div>
             </div>

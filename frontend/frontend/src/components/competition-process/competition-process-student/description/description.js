@@ -30,7 +30,7 @@ class DescriptionHolder extends React.Component {
         }
 
         return (
-            <div style={{width: "100%"}}>
+            <div style={{width: "100%", paddingLeft: "30px", paddingRight: "30px"}}>
                 <div className={"show-description"} style={{width: "20%", margin: "0 auto"}} onClick={(e) =>{
                     this.setState(prevState=> {return {isExpanded: !prevState.isExpanded};});
                 }}>

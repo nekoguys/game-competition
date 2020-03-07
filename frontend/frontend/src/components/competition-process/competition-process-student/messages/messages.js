@@ -21,9 +21,16 @@ class MessagesContainer extends React.Component {
         })
     };
 
+    componentDidUpdate(prevProps, prevState, snapshot) {
+        if (this.state.isExpanded) {
+            this.props.onReadMessagesCallback();
+        }
+    }
+
     render() {
         let res;
         let image = buttonUpImage;
+        let badge;
         if (this.state.isExpanded) {
             res = (
                 <div>
@@ -31,6 +38,9 @@ class MessagesContainer extends React.Component {
                 </div>
             );
             image = buttonDownImage;
+        }
+        if (this.props.unreadMessages > 0) {
+            badge = <span className={"badge count"}>{"+" + this.props.unreadMessages}</span>;
         }
 
         return (
@@ -47,7 +57,7 @@ class MessagesContainer extends React.Component {
                             marginRight: "-10px",
                             transform: "scale(0.35) translate(-20px, -5px)"
                         }}><img src={image} alt={"unwind"}/></button>
-                        <span className={"badge count"}>+3</span>
+                            {badge}
                         </div>
                     </div>
                     {res}
