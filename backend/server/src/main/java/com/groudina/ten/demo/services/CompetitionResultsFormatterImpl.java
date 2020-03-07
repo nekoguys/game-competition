@@ -1,16 +1,16 @@
 package com.groudina.ten.demo.services;
 
 
+import com.groudina.ten.demo.dto.CompetitionMessageDto;
+import com.groudina.ten.demo.dto.TeamCreationEventDto;
 import com.groudina.ten.demo.models.DbCompetition;
 import com.groudina.ten.demo.models.DbUser;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.time.ZoneOffset;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
@@ -28,7 +28,16 @@ public class CompetitionResultsFormatterImpl implements ICompetitionResultsForma
         Map<Integer, Double> prices = new HashMap<>();
         Map<Integer, HashMap<Integer, Double>> income = new HashMap<>();
         Map<Integer, HashMap<Integer, Integer>> produce = new HashMap<>();
-        Map<Integer, List<String>> teamMembers = new HashMap<>();
+        List<TeamCreationEventDto> teamMembers = new ArrayList<>();
+        List<CompetitionMessageDto> messages;
+
+        messages = competition.getCompetitionProcessInfo().getMessages().stream().map(el ->
+                CompetitionMessageDto
+                .builder()
+                .message(el.getMessage())
+                .sendTime(el.getSendTime().atOffset(ZoneOffset.UTC).toEpochSecond())
+                .build()
+        ).collect(Collectors.toList());
 
         for (int i = 0; i < competition.getCompetitionProcessInfo().getRoundInfos().size(); ++i) {
             var currRoundInfo = competition.getCompetitionProcessInfo().getRoundInfos().get(i);
@@ -64,15 +73,24 @@ public class CompetitionResultsFormatterImpl implements ICompetitionResultsForma
         }
 
         competition.getTeams().forEach(el -> {
-            teamMembers.put(el.getIdInGame(), el.getAllPlayers().stream().map(DbUser::getEmail).collect(Collectors.toList()));
+            teamMembers.add(
+                    TeamCreationEventDto.builder()
+                            .teamName(el.getName())
+                            .teamMembers(el.getAllPlayers().stream().map(DbUser::getEmail).collect(Collectors.toList()))
+                            .idInGame(el.getIdInGame())
+                            .build());
         });
+
+        teamMembers.sort(Comparator.comparingInt(TeamCreationEventDto::getIdInGame));
         
 
         return ICompetitionResultsFormatter.CompetitionResults.builder()
+                .setCompetitionName(competition.getParameters().getName())
                 .setIncome(income)
                 .setPrices(prices)
                 .setProduced(produce)
-                .setTeamMembers(teamMembers)
+                .setMessage(messages)
+                .setTeams(teamMembers)
                 .build();
     }
 }

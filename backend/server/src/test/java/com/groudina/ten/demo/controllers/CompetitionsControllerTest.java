@@ -769,14 +769,14 @@ class CompetitionsControllerTest {
                 .expectStatus().isOk()
                 .expectBody(ICompetitionResultsFormatter.CompetitionResults.class)
                 .value(competitionResults -> {
-                    assertIterableEquals(competitionResults.getTeamMembers().get(0), List.of("tutEmail"));
+                    assertIterableEquals(competitionResults.getTeams().get(0).getTeamMembers(), List.of("tutEmail"));
                     assertEquals(competitionResults.getIncome().get(1).get(0), -63, 0.01);
                     assertEquals(competitionResults.getIncome().get(1).get(1), -783, 0.01);
 
                     assertEquals(competitionResults.getIncome().get(2).get(0), -363, 0.01);
                     assertEquals(competitionResults.getIncome().get(2).get(1), -1523, 0.01);
 
-                    assertIterableEquals(competitionResults.getTeamMembers().get(1), List.of("anotherEmail"));
+                    assertIterableEquals(competitionResults.getTeams().get(1).getTeamMembers(), List.of("anotherEmail"));
 
                     assertIterableEquals(competitionResults.getTeamsOrderInDecreasingByTotalPrice(), List.of(0, 1));
                     assertEquals(competitionResults.getPrices().get(1), 6);

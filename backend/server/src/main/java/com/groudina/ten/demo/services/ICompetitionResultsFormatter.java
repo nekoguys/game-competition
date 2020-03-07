@@ -1,5 +1,7 @@
 package com.groudina.ten.demo.services;
 
+import com.groudina.ten.demo.dto.CompetitionMessageDto;
+import com.groudina.ten.demo.dto.TeamCreationEventDto;
 import com.groudina.ten.demo.models.DbCompetition;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -17,28 +19,41 @@ public interface ICompetitionResultsFormatter {
     public static class CompetitionResults implements Serializable {
         private static final long serialVersionUID = -5849180842391836493L;
 
+        private String competitionName;
+
         private Map<Integer, Double> prices;
 
         private Map<Integer, ? extends Map<Integer, Double>> income;
 
         private Map<Integer, ? extends Map<Integer, Integer>> produced;
 
-        private Map<Integer, ? extends List<String>> teamMembers;
+        private List<TeamCreationEventDto> teams;
 
         private List<Integer> teamsOrderInDecreasingByTotalPrice;
+
+        private List<CompetitionMessageDto> messages;
 
         public static Builder builder() {
             return new Builder();
         }
 
         public static class Builder {
+            private String competitionName;
+
             private Map<Integer, Double> prices;
 
             private Map<Integer, ? extends Map<Integer, Double>> income;
 
             private Map<Integer, ? extends Map<Integer, Integer>> produced;
 
-            private Map<Integer, ? extends List<String>> teamMembers;
+            private List<TeamCreationEventDto> teams;
+
+            private List<CompetitionMessageDto> messages;
+
+            public Builder setCompetitionName(String competitionName) {
+                this.competitionName = competitionName;
+                return this;
+            }
 
             public Builder setPrices(Map<Integer, Double> prices) {
                 this.prices = prices;
@@ -55,8 +70,13 @@ public interface ICompetitionResultsFormatter {
                 return this;
             }
 
-            public Builder setTeamMembers(Map<Integer, ? extends List<String>> teamMembers) {
-                this.teamMembers = teamMembers;
+            public Builder setMessage(List<CompetitionMessageDto> messages) {
+                this.messages = messages;
+                return this;
+            }
+
+            public Builder setTeams(List<TeamCreationEventDto> teams) {
+                this.teams = teams;
                 return this;
             }
 
@@ -78,7 +98,7 @@ public interface ICompetitionResultsFormatter {
                         .map(Map.Entry::getKey)
                         .collect(Collectors.toList());
 
-                return new CompetitionResults(prices, income, produced, teamMembers, teamsOrder);
+                return new CompetitionResults(competitionName, prices, income, produced, teams, teamsOrder, messages);
             }
         }
     }

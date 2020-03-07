@@ -66,8 +66,8 @@ class CompetitionResultsFormatterImplTest {
         assertEquals(result.getProduced().get(2).get(0), 30);
         assertEquals(result.getProduced().get(2).get(1), 40);
 
-        assertIterableEquals(result.getTeamMembers().get(0).stream().sorted().collect(Collectors.toList()), List.of("captain1", "user1"));
-        assertIterableEquals(result.getTeamMembers().get(1).stream().sorted().collect(Collectors.toList()), List.of("captain2", "user2"));
+        assertIterableEquals(result.getTeams().get(0).getTeamMembers().stream().sorted().collect(Collectors.toList()), List.of("captain1", "user1"));
+        assertIterableEquals(result.getTeams().get(1).getTeamMembers().stream().sorted().collect(Collectors.toList()), List.of("captain2", "user2"));
 
         assertIterableEquals(result.getTeamsOrderInDecreasingByTotalPrice(), List.of(1, 0));
     }
