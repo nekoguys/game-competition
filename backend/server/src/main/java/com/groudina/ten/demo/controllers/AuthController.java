@@ -8,6 +8,7 @@ import com.groudina.ten.demo.dto.ResponseMessage;
 import com.groudina.ten.demo.jwt.JWTProvider;
 import com.groudina.ten.demo.jwt.JwtResponse;
 import com.groudina.ten.demo.models.DbUser;
+import com.groudina.ten.demo.services.IEmailService;
 import com.groudina.ten.demo.services.IEmailValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -36,16 +37,29 @@ public class AuthController {
     private DbRolesRepository rolesRepository;
     private PasswordEncoder passwordEncoder;
     private IEmailValidator emailValidator;
+    private IEmailService emailService;
 
     public AuthController(@Autowired DbUserRepository repository, @Autowired DbRolesRepository rolesRepository,
                           @Autowired PasswordEncoder encoder, @Autowired JWTProvider jwtProvider,
-                          @Autowired IEmailValidator emailValidator) {
+                          @Autowired IEmailValidator emailValidator, @Autowired IEmailService emailService) {
         this.userRepository = repository;
         this.passwordEncoder = encoder;
         this.jwtProvider = jwtProvider;
         this.rolesRepository = rolesRepository;
         this.emailValidator = emailValidator;
+        this.emailService = emailService;
     }
+
+    @GetMapping(value="/test_email")
+    public Mono<ResponseEntity<ResponseMessage>> testEmail() {
+        return this.emailService.sendEmail("s18b3_benua@179.ru", "https://google.com")
+                .then(Mono.just(ResponseEntity.ok(ResponseMessage.of("success"))))
+                .onErrorResume(ex -> {
+                    ex.printStackTrace();
+                    return Mono.just(ResponseEntity.ok(ResponseMessage.of("failure\n" + ex.getMessage())));
+                });
+    }
+
 
     @PostMapping(value="/signin")
     public Mono<ResponseEntity<? extends Serializable>> authenticateUser(@Valid @RequestBody LoginUser loginUser) {
@@ -69,13 +83,18 @@ public class AuthController {
             return userRepository.findOneByEmail(newUser.getEmail()).flatMap(user -> {
                 return Mono.just(new ResponseEntity(new ResponseMessage(String.format("User with email %s already exists!", newUser.getEmail())), HttpStatus.BAD_REQUEST));
             }).switchIfEmpty(rolesRepository.findByName("ROLE_STUDENT").flatMap(role -> {
-                var user = DbUser.builder().email(newUser.getEmail()).password(passwordEncoder.encode(newUser.getPassword())).build();
+                var user = DbUser.builder().email(newUser.getEmail()).isVerified(false).password(passwordEncoder.encode(newUser.getPassword())).build();
                 user.setRoles(Arrays.asList(role));
                 return userRepository.save(user).thenReturn(ResponseEntity.ok(new ResponseMessage("User registered successfully!")));
             }));
         } else {
             return Mono.just(new ResponseEntity(new ResponseMessage("Invalid email. Email should end with @edu.hse.ru or @hse.ru"), HttpStatus.BAD_REQUEST));
         }
+    }
+
+    @GetMapping("/verification/{token}")
+    public Mono<ResponseEntity> verifyUser(@PathVariable String token) {
+        return null;
     }
 
     @GetMapping("/test")
