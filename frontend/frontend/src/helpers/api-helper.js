@@ -1,6 +1,7 @@
 import {EventSourcePolyfill} from 'event-source-polyfill';
 
 class ApiSettings {
+    static #truehost = "http://localhost:8080/";
     static #host = "http://localhost:8080/api";
     static #signinEndPoint = ApiSettings.#host + "/auth/signin";
     static #signupEndPoint = ApiSettings.#host + "/auth/signup";
@@ -11,6 +12,10 @@ class ApiSettings {
     static #joinTeamEndPoint = ApiSettings.#host + "/competitions/join_team";
     static #getCloneInfoEndPoint = ApiSettings.#host + "/competitions/get_clone_info/";
     static #updateCompetitionParams = ApiSettings.#host + "/competitions/update_competition/";
+
+    static trueHost() {
+        return ApiSettings.#truehost;
+    }
 
     static host() {
         return ApiSettings.#host;
@@ -106,6 +111,10 @@ class ApiSettings {
 
     static myResultsEvents(pin) {
         return ApiSettings.host() + "/competition_process/" + pin + "/my_results_stream";
+    }
+
+    static verificationEndPoint(token) {
+        return ApiSettings.host() + "/auth/verification/" + token;
     }
 }
 
@@ -295,5 +304,12 @@ export default class ApiHelper {
             headers: this.authDefaultHeaders(),
             heartbeatTimeout: 1000*60*60
         })
+    }
+
+    static accountVerification(token) {
+        return fetch(ApiSettings.verificationEndPoint(token), {
+            method: "GET",
+            headers: this.defaultHeaders()
+        });
     }
 }
