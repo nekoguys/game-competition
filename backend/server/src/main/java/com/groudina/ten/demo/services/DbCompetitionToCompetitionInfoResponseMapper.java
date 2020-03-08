@@ -7,6 +7,8 @@ import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalUnit;
 
 @Component
 public class DbCompetitionToCompetitionInfoResponseMapper implements IEntitiesMapper<DbCompetition, CompetitionInfoResponse> {
@@ -35,6 +37,6 @@ public class DbCompetitionToCompetitionInfoResponseMapper implements IEntitiesMa
         if (from.getCompetitionProcessInfo() == null)
             return null;
 
-        return from.getCompetitionProcessInfo().getCurrentRound().getStartTime();
+        return from.getCompetitionProcessInfo().getCurrentRound().getStartTime().truncatedTo(ChronoUnit.DAYS);
     }
 }
