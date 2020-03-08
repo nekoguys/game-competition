@@ -7,5 +7,5 @@ import reactor.core.publisher.Mono;
 public interface IVerificationTokenService {
     Mono<DbVerificationToken> createVerificationToken(DbUser user);
 
-    Mono<DbUser> verifyUser(DbVerificationToken token);
+    Mono<DbUser> verifyUser(String token);
 }

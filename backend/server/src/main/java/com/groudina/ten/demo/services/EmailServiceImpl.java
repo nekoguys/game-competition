@@ -59,6 +59,7 @@ public class EmailServiceImpl implements IEmailService {
                 message.setSubject("Account Verification");
 
                 String msg = String.format(template, email, link);
+                System.out.println(msg);
 
                 MimeBodyPart mimeBodyPart = new MimeBodyPart();
                 mimeBodyPart.setContent(msg, "text/html; charset=utf-8");

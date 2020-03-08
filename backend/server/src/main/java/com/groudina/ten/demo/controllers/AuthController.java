@@ -10,6 +10,7 @@ import com.groudina.ten.demo.jwt.JwtResponse;
 import com.groudina.ten.demo.models.DbUser;
 import com.groudina.ten.demo.services.IEmailService;
 import com.groudina.ten.demo.services.IEmailValidator;
+import com.groudina.ten.demo.services.IVerificationTokenService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -38,16 +39,19 @@ public class AuthController {
     private PasswordEncoder passwordEncoder;
     private IEmailValidator emailValidator;
     private IEmailService emailService;
+    private IVerificationTokenService verificationTokenService;
 
     public AuthController(@Autowired DbUserRepository repository, @Autowired DbRolesRepository rolesRepository,
                           @Autowired PasswordEncoder encoder, @Autowired JWTProvider jwtProvider,
-                          @Autowired IEmailValidator emailValidator, @Autowired IEmailService emailService) {
+                          @Autowired IEmailValidator emailValidator, @Autowired IEmailService emailService,
+                          @Autowired IVerificationTokenService verificationTokenService) {
         this.userRepository = repository;
         this.passwordEncoder = encoder;
         this.jwtProvider = jwtProvider;
         this.rolesRepository = rolesRepository;
         this.emailValidator = emailValidator;
         this.emailService = emailService;
+        this.verificationTokenService = verificationTokenService;
     }
 
     @GetMapping(value="/test_email")
@@ -65,12 +69,16 @@ public class AuthController {
     public Mono<ResponseEntity<? extends Serializable>> authenticateUser(@Valid @RequestBody LoginUser loginUser) {
         return userRepository.findOneByEmail(loginUser.getEmail()).flatMap(user -> {
             if (passwordEncoder.matches(loginUser.getPassword(), user.getPassword())) {
-                var jwt = jwtProvider.generateJwtToken(user.getEmail());
-                List<GrantedAuthority> authorities = user.getRoles().stream()
-                        .map(role -> new SimpleGrantedAuthority(role.getName()))
-                        .collect(Collectors.toList());
+                if (user.isVerified()) {
+                    var jwt = jwtProvider.generateJwtToken(user.getEmail());
+                    List<GrantedAuthority> authorities = user.getRoles().stream()
+                            .map(role -> new SimpleGrantedAuthority(role.getName()))
+                            .collect(Collectors.toList());
 
-                return Mono.just(ResponseEntity.ok(new JwtResponse(jwt, loginUser.getEmail(), authorities)));
+                    return Mono.just(ResponseEntity.ok(new JwtResponse(jwt, loginUser.getEmail(), authorities)));
+                } else {
+                    return Mono.just(ResponseEntity.ok(new ResponseMessage("Your account is not verified")));
+                }
             } else {
                 return Mono.just(new ResponseEntity<>(new ResponseMessage("Invalid credentials"), HttpStatus.BAD_REQUEST));
             }
@@ -85,7 +93,10 @@ public class AuthController {
             }).switchIfEmpty(rolesRepository.findByName("ROLE_STUDENT").flatMap(role -> {
                 var user = DbUser.builder().email(newUser.getEmail()).isVerified(false).password(passwordEncoder.encode(newUser.getPassword())).build();
                 user.setRoles(Arrays.asList(role));
-                return userRepository.save(user).thenReturn(ResponseEntity.ok(new ResponseMessage("User registered successfully!")));
+                return userRepository.save(user)
+                        .flatMap(savedUser -> {
+                            return this.verificationTokenService.createVerificationToken(user);
+                        }).thenReturn(ResponseEntity.ok(new ResponseMessage("User registered successfully!")));
             }));
         } else {
             return Mono.just(new ResponseEntity(new ResponseMessage("Invalid email. Email should end with @edu.hse.ru or @hse.ru"), HttpStatus.BAD_REQUEST));
@@ -93,8 +104,12 @@ public class AuthController {
     }
 
     @GetMapping("/verification/{token}")
-    public Mono<ResponseEntity> verifyUser(@PathVariable String token) {
-        return null;
+    public Mono<ResponseEntity<ResponseMessage>> verifyUser(@PathVariable String token) {
+        return this.verificationTokenService.verifyUser(token).map(__ -> {
+            return ResponseEntity.ok(ResponseMessage.of("Verified successfully"));
+        }).switchIfEmpty(Mono.defer(() -> {
+            return Mono.just(ResponseEntity.badRequest().body(ResponseMessage.of("Token not found")));
+        }));
     }
 
     @GetMapping("/test")
