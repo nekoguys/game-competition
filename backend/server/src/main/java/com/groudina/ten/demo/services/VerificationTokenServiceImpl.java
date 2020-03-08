@@ -18,8 +18,8 @@ public class VerificationTokenServiceImpl implements IVerificationTokenService {
     private DbUserRepository userRepository;
     private IEmailService emailService;
 
-    @Value("${host.url}")
-    private static String host;
+    @Value("${frontend.host.url}")
+    private String host;
 
     public VerificationTokenServiceImpl(
             @Autowired DbVerificationTokenRepository tokenRepository,
@@ -44,14 +44,17 @@ public class VerificationTokenServiceImpl implements IVerificationTokenService {
     }
 
     @Override
-    public Mono<DbUser> verifyUser(DbVerificationToken token) {
-        var user = token.getUser();
-        user.setVerified(true);
+    public Mono<DbUser> verifyUser(String token) {
+        return verificationTokenRepository.findByToken(token).flatMap(el -> {
+            var user = el.getUser();
+            user.setVerified(true);
 
-        return userRepository.save(user);
+            return userRepository.save(user);
+        });
     }
 
-    private static String getVerificationEndPoint(String token) {
-        return host + "/api/auth/verification/" + token;
+    private String getVerificationEndPoint(String token) {
+        System.out.println("link: " + host + "/auth/verification/" + token);
+        return host + "/auth/verification/" + token;
     }
 }
