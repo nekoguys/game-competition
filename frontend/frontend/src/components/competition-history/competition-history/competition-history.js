@@ -9,25 +9,30 @@ import DefaultSubmitButton from "../../common/default-submit-button";
 import "./competition-history.css";
 
 class CompetitionHistory extends React.Component {
+    static itemsPerPage = 4;
+
     constructor(props) {
         super(props);
 
         this.state = {
-            currentStart: 0,
+            itemsLoaded: 0,
             items: []
         }
     }
 
     componentDidMount() {
-        this.updateHistory(this.state.currentStart, 4)
+        this.updateHistory(CompetitionHistory.itemsPerPage)
     }
 
-    updateHistory(start, amount) {
-        ApiHelper.createdCompetitions(start, amount).then(resp => {
-            resp.json().then(json => {
-                console.log(json);
-                this.setState({items: json, currentStart: start});
-            })
+    updateHistory(delta) {
+        ApiHelper.createdCompetitions(this.state.itemsLoaded, delta).then(resp => {
+            if (resp.status < 300)
+                resp.json().then(json => {
+                    console.log(json);
+                    this.setState(prevState => {
+                        return {items: prevState.items.concat(json), itemsLoaded: prevState.itemsLoaded + delta}
+                    });
+                })
         })
     }
 
