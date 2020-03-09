@@ -9,6 +9,7 @@ import AfterRegistrationOpenedComponent from "../after-registration-opened";
 import WaitingRoom from "../join-competition/waiting-room";
 import CompetitionProcessTeacherRootComponent from "../competition-process/competition-process-teacher/root";
 import CompetitionProcessStudentRoot from "../competition-process/competition-process-student/root";
+import EndedCompetitionResultsRoot from "../competition-process/ended-competition-results/root";
 
 export default class App extends React.Component{
     render() {
@@ -38,6 +39,8 @@ export default class App extends React.Component{
                     <Route path={"/competitions/process_teacher/:pin"} component={CompetitionProcessTeacherRootComponent} />
 
                     <Route path={"/competitions/process_captain/:pin"} component={CompetitionProcessStudentRoot}/>
+
+                    <Route path={"/competitions/results/:pin"} component={EndedCompetitionResultsRoot}/>
                 </Switch>
             </Router>
         )
