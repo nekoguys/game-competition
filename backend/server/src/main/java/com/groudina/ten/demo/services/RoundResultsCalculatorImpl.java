@@ -15,7 +15,7 @@ import java.util.Set;
 public class RoundResultsCalculatorImpl implements IRoundResultsCalculator {
 
     @Override
-    public List<DbRoundResultElement> calculateResults(DbCompetitionRoundInfo roundInfo, DbCompetition competition) {
+    public RoundResultsHolder calculateResults(DbCompetitionRoundInfo roundInfo, DbCompetition competition) {
         double price = calculatePrice(roundInfo, competition.getParameters());
         List<DbRoundResultElement> results = new ArrayList<>();
         Set<Integer> visited = new HashSet<>();
@@ -38,7 +38,7 @@ public class RoundResultsCalculatorImpl implements IRoundResultsCalculator {
                     );
                 });
 
-        return results;
+        return RoundResultsHolder.builder().price(price).results(results).build();
     }
 
     private double getTotalCosts(int produced, DbCompetition.Parameters competitionParameters) {

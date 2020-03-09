@@ -10,10 +10,7 @@ import com.groudina.ten.demo.models.DbCompetition;
 import com.groudina.ten.demo.models.DbRole;
 import com.groudina.ten.demo.models.DbTeam;
 import com.groudina.ten.demo.models.DbUser;
-import com.groudina.ten.demo.services.IAddTeamToCompetitionService;
-import com.groudina.ten.demo.services.ITeamConnectionNotifyService;
-import com.groudina.ten.demo.services.ITeamCreationChecker;
-import com.groudina.ten.demo.services.ITeamJoinService;
+import com.groudina.ten.demo.services.*;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -73,6 +70,9 @@ class CompetitionsControllerTest {
 
     @Autowired
     ITeamJoinService teamJoinService;
+
+    @Autowired
+    IGameManagementService gameManagementService;
 
     @BeforeEach
     void setup() {
@@ -773,4 +773,65 @@ class CompetitionsControllerTest {
                 .jsonPath("$[0].length()").isEqualTo(14)
                 .jsonPath("$[1].length()").isEqualTo(14);
     }
+    @Test
+    @WithMockUser(value = "email", password = "1234", roles = {"TEACHER"})
+    void testResultsFormatter() {
+        var user = userRepository.save(DbUser.builder().password("1234").email("email").roles(rolesRepository.findAll().collectList().block()).build()).block();
+        var captain = userRepository.save(DbUser.builder().password("1234").email("anotherEmail").roles(rolesRepository.findAll().collectList().block()).build()).block();
+        var captain2 = userRepository.save(DbUser.builder().password("1234").email("tutEmail").roles(rolesRepository.findAll().collectList().block()).build()).block();
+
+        var competition = competitionsRepository.save(DbCompetition.builder()
+                .state(DbCompetition.State.Registration)
+                .pin("1234")
+                .parameters(DbCompetition.Parameters.builder()
+                        .roundsCount(2)
+                        .expensesFormula(List.of("1", "2", "3"))
+                        .demandFormula(List.of("100", "10"))
+                        .build())
+                .build()).block();
+        var team = teamsRepository.save(DbTeam.builder().captain(captain2).idInGame(0).name("abac").sourceCompetition(competition).build()).block();
+        var team2 = teamsRepository.save(DbTeam.builder().captain(captain).idInGame(1).name("kuks").sourceCompetition(competition).build()).block();
+        competition.addTeam(team);
+        competition.addTeam(team2);
+        competition = competitionsRepository.save(competition).block();
+
+        gameManagementService.startCompetition(competition).block();
+
+        gameManagementService.submitAnswer(competition, team, 10, 1).block();
+        gameManagementService.submitAnswer(competition, team2, 30, 1).block();
+
+        gameManagementService.endCurrentRound(competition).block();
+
+        gameManagementService.startNewRound(competition).block();
+
+        gameManagementService.submitAnswer(competition, team, 20, 2).block();
+        gameManagementService.submitAnswer(competition, team2, 40, 2).block();
+
+        gameManagementService.endCurrentRound(competition).block();
+
+        webTestClient.get().uri("/api/competitions/competition_results/1234")
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody(ICompetitionResultsFormatter.CompetitionResults.class)
+                .value(competitionResults -> {
+                    assertIterableEquals(competitionResults.getTeams().get(0).getTeamMembers(), List.of("tutEmail"));
+                    assertEquals(competitionResults.getIncome().get(1).get(0), -63, 0.01);
+                    assertEquals(competitionResults.getIncome().get(1).get(1), -783, 0.01);
+
+                    assertEquals(competitionResults.getIncome().get(2).get(0), -363, 0.01);
+                    assertEquals(competitionResults.getIncome().get(2).get(1), -1523, 0.01);
+
+                    assertIterableEquals(competitionResults.getTeams().get(1).getTeamMembers(), List.of("anotherEmail"));
+
+                    assertIterableEquals(competitionResults.getTeamsOrderInDecreasingByTotalPrice(), List.of(0, 1));
+                    assertEquals(competitionResults.getPrices().get(1), 6);
+                    assertEquals(competitionResults.getPrices().get(2), 4);
+                    assertEquals(competitionResults.getProduced().get(1).get(0), 10);
+                    assertEquals(competitionResults.getProduced().get(1).get(1), 30);
+                    assertEquals(competitionResults.getProduced().get(2).get(0), 20);
+                    assertEquals(competitionResults.getProduced().get(2).get(1), 40);
+                });
+    }
+
 }

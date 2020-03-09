@@ -21,6 +21,8 @@ public interface IGameManagementService {
 
     Flux<RoundTeamResultDto> getRoundResultsEvents(DbCompetition competition);
 
+    Flux<PriceInRoundDto> getRoundPricesEvents(DbCompetition competition);
+
     Mono<Void> endCurrentRound(DbCompetition competition);
 
     Mono<Void> startNewRound(DbCompetition competition);

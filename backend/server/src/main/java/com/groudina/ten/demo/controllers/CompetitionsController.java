@@ -36,6 +36,7 @@ public class CompetitionsController {
     private ITeamConnectionNotifyService teamConnectionNotifyService;
     private ITeamJoinService teamJoinService;
     private IEntitiesMapper<DbCompetition, CompetitionCloneInfoResponse> competitionInfoMapper;
+    private ICompetitionResultsFormatter resultsFormatter;
     private IEntityUpdater<DbCompetition, NewCompetition> competitionEntityUpdater;
     private IPageableCompetitionService pageableCompetitionService;
 
@@ -50,6 +51,8 @@ public class CompetitionsController {
                                   @Autowired IEntitiesMapper<DbCompetition, CompetitionCloneInfoResponse> competitionInfoMapper,
                                   @Autowired IEntityUpdater<DbCompetition, NewCompetition> competitionUpdater,
                                   @Autowired IPageableCompetitionService pageableCompetitionService) {
+                                  @Autowired ICompetitionResultsFormatter resultsFormatter,
+                                  @Autowired IEntityUpdater<DbCompetition, NewCompetition> competitionUpdater) {
         this.competitionsRepository = repository;
         this.userRepository = userRepository;
         this.teamsRepository = teamsRepository;
@@ -59,6 +62,7 @@ public class CompetitionsController {
         this.teamConnectionNotifyService = teamConnectionNotifyService;
         this.teamJoinService = teamJoinService;
         this.competitionInfoMapper = competitionInfoMapper;
+        this.resultsFormatter = resultsFormatter;
         this.competitionEntityUpdater = competitionUpdater;
         this.pageableCompetitionService = pageableCompetitionService;
     }
@@ -161,6 +165,17 @@ public class CompetitionsController {
                 .defaultIfEmpty(
                         ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseMessage.of("No competition with pin: " + joinTeamRequest.getCompetitionPin())));
     }
+
+    @GetMapping(value = "/competition_results/{pin}")
+    @PreAuthorize("hasRole('TEACHER')")
+    public Mono<ResponseEntity> competitionResults(@PathVariable String pin) {
+        return this.competitionsRepository.findByPin(pin).map(el -> {
+            return (ResponseEntity)ResponseEntity.ok(resultsFormatter.getCompetitionResults(el));
+        }).switchIfEmpty(Mono.defer(() -> {
+            return Mono.just(ResponseEntity.badRequest().body(ResponseMessage.of("Competition with pin: " + pin + " not found")));
+        })).onErrorResume(ex -> Mono.just(ResponseEntity.badRequest().body(ResponseMessage.of(ex.getMessage()))));
+    }
+
 
     @GetMapping(value = "/created_competitions/{start}/{amount}", produces = {MediaType.APPLICATION_JSON_VALUE})
     @PreAuthorize("hasRole('TEACHER')")
