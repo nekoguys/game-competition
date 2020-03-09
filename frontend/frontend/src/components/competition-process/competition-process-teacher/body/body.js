@@ -88,7 +88,7 @@ class CompetitionProcessTeacherBody extends React.Component {
     setupTimer = () => {
         this.timerId = setInterval(() => {
             this.setState(prevState => {
-                return {timeTillRoundEnd: prevState.timeTillRoundEnd - 1};
+                return {timeTillRoundEnd: Math.max(prevState.timeTillRoundEnd - 1, 0)};
             })
         }, 1000);
     };
