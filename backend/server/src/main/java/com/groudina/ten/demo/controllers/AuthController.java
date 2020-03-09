@@ -77,7 +77,7 @@ public class AuthController {
 
                     return Mono.just(ResponseEntity.ok(new JwtResponse(jwt, loginUser.getEmail(), authorities)));
                 } else {
-                    return Mono.just(ResponseEntity.ok(new ResponseMessage("Your account is not verified")));
+                    return Mono.just(ResponseEntity.badRequest().body(new ResponseMessage("Your account is not verified")));
                 }
             } else {
                 return Mono.just(new ResponseEntity<>(new ResponseMessage("Invalid credentials"), HttpStatus.BAD_REQUEST));
