@@ -28,7 +28,7 @@ class NavbarHeader extends React.Component {
         };
 
         let navbarButton;
-        if (window.localStorage.getItem("roles").length === 4)
+        if (window.localStorage.getItem("user_email").indexOf("@edu.hse.ru") !== -1)
             navbarButton = <DefaultSubmitButton text="Войти в игру" style={buttonsStyle} onClick={this.onEnterGameClick}/>;
         else
             navbarButton = <DefaultSubmitButton text="Создать игру" style={buttonsStyle} onClick={this.onCreateGameClick}/>;
