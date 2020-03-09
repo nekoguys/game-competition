@@ -7,7 +7,6 @@ import {withRouter} from "react-router-dom";
 class CompetitionCollectionElement extends React.Component {
     constructor(props) {
         super(props);
-        this.item = props.item;
     }
 
     stateMapper(state) {
@@ -24,20 +23,38 @@ class CompetitionCollectionElement extends React.Component {
     }
 
     render() {
-        const {name, state, lastUpdateTime} = this.item;
+        const {name, state, lastUpdateTime} = this.props.item;
 
-        return <div className={"item-container"}>
-            <div className={"row"}>
-                <div className={"col-2"} style={{}}>{name}</div>
-                <div className={"col-1"}>
-                    <div className={"row"}>{this.stateMapper(state)}</div>
-                    <div className={"row"}>{lastUpdateTime}</div>
+        let res;
+        if (lastUpdateTime) {
+            res = (
+                <div>
+                <div style={{margin: "auto 0", display: "inline-block"}}>{this.stateMapper(state)}</div>
+                <div >{lastUpdateTime}</div>
                 </div>
-                <div className={"col-1"}>
+            )
+        } else {
+            res = <div style={{margin: "auto 0", display: "inline-block"}}>{this.stateMapper(state)}</div>
+        }
+
+        return <div className={"item-element-container"}>
+            <div className={"row"}>
+                <div className={"col-7 center-text"} style={{textAlign: "center"}}>{name}</div>
+                <div className={"col-3 center-text"} style={{textAlign: "center"}}>
+                    <div style={{padding: "10px", minHeight: "68px"}} className={"center-text"}>
+                    {res}
+
+                    </div>
+                </div>
+                <div className={"col-2 flex-center-vertically"}>
+                    <div style={{margin: "auto 0"}} className={""}>
+                        <div style={{marginBottom: "-10px"}}>
                     <DefaultSubmitButton text={"Клонировать"} onClick={() => {
                         console.log(this);
-                        this.props.history.push('/competitions/create/', {initialState: this.item});
+                        this.props.history.push('/competitions/create/', {initialState: this.props.item});
                     }}/>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -51,17 +68,18 @@ class CompetitionCollection extends React.Component {
 
     render() {
         const {items} = this.props;
+        console.log({items});
 
         const elements = items.map(item => {
             return <CompetitionCollectionElement key={item.pin} item={item} history={this.props.history}/>
         });
 
         return (
-            <div className={"collection-container"} style={{paddingTop: "90px", width: "80%", margin: "0 auto"}}>
-                <div className={"row"}>
-                    <div className={"col-2"}>Название</div>
-                    <div className={"col-1"}>Статус</div>
-                    <div className={"col-1"}/>
+            <div className={"collection-container"}>
+                <div className={"row"} style={{textAlign: "center"}}>
+                    <div className={"col-7"}>Название</div>
+                    <div className={"col-3"}>Статус</div>
+                    <div className={"col-2"}/>
                 </div>
                 {elements}
             </div>

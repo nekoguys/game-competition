@@ -1,7 +1,18 @@
-.item-container {
+.item-element-container {
     background-color: #C9C9C9;
     border-radius: 20px;
-    padding: 10px 20px;
+    margin-top: 12px;
     max-height: 5%;
 }
 
+.center-text {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.flex-center-vertically {
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+}
