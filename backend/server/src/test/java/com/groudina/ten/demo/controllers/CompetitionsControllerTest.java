@@ -28,6 +28,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.reactive.function.BodyInserters;
 
 import java.util.List;
+import java.util.SortedSet;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -727,4 +728,49 @@ class CompetitionsControllerTest {
         assertIterableEquals(comp.getParameters().getExpensesFormula(), List.of("2", "3", "4"));
     }
 
+    @Test
+    @WithMockUser(value = "email", password = "1234", roles = {"TEACHER"})
+    public void testGetCreatedCompetitions() {
+        var user = DbUser.builder().email("email").password("1234").roles(rolesRepository.findAll().collectList().block()).build();
+        user = userRepository.save(user).block();
+
+        var params = DbCompetition.Parameters.builder()
+                .maxTeamsAmount(1)
+                .maxTeamSize(2)
+                .name("name1")
+                .demandFormula(List.of("1", "2"))
+                .expensesFormula(List.of("1", "2", "3"))
+                .instruction("instr")
+                .roundLengthInSeconds(60)
+                .roundsCount(3)
+                .shouldEndRoundBeforeAllAnswered(true)
+                .shouldShowResultTableInEnd(false)
+                .shouldShowStudentPreviousRoundResults(true)
+                .build();
+        var comp = DbCompetition.builder().pin("12345").owner(user).parameters(params).build();
+        comp = competitionsRepository.save(comp).block();
+
+        var params2 = DbCompetition.Parameters.builder()
+                .maxTeamsAmount(2)
+                .maxTeamSize(3)
+                .name("name2")
+                .demandFormula(List.of("3", "4"))
+                .expensesFormula(List.of("4", "5", "6"))
+                .instruction("instr2")
+                .roundLengthInSeconds(120)
+                .roundsCount(2)
+                .shouldEndRoundBeforeAllAnswered(false)
+                .shouldShowResultTableInEnd(true)
+                .shouldShowStudentPreviousRoundResults(false)
+                .build();
+        var comp2 = DbCompetition.builder().pin("23456").owner(user).parameters(params).build();
+        comp2 = competitionsRepository.save(comp2).block();
+
+        webTestClient.get().uri("/api/competitions/created_competitions/0/2")
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange().expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$[0].length()").isEqualTo(14)
+                .jsonPath("$[1].length()").isEqualTo(14);
+    }
 }
