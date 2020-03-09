@@ -22,7 +22,7 @@ class CompetitionProcessTeacherBody extends React.Component {
             isCurrentRoundEnded: false,
             name: "",
             teamsCount: 10,
-            roundsCount: 6,
+            roundsCount: 0,
             answers: {},
             results: {},
             prices: {},
@@ -88,6 +88,11 @@ class CompetitionProcessTeacherBody extends React.Component {
                 if (resp.success) {
                     this.setState(prevState => {
                         this.props.updateCompetitionNameCallback(jsonBody.name);
+
+                        if (jsonBody.roundsCount === prevState.currentRoundNumber && jsonBody.roundsCount !== 0) {
+                            this.props.onEndCallback();
+                        }
+
                         return {
                             name: jsonBody.name,
                             teamsCount: jsonBody.connectedTeamsCount,
