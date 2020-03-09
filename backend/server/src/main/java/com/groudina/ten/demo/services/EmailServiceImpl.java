@@ -43,40 +43,47 @@ public class EmailServiceImpl implements IEmailService {
 
     }
 
+    private boolean isServiceActive() {
+        return techTeamEmail != null && techTeamEmailPassword != null;
+    }
+
     @Override
     public Mono<Void> sendEmail(String email, String link) {
-        return Mono.defer(() -> {
-            Session session = Session.getInstance(this.properties, new Authenticator() {
-                @Override
-                protected PasswordAuthentication getPasswordAuthentication() {
-                    return new PasswordAuthentication(techTeamEmail, techTeamEmailPassword);
+        if (isServiceActive()) {
+            return Mono.defer(() -> {
+                Session session = Session.getInstance(this.properties, new Authenticator() {
+                    @Override
+                    protected PasswordAuthentication getPasswordAuthentication() {
+                        return new PasswordAuthentication(techTeamEmail, techTeamEmailPassword);
+                    }
+                });
+                try {
+                    Message message = new MimeMessage(session);
+                    message.setFrom(new InternetAddress(techTeamEmail));
+                    message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(email));
+                    message.setSubject("Account Verification");
+
+                    String msg = String.format(template, email, link);
+                    System.out.println(msg);
+
+                    MimeBodyPart mimeBodyPart = new MimeBodyPart();
+                    mimeBodyPart.setContent(msg, "text/html; charset=utf-8");
+
+                    Multipart multipart = new MimeMultipart();
+                    multipart.addBodyPart(mimeBodyPart);
+
+                    message.setContent(multipart);
+
+                    Transport.send(message);
+                } catch (MessagingException e) {
+                    e.printStackTrace();
+                    return Mono.error(e);
                 }
+                return Mono.empty();
             });
-            try {
-                Message message = new MimeMessage(session);
-                message.setFrom(new InternetAddress(techTeamEmail));
-                message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(email));
-                message.setSubject("Account Verification");
-
-                String msg = String.format(template, email, link);
-                System.out.println(msg);
-
-                MimeBodyPart mimeBodyPart = new MimeBodyPart();
-                mimeBodyPart.setContent(msg, "text/html; charset=utf-8");
-
-                Multipart multipart = new MimeMultipart();
-                multipart.addBodyPart(mimeBodyPart);
-
-                message.setContent(multipart);
-
-                Transport.send(message);
-            }
-            catch (MessagingException e) {
-                e.printStackTrace();
-                return Mono.error(e);
-            }
+        } else {
             return Mono.empty();
-        });
+        }
     }
 
     private static final String template = "<div><p>Hello, %s!</p>" +
