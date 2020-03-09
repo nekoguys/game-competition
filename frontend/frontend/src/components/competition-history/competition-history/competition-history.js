@@ -53,16 +53,9 @@ class CompetitionHistory extends React.Component {
                             <div className={"row justify-content-center"}>
 
                                 <div style={{flex: "0 0 12.5%", paddingRight: "15px"}}>
-                                <DefaultSubmitButton text={"Вперёд"} onClick={() => {
-                                    this.updateHistory( this.state.currentStart + 4, 4);
-                                }} style={{padding: "10px 20px", width: "100%"}}
-                                   isDisabled={this.state.items.length === 0}/>
-                                </div>
-
-                                <div style={{flex: "0 0 12.5%", paddingLeft: "15px"}}>
-                                <DefaultSubmitButton text={"Назад"} onClick={() => {
-                                    this.updateHistory( this.state.currentStart - 4, 4);
-                                }} style={{padding: "10px 20px", width: "100%"}} isDisabled={this.state.currentStart === 0}/>
+                                    <DefaultSubmitButton text={"Ещё"} onClick={() => {
+                                        this.updateHistory(CompetitionHistory.itemsPerPage);
+                                    }} style={{padding: "10px 20px"}}/>
                                 </div>
 
                             </div>
