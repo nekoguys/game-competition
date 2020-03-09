@@ -55,7 +55,7 @@ class CompetitionHistory extends React.Component {
                                 <div style={{flex: "0 0 12.5%", paddingRight: "15px"}}>
                                     <DefaultSubmitButton text={"Ещё"} onClick={() => {
                                         this.updateHistory(CompetitionHistory.itemsPerPage);
-                                    }} style={{padding: "10px 20px"}}/>
+                                    }} style={{padding: "10px 20px", width: "100%"}}/>
                                 </div>
 
                             </div>
