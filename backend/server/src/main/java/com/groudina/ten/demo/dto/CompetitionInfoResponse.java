@@ -39,7 +39,7 @@ public class CompetitionInfoResponse implements Serializable {
 
     private boolean shouldShowResultTableInEnd;
 
-    private LocalDateTime lastUpdateTime;
+    private String lastUpdateTime;
 
     private String pin;
 

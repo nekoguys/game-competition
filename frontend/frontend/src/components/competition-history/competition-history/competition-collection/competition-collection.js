@@ -10,15 +10,28 @@ class CompetitionCollectionElement extends React.Component {
         this.item = props.item;
     }
 
+    stateMapper(state) {
+        if (state === "Registration")
+            return "Регистрация";
+        else if (state === "InProcess")
+            return "Запущено";
+        else if (state === "Draft")
+            return "Черновик";
+        else if (state === "Ended")
+            return "Завершено";
+        else
+            return "Неизвестно";
+    }
+
     render() {
-        const {name, state, last_update_time} = this.item;
+        const {name, state, lastUpdateTime} = this.item;
 
         return <div className={"item-container"}>
             <div className={"row"}>
                 <div className={"col-2"} style={{}}>{name}</div>
                 <div className={"col-1"}>
-                    <div className={"row"}>{state}</div>
-                    <div className={"row"}>{last_update_time}</div>
+                    <div className={"row"}>{this.stateMapper(state)}</div>
+                    <div className={"row"}>{lastUpdateTime}</div>
                 </div>
                 <div className={"col-1"}>
                     <DefaultSubmitButton text={"Клонировать"} onClick={() => {

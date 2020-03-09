@@ -2,13 +2,8 @@ package com.groudina.ten.demo.services;
 
 import com.groudina.ten.demo.dto.CompetitionInfoResponse;
 import com.groudina.ten.demo.models.DbCompetition;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
-
-import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
-import java.time.temporal.TemporalUnit;
 
 @Component
 public class DbCompetitionToCompetitionInfoResponseMapper implements IEntitiesMapper<DbCompetition, CompetitionInfoResponse> {
@@ -33,10 +28,10 @@ public class DbCompetitionToCompetitionInfoResponseMapper implements IEntitiesMa
                 .build();
     }
 
-    private LocalDateTime getLastUpdateTime(DbCompetition from) {
+    private String getLastUpdateTime(DbCompetition from) {
         if (from.getCompetitionProcessInfo() == null)
             return null;
 
-        return from.getCompetitionProcessInfo().getCurrentRound().getStartTime().truncatedTo(ChronoUnit.DAYS);
+        return from.getCompetitionProcessInfo().getCurrentRound().getStartTime().toLocalDate().toString();
     }
 }
