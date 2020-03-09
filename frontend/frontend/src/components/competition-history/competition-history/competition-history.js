@@ -31,10 +31,16 @@ class CompetitionHistory extends React.Component {
                     console.log(json);
                     this.setState(prevState => {
                         return {items: prevState.items.concat(json), itemsLoaded: prevState.itemsLoaded + delta}
+                    }, () => {
+                        this.scrollToBottom();
                     });
                 })
         })
     }
+
+    scrollToBottom = () => {
+        this.competitionsEnd.scrollIntoView({behavior: "smooth"});
+    };
 
     render() {
         return (
@@ -61,6 +67,9 @@ class CompetitionHistory extends React.Component {
                             </div>
                         </div>
                     </div>
+                </div>
+                <div style={{ float:"left", clear: "both" }}
+                     ref={(el) => { this.competitionsEnd = el; }}>
                 </div>
                 <NotificationContainer/>
             </div>
