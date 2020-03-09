@@ -23,6 +23,9 @@ public class DbUser {
 
     private String password;
 
+    @Builder.Default
+    private boolean isVerified = true;
+
     @DBRef
     @Builder.Default
     private List<DbRole> roles = new ArrayList<>();

@@ -28,7 +28,7 @@ public class WebSecurityConfig {
     SecurityWebFilterChain springWebFilterChain(ServerHttpSecurity http) {
         //For testing text_event_stream
         //String[] patterns = new String[] {"/api/auth/signin**", "/api/auth/signup**", "/api/competitions/team_join_events/12345**"};
-        String[] patterns = new String[] {"/api/auth/signin**", "/api/auth/signup**"};
+        String[] patterns = new String[] {"/api/auth/signin**", "/api/auth/signup**", "/api/auth/verification/**"};
         return http.cors().disable()
                 .exceptionHandling()
                 .authenticationEntryPoint((swe, e) -> Mono.fromRunnable(() -> {
