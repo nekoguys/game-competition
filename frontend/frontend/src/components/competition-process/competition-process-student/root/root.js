@@ -25,6 +25,7 @@ class CompetitionProcessStudentRoot extends React.Component {
             results: {},
             currentRoundNumber: 5,
             timeTillRoundEnd: 55,
+            isCurrentRoundEnded: false,
             teamName: "teamName",
             teamIdInGame: 0,
             messages: [],
@@ -43,6 +44,23 @@ class CompetitionProcessStudentRoot extends React.Component {
         this.setupMyAnswersEventsStream();
     }
 
+    componentDidUpdate(prevProps, prevState, snapshot) {
+        if (this.state.isCurrentRoundEnded) {
+            clearInterval(this.timerId);
+        } else {
+            clearInterval(this.timerId);
+            this.setupTimer();
+        }
+    }
+
+    setupTimer = () => {
+        this.timerId = setInterval(() => {
+            this.setState(prevState => {
+                return {timeTillRoundEnd: Math.max(prevState.timeTillRoundEnd - 1, 0)};
+            })
+        }, 1000);
+    };
+
     componentWillUnmount() {
         if (this.messagesEventSource !== undefined) {
             this.messagesEventSource.close();
@@ -59,6 +77,7 @@ class CompetitionProcessStudentRoot extends React.Component {
         if (this.answersEventSource !== undefined) {
             this.answersEventSource.close();
         }
+        clearInterval(this.timerId);
     }
 
     submitAnswer = (answer) => {
