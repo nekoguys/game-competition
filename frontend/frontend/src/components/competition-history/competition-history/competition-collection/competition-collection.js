@@ -24,6 +24,7 @@ class CompetitionCollectionElement extends React.Component {
 
     render() {
         const {name, state, lastUpdateTime} = this.props.item;
+        const {onItemClickCallback = (item) => {}} = this.props;
 
         let res;
         if (lastUpdateTime) {
@@ -37,7 +38,10 @@ class CompetitionCollectionElement extends React.Component {
             res = <div style={{margin: "auto 0", display: "inline-block"}}>{this.stateMapper(state)}</div>
         }
 
-        return <div className={"item-element-container"}>
+        return <div className={"item-element-container"} onClick={() => {
+            console.log("outer div click");
+            onItemClickCallback(this.props.item);
+        }}>
             <div className={"row"}>
                 <div className={"col-7 center-text"} style={{textAlign: "center"}}>{name}</div>
                 <div className={"col-3 center-text"} style={{textAlign: "center"}}>
@@ -49,10 +53,11 @@ class CompetitionCollectionElement extends React.Component {
                 <div className={"col-2 flex-center-vertically"}>
                     <div style={{margin: "auto 0"}} className={""}>
                         <div style={{marginBottom: "-10px"}}>
-                    <DefaultSubmitButton text={"Клонировать"} onClick={() => {
-                        console.log(this);
-                        this.props.history.push('/competitions/create/', {initialState: this.props.item});
-                    }}/>
+                            <DefaultSubmitButton text={"Клонировать"} onClick={(ev) => {
+                                console.log(this);
+                                this.props.history.push('/competitions/create/', {initialState: this.props.item});
+                                ev.stopPropagation();
+                            }}/>
                         </div>
                     </div>
                 </div>
@@ -71,7 +76,7 @@ class CompetitionCollection extends React.Component {
         console.log({items});
 
         const elements = items.map(item => {
-            return <CompetitionCollectionElement key={item.pin} item={item} history={this.props.history}/>
+            return <CompetitionCollectionElement onItemClickCallback={this.props.onHistoryItemClickCallback} key={item.pin} item={item} history={this.props.history}/>
         });
 
         return (
