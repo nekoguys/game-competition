@@ -30,6 +30,9 @@ export default class App extends React.Component{
                     <Route path={"/competitions/create"}>
                         <CreateCompetition/>
                     </Route>
+
+                    <Route path={"/competitions/draft_competition/:pin"} component={CreateCompetition}/>
+
                     <Route path={"/competitions/join"}>
                         <JoinCompetition/>
                     </Route>

@@ -20,18 +20,64 @@ class CreateCompetition extends React.Component {
             this.initialState = this.props.history.location.state.initialState;
     }
 
-    onSaveAsDraftClick = () => {
-        let obj = {...this.formState.toJSONObject(), state: "draft"};
+    isUpdateMode() {
+        return !!(this.props.match && this.props.match.params && this.props.match.params.pin);
+    }
 
-        this.onCreateCompetition(obj, () => {});
+    onSaveAsDraftClick = () => {
+        let obj = {...this.formState.toJSONObject(), state: "Draft"};
+
+        if (!this.isUpdateMode()) {
+            this.onCreateCompetition(obj, () => {
+                this.props.history.push('/competitions/history')
+            });
+        } else {
+            this.onUpdateDraftCompetition(obj, () => {
+                this.props.history.push('/competitions/history');
+            })
+        }
     };
 
     onOpenRegistrationClick = () => {
-        let obj = {...this.formState.toJSONObject(), state: "registration"};
+        let obj = {...this.formState.toJSONObject(), state: "Registration"};
 
-        this.onCreateCompetition(obj, () => {
-            console.log({pin: this.pin});
-            this.props.history.push("/competitions/after_registration_opened/" + this.pin);
+        if (!this.isUpdateMode()) {
+
+            this.onCreateCompetition(obj, () => {
+                console.log({pin: this.pin});
+                this.props.history.push("/competitions/after_registration_opened/" + this.pin);
+            })
+        } else {
+            this.onUpdateDraftCompetition(obj, () => {
+                this.props.history.push("/competitions/after_registration_opened/" + this.props.match.params.pin);
+            })
+        }
+    };
+
+    onUpdateDraftCompetition = (obj, successCallback) => {
+        const timeout = 2000;
+
+        const {pin} = this.props.match.params;
+
+        ApiHelper.updateCompetition(pin, obj)
+            .catch(err => {
+                NotificationManager.error(err, "Error", timeout);
+            })
+            .then(resp => {
+                if (resp.status >= 300) {
+                    return {success: false, response: resp.text()}
+                }
+
+                return {success: true, json: resp.json()};
+            }).then(resp => {
+                resp.json.then(jsonBody => {
+                    if (resp.success) {
+                        NotificationManager.success("Competition saved successfully", "Success!", timeout);
+                        successCallback();
+                    } else {
+                        NotificationManager.error(jsonBody, "Error", timeout);
+                    }
+                })
         })
     };
 
