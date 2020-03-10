@@ -25,7 +25,6 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.reactive.function.BodyInserters;
 
 import java.util.List;
-import java.util.SortedSet;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -209,7 +208,7 @@ class CompetitionsControllerTest {
                 .exchange().expectStatus().isOk()
                 .expectBody(ResponseMessage.class)
         ;
-        assertEquals(competitionsRepository.findAll().collect(Collectors.toList()).block().get(0).getPin(), null);
+        assertNotNull(competitionsRepository.findAll().collect(Collectors.toList()).block().get(0).getPin());
 
         webTestClient.post().uri("/api/competitions/create")
                 .contentType(MediaType.APPLICATION_JSON)
