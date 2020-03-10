@@ -23,7 +23,7 @@ class CompetitionResultsFormatterImplTest {
 
         DbTeam team1 = DbTeam.builder().idInGame(0).captain(captain1).allPlayers(List.of(teamMember1)).build();
         DbTeam team2 = DbTeam.builder().idInGame(1).captain(captain2).allPlayers(List.of(teamMember2)).build();
-        DbCompetition competition = DbCompetition.builder().teams(List.of(team1, team2)).build();
+        DbCompetition competition = DbCompetition.builder().parameters(DbCompetition.Parameters.builder().name("name").build()).teams(List.of(team1, team2)).build();
 
         DbAnswer answer11 = DbAnswer.builder().value(10).submitter(team1).build();
         DbAnswer answer12 = DbAnswer.builder().value(20).submitter(team2).build();
