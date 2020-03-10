@@ -49,8 +49,7 @@ public class CompetitionsController {
                                   @Autowired ITeamConnectionNotifyService teamConnectionNotifyService,
                                   @Autowired ITeamJoinService teamJoinService,
                                   @Autowired IEntitiesMapper<DbCompetition, CompetitionCloneInfoResponse> competitionInfoMapper,
-                                  @Autowired IEntityUpdater<DbCompetition, NewCompetition> competitionUpdater,
-                                  @Autowired IPageableCompetitionService pageableCompetitionService) {
+                                  @Autowired IPageableCompetitionService pageableCompetitionService,
                                   @Autowired ICompetitionResultsFormatter resultsFormatter,
                                   @Autowired IEntityUpdater<DbCompetition, NewCompetition> competitionUpdater) {
         this.competitionsRepository = repository;
