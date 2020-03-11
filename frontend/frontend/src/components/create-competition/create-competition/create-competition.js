@@ -5,7 +5,6 @@ import "../competition-params/competition-params.css";
 import ApiHelper from "../../../helpers/api-helper";
 import {NotificationContainer, NotificationManager} from "react-notifications";
 import DefaultSubmitButton from "../../common/default-submit-button";
-import {withRouter} from "react-router-dom";
 import withRedirect from "../../../helpers/redirect-helper";
 
 class CreateCompetition extends React.Component {
@@ -98,4 +97,4 @@ class CreateCompetition extends React.Component {
     }
 }
 
-export default withRouter(withRedirect(CreateCompetition));
+export default withRedirect(CreateCompetition);
