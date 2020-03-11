@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
+import java.util.Comparator;
 import java.util.List;
 
 @Component
@@ -30,6 +31,7 @@ public class PageableCompetitionServiceImpl implements IPageableCompetitionServi
                 .findOneByEmail(email)
                 .flatMapMany(competitionsRepository::findAllByOwner)
                 .map(comp -> competitionInfoResponseMapper.map(comp, null))
+                .sort(Comparator.nullsLast((a, b) -> -a.getLastUpdateTime().compareTo(b.getLastUpdateTime())))
                 .skip(startIndex)
                 .take(amount)
                 .collectList();

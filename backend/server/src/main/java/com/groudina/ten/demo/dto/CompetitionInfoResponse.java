@@ -8,7 +8,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Date;
 
 @Builder
 @Getter
@@ -39,7 +41,7 @@ public class CompetitionInfoResponse implements Serializable {
 
     private boolean shouldShowResultTableInEnd;
 
-    private String lastUpdateTime;
+    private LocalDate lastUpdateTime;
 
     private String pin;
 

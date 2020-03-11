@@ -5,6 +5,8 @@ import com.groudina.ten.demo.models.DbCompetition;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
+
 @Component
 public class DbCompetitionToCompetitionInfoResponseMapper implements IEntitiesMapper<DbCompetition, CompetitionInfoResponse> {
     @Override
@@ -28,10 +30,13 @@ public class DbCompetitionToCompetitionInfoResponseMapper implements IEntitiesMa
                 .build();
     }
 
-    private String getLastUpdateTime(DbCompetition from) {
-        if (from.getCompetitionProcessInfo() == null)
-            return null;
+    private LocalDate getLastUpdateTime(DbCompetition from) {
+        if (from.getCompetitionProcessInfo() != null)
+            return from.getCompetitionProcessInfo().getCurrentRound().getStartTime().toLocalDate();
 
-        return from.getCompetitionProcessInfo().getCurrentRound().getStartTime().toLocalDate().toString();
+        if (from.getLastModifiedDate() != null)
+            return from.getLastModifiedDate().toLocalDate();
+
+        return LocalDate.EPOCH;
     }
 }
