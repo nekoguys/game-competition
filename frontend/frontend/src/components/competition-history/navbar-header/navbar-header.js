@@ -2,6 +2,7 @@ import React from "react";
 import DefaultSubmitButton from "../../common/default-submit-button";
 import {withRouter} from "react-router-dom";
 import './navbar-header.css';
+import isTeacher from "../../../helpers/role-helper";
 
 class NavbarHeader extends React.Component {
 
@@ -28,10 +29,10 @@ class NavbarHeader extends React.Component {
         };
 
         let navbarButton;
-        if (window.localStorage.getItem("user_email").indexOf("@edu.hse.ru") !== -1)
-            navbarButton = <DefaultSubmitButton text="Войти в игру" style={buttonsStyle} onClick={this.onEnterGameClick}/>;
-        else
+        if (isTeacher())
             navbarButton = <DefaultSubmitButton text="Создать игру" style={buttonsStyle} onClick={this.onCreateGameClick}/>;
+        else
+            navbarButton = <DefaultSubmitButton text="Войти в игру" style={buttonsStyle} onClick={this.onEnterGameClick}/>;
 
         return (
             <div className="navbar-header-fixed-top">

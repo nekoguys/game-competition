@@ -7,6 +7,7 @@ import CreateCompetition from "../create-competition/create-competition";
 import JoinCompetition from "../join-competition/join-competition";
 import AfterRegistrationOpenedComponent from "../after-registration-opened";
 import CompetitionProcessTeacherRootComponent from "../competition-process/competition-process-teacher/root";
+import ForbiddenError from "../errors/forbidden-error";
 
 export default class App extends React.Component{
     render() {
@@ -32,6 +33,9 @@ export default class App extends React.Component{
                     <Route path={"/competitions/after_registration_opened/:pin"} component={AfterRegistrationOpenedComponent}/>
 
                     <Route path={"/competitions/process_teacher/:pin"} component={CompetitionProcessTeacherRootComponent} />
+                    <Route path={"/forbidden"}>
+                        <ForbiddenError/>
+                    </Route>
                     </Switch>
             </Router>
         )

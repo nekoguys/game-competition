@@ -3,6 +3,7 @@ import React from "react";
 import "./root.css";
 import NavbarHeader from "../../../competition-history/navbar-header/navbar-header";
 import CompetitionProcessTeacherBody from "../body";
+import withRedirect from "../../../../helpers/redirect-helper";
 
 class CompetitionProcessTeacherRootComponent extends React.Component {
     constructor(props) {
@@ -46,4 +47,4 @@ class CompetitionProcessTeacherRootComponent extends React.Component {
     }
 }
 
-export default CompetitionProcessTeacherRootComponent;
+export default withRedirect(CompetitionProcessTeacherRootComponent);
