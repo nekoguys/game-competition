@@ -350,4 +350,16 @@ class GameManagementServiceImplTest {
 
         verifier.verify();
     }
+
+    @Test
+    void testEarlyRoundsEventSubscription() {
+        var comp = commonPart();
+
+        var verifier = StepVerifier.create(gameManagementService.beginEndRoundEvents(comp))
+                .consumeNextWith(dto -> {
+                    assertEquals(dto.getType(), "NewRound");
+                }).thenCancel().verifyLater();
+        gameManagementService.startCompetition(comp).block();
+        verifier.verify();
+    }
 }
