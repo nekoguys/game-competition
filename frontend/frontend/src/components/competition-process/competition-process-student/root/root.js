@@ -31,7 +31,8 @@ class CompetitionProcessStudentRoot extends React.Component {
             messages: [],
             description: "",
             shouldShowResultTable: false,
-            unreadMessages: 0
+            unreadMessages: 0,
+            isCaptain: false
         }
     }
 
@@ -124,7 +125,8 @@ class CompetitionProcessStudentRoot extends React.Component {
                             roundsCount: jsonBody.roundsCount,
                             description: jsonBody.description,
                             competitionName: jsonBody.name,
-                            shouldShowResultTable: jsonBody.shouldShowResultTable
+                            shouldShowResultTable: jsonBody.shouldShowResultTable,
+                            isCaptain: jsonBody.isCaptain
                         }
                     })
                 }
@@ -242,6 +244,16 @@ class CompetitionProcessStudentRoot extends React.Component {
             );
         }
 
+        let sendAnswer;
+
+        if (this.state.isCaptain) {
+            sendAnswer = (
+                <div style={{paddingTop: "30px"}}>
+                    <SendAnswer onSubmit={this.submitAnswer}/>
+                </div>
+            );
+        }
+
         return (
             <div>
                 <div>
@@ -272,9 +284,7 @@ class CompetitionProcessStudentRoot extends React.Component {
                         <div style={{paddingTop: "10px", width: "100%"}}>
                             {table}
                         </div>
-                        <div style={{paddingTop: "30px"}}>
-                            <SendAnswer onSubmit={this.submitAnswer}/>
-                        </div>
+                        {sendAnswer}
                         <div style={{paddingTop: "30px"}}>
                             <MessagesContainer messages={this.state.messages} unreadMessages={this.state.unreadMessages}
                                 onReadMessagesCallback={() => {
