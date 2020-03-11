@@ -91,7 +91,7 @@ public class AuthController {
             return userRepository.findOneByEmail(newUser.getEmail()).flatMap(user -> {
                 return Mono.just(new ResponseEntity(new ResponseMessage(String.format("User with email %s already exists!", newUser.getEmail())), HttpStatus.BAD_REQUEST));
             }).switchIfEmpty(rolesRepository.findByName("ROLE_STUDENT").flatMap(role -> {
-                var user = DbUser.builder().email(newUser.getEmail()).isVerified(false).password(passwordEncoder.encode(newUser.getPassword())).build();
+                var user = DbUser.builder().email(newUser.getEmail()).isVerified(!emailService.isActive()).password(passwordEncoder.encode(newUser.getPassword())).build();
                 user.setRoles(Arrays.asList(role));
                 return userRepository.save(user)
                         .flatMap(savedUser -> {

@@ -30,6 +30,8 @@ public class DbUser {
     @Builder.Default
     private List<DbRole> roles = new ArrayList<>();
 
+    private Profile profile;
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -41,5 +43,16 @@ public class DbUser {
     @Override
     public int hashCode() {
         return Objects.hash(getId());
+    }
+
+    @Getter
+    @Builder
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class Profile {
+        private String name;
+
+        private String surname;
     }
 }
