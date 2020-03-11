@@ -1,6 +1,6 @@
 package com.groudina.ten.demo.dto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.groudina.ten.demo.models.DbCompetition;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -41,7 +41,8 @@ public class CompetitionInfoResponse implements Serializable {
 
     private boolean shouldShowResultTableInEnd;
 
-    private LocalDate lastUpdateTime;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy")
+    private LocalDateTime lastUpdateTime;
 
     private String pin;
 

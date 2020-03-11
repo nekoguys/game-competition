@@ -31,7 +31,7 @@ public class PageableCompetitionServiceImpl implements IPageableCompetitionServi
                 .findOneByEmail(email)
                 .flatMapMany(competitionsRepository::findAllByOwner)
                 .map(comp -> competitionInfoResponseMapper.map(comp, null))
-                .sort(Comparator.nullsLast((a, b) -> -a.getLastUpdateTime().compareTo(b.getLastUpdateTime())))
+                .sort(Comparator.comparing(x -> x.getLastUpdateTime(), Comparator.nullsLast(Comparator.reverseOrder())))
                 .skip(startIndex)
                 .take(amount)
                 .collectList();
