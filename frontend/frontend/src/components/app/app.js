@@ -11,6 +11,7 @@ import CompetitionProcessTeacherRootComponent from "../competition-process/compe
 import CompetitionProcessStudentRoot from "../competition-process/competition-process-student/root";
 import Verification from "../auth/verification/verification";
 import EndedCompetitionResultsRoot from "../competition-process/ended-competition-results/root";
+import UserProfileRoot from "../user-profile/root";
 
 export default class App extends React.Component{
     render() {
@@ -44,6 +45,8 @@ export default class App extends React.Component{
                     <Route path={"/auth/verification/:token"} component={Verification}/>
 
                     <Route path={"/competitions/results/:pin"} component={EndedCompetitionResultsRoot}/>
+
+                    <Route path={"/profile/"} component={UserProfileRoot}/>
                 </Switch>
             </Router>
         )

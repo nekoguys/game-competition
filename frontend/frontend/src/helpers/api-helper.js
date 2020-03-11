@@ -12,6 +12,9 @@ class ApiSettings {
     static #joinTeamEndPoint = ApiSettings.#host + "/competitions/join_team";
     static #getCloneInfoEndPoint = ApiSettings.#host + "/competitions/get_clone_info/";
     static #updateCompetitionParams = ApiSettings.#host + "/competitions/update_competition/";
+    static #updateProfile = ApiSettings.#host + "/profile/update";
+    static #getProfile = ApiSettings.#host + "/profile/get";
+    static #navBarInfo = ApiSettings.#host + "/profile/navbar_info";
 
     static trueHost() {
         return ApiSettings.#truehost;
@@ -123,6 +126,18 @@ class ApiSettings {
 
     static verificationEndPoint(token) {
         return ApiSettings.host() + "/auth/verification/" + token;
+    }
+
+    static updateProfileEndPoint() {
+        return ApiSettings.#updateProfile;
+    }
+
+    static getProfileEndPoint() {
+        return ApiSettings.#getProfile;
+    }
+
+    static getNavBarInfoEndPoint() {
+        return ApiSettings.#navBarInfo;
     }
 }
 
@@ -333,5 +348,27 @@ export default class ApiHelper {
             method: "GET",
             headers: this.defaultHeaders()
         });
+    }
+
+    static updateProfile(params) {
+        return fetch(ApiSettings.updateProfileEndPoint(), {
+            method: "POST",
+            headers: this.authDefaultHeaders(),
+            body: JSON.stringify(params)
+        })
+    }
+
+    static getProfile() {
+        return fetch(ApiSettings.getProfileEndPoint(), {
+            method: "GET",
+            headers: this.authDefaultHeaders(),
+        })
+    }
+
+    static getNavBarInfo() {
+        return fetch(ApiSettings.getNavBarInfoEndPoint(), {
+            method: "GET",
+            headers: this.authDefaultHeaders()
+        })
     }
 }

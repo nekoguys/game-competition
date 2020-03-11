@@ -6,3 +6,36 @@
     width: 100%;
     background: #C4C4C4;
 }
+
+.menu-button {
+    border-radius: 50%;
+    background-color: #48BDFF;
+    margin-top: -8px;
+    margin-left: 10px;
+}
+
+
+.menu-button:hover {
+    background-color: #44b8ff;
+}
+
+.dropdown-content {
+    position: absolute;
+    z-index: 1;
+    display: block;
+    background-color: white;
+    padding: 8px;
+    border-radius: 10px;
+    left: -30px;
+    top: -10px;
+}
+
+.dropdown-element {
+    padding: 2px;
+    border-radius: 4px;
+    background-color: white;
+}
+
+.dropdown-element:hover {
+    background-color: #f1f1f1;
+}
