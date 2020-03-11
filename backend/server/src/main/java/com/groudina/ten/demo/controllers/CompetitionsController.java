@@ -89,8 +89,9 @@ public class CompetitionsController {
             ArrayList<Pair<String, ?>> params = new ArrayList<Pair<String, ?>>();
             params.add(Pair.of("owner", dbUser));
             System.out.println(competition.getState());
-            if (competition.getState().equalsIgnoreCase(DbCompetition.State.Registration.toString()))
-                params.add(Pair.of("pin", pinGenerator.generate()));
+
+            params.add(Pair.of("pin", pinGenerator.generate()));
+
             var dbCompetition = competitionMapper.map(competition, params);
             return competitionsRepository.save(dbCompetition);
         }).map(newCompetition -> {
