@@ -2,9 +2,11 @@ import React from "react";
 import "./waiting-room.css";
 import ApiHelper from "../../../helpers/api-helper";
 
-import {NotificationContainer} from "react-notifications";
+import {NotificationContainer, NotificationManager} from "react-notifications";
 import NavbarHeader from "../../competition-history/navbar-header";
 import RoomTeammatesCollection from "./room-teammates-collection";
+import {withRouter} from "react-router-dom";
+
 
 class WaitingRoom extends React.Component {
     constructor(props) {
@@ -14,8 +16,25 @@ class WaitingRoom extends React.Component {
         }
     }
 
-    render() {
+    componentDidMount() {
         this.setupTeamEventConnection();
+        this.setupGameStartListener();
+    }
+
+    componentWillUnmount() {
+        if (this.eventSource !== undefined) {
+            this.eventSource.close();
+        }
+        this.closeGameStartListener();
+    }
+
+    closeGameStartListener = () => {
+        if (this.gameStartListener !== undefined) {
+            this.gameStartListener.close();
+        }
+    };
+
+    render() {
         const items = this.state.items;
         return (
             <div>
@@ -31,6 +50,24 @@ class WaitingRoom extends React.Component {
                 <NotificationContainer/>
             </div>
         )
+    }
+
+    setupGameStartListener() {
+        const {pin} = this.props.match.params;
+
+        this.gameStartListener = ApiHelper.competitionRoundEventsStream(pin);
+
+        this.gameStartListener.addEventListener("message", (message) => {
+            this.closeGameStartListener();
+            console.log("game started");
+            const timeout = 1500;
+
+            NotificationManager.warning("Game started!", "Attention", timeout);
+
+            setTimeout(() => {
+                this.props.history.push("/competitions/process_captain/" + pin);
+            }, timeout + 100);
+        });
     }
 
     setupTeamEventConnection() {
@@ -63,17 +100,8 @@ class WaitingRoom extends React.Component {
                     return {items: arr}
                 });
             });
-
-            // TODO: can we do smth like this?
-            /*
-            this.eventSource.addEventListener("gamestart", (event) => {
-               console.log("GAME HAS STARTED!");
-               // TODO: redirect to game
-            });
-
-             */
         }
     }
 }
 
-export default WaitingRoom;
+export default withRouter(WaitingRoom);
