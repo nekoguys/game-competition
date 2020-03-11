@@ -45,6 +45,7 @@ class CompetitionParamsForm extends React.Component {
 
         const {initialState} = props;
         this.formState = new CompetitionParams({initialParams: initialState});
+        this.onFormStateUpdated();
     }
 
     updateFormStateField(fieldName, value) {
