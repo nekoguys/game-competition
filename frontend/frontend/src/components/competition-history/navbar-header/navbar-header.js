@@ -78,7 +78,9 @@ class UserInfo extends React.Component {
 
     setupNavBarData() {
         console.log("update navbar");
-        ApiHelper.getNavBarInfo().then((resp) => {
+        ApiHelper.getNavBarInfo().catch(err => {
+            console.log(err);
+        }).then((resp) => {
 
             if (resp.status < 300) {
                 resp.json().then(jsonBody => {
@@ -86,7 +88,9 @@ class UserInfo extends React.Component {
                     this.setState({userDesc: jsonBody.userDescription + " - " + jsonBody.role});
                 })
             } else {
-                console.log(resp.error());
+                resp.text().then(txt => {
+                    console.log(txt)
+                });
             }
         })
     }
