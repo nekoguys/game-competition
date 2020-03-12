@@ -49,13 +49,16 @@ class CompetitionCollectionElement extends React.Component {
 
                     </div>
                 </div>
-                <div className={"col-2 flex-center-vertically"}>
-                    <div style={{margin: "auto 0"}} className={""}>
-                        <div style={{marginBottom: "-10px"}}>
-                            {button}
+                {
+                    !this.props.isAnyCloneable ? undefined : // и так пойдёт
+                    <div className={"col-2 flex-center-vertically"}>
+                        <div style={{margin: "auto 0"}} className={""}>
+                            <div style={{marginBottom: "-10px"}}>
+                                {button}
+                            </div>
                         </div>
                     </div>
-                </div>
+                }
             </div>
         </div>
     }
@@ -67,7 +70,7 @@ class CompetitionCollection extends React.Component {
         console.log({items});
 
         const elements = items.map(item => {
-            return <CompetitionCollectionElement key={item.pin} item={item} history={this.props.history}/>
+            return <CompetitionCollectionElement key={item.pin} item={item} history={this.props.history} isAnyCloneable={this.props.isAnyCloneable}/>
         });
 
         return (
@@ -75,7 +78,7 @@ class CompetitionCollection extends React.Component {
                 <div className={"row"} style={{textAlign: "center"}}>
                     <div className={"col-7"}>Название</div>
                     <div className={"col-3"}>Статус</div>
-                    <div className={"col-2"}/>
+                    {this.props.isAnyCloneable ? <div className={"col-2"}/> : undefined}
                 </div>
                 {elements}
             </div>
