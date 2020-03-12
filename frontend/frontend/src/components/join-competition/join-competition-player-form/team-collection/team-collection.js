@@ -16,7 +16,7 @@ class TeamCollectionElement extends React.Component {
     }
 
     getName() {
-        return "Команда " + this.props.name;
+        return "Команда " + (this.props.idInGame !== undefined ? this.props.idInGame.toString() + " :" : "") + this.props.name;
     }
 
     render() {
@@ -30,8 +30,9 @@ class TeamCollectionElement extends React.Component {
             image = buttonDownImage;
             res = <TeamMembersCollection
                 items={members}
-                style={{marginRight: "20px", marginLeft: "20px"}}
-                ulstyle={{paddingTop: "20px", paddingBottom: "20px", marginBottom: "0"}}
+                style={{marginRight: "20px", marginLeft: "20px", marginTop: "-20px", marginBottom: "-20px"}}
+                ulstyle={{paddingTop: "20px", paddingBottom: "20px", marginBottom: "0",
+                    fontSize: "30px", listStyle: "none"}}
             />
         }
 
@@ -91,9 +92,6 @@ class TeamCollectionElement extends React.Component {
 }
 
 class TeamCollection extends React.Component {
-    constructor(props) {
-        super(props);
-    }
 
     render() {
         console.log(this.props.items);
@@ -106,6 +104,7 @@ class TeamCollection extends React.Component {
                     <TeamCollectionElement
                         name={item.teamName}
                         members={item.teamMembers}
+                        idInGame={item.idInGame}
                         onSubmit={this.props.onSubmit}
                         isReadOnly={isReadOnly}
                     />

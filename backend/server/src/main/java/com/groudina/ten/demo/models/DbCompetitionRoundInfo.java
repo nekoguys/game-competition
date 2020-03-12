@@ -26,6 +26,9 @@ public class DbCompetitionRoundInfo {
     @Setter
     private boolean isEnded;
 
+    @Setter
+    private double price;
+
     @DBRef
     @Builder.Default
     private List<DbRoundResultElement> roundResult = new ArrayList<>();

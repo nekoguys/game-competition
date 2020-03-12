@@ -36,7 +36,9 @@ public class CompetitionsController {
     private ITeamConnectionNotifyService teamConnectionNotifyService;
     private ITeamJoinService teamJoinService;
     private IEntitiesMapper<DbCompetition, CompetitionCloneInfoResponse> competitionInfoMapper;
+    private ICompetitionResultsFormatter resultsFormatter;
     private IEntityUpdater<DbCompetition, NewCompetition> competitionEntityUpdater;
+    private IPageableCompetitionService pageableCompetitionService;
 
     public CompetitionsController(@Autowired DbCompetitionsRepository repository,
                                   @Autowired DbUserRepository userRepository,
@@ -47,6 +49,8 @@ public class CompetitionsController {
                                   @Autowired ITeamConnectionNotifyService teamConnectionNotifyService,
                                   @Autowired ITeamJoinService teamJoinService,
                                   @Autowired IEntitiesMapper<DbCompetition, CompetitionCloneInfoResponse> competitionInfoMapper,
+                                  @Autowired IPageableCompetitionService pageableCompetitionService,
+                                  @Autowired ICompetitionResultsFormatter resultsFormatter,
                                   @Autowired IEntityUpdater<DbCompetition, NewCompetition> competitionUpdater) {
         this.competitionsRepository = repository;
         this.userRepository = userRepository;
@@ -57,7 +61,9 @@ public class CompetitionsController {
         this.teamConnectionNotifyService = teamConnectionNotifyService;
         this.teamJoinService = teamJoinService;
         this.competitionInfoMapper = competitionInfoMapper;
+        this.resultsFormatter = resultsFormatter;
         this.competitionEntityUpdater = competitionUpdater;
+        this.pageableCompetitionService = pageableCompetitionService;
     }
 
     @PostMapping(value = "/update_competition/{pin}")
@@ -83,8 +89,9 @@ public class CompetitionsController {
             ArrayList<Pair<String, ?>> params = new ArrayList<Pair<String, ?>>();
             params.add(Pair.of("owner", dbUser));
             System.out.println(competition.getState());
-            if (competition.getState().equalsIgnoreCase(DbCompetition.State.Registration.toString()))
-                params.add(Pair.of("pin", pinGenerator.generate()));
+
+            params.add(Pair.of("pin", pinGenerator.generate()));
+
             var dbCompetition = competitionMapper.map(competition, params);
             return competitionsRepository.save(dbCompetition);
         }).map(newCompetition -> {
@@ -157,6 +164,26 @@ public class CompetitionsController {
                         Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseMessage.of(ex.getMessage()))))
                 .defaultIfEmpty(
                         ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseMessage.of("No competition with pin: " + joinTeamRequest.getCompetitionPin())));
+    }
+
+    @GetMapping(value = "/competition_results/{pin}")
+    @PreAuthorize("hasRole('TEACHER')")
+    public Mono<ResponseEntity> competitionResults(@PathVariable String pin) {
+        return this.competitionsRepository.findByPin(pin).map(el -> {
+            return (ResponseEntity)ResponseEntity.ok(resultsFormatter.getCompetitionResults(el));
+        }).switchIfEmpty(Mono.defer(() -> {
+            return Mono.just(ResponseEntity.badRequest().body(ResponseMessage.of("Competition with pin: " + pin + " not found")));
+        })).onErrorResume(ex -> Mono.just(ResponseEntity.badRequest().body(ResponseMessage.of(ex.getMessage()))));
+    }
+
+
+    @GetMapping(value = "/created_competitions/{start}/{amount}", produces = {MediaType.APPLICATION_JSON_VALUE})
+    @PreAuthorize("hasRole('TEACHER')")
+    public Mono<ResponseEntity> getCreatedCompetitionsEvents(Mono<Principal> principalMono, @PathVariable Integer start, @PathVariable Integer amount) {
+        return principalMono
+                .map(Principal::getName)
+                .flatMap(email -> pageableCompetitionService.get(email, start, amount))
+                .map(ResponseEntity::ok);
     }
 }
 

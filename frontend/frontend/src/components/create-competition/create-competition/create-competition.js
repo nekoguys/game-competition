@@ -14,18 +14,69 @@ class CreateCompetition extends React.Component {
         this.formState = {};
     }
 
-    onSaveAsDraftClick = () => {
-        let obj = {...this.formState.toJSONObject(), state: "draft"};
+    componentDidMount() {
+        if (this.props.history.location.state)
+            this.initialState = this.props.history.location.state.initialState;
+    }
 
-        this.onCreateCompetition(obj, () => {});
+    isUpdateMode() {
+        return !!(this.props.match && this.props.match.params && this.props.match.params.pin);
+    }
+
+    onSaveAsDraftClick = () => {
+        let obj = {...this.formState.toJSONObject(), state: "Draft"};
+
+        if (!this.isUpdateMode()) {
+            this.onCreateCompetition(obj, () => {
+                this.props.history.push('/competitions/history')
+            });
+        } else {
+            this.onUpdateDraftCompetition(obj, () => {
+                this.props.history.push('/competitions/history');
+            })
+        }
     };
 
     onOpenRegistrationClick = () => {
-        let obj = {...this.formState.toJSONObject(), state: "registration"};
+        let obj = {...this.formState.toJSONObject(), state: "Registration"};
 
-        this.onCreateCompetition(obj, () => {
-            console.log({pin: this.pin});
-            this.props.history.push("/competitions/after_registration_opened/" + this.pin);
+        if (!this.isUpdateMode()) {
+
+            this.onCreateCompetition(obj, () => {
+                console.log({pin: this.pin});
+                this.props.history.push("/competitions/after_registration_opened/" + this.pin);
+            })
+        } else {
+            this.onUpdateDraftCompetition(obj, () => {
+                this.props.history.push("/competitions/after_registration_opened/" + this.props.match.params.pin);
+            })
+        }
+    };
+
+    onUpdateDraftCompetition = (obj, successCallback) => {
+        const timeout = 2000;
+
+        const {pin} = this.props.match.params;
+
+        ApiHelper.updateCompetition(pin, obj)
+            .catch(err => {
+                NotificationManager.error(err, "Error", timeout);
+            })
+            .then(resp => {
+                if (resp.status >= 300) {
+                    return {success: false, response: resp.text()}
+                }
+
+                return {success: true, json: resp.json()};
+            }).then(resp => {
+                resp.json.then(jsonBody => {
+                    if (resp.success) {
+                        NotificationManager.success("Competition saved successfully", "Success!", timeout);
+                        successCallback();
+                    } else {
+                        NotificationManager.error(jsonBody, "Error", timeout);
+                    }
+                })
         })
     };
 
@@ -76,7 +127,8 @@ class CreateCompetition extends React.Component {
                         </span>
                     </div>
                     <div className={"competition-form-holder"}>
-                        <CompetitionParamsForm onFormStateUpdated={(formState) => this.onFormStateUpdated(formState)}/>
+                        <CompetitionParamsForm onFormStateUpdated={(formState) => this.onFormStateUpdated(formState)}
+                                               initialState={this.props.history.location.state ? this.props.history.location.state.initialState : {}}/>
                         <div className={"form-group row"} style={{marginTop: "30px", marginLeft: "7.5%", marginRight: "7.5%"}}>
                             <div className={"mr-auto p-2"}>
                                 <DefaultSubmitButton text={"Сохранить черновик"} style={{height: "100%", fontSize: "26px",

@@ -15,8 +15,6 @@ public class CompetitionAnswerRequestDto implements Serializable {
 
     private static final long serialVersionUID = -2068405266676142856L;
 
-    private String teamName;
-
     private int answer;
 
     private int roundNumber;

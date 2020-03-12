@@ -328,4 +328,38 @@ class GameManagementServiceImplTest {
 
         verifier.verify();
     }
+
+    @Test
+    void testPricesEvents() {
+        var comp = commonPart();
+
+        var teams = teamsRepository.findAll().collectList().block();
+
+        gameManagementService.startCompetition(comp).block();
+
+        gameManagementService.submitAnswer(comp, teams.get(0), 10, 1).block();
+        gameManagementService.submitAnswer(comp, teams.get(1), 30, 1).block();
+
+        var verifier = StepVerifier.create(gameManagementService.getRoundPricesEvents(comp))
+                .consumeNextWith(dto -> {
+                    assertEquals(dto.getPrice(), 6, 0.01);
+                    assertEquals(dto.getRoundNumber(), 1);
+                }).expectNoEvent(Duration.ofSeconds(1)).thenCancel().verifyLater();
+
+        gameManagementService.endCurrentRound(comp).block();
+
+        verifier.verify();
+    }
+
+    @Test
+    void testEarlyRoundsEventSubscription() {
+        var comp = commonPart();
+
+        var verifier = StepVerifier.create(gameManagementService.beginEndRoundEvents(comp))
+                .consumeNextWith(dto -> {
+                    assertEquals(dto.getType(), "NewRound");
+                }).thenCancel().verifyLater();
+        gameManagementService.startCompetition(comp).block();
+        verifier.verify();
+    }
 }

@@ -6,6 +6,8 @@ import CompetitionResultsTable from "../results-table";
 import MessagesContainer from "../messages";
 import ApiHelper from "../../../../helpers/api-helper";
 import {NotificationContainer, NotificationManager} from "react-notifications";
+import processRoundsEvents from "../../../../helpers/rounds-event-source-helper";
+import processMessagesEvents from "../../../../helpers/messages-event-source-helper";
 
 
 class CompetitionProcessTeacherBody extends React.Component {
@@ -20,8 +22,10 @@ class CompetitionProcessTeacherBody extends React.Component {
             isCurrentRoundEnded: false,
             name: "",
             teamsCount: 10,
-            roundsCount: 6,
+            roundsCount: 0,
             answers: {},
+            results: {},
+            prices: {},
             messages: []
         }
     }
@@ -37,6 +41,8 @@ class CompetitionProcessTeacherBody extends React.Component {
             rightButtonClick={this.onStartOrEndRoundButtonClick}
             teamsCount={this.state.teamsCount}
             roundsCount={this.state.roundsCount}
+            results={this.state.results}
+            prices={this.state.prices}
         />);
 
         return (
@@ -56,13 +62,36 @@ class CompetitionProcessTeacherBody extends React.Component {
         this.setupRoundsEvents();
         this.setupAnswerEvents();
         this.getCompetitionInfo();
+        this.setupResultsEvents();
+        this.setupPricesEvents();
     }
 
     componentWillUnmount() {
         this.closeCompetitionMessagesEvents();
         this.closeRoundEvents();
         this.closeAnswersEvents();
+        this.closeCompetitionResultsEvents();
+        this.closePricesEvents();
+
+        clearInterval(this.timerId);
     }
+
+    componentDidUpdate(prevProps, prevState, snapshot) {
+        if (this.state.isCurrentRoundEnded) {
+            clearInterval(this.timerId);
+        } else {
+            clearInterval(this.timerId);
+            this.setupTimer();
+        }
+    }
+
+    setupTimer = () => {
+        this.timerId = setInterval(() => {
+            this.setState(prevState => {
+                return {timeTillRoundEnd: Math.max(prevState.timeTillRoundEnd - 1, 0)};
+            })
+        }, 1000);
+    };
 
     getCompetitionInfo() {
         const {pin} = this.props;
@@ -78,6 +107,11 @@ class CompetitionProcessTeacherBody extends React.Component {
                 if (resp.success) {
                     this.setState(prevState => {
                         this.props.updateCompetitionNameCallback(jsonBody.name);
+
+                        if (jsonBody.roundsCount === prevState.currentRoundNumber && jsonBody.roundsCount !== 0) {
+                            this.props.onEndCallback();
+                        }
+
                         return {
                             name: jsonBody.name,
                             teamsCount: jsonBody.connectedTeamsCount,
@@ -87,6 +121,54 @@ class CompetitionProcessTeacherBody extends React.Component {
                 } else {
                     NotificationManager.error(jsonBody.message, "Error", 1500);
                 }
+            })
+        })
+    }
+
+    setupPricesEvents() {
+        const {pin} = this.props;
+
+        this.pricesEventSource = ApiHelper.competitionRoundPricesStream(pin);
+
+        this.pricesEventSource.addEventListener("message", (message) => {
+            const {price, roundNumber} = JSON.parse(message.data);
+
+            this.setState(prevState => {
+                const prices = {...prevState.prices};
+
+                prices[roundNumber] = price;
+                return {prices};
+            })
+        })
+    }
+
+    setupResultsEvents() {
+        const {pin} = this.props;
+
+        this.resultsEventSource = ApiHelper.competitionResultsStream(pin);
+
+        this.resultsEventSource.addEventListener("error", (err) => {
+            console.log("resultsEventSource error: ");
+            console.log({err});
+        });
+
+        this.resultsEventSource.addEventListener("message", (message) => {
+            const resultsData = JSON.parse(message.data);
+            console.log({resultsData});
+            const teamIdInGame = resultsData.teamIdInGame;
+            const round = resultsData.roundNumber;
+            const income = resultsData.income;
+
+            this.setState(prevState => {
+                const results = {...prevState.results};
+
+                if (!(round in results)) {
+                    results[round] = {[teamIdInGame]: income};
+                } else {
+                    results[round][teamIdInGame] = income;
+                }
+
+                return {results: results};
             })
         })
     }
@@ -125,21 +207,11 @@ class CompetitionProcessTeacherBody extends React.Component {
 
         this.competitionRoundEventSource = ApiHelper.competitionRoundEventsStream(pin);
         this.competitionRoundEventSource.addEventListener("error",
-            (err) => console.log("competitionRoundEventSource failed: " + err))
+            (err) => console.log("competitionRoundEventSource failed: " + err));
 
         this.competitionRoundEventSource.addEventListener("message", (message) => {
-            console.log({competitionRoundEventSourceData: message.data});
-            const messageData = JSON.parse(message.data);
-            console.log({messageData});
-
             this.setState((prevState) => {
-                if (messageData.type.toLowerCase() === 'newround') {
-                    console.log({tmstmp : new Date().getTime()});
-                    const timeTillRoundEnd = messageData.roundLength - (Math.round((new Date().getTime())/1000) - messageData.beginTime);
-                    return {currentRoundNumber: messageData.roundNumber, timeTillRoundEnd: timeTillRoundEnd, isCurrentRoundEnded: false};
-                } else {
-                    return {isCurrentRoundEnded: true};
-                }
+                return processRoundsEvents(message);
             });
         });
     }
@@ -151,44 +223,27 @@ class CompetitionProcessTeacherBody extends React.Component {
         this.eventsSource.addEventListener("error", (err) => console.log("EventSource failed: " + err));
 
         this.eventsSource.addEventListener("message", event => {
-            console.log(event.data);
-            this.setState((prevState) => {
-                const prevMessages = prevState.messages;
-                let arr = prevMessages.slice(0);
-                const elem = JSON.parse(event.data);
-                const date = new Date(elem.sendTime * 1000);
-
-                const dateStr = date.toLocaleDateString("en-US", {
-                    hour: 'numeric',
-                    minute: 'numeric',
-                    day: 'numeric',
-                    month: 'short',
-                });
-
-                const messageElem = {
-                    message: elem.message,
-                    dateStr: dateStr,
-                    timestamp: elem.sendTime
-                };
-
-                const index = arr.findIndex(el => {
-                    return el.message === messageElem.message && el.timestamp === messageElem.timestamp;
-                });
-
-                if (index === -1) {
-                    arr = [messageElem].concat(arr);
-                } else {
-                    arr[index] = messageElem;
-                }
-
-                return {messages: arr};
-            })
+            this.setState(prevState => {
+                return processMessagesEvents(event, [...prevState.messages]);
+            });
         })
+    }
+
+    closeCompetitionResultsEvents() {
+        if (this.resultsEventSource !== undefined) {
+            this.resultsEventSource.close();
+        }
     }
 
     closeCompetitionMessagesEvents() {
         if (this.eventSource !== undefined)
             this.eventSource.close();
+    }
+
+    closePricesEvents() {
+        if (this.pricesEventSource !== undefined) {
+            this.pricesEventSource.close();
+        }
     }
 
     closeAnswersEvents() {
@@ -204,12 +259,15 @@ class CompetitionProcessTeacherBody extends React.Component {
     }
 
     onStartOrEndRoundButtonClick = () => {
+        console.log("click on start/end round button");
         const {pin} = this.props;
         let pr;
         if (this.state.isCurrentRoundEnded) {
             pr = ApiHelper.startNewCompetitionRound(pin);
+            console.log("start");
         } else {
             pr = ApiHelper.endCompetitionRound(pin);
+            console.log("end");
         }
 
         pr.then(resp => {
@@ -217,7 +275,7 @@ class CompetitionProcessTeacherBody extends React.Component {
             if (resp.status >= 300) {
                 return {success: false, json: resp.text()};
             }
-
+            
             return {success: true, json: resp.json()};
         }).then(resp => {
             resp.json.then(jsonBody => {
@@ -281,7 +339,12 @@ class CompetitionProcessTeacherActive extends React.Component {
                     </div>
                 </div>
                 <div style={{paddingTop: "20px"}}>
-                    <CompetitionResultsTable style={{width: "100%"}} teamsCount={this.props.teamsCount} roundsCount={this.props.roundsCount} answers={this.props.answers} />
+                    <CompetitionResultsTable style={{width: "100%"}} teamsCount={this.props.teamsCount}
+                                             roundsCount={this.props.roundsCount}
+                                             answers={this.props.answers}
+                                             results={this.props.results}
+                                             prices={this.props.prices}
+                    />
                 </div>
                 <div style={{paddingTop: "20px"}}>
                     <MessagesContainer messages={this.props.messages} sendMessageCallBack={this.props.sendMessageCallBack}/>
