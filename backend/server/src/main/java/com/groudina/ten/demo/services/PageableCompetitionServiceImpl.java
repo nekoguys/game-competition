@@ -54,9 +54,11 @@ public class PageableCompetitionServiceImpl implements IPageableCompetitionServi
 
     @Override
     public Flux<CompetitionInfoResponse> getByEmail(String email, Integer startIndex, Integer amount) {
-        return getByOwner(email, startIndex, amount)
-                .concatWith(getByPlayer(email, startIndex, amount))
+        return getByOwner(email, 0, Integer.MAX_VALUE)
+                .concatWith(getByPlayer(email, 0, Integer.MAX_VALUE))
                 .sort(Comparator.comparing(x -> x.getLastUpdateTime(), Comparator.nullsLast(Comparator.reverseOrder())))
-                .distinct();
+                .distinct()
+                .skip(startIndex)
+                .take(amount);
     }
 }
