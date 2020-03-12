@@ -52,7 +52,7 @@ export class TextInputWithSubmitButton extends React.Component {
         }
 
         return (
-            <div className={"row"} style={{overflow: "hidden", ...containerStyle}}>
+            <div className={"row"} style={{overflow: "hidden", flexWrap: "nowrap", ...containerStyle}}>
                 <input placeholder={placeholder} type={type} style={{width: "100%", ...inputStyle}}
                        onChange={event => this.onTextChanged(event.target.value)} ref={el => this.input = el}
                        {...addProps}
