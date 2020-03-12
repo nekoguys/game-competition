@@ -1,5 +1,6 @@
 package com.groudina.ten.demo.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -23,6 +24,9 @@ public class CompetitionInfoForStudentResultsTableDto implements Serializable {
     private int teamIdInGame;
 
     private boolean shouldShowResultTable;
+
+    @JsonProperty("isCaptain")
+    private boolean isCaptain;
 
     private int roundsCount;
 }

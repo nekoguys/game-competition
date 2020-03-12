@@ -150,6 +150,7 @@ public class CompetitionProcessController {
                     }
 
                     var dto = CompetitionInfoForStudentResultsTableDto.builder()
+                            .isCaptain(team.get().getCaptain().getEmail().equals(email))
                             .description(parameters.getInstruction())
                             .name(parameters.getName())
                             .roundsCount(parameters.getRoundsCount())

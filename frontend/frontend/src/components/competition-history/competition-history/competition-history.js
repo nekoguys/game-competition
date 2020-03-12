@@ -1,6 +1,6 @@
 import React from "react";
 import NavbarHeader from "../navbar-header";
-import {NotificationContainer, NotificationManager} from "react-notifications";
+import {NotificationContainer} from "react-notifications";
 import CompetitionCollection from './competition-collection';
 import {withRouter} from "react-router-dom";
 import ApiHelper from "../../../helpers/api-helper";
@@ -16,7 +16,8 @@ class CompetitionHistory extends React.Component {
 
         this.state = {
             itemsLoaded: 0,
-            items: []
+            items: [],
+            isAnyCloneable: true
         }
     }
 
@@ -25,18 +26,52 @@ class CompetitionHistory extends React.Component {
     }
 
     updateHistory(delta) {
-        ApiHelper.createdCompetitions(this.state.itemsLoaded, delta).then(resp => {
+        ApiHelper.competitionsHistory(this.state.itemsLoaded, delta).then(resp => {
             if (resp.status < 300)
                 resp.json().then(json => {
                     console.log(json);
                     this.setState(prevState => {
-                        return {items: prevState.items.concat(json), itemsLoaded: prevState.itemsLoaded + delta}
+                        return {
+                            items: prevState.items.concat(json),
+                            itemsLoaded: prevState.itemsLoaded + delta,
+                            isAnyCloneable: prevState.isAnyCloneable || json.some((x) => x.owned)
+                        }
                     }, () => {
                         this.scrollToBottom();
                     });
                 })
         })
     }
+
+    onHistoryItemClickCallback = (item) => {
+        let isTeacher = false;
+        if (window.localStorage.getItem("roles").includes("TEACHER")) {
+            isTeacher = true;
+        }
+        console.log({isTeacher});
+        if (item.state.toLowerCase() === "registration") {
+            if (isTeacher) {
+                this.props.history.push('/competitions/after_registration_opened/' + item.pin);
+            } else {
+                this.props.history.push('/competitions/competitions/waiting_room/' + item.pin);
+            }
+        } else if (item.state.toLowerCase() === "inprocess") {
+            if (isTeacher) {
+                this.props.history.push('/competitions/process_teacher/' + item.pin);
+            } else {
+                //TODO check if he is captain
+                this.props.history.push('/competitions/process_captain/' + item.pin);
+            }
+        } else if (item.state.toLowerCase() === "ended") {
+            if (isTeacher) {
+                this.props.history.push('/competitions/results/' + item.pin);
+            }
+        } else if (item.state.toLowerCase() === "draft") {
+            if (isTeacher) {
+                this.props.history.push('/competitions/draft_competition/' + item.pin, {initialState: item})
+            }
+        }
+    };
 
     scrollToBottom = () => {
         this.competitionsEnd.scrollIntoView({behavior: "smooth"});
@@ -53,7 +88,7 @@ class CompetitionHistory extends React.Component {
                         {"Последние игры"}
                     </div>
                     <div className={"collection-holder"} style={{margin: "0 auto"}}>
-                        <CompetitionCollection items={this.state.items}/>
+                        <CompetitionCollection items={this.state.items} onHistoryItemClickCallback={this.onHistoryItemClickCallback} isAnyCloneable={this.state.isAnyCloneable}/>
 
                         <div style={{paddingTop: "30px"}}>
                             <div className={"row justify-content-center"}>

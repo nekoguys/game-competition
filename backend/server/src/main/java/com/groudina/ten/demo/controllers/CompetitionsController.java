@@ -89,8 +89,9 @@ public class CompetitionsController {
             ArrayList<Pair<String, ?>> params = new ArrayList<Pair<String, ?>>();
             params.add(Pair.of("owner", dbUser));
             System.out.println(competition.getState());
-            if (competition.getState().equalsIgnoreCase(DbCompetition.State.Registration.toString()))
-                params.add(Pair.of("pin", pinGenerator.generate()));
+
+            params.add(Pair.of("pin", pinGenerator.generate()));
+
             var dbCompetition = competitionMapper.map(competition, params);
             return competitionsRepository.save(dbCompetition);
         }).map(newCompetition -> {
@@ -176,12 +177,13 @@ public class CompetitionsController {
     }
 
 
-    @GetMapping(value = "/created_competitions/{start}/{amount}", produces = {MediaType.APPLICATION_JSON_VALUE})
-    @PreAuthorize("hasRole('TEACHER')")
-    public Mono<ResponseEntity> getCreatedCompetitionsEvents(Mono<Principal> principalMono, @PathVariable Integer start, @PathVariable Integer amount) {
+    @GetMapping(value = "/competitions_history/{start}/{amount}", produces = {MediaType.APPLICATION_JSON_VALUE})
+    @PreAuthorize("hasRole('STUDENT')")
+    public Mono<ResponseEntity> competitionsHistory(Mono<Principal> principalMono, @PathVariable Integer start, @PathVariable Integer amount) {
         return principalMono
                 .map(Principal::getName)
-                .flatMap(email -> pageableCompetitionService.get(email, start, amount))
+                .flatMapMany(email -> pageableCompetitionService.getByEmail(email, start, amount))
+                .collectList()
                 .map(ResponseEntity::ok);
     }
 }

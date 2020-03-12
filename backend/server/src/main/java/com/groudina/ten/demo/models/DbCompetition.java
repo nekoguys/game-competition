@@ -22,6 +22,11 @@ public class DbCompetition {
 
     private DbCompetition.State state;
 
+    public void setState(State newState) {
+        state = newState;
+        lastModifiedDate = LocalDateTime.now();
+    }
+
     private String pin;
 
     private DbCompetition.Parameters parameters;
@@ -82,4 +87,6 @@ public class DbCompetition {
         @Field("show_result_table")
         private boolean shouldShowResultTableInEnd;
     }
+
+    private LocalDateTime lastModifiedDate;
 }

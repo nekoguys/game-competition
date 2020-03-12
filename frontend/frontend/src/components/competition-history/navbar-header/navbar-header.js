@@ -2,11 +2,13 @@ import React from "react";
 import DefaultSubmitButton from "../../common/default-submit-button";
 import {withRouter} from "react-router-dom";
 import './navbar-header.css';
+<<<<<<< frontend/frontend/src/components/competition-history/navbar-header/navbar-header.js
 import ApiHelper from "../../../helpers/api-helper";
 import buttonUpImage from "../../join-competition/join-competition-player-form/team-collection/buttonUp.png";
 import buttonDownImage from "../../join-competition/join-competition-player-form/team-collection/buttonDown.png";
 import profileImage from "./profile-image.png";
 import exitImage from "./exit-image.png";
+import isTeacher from "../../../helpers/role-helper";
 
 class NavbarHeader extends React.Component {
 
@@ -21,6 +23,9 @@ class NavbarHeader extends React.Component {
     onRedirect = (path) => {
         this.props.history.push(path);
     };
+    onEnterGameClick = () => {
+        this.props.history.push('/competitions/join')
+    };
 
     render() {
         const buttonsStyle = {
@@ -31,11 +36,18 @@ class NavbarHeader extends React.Component {
             paddingLeft: "20px",
             paddingRight: "20px"
         };
+
+        let navbarButton;
+        if (isTeacher())
+            navbarButton = <DefaultSubmitButton text="Создать игру" style={buttonsStyle} onClick={this.onCreateGameClick}/>;
+        else
+            navbarButton = <DefaultSubmitButton text="Войти в игру" style={buttonsStyle} onClick={this.onEnterGameClick}/>;
+
         return (
             <div className="navbar-header-fixed-top">
                 <div className={"d-flex"} style={{marginTop: "20px", marginLeft: "40px"}}>
                     <DefaultSubmitButton text="История игр" style={{...buttonsStyle, marginRight: "50px"}} onClick={this.onGameHistoryClick}/>
-                    <DefaultSubmitButton text="Создать игру" style={buttonsStyle} onClick={this.onCreateGameClick}/>
+                    {navbarButton}
 
 
                     <div style={{marginLeft: "auto"}}>
@@ -183,7 +195,7 @@ class UserInfo extends React.Component {
                     </div>
                 </div>
             </div>
-        )
+        );
     }
 }
 

@@ -3,7 +3,7 @@ import React from "react";
 import "./root.css";
 import NavbarHeader from "../../../competition-history/navbar-header/navbar-header";
 import CompetitionProcessTeacherBody from "../body";
-import {withRouter} from "react-router-dom";
+import withRedirect from "../../../../helpers/redirect-helper";
 import {NotificationContainer, NotificationManager} from "react-notifications";
 
 class CompetitionProcessTeacherRootComponent extends React.Component {
@@ -66,4 +66,4 @@ class CompetitionProcessTeacherRootComponent extends React.Component {
     }
 }
 
-export default withRouter(CompetitionProcessTeacherRootComponent);
+export default withRedirect(CompetitionProcessTeacherRootComponent);

@@ -92,8 +92,8 @@ class ApiSettings {
         return ApiSettings.host() + "/competition_process/" + pin + "/comp_info";
     }
 
-    static createdCompetitions(start, amount) {
-        return ApiSettings.host() + "/competitions/created_competitions/" + start + "/" + amount;
+    static competitionsHistory(start, amount) {
+        return ApiSettings.host() + "/competitions/competitions_history/" + start + "/" + amount;
     }
 
     static competitionResultsStream(pin) {
@@ -286,8 +286,8 @@ export default class ApiHelper {
         })
     }
 
-    static createdCompetitions(start, amount) {
-        return fetch(ApiSettings.createdCompetitions(start, amount), {
+    static competitionsHistory(start, amount) {
+        return fetch(ApiSettings.competitionsHistory(start, amount), {
             method: "GET",
             headers: this.authDefaultHeaders()
         })

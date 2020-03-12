@@ -1,14 +1,13 @@
 package com.groudina.ten.demo.dto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.groudina.ten.demo.models.DbCompetition;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.io.Serializable;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Date;
 
 @Builder
 @Getter
@@ -39,9 +38,13 @@ public class CompetitionInfoResponse implements Serializable {
 
     private boolean shouldShowResultTableInEnd;
 
-    private String lastUpdateTime;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy")
+    private LocalDateTime lastUpdateTime;
 
     private String pin;
 
     private DbCompetition.State state;
+
+    @Setter
+    private boolean isOwned;
 }

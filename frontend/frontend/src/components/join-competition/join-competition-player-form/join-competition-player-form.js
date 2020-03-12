@@ -52,7 +52,7 @@ export class TextInputWithSubmitButton extends React.Component {
         }
 
         return (
-            <div className={"row"} style={{overflow: "hidden", ...containerStyle}}>
+            <div className={"row"} style={{overflow: "hidden", flexWrap: "nowrap", ...containerStyle}}>
                 <input placeholder={placeholder} type={type} style={{width: "100%", ...inputStyle}}
                        onChange={event => this.onTextChanged(event.target.value)} ref={el => this.input = el}
                        {...addProps}
@@ -84,7 +84,7 @@ class JoinCompetitionPlayerForm extends React.Component {
     onGameIdSubmitButton = (gameId) => {
         console.log(gameId);
         this.gameId = gameId;
-        const timeout = 1000;
+        const timeout = 1500;
         ApiHelper.checkPin({pin: gameId}).then(resp => {
             if (resp.status >= 300) {
                 return {success: false}
@@ -212,7 +212,7 @@ class JoinCompetitionPlayerForm extends React.Component {
             password: password
         };
 
-        const timeout = 1200;
+        const timeout = 2200;
 
         ApiHelper.joinTeam(obj).then(resp => {
             if (resp.status >= 300) {

@@ -497,6 +497,7 @@ class CompetitionProcessControllerTest {
                 .exchange()
                 .expectStatus().isOk()
                 .expectBody(CompetitionInfoForStudentResultsTableDto.class).value(el -> {
+                    assertTrue(el.isCaptain());
                     assertEquals(el.getDescription(), "instr");
                     assertEquals(el.getName(), "name");
                     assertEquals(el.getRoundsCount(), 3);

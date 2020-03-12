@@ -9,7 +9,7 @@ import DefaultSubmitButton from "../common/default-submit-button";
 import toSnakeCase from "../../helpers/snake-case-helper";
 import {NotificationContainer, NotificationManager} from "react-notifications";
 import getValueForJsonObject from "../../helpers/competition-params-helper";
-import {withRouter} from "react-router-dom";
+import withRedirect from "../../helpers/redirect-helper";
 
 
 class AfterRegistrationOpenedComponent extends React.Component {
@@ -210,4 +210,4 @@ class AfterRegistrationOpenedComponent extends React.Component {
     }
 }
 
-export default withRouter(AfterRegistrationOpenedComponent);
+export default withRedirect(AfterRegistrationOpenedComponent);
