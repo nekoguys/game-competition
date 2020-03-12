@@ -84,7 +84,7 @@ class JoinCompetitionPlayerForm extends React.Component {
     onGameIdSubmitButton = (gameId) => {
         console.log(gameId);
         this.gameId = gameId;
-        const timeout = 1000;
+        const timeout = 1500;
         ApiHelper.checkPin({pin: gameId}).then(resp => {
             if (resp.status >= 300) {
                 return {success: false}
@@ -212,7 +212,7 @@ class JoinCompetitionPlayerForm extends React.Component {
             password: password
         };
 
-        const timeout = 1200;
+        const timeout = 2200;
 
         ApiHelper.joinTeam(obj).then(resp => {
             if (resp.status >= 300) {
