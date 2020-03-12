@@ -62,6 +62,7 @@ class AuthControllerTest {
                 DbRole.builder().name("ROLE_TEACHER").build(),
                 DbRole.builder().name("ROLE_ADMIN").build())).blockLast();
         Mockito.when(emailService.sendEmail(Mockito.anyString(), Mockito.anyString())).thenReturn(Mono.empty());
+        Mockito.when(emailService.isActive()).thenReturn(true);
     }
 
     @AfterEach
@@ -171,6 +172,7 @@ class AuthControllerTest {
 
     @Test
     void testVerification() {
+
         webTestClient.post().uri("/api/auth/signup")
                 .accept(MediaType.APPLICATION_JSON)
                 .contentType(MediaType.APPLICATION_JSON)
