@@ -8,6 +8,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.InvocationTargetException;
+import java.time.LocalDateTime;
 
 @Component
 @Log4j2
@@ -21,6 +22,7 @@ public class NewCompetitionToDbMapper implements IEntitiesMapper<NewCompetition,
     public DbCompetition map(NewCompetition from, @Nullable Iterable<Pair<String, ?>> additionalFields) {
         var builder = DbCompetition.builder();
         builder.state(DbCompetition.State.valueOf(capitalize(from.getState())))
+                .lastModifiedDate(LocalDateTime.now())
                 .parameters(DbCompetition.Parameters.builder()
                         .expensesFormula(from.getExpensesFormula())
                         .demandFormula(from.getDemandFormula())

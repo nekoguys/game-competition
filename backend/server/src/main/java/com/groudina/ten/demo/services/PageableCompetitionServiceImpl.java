@@ -7,6 +7,8 @@ import com.groudina.ten.demo.dto.CompetitionInfoResponse;
 import com.groudina.ten.demo.models.DbCompetition;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.util.Comparator;
 import reactor.core.publisher.Flux;
 
 @Component
@@ -54,6 +56,7 @@ public class PageableCompetitionServiceImpl implements IPageableCompetitionServi
     public Flux<CompetitionInfoResponse> getByEmail(String email, Integer startIndex, Integer amount) {
         return getByOwner(email, startIndex, amount)
                 .concatWith(getByPlayer(email, startIndex, amount))
+                .sort(Comparator.comparing(x -> x.getLastUpdateTime(), Comparator.nullsLast(Comparator.reverseOrder())))
                 .distinct();
     }
 }
