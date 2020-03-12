@@ -5,10 +5,6 @@ import DefaultSubmitButton from "../../../common/default-submit-button";
 import {withRouter} from "react-router-dom";
 
 class CompetitionCollectionElement extends React.Component {
-    constructor(props) {
-        super(props);
-    }
-
     stateMapper(state) {
         if (state === "Registration")
             return "Регистрация";
@@ -23,7 +19,7 @@ class CompetitionCollectionElement extends React.Component {
     }
 
     render() {
-        const {name, state, lastUpdateTime} = this.props.item;
+        const {name, state, lastUpdateTime, owned} = this.props.item;
 
         let res;
         if (lastUpdateTime) {
@@ -37,6 +33,13 @@ class CompetitionCollectionElement extends React.Component {
             res = <div style={{margin: "auto 0", display: "inline-block"}}>{this.stateMapper(state)}</div>
         }
 
+        let button;
+        if (owned)
+            button = <DefaultSubmitButton text={"Клонировать"} onClick={() => {
+                console.log(this);
+                this.props.history.push('/competitions/create/', {initialState: this.props.item});
+            }}/>;
+
         return <div className={"item-element-container"}>
             <div className={"row"}>
                 <div className={"col-7 center-text"} style={{textAlign: "center"}}>{name}</div>
@@ -49,10 +52,7 @@ class CompetitionCollectionElement extends React.Component {
                 <div className={"col-2 flex-center-vertically"}>
                     <div style={{margin: "auto 0"}} className={""}>
                         <div style={{marginBottom: "-10px"}}>
-                    <DefaultSubmitButton text={"Клонировать"} onClick={() => {
-                        console.log(this);
-                        this.props.history.push('/competitions/create/', {initialState: this.props.item});
-                    }}/>
+                            {button}
                         </div>
                     </div>
                 </div>
@@ -62,10 +62,6 @@ class CompetitionCollectionElement extends React.Component {
 }
 
 class CompetitionCollection extends React.Component {
-    constructor(props) {
-        super(props)
-    }
-
     render() {
         const {items} = this.props;
         console.log({items});
