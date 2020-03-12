@@ -2,7 +2,6 @@ package com.groudina.ten.demo.models;
 
 import lombok.*;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
@@ -22,6 +21,11 @@ public class DbCompetition {
     private String id;
 
     private DbCompetition.State state;
+
+    public void setState(State newState) {
+        state = newState;
+        lastModifiedDate = LocalDateTime.now();
+    }
 
     private String pin;
 
@@ -84,6 +88,5 @@ public class DbCompetition {
         private boolean shouldShowResultTableInEnd;
     }
 
-    @LastModifiedDate
     private LocalDateTime lastModifiedDate;
 }
