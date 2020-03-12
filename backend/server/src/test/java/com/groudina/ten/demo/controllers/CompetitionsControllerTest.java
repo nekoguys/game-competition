@@ -728,7 +728,7 @@ class CompetitionsControllerTest {
     }
 
     @Test
-    @WithMockUser(value = "email", password = "1234", roles = {"TEACHER"})
+    @WithMockUser(value = "email", password = "1234", roles = {"STUDENT"})
     public void testGetCreatedCompetitions() {
         var user = DbUser.builder().email("email").password("1234").roles(rolesRepository.findAll().collectList().block()).build();
         user = userRepository.save(user).block();
@@ -765,12 +765,12 @@ class CompetitionsControllerTest {
         var comp2 = DbCompetition.builder().pin("23456").owner(user).parameters(params).build();
         comp2 = competitionsRepository.save(comp2).block();
 
-        webTestClient.get().uri("/api/competitions/created_competitions/0/2")
+        webTestClient.get().uri("/api/competitions/competitions_history/0/2")
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange().expectStatus().isOk()
                 .expectBody()
-                .jsonPath("$[0].length()").isEqualTo(14)
-                .jsonPath("$[1].length()").isEqualTo(14);
+                .jsonPath("$[0].length()").isEqualTo(15)
+                .jsonPath("$[1].length()").isEqualTo(15);
     }
     @Test
     @WithMockUser(value = "email", password = "1234", roles = {"TEACHER"})
