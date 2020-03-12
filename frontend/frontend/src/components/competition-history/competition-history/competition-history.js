@@ -25,7 +25,7 @@ class CompetitionHistory extends React.Component {
     }
 
     updateHistory(delta) {
-        ApiHelper.createdCompetitions(this.state.itemsLoaded, delta).then(resp => {
+        ApiHelper.competitionsHistory(this.state.itemsLoaded, delta).then(resp => {
             if (resp.status < 300)
                 resp.json().then(json => {
                     console.log(json);

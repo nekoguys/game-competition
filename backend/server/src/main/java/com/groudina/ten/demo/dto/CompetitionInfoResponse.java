@@ -2,10 +2,7 @@ package com.groudina.ten.demo.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.groudina.ten.demo.models.DbCompetition;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -44,4 +41,7 @@ public class CompetitionInfoResponse implements Serializable {
     private String pin;
 
     private DbCompetition.State state;
+
+    @Setter
+    private boolean isOwned;
 }

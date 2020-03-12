@@ -1,10 +1,10 @@
 package com.groudina.ten.demo.services;
 
 import com.groudina.ten.demo.dto.CompetitionInfoResponse;
-import reactor.core.publisher.Mono;
-
-import java.util.List;
+import reactor.core.publisher.Flux;
 
 public interface IPageableCompetitionService {
-    Mono<List<CompetitionInfoResponse>> get(String email, int startIndex, int amount);
+    Flux<CompetitionInfoResponse> getByOwner(String email, int startIndex, int amount);
+    Flux<CompetitionInfoResponse> getByPlayer(String email, int startIndex, int amount);
+    Flux<CompetitionInfoResponse> getByEmail(String email, Integer startIndex, Integer amount);
 }
