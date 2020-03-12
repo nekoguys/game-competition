@@ -5,6 +5,8 @@ import com.groudina.ten.demo.models.DbUser;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
 
+import java.util.Optional;
+
 @Component
 public class DbUserToNavBarInfoMapper implements IEntitiesMapper<DbUser, NavBarInfoResponse> {
     @Override
@@ -16,7 +18,8 @@ public class DbUserToNavBarInfoMapper implements IEntitiesMapper<DbUser, NavBarI
             role = "Админ";
         }
 
-        String userDesc = user.getProfile().getSurname() + " " + user.getProfile().getName().substring(0, 1) + ".";
+        String userDesc = Optional.ofNullable(user.getProfile())
+                .map(el -> el.getSurname() + " " + el.getName().substring(0, 1)).orElse(user.getEmail()) + ".";
 
         return NavBarInfoResponse.builder()
                 .role(role)
