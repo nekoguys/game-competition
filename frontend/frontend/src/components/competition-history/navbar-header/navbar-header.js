@@ -2,7 +2,6 @@ import React from "react";
 import DefaultSubmitButton from "../../common/default-submit-button";
 import {withRouter} from "react-router-dom";
 import './navbar-header.css';
-<<<<<<< frontend/frontend/src/components/competition-history/navbar-header/navbar-header.js
 import ApiHelper from "../../../helpers/api-helper";
 import buttonUpImage from "../../join-competition/join-competition-player-form/team-collection/buttonUp.png";
 import buttonDownImage from "../../join-competition/join-competition-player-form/team-collection/buttonDown.png";
