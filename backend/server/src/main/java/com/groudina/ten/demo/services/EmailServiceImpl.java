@@ -43,13 +43,13 @@ public class EmailServiceImpl implements IEmailService {
 
     }
 
-    private boolean isServiceActive() {
+    public boolean isActive() {
         return techTeamEmail != null && techTeamEmailPassword != null;
     }
 
     @Override
     public Mono<Void> sendEmail(String email, String link) {
-        if (isServiceActive()) {
+        if (isActive()) {
             return Mono.defer(() -> {
                 Session session = Session.getInstance(this.properties, new Authenticator() {
                     @Override

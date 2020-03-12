@@ -31,7 +31,7 @@ class EndedCompetitionResultsRoot extends React.Component {
         const {pin} = this.props.match.params;
         ApiHelper.competitionAllResults(pin).then(resp => {
             if (resp.status >= 300) {
-                console.log(resp.error());
+                resp.text().then(el => console.log(el));
             }
             return resp.json();
         }).then(jsonBody => {

@@ -83,6 +83,10 @@ class CompetitionProcessTeacherBody extends React.Component {
             clearInterval(this.timerId);
             this.setupTimer();
         }
+
+        if (this.state.roundsCount > 0 && this.state.roundsCount === this.state.currentRoundNumber && this.state.isCurrentRoundEnded) {
+            this.props.onEndCallback();
+        }
     }
 
     setupTimer = () => {

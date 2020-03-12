@@ -11,7 +11,8 @@ class CompetitionProcessTeacherRootComponent extends React.Component {
         super(props);
 
         this.state = {
-            competitionName: ""
+            competitionName: "",
+            didEnd: false
         }
     }
 
@@ -20,12 +21,17 @@ class CompetitionProcessTeacherRootComponent extends React.Component {
     };
 
     onRedirectToResultsPage = () => {
-        NotificationManager.success("Игра закончена", "Игра закончена", 2500);
+        this.setState(prevState => {
+           if (!prevState.didEnd) {
+               NotificationManager.success("Игра закончена", "Игра закончена", 2500);
 
-        setTimeout(() => {
-            const {pin} = this.props.match.params;
-            this.props.history.push("/competitions/results/" + pin);
-        }, 2500);
+               setTimeout(() => {
+                   const {pin} = this.props.match.params;
+                   this.props.history.push("/competitions/results/" + pin);
+               }, 2500);
+               return {didEnd: true};
+           }
+        });
     };
 
     render() {
