@@ -19,7 +19,7 @@ public class DbUserToNavBarInfoMapper implements IEntitiesMapper<DbUser, NavBarI
         }
 
         String userDesc = Optional.ofNullable(user.getProfile())
-                .map(el -> el.getSurname() + " " + el.getName().substring(0, 1)).orElse(user.getEmail()) + ".";
+                .map(el -> el.getSurname() + " " + el.getName().substring(0, 1) + ".").orElse(user.getEmail());
 
         return NavBarInfoResponse.builder()
                 .role(role)

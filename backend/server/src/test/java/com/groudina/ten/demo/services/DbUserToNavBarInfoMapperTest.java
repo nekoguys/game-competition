@@ -20,4 +20,15 @@ class DbUserToNavBarInfoMapperTest {
         assertEquals(res.getRole(), "Студент");
         assertEquals(res.getUserDescription(), "surname n.");
     }
+
+    @Test
+    void mapEmptyProfile() {
+        DbUser user = DbUser.builder()
+                .email("email")
+                .roles(List.of(DbRole.builder().build()))
+                .build();
+        var res = mapper.map(user, null);
+        assertEquals(res.getRole(), "Студент");
+        assertEquals(res.getUserDescription(), "email");
+    }
 }
