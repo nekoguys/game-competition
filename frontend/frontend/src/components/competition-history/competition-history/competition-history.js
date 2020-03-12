@@ -16,7 +16,8 @@ class CompetitionHistory extends React.Component {
 
         this.state = {
             itemsLoaded: 0,
-            items: []
+            items: [],
+            isAnyCloneable: true
         }
     }
 
@@ -25,12 +26,16 @@ class CompetitionHistory extends React.Component {
     }
 
     updateHistory(delta) {
-        ApiHelper.createdCompetitions(this.state.itemsLoaded, delta).then(resp => {
+        ApiHelper.competitionsHistory(this.state.itemsLoaded, delta).then(resp => {
             if (resp.status < 300)
                 resp.json().then(json => {
                     console.log(json);
                     this.setState(prevState => {
-                        return {items: prevState.items.concat(json), itemsLoaded: prevState.itemsLoaded + delta}
+                        return {
+                            items: prevState.items.concat(json),
+                            itemsLoaded: prevState.itemsLoaded + delta,
+                            isAnyCloneable: prevState.isAnyCloneable || json.some((x) => x.owned)
+                        }
                     }, () => {
                         this.scrollToBottom();
                     });
@@ -83,7 +88,7 @@ class CompetitionHistory extends React.Component {
                         {"Последние игры"}
                     </div>
                     <div className={"collection-holder"} style={{margin: "0 auto"}}>
-                        <CompetitionCollection onHistoryItemClickCallback={this.onHistoryItemClickCallback} items={this.state.items}/>
+                        <CompetitionCollection items={this.state.items} onHistoryItemClickCallback={this.onHistoryItemClickCallback} isAnyCloneable={this.state.isAnyCloneable}/>
 
                         <div style={{paddingTop: "30px"}}>
                             <div className={"row justify-content-center"}>

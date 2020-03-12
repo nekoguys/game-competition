@@ -5,10 +5,6 @@ import DefaultSubmitButton from "../../../common/default-submit-button";
 import {withRouter} from "react-router-dom";
 
 class CompetitionCollectionElement extends React.Component {
-    constructor(props) {
-        super(props);
-    }
-
     stateMapper(state) {
         if (state === "Registration")
             return "Регистрация";
@@ -23,7 +19,7 @@ class CompetitionCollectionElement extends React.Component {
     }
 
     render() {
-        const {name, state, lastUpdateTime} = this.props.item;
+        const {name, state, lastUpdateTime, owned} = this.props.item;
         const {onItemClickCallback = (item) => {}} = this.props;
 
         let res;
@@ -38,6 +34,14 @@ class CompetitionCollectionElement extends React.Component {
             res = <div style={{margin: "auto 0", display: "inline-block"}}>{this.stateMapper(state)}</div>
         }
 
+        let button;
+        if (owned)
+            button = <DefaultSubmitButton text={"Клонировать"} onClick={(ev) => {
+                console.log(this);
+                this.props.history.push('/competitions/create/', {initialState: this.props.item});
+                ev.stopPropagation();
+            }}/>
+
         return <div className={"item-element-container"} onClick={() => {
             console.log("outer div click");
             onItemClickCallback(this.props.item);
@@ -50,33 +54,29 @@ class CompetitionCollectionElement extends React.Component {
 
                     </div>
                 </div>
-                <div className={"col-2 flex-center-vertically"}>
-                    <div style={{margin: "auto 0"}} className={""}>
-                        <div style={{marginBottom: "-10px"}}>
-                            <DefaultSubmitButton text={"Клонировать"} onClick={(ev) => {
-                                console.log(this);
-                                this.props.history.push('/competitions/create/', {initialState: this.props.item});
-                                ev.stopPropagation();
-                            }}/>
+                {
+                    !this.props.isAnyCloneable ? undefined : // и так пойдёт
+                    <div className={"col-2 flex-center-vertically"}>
+                        <div style={{margin: "auto 0"}} className={""}>
+                            <div style={{marginBottom: "-10px"}}>
+                                {button}
+                            </div>
                         </div>
                     </div>
-                </div>
+                }
             </div>
         </div>
     }
 }
 
 class CompetitionCollection extends React.Component {
-    constructor(props) {
-        super(props)
-    }
-
     render() {
         const {items} = this.props;
         console.log({items});
 
         const elements = items.map(item => {
-            return <CompetitionCollectionElement onItemClickCallback={this.props.onHistoryItemClickCallback} key={item.pin} item={item} history={this.props.history}/>
+            return <CompetitionCollectionElement onItemClickCallback={this.props.onHistoryItemClickCallback}
+                    key={item.pin} item={item} history={this.props.history} isAnyCloneable={this.props.isAnyCloneable}/>
         });
 
         return (
@@ -84,7 +84,7 @@ class CompetitionCollection extends React.Component {
                 <div className={"row"} style={{textAlign: "center"}}>
                     <div className={"col-7"}>Название</div>
                     <div className={"col-3"}>Статус</div>
-                    <div className={"col-2"}/>
+                    {this.props.isAnyCloneable ? <div className={"col-2"}/> : undefined}
                 </div>
                 {elements}
             </div>
