@@ -6,6 +6,7 @@ import NavbarHeader from "../../competition-history/navbar-header/navbar-header"
 import UserProfileForm from "../form";
 import ApiHelper from "../../../helpers/api-helper";
 import DefaultSubmitButton from "../../common/default-submit-button";
+import withAuthenticated from "../../../helpers/with-authenticated";
 
 class UserProfileRoot extends React.Component {
     constructor(props) {
@@ -111,4 +112,4 @@ class UserProfileRoot extends React.Component {
     }
 }
 
-export default UserProfileRoot;
+export default withAuthenticated(UserProfileRoot);

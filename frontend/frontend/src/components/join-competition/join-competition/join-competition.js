@@ -9,6 +9,7 @@ import ApiHelper from "../../../helpers/api-helper";
 import {withRouter} from "react-router-dom";
 
 import {NotificationContainer, NotificationManager} from "react-notifications";
+import withAuthenticated from "../../../helpers/with-authenticated";
 
 class JoinCompetition extends React.Component {
 
@@ -96,4 +97,4 @@ class JoinCompetition extends React.Component {
     }
 }
 
-export default withRouter(JoinCompetition);
+export default withAuthenticated(JoinCompetition);

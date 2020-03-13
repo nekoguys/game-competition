@@ -8,6 +8,7 @@ import buttonDownImage from "../../join-competition/join-competition-player-form
 import profileImage from "./profile-image.png";
 import exitImage from "./exit-image.png";
 import isTeacher from "../../../helpers/role-helper";
+import makeCancelable from "../../../helpers/cancellable-promise";
 
 class NavbarHeader extends React.Component {
 
@@ -89,10 +90,9 @@ class UserInfo extends React.Component {
 
     setupNavBarData() {
         console.log("update navbar");
-        ApiHelper.getNavBarInfo().catch(err => {
-            console.log(err);
-        }).then((resp) => {
 
+        this.infoPromise = makeCancelable(ApiHelper.getNavBarInfo());
+        this.infoPromise.promise.then((resp) => {
             if (resp.status < 300) {
                 resp.json().then(jsonBody => {
                     window.localStorage.setItem("userDesc", jsonBody.userDescription + " - " + jsonBody.role);
@@ -103,6 +103,8 @@ class UserInfo extends React.Component {
                     console.log(txt)
                 });
             }
+        }).catch(err => {
+            console.log(err);
         })
     }
     closeMenu = (event) => {
@@ -117,6 +119,9 @@ class UserInfo extends React.Component {
 
     componentWillUnmount() {
         document.removeEventListener('click', this.closeMenu);
+        if (this.infoPromise) {
+            this.infoPromise.cancel();
+        }
     }
 
     showMenu = (event) => {
@@ -155,6 +160,11 @@ class UserInfo extends React.Component {
                         </div>
                     </div>
                     <div className={"dropdown-element"} onClick={() => {
+                        window.localStorage.removeItem("user_email");
+                        window.localStorage.removeItem("expirationTimestamp");
+                        window.localStorage.removeItem("roles");
+                        window.localStorage.removeItem("accessToken");
+                        window.localStorage.setItem("userDesc", "Guest");
                         this.props.onRedirect("/");
                     }}>
                         <div className={"d-flex"}>
