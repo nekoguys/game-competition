@@ -89,9 +89,9 @@ export default class App extends React.Component{
                 <Switch>
                     <Redirect exact from="/" to="/auth/signin" />
                     {
-                        paths.map(({path, component: C}) => {
+                        paths.map(({path, component: C}, index) => {
                             return (
-                                <Route path={path}
+                                <Route key={index} path={path}
                                        render={(props) => <C {...props} showNotification={this.showNotification}/>}
                                 />
                             )
