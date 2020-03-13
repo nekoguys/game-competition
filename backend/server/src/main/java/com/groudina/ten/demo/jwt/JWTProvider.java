@@ -6,6 +6,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.Date;
 
 @Component
@@ -25,6 +27,10 @@ public class JWTProvider {
                 .setExpiration(new Date(new Date().getTime() + jwtExpiration * 1000))
                 .signWith(SignatureAlgorithm.HS512, jwtSecret)
                 .compact();
+    }
+
+    public long expirationTimeStamp() {
+        return (LocalDateTime.now().atOffset(ZoneOffset.UTC).toEpochSecond()) + jwtExpiration;
     }
 
     public boolean validateJwtToken(String authToken) {

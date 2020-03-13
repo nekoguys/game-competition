@@ -75,7 +75,7 @@ public class AuthController {
                             .map(role -> new SimpleGrantedAuthority(role.getName()))
                             .collect(Collectors.toList());
 
-                    return Mono.just(ResponseEntity.ok(new JwtResponse(jwt, loginUser.getEmail(), authorities)));
+                    return Mono.just(ResponseEntity.ok(new JwtResponse(jwt, loginUser.getEmail(), authorities, jwtProvider.expirationTimeStamp())));
                 } else {
                     return Mono.just(ResponseEntity.badRequest().body(new ResponseMessage("Your account is not verified")));
                 }
