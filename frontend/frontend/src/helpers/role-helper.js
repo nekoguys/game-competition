@@ -1,5 +1,11 @@
+import isAuthenticated from "./is-authenticated";
+
 function isTeacher() {
-    return window.localStorage.getItem("roles").indexOf("TEACHER") !== -1;
+    const roles = window.localStorage.getItem("roles");
+    if (roles == null) {
+        return false;
+    }
+    return roles.indexOf("TEACHER") !== -1 && isAuthenticated();
 }
 
 export default isTeacher;

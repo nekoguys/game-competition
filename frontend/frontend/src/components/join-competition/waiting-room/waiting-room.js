@@ -6,6 +6,7 @@ import {NotificationContainer, NotificationManager} from "react-notifications";
 import NavbarHeader from "../../competition-history/navbar-header";
 import RoomTeammatesCollection from "./room-teammates-collection";
 import {withRouter} from "react-router-dom";
+import withAuthenticated from "../../../helpers/with-authenticated";
 
 
 class WaitingRoom extends React.Component {
@@ -104,4 +105,4 @@ class WaitingRoom extends React.Component {
     }
 }
 
-export default withRouter(WaitingRoom);
+export default withAuthenticated(WaitingRoom);
