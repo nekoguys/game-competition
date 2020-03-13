@@ -14,50 +14,95 @@ import Verification from "../auth/verification/verification";
 import EndedCompetitionResultsRoot from "../competition-process/ended-competition-results/root";
 import UserProfileRoot from "../user-profile/root";
 
+import {NotificationManager, NotificationContainer} from "react-notifications";
+
+
+const paths = [
+    {
+        path: "/auth/signin",
+        component: Login
+    },
+    {
+        path: "/auth/signup",
+        component: Register
+    },
+    {
+        path: "/competitions/history",
+        component: CompetitionHistory
+    },
+    {
+        path: "/competitions/create",
+        component: CreateCompetition
+    },
+    {
+        path: "/competitions/draft_competition/:pin",
+        component: CreateCompetition
+    },
+    {
+        path: "/competitions/join",
+        component: JoinCompetition
+    },
+    {
+        path: "/competitions/after_registration_opened/:pin",
+        component: AfterRegistrationOpenedComponent
+    },
+    {
+        path: "/competitions/waiting_room/:pin",
+        component: WaitingRoom
+    },
+    {
+        path: "/competitions/process_teacher/:pin",
+        component: CompetitionProcessTeacherRootComponent
+    },
+    {
+        path: "/forbidden",
+        component: ForbiddenError
+    },
+    {
+        path: "/competitions/process_captain/:pin",
+        component: CompetitionProcessStudentRoot
+    },
+    {
+        path: "/auth/verification/:token",
+        component: Verification
+    },
+    {
+        path: "/competitions/results/:pin",
+        component: EndedCompetitionResultsRoot
+    },
+    {
+        path: "/profile",
+        component: UserProfileRoot
+    }
+];
+
 export default class App extends React.Component{
+
+    showNotification = () => {
+        return NotificationManager;
+    };
+
     render() {
         return (
+            <div>
             <Router>
                 <Switch>
                     <Redirect exact from="/" to="/auth/signin" />
-                    <Route path={"/auth/signin"}>
-                        <Login />
-                    </Route>
-                    <Route path={"/auth/signup"}>
-                        <Register />
-                    </Route>
-                    <Route path={"/competitions/history"}>
-                        <CompetitionHistory/>
-                    </Route>
-                    <Route path={"/competitions/create"}>
-                        <CreateCompetition/>
-                    </Route>
-
-                    <Route path={"/competitions/draft_competition/:pin"} component={CreateCompetition}/>
-
-                    <Route path={"/competitions/join"}>
-                        <JoinCompetition/>
-                    </Route>
-                    
-                    <Route path={"/competitions/after_registration_opened/:pin"} component={AfterRegistrationOpenedComponent}/>
-                    
-                    <Route path={"/competitions/waiting_room/:pin"} component={WaitingRoom} />
-
-                    <Route path={"/competitions/process_teacher/:pin"} component={CompetitionProcessTeacherRootComponent} />
-
-                    <Route path={"/forbidden"}>
-                        <ForbiddenError/>
-                    </Route>
-
-                    <Route path={"/competitions/process_captain/:pin"} component={CompetitionProcessStudentRoot}/>
-
-                    <Route path={"/auth/verification/:token"} component={Verification}/>
-
-                    <Route path={"/competitions/results/:pin"} component={EndedCompetitionResultsRoot}/>
-
-                    <Route path={"/profile/"} component={UserProfileRoot}/>
+                    {
+                        paths.map(({path, component: C}) => {
+                            return (
+                                <Route path={path}
+                                       render={(props) => <C {...props} showNotification={this.showNotification}/>}
+                                />
+                            )
+                        })
+                    }
                 </Switch>
             </Router>
+                <div>
+                    <NotificationContainer/>
+                </div>
+            </div>
         )
     }
 }

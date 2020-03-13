@@ -6,6 +6,7 @@ import ApiHelper from "../../../helpers/api-helper";
 import {NotificationContainer, NotificationManager} from "react-notifications";
 import DefaultSubmitButton from "../../common/default-submit-button";
 import withRedirect from "../../../helpers/redirect-helper";
+import showNotification from "../../../helpers/notification-helper";
 
 class CreateCompetition extends React.Component {
     constructor(props) {
@@ -60,7 +61,7 @@ class CreateCompetition extends React.Component {
 
         ApiHelper.updateCompetition(pin, obj)
             .catch(err => {
-                NotificationManager.error(err, "Error", timeout);
+                showNotification(this).error(err, "Error", timeout);
             })
             .then(resp => {
                 if (resp.status >= 300) {
@@ -71,10 +72,10 @@ class CreateCompetition extends React.Component {
             }).then(resp => {
                 resp.json.then(jsonBody => {
                     if (resp.success) {
-                        NotificationManager.success("Competition saved successfully", "Success!", timeout);
+                        showNotification(this).success("Competition saved successfully", "Success!", timeout);
                         successCallback();
                     } else {
-                        NotificationManager.error(jsonBody, "Error", timeout);
+                        showNotification(this).error(jsonBody, "Error", timeout);
                     }
                 })
         })
@@ -101,12 +102,12 @@ class CreateCompetition extends React.Component {
                         this.pin = bodyJson.pin;
                     }
 
-                    NotificationManager.success("Competition created successfully", "Success!", timeout);
+                    showNotification(this).success("Competition created successfully", "Success!", timeout);
                     successCallback();
                 })
             } else {
                 console.log("Error");
-                NotificationManager.error("Invalid competition params", "Error", timeout);
+                showNotification(this).error("Invalid competition params", "Error", timeout);
             }
         })
     };

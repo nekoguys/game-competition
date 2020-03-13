@@ -1,11 +1,11 @@
 import React from "react";
-import {NotificationManager, NotificationContainer} from "react-notifications";
 
 import "./root.css";
 import NavbarHeader from "../../competition-history/navbar-header/navbar-header";
 import UserProfileForm from "../form";
 import ApiHelper from "../../../helpers/api-helper";
 import DefaultSubmitButton from "../../common/default-submit-button";
+import showNotification from "../../../helpers/notification-helper";
 
 class UserProfileRoot extends React.Component {
     constructor(props) {
@@ -57,13 +57,13 @@ class UserProfileRoot extends React.Component {
 
     onSave = () => {
         ApiHelper.updateProfile(this.state.formState).catch(err => {
-            NotificationManager.error("Something went wrong, try to login one more time", "Error", 3000);
+            showNotification(this).error("Something went wrong, try to login one more time", "Error", 3000);
         }).then(resp => {
             if (resp.status >= 300) {
-                resp.text().then(txt => NotificationManager.error(txt, "Error", 2000));
+                resp.text().then(txt => showNotification(this).error(txt, "Error", 2000));
             } else {
                 resp.json().then(jsonBody => {
-                    NotificationManager.success(jsonBody.message, "Success", 1200);
+                    showNotification(this).success(jsonBody.message, "Success", 1200);
 
                     this.getProfileInfo();
 
@@ -101,10 +101,6 @@ class UserProfileRoot extends React.Component {
                             </div>
                         </div>
                     </div>
-                </div>
-
-                <div>
-                    <NotificationContainer/>
                 </div>
             </div>
         )

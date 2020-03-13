@@ -2,10 +2,10 @@ import React from "react";
 import ApiHelper from "../../../helpers/api-helper";
 import Header from "../header";
 import {withRouter} from "react-router-dom";
-import {NotificationContainer, NotificationManager} from 'react-notifications';
 
 import "../login/login.css";
 import RegisterForm from "../register-form/register-form";
+import showNotification from "../../../helpers/notification-helper";
 
 class Register extends React.Component {
     constructor(props) {
@@ -57,12 +57,12 @@ class Register extends React.Component {
             parsedResponse.json.then((value) => {
                 console.log({value});
                 if (parsedResponse.success) {
-                    NotificationManager.success(`Registered Successfully!`, 'Success', 1200);
+                    showNotification(this).success(`Registered Successfully!`, 'Success', 1200);
                 } else {
                     if (value.message) {
-                        NotificationManager.error(value.message, 'Error', 1200);
+                        showNotification(this).error(value.message, 'Error', 1200);
                     } else {
-                        NotificationManager.error('Error occurred', 'Error', 1200, () => {
+                        showNotification(this).error('Error occurred', 'Error', 1200, () => {
                         });
                     }
                 }
@@ -91,7 +91,6 @@ class Register extends React.Component {
                            onSubmit={this.onSubmitClick}
                            isRegButtonDisabled={this.state.isRegButtonDisabled}
                 />
-                <NotificationContainer/>
             </div>
         )
     }

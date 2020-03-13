@@ -1,5 +1,4 @@
 import React from "react";
-import "./join-competition.css"
 import JoinCompetitionForm from "../join-competition-captain-form";
 import DefaultCheckboxButtonGroup from "../../common/default-checkbox-button-group";
 import NavbarHeader from "../../competition-history/navbar-header/navbar-header";
@@ -8,7 +7,10 @@ import JoinCompetitionPlayerForm from "../join-competition-player-form";
 import ApiHelper from "../../../helpers/api-helper";
 import {withRouter} from "react-router-dom";
 
-import {NotificationContainer, NotificationManager} from "react-notifications";
+import showNotification from "../../../helpers/notification-helper";
+
+import "./join-competition.css"
+
 
 class JoinCompetition extends React.Component {
 
@@ -52,10 +54,10 @@ class JoinCompetition extends React.Component {
             obj.json.then(respMessage => {
                 console.log(respMessage);
                 if (obj.success) {
-                    NotificationManager.success("Team created successfully", "Success", timeout);
+                    showNotification(this).success("Team created successfully", "Success", timeout);
                     this.props.history.push("/competitions/waiting_room/" + formState.gameId);
                 } else {
-                    NotificationManager.error(respMessage.message, "Error", timeout);
+                    showNotification(this).error(respMessage.message, "Error", timeout);
                 }
             })
         })
@@ -64,9 +66,9 @@ class JoinCompetition extends React.Component {
     render() {
         let res;
         if (this.state.currentPage === "captain") {
-            res = <JoinCompetitionForm onFormSubmit={this.onCreateTeamClick}/>
+            res = <JoinCompetitionForm showNotification={this.props.showNotification} onFormSubmit={this.onCreateTeamClick}/>
         } else {
-            res = <JoinCompetitionPlayerForm/>
+            res = <JoinCompetitionPlayerForm showNotification={this.props.showNotification}/>
         }
 
         return (
@@ -90,7 +92,6 @@ class JoinCompetition extends React.Component {
                 </div>
                 {res}
             </div>
-                <NotificationContainer/>
             </div>
         )
     }

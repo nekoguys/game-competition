@@ -52,7 +52,7 @@ class UserProfileForm extends React.Component {
                             {"Email:"}
                         </div>
                         <div className={"col-9"}>
-                            <DefaultTextInput style={textInputStyle} readOnly={true} placeholder={this.props.formState.email}/>
+                            <DefaultTextInput style={textInputStyle} readOnly={true} defaultText={this.props.formState.email}/>
                         </div>
                     </div>
                     <div className={"row my-row"}>

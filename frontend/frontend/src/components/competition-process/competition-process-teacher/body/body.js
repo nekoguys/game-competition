@@ -5,9 +5,9 @@ import DefaultSubmitButton from "../../../common/default-submit-button";
 import CompetitionResultsTable from "../results-table";
 import MessagesContainer from "../messages";
 import ApiHelper from "../../../../helpers/api-helper";
-import {NotificationContainer, NotificationManager} from "react-notifications";
 import processRoundsEvents from "../../../../helpers/rounds-event-source-helper";
 import processMessagesEvents from "../../../../helpers/messages-event-source-helper";
+import showNotification from "../../../../helpers/notification-helper";
 
 
 class CompetitionProcessTeacherBody extends React.Component {
@@ -50,9 +50,6 @@ class CompetitionProcessTeacherBody extends React.Component {
             <div className={"game-state-holder"}>
                 {res}
             </div>
-                <div>
-                    <NotificationContainer/>
-                </div>
             </div>
         );
     }
@@ -123,7 +120,7 @@ class CompetitionProcessTeacherBody extends React.Component {
                         }
                     })
                 } else {
-                    NotificationManager.error(jsonBody.message, "Error", 1500);
+                    showNotification(this).error(jsonBody.message, "Error", 1500);
                 }
             })
         })
@@ -285,9 +282,9 @@ class CompetitionProcessTeacherBody extends React.Component {
             resp.json.then(jsonBody => {
                 console.log({jsonBody});
                 if (resp.success) {
-                    NotificationManager.success(jsonBody.message, "Success", 900);
+                    showNotification(this).success(jsonBody.message, "Success", 900);
                 } else {
-                    NotificationManager.error(jsonBody.message, "Error", 1500);
+                    showNotification(this).error(jsonBody.message, "Error", 1500);
                 }
             })
         })
@@ -305,9 +302,9 @@ class CompetitionProcessTeacherBody extends React.Component {
             resp.json.then(jsonBody => {
                 console.log({jsonBody});
                 if (resp.success) {
-                    NotificationManager.success(jsonBody.message, "Success", 900);
+                    showNotification(this).success(jsonBody.message, "Success", 900);
                 } else {
-                    NotificationManager.error(jsonBody.message, "Error", 1500);
+                    showNotification(this).error(jsonBody.message, "Error", 1500);
                 }
             })
         })

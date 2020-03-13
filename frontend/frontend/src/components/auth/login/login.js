@@ -7,7 +7,7 @@ import 'react-notifications/lib/notifications.css';
 
 
 import "./login.css"
-import {NotificationManager, NotificationContainer} from "react-notifications";
+import showNotification from "../../../helpers/notification-helper";
 
 class Login extends React.Component {
     constructor(props) {
@@ -45,7 +45,7 @@ class Login extends React.Component {
                     window.localStorage.setItem("accessToken", value.accessToken);
                     window.localStorage.setItem("user_email", value.email);
                     window.localStorage.setItem("roles", value.authorities.map(el => el.authority));
-                    NotificationManager.success(`Welcome, ${value.email}!`, 'Success', timeout);
+                    showNotification(this).success(`Welcome, ${value.email}!`, 'Success', timeout);
                     setTimeout(() => {
                         this.props.history.push('/competitions/history');
                         console.log("expect redirect to competitions history");
@@ -53,9 +53,9 @@ class Login extends React.Component {
 
                 } else {
                     if (value.message) {
-                        NotificationManager.error(value.message, 'Error', timeout);
+                        showNotification(this).error(value.message, 'Error', timeout);
                     } else {
-                        NotificationManager.error('Error occurred', 'Error', timeout, () => {
+                        showNotification(this).error('Error occurred', 'Error', timeout, () => {
                         });
                     }
                 }
@@ -83,7 +83,6 @@ class Login extends React.Component {
                            onPasswordChanged={this.onPasswordChanged}
                            onSubmit={this.onSubmitClick}
                 />
-                <NotificationContainer/>
             </div>
         )
     }
