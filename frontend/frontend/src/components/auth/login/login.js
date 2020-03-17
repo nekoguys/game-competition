@@ -8,6 +8,7 @@ import 'react-notifications/lib/notifications.css';
 
 import "./login.css"
 import showNotification from "../../../helpers/notification-helper";
+import isAuthenticated from "../../../helpers/is-authenticated";
 
 class Login extends React.Component {
     constructor(props) {
@@ -45,6 +46,8 @@ class Login extends React.Component {
                     window.localStorage.setItem("accessToken", value.accessToken);
                     window.localStorage.setItem("user_email", value.email);
                     window.localStorage.setItem("roles", value.authorities.map(el => el.authority));
+                    window.localStorage.setItem("expirationTimestamp", value.expirationTimestamp);
+                    
                     showNotification(this).success(`Welcome, ${value.email}!`, 'Success', timeout);
                     setTimeout(() => {
                         this.props.history.push('/competitions/history');
