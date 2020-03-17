@@ -4,7 +4,6 @@ import isTeacher from "./role-helper";
 
 function withRedirect(Component) {
     return withRouter(class extends React.Component {
-
         componentDidMount() {
             if (!isTeacher())
                 this.props.history.push("/forbidden");

@@ -7,6 +7,7 @@ import ApiHelper from "../../../helpers/api-helper";
 import DefaultSubmitButton from "../../common/default-submit-button";
 
 import "./competition-history.css";
+import withAuthenticated from "../../../helpers/with-authenticated";
 
 class CompetitionHistory extends React.Component {
     static itemsPerPage = 4;
@@ -112,4 +113,4 @@ class CompetitionHistory extends React.Component {
     }
 }
 
-export default withRouter(CompetitionHistory);
+export default withAuthenticated(CompetitionHistory);

@@ -8,6 +8,7 @@ import 'react-notifications/lib/notifications.css';
 
 import "./login.css"
 import {NotificationManager, NotificationContainer} from "react-notifications";
+import isAuthenticated from "../../../helpers/is-authenticated";
 
 class Login extends React.Component {
     constructor(props) {
@@ -45,6 +46,8 @@ class Login extends React.Component {
                     window.localStorage.setItem("accessToken", value.accessToken);
                     window.localStorage.setItem("user_email", value.email);
                     window.localStorage.setItem("roles", value.authorities.map(el => el.authority));
+                    window.localStorage.setItem("expirationTimestamp", value.expirationTimestamp);
+
                     NotificationManager.success(`Welcome, ${value.email}!`, 'Success', timeout);
                     setTimeout(() => {
                         this.props.history.push('/competitions/history');
@@ -62,6 +65,12 @@ class Login extends React.Component {
             });
         });
     };
+
+    componentDidMount() {
+        if (isAuthenticated()) {
+            this.props.history.push('/competitions/history');
+        }
+    }
 
     onHeaderRegisterClick = () => {
         this.props.history.push('/auth/signup');
