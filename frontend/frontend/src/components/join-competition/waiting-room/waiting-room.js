@@ -5,6 +5,7 @@ import ApiHelper from "../../../helpers/api-helper";
 import NavbarHeader from "../../competition-history/navbar-header";
 import RoomTeammatesCollection from "./room-teammates-collection";
 import {withRouter} from "react-router-dom";
+import withAuthenticated from "../../../helpers/with-authenticated";
 
 import showNotification from "../../../helpers/notification-helper";
 
@@ -104,4 +105,4 @@ class WaitingRoom extends React.Component {
     }
 }
 
-export default withRouter(WaitingRoom);
+export default withAuthenticated(WaitingRoom);

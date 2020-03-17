@@ -63,6 +63,12 @@ class Login extends React.Component {
         });
     };
 
+    componentDidMount() {
+        if (isAuthenticated()) {
+            this.props.history.push('/competitions/history');
+        }
+    }
+
     onHeaderRegisterClick = () => {
         this.props.history.push('/auth/signup');
     };

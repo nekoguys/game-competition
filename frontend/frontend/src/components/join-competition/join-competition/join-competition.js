@@ -8,8 +8,7 @@ import ApiHelper from "../../../helpers/api-helper";
 import {withRouter} from "react-router-dom";
 
 import showNotification from "../../../helpers/notification-helper";
-
-import "./join-competition.css"
+import withAuthenticated from "../../../helpers/with-authenticated";
 
 
 class JoinCompetition extends React.Component {
@@ -97,4 +96,4 @@ class JoinCompetition extends React.Component {
     }
 }
 
-export default withRouter(JoinCompetition);
+export default withAuthenticated(JoinCompetition);

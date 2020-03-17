@@ -11,6 +11,7 @@ import processMessagesEvents from "../../../../helpers/messages-event-source-hel
 import processRoundsEvents from "../../../../helpers/rounds-event-source-helper";
 import OneRoundResultsTable from "../one-round-results-table";
 import showNotification from "../../../../helpers/notification-helper";
+import withAuthenticated from "../../../../helpers/with-authenticated";
 
 
 class CompetitionProcessStudentRoot extends React.Component {
@@ -305,4 +306,4 @@ class CompetitionProcessStudentRoot extends React.Component {
     }
 }
 
-export default CompetitionProcessStudentRoot;
+export default withAuthenticated(CompetitionProcessStudentRoot);
