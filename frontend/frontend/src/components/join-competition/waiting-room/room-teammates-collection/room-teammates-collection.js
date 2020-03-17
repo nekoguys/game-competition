@@ -8,7 +8,7 @@ class RoomTeammatesCollection extends React.Component {
         const {items} = this.props;
 
         return (
-            <div style={{paddingTop: "90px", width: "80%", margin: "0 auto"}}>
+            <div style={{width: "80%", margin: "0 auto"}}>
                 <TeamCollection items={items} isReadOnly={true}/>
             </div>
         );

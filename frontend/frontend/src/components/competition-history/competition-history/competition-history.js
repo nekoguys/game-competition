@@ -2,7 +2,6 @@ import React from "react";
 import NavbarHeader from "../navbar-header";
 import {NotificationContainer} from "react-notifications";
 import CompetitionCollection from './competition-collection';
-import {withRouter} from "react-router-dom";
 import ApiHelper from "../../../helpers/api-helper";
 import DefaultSubmitButton from "../../common/default-submit-button";
 
@@ -54,13 +53,12 @@ class CompetitionHistory extends React.Component {
             if (isTeacher) {
                 this.props.history.push('/competitions/after_registration_opened/' + item.pin);
             } else {
-                this.props.history.push('/competitions/competitions/waiting_room/' + item.pin);
+                this.props.history.push('/competitions/waiting_room/' + item.pin);
             }
         } else if (item.state.toLowerCase() === "inprocess") {
             if (isTeacher) {
                 this.props.history.push('/competitions/process_teacher/' + item.pin);
             } else {
-                //TODO check if he is captain
                 this.props.history.push('/competitions/process_captain/' + item.pin);
             }
         } else if (item.state.toLowerCase() === "ended") {

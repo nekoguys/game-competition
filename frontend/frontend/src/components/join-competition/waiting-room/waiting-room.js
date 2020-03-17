@@ -4,7 +4,6 @@ import ApiHelper from "../../../helpers/api-helper";
 
 import NavbarHeader from "../../competition-history/navbar-header";
 import RoomTeammatesCollection from "./room-teammates-collection";
-import {withRouter} from "react-router-dom";
 import withAuthenticated from "../../../helpers/with-authenticated";
 
 import showNotification from "../../../helpers/notification-helper";
@@ -44,10 +43,17 @@ class WaitingRoom extends React.Component {
                     <NavbarHeader/>
                 </div>
                 <div>
+                    <div style={{paddingTop: "120px"}}>
+                        <div style={{fontSize: "28px", margin: "0 auto", textAlign: "center"}}>
+                            {"Комната ожидания"}
+                        </div>
+                    </div>
+                    <div style={{paddingTop: "40px"}}>
                     <RoomTeammatesCollection items={items}
                                              style={{paddingTop: "100px", fontSize: "20px"}}
                                              ulstyle={{listStyle: "none", MarginTop: "-10px"}}
                     />
+                    </div>
                 </div>
             </div>
         )
