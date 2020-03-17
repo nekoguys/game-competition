@@ -2,11 +2,12 @@ import React from "react";
 import "./waiting-room.css";
 import ApiHelper from "../../../helpers/api-helper";
 
-import {NotificationContainer, NotificationManager} from "react-notifications";
 import NavbarHeader from "../../competition-history/navbar-header";
 import RoomTeammatesCollection from "./room-teammates-collection";
 import {withRouter} from "react-router-dom";
 import withAuthenticated from "../../../helpers/with-authenticated";
+
+import showNotification from "../../../helpers/notification-helper";
 
 
 class WaitingRoom extends React.Component {
@@ -48,7 +49,6 @@ class WaitingRoom extends React.Component {
                                              ulstyle={{listStyle: "none", MarginTop: "-10px"}}
                     />
                 </div>
-                <NotificationContainer/>
             </div>
         )
     }
@@ -63,7 +63,7 @@ class WaitingRoom extends React.Component {
             console.log("game started");
             const timeout = 1500;
 
-            NotificationManager.warning("Game started!", "Attention", timeout);
+            showNotification(this).warning("Game started!", "Attention", timeout);
 
             setTimeout(() => {
                 this.props.history.push("/competitions/process_captain/" + pin);

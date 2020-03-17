@@ -4,7 +4,7 @@ import "./root.css";
 import NavbarHeader from "../../../competition-history/navbar-header/navbar-header";
 import CompetitionProcessTeacherBody from "../body";
 import withRedirect from "../../../../helpers/redirect-helper";
-import {NotificationContainer, NotificationManager} from "react-notifications";
+import showNotification from "../../../../helpers/notification-helper";
 
 class CompetitionProcessTeacherRootComponent extends React.Component {
     constructor(props) {
@@ -23,7 +23,7 @@ class CompetitionProcessTeacherRootComponent extends React.Component {
     onRedirectToResultsPage = () => {
         this.setState(prevState => {
            if (!prevState.didEnd) {
-               NotificationManager.success("Игра закончена", "Игра закончена", 2500);
+               showNotification(this).success("Игра закончена", "Игра закончена", 2500);
 
                setTimeout(() => {
                    const {pin} = this.props.match.params;
@@ -55,11 +55,8 @@ class CompetitionProcessTeacherRootComponent extends React.Component {
 
 
                     <div>
-                        <CompetitionProcessTeacherBody onEndCallback={this.onRedirectToResultsPage} pin={pin} updateCompetitionNameCallback={this.updateCompetitionNameCallback}/>
+                        <CompetitionProcessTeacherBody showNotification={this.props.showNotification} onEndCallback={this.onRedirectToResultsPage} pin={pin} updateCompetitionNameCallback={this.updateCompetitionNameCallback}/>
                     </div>
-                </div>
-                <div>
-                    <NotificationContainer/>
                 </div>
             </div>
         )

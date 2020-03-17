@@ -9,8 +9,8 @@ import DescriptionHolder from "../description";
 import ApiHelper from "../../../../helpers/api-helper";
 import processMessagesEvents from "../../../../helpers/messages-event-source-helper";
 import processRoundsEvents from "../../../../helpers/rounds-event-source-helper";
-import {NotificationContainer, NotificationManager} from "react-notifications";
 import OneRoundResultsTable from "../one-round-results-table";
+import showNotification from "../../../../helpers/notification-helper";
 import withAuthenticated from "../../../../helpers/with-authenticated";
 
 
@@ -100,9 +100,9 @@ class CompetitionProcessStudentRoot extends React.Component {
             resp.json.then(jsonBody => {
                 console.log({jsonBody});
                 if (resp.success) {
-                    NotificationManager.success(jsonBody.message, "Success", 2000);
+                    showNotification(this).success(jsonBody.message, "Success", 2000);
                 } else {
-                    NotificationManager.error(jsonBody, "Error", 2000);
+                    showNotification(this).error(jsonBody, "Error", 2000);
                 }
             })
         })
@@ -300,9 +300,6 @@ class CompetitionProcessStudentRoot extends React.Component {
                             <DescriptionHolder instruction={instr}/>
                         </div>
                     </div>
-                </div>
-                <div>
-                    <NotificationContainer/>
                 </div>
             </div>
         )

@@ -1,7 +1,9 @@
 import React from "react";
-import "./join-competition-form.css";
 import DefaultTextInput from "../../common/default-text-input";
 import DefaultSubmitButton from "../../common/default-submit-button";
+
+import "./join-competition-form.css";
+
 
 class JoinCompetitionForm extends React.Component {
     constructor(props) {

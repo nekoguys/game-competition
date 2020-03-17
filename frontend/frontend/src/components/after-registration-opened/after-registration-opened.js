@@ -7,9 +7,10 @@ import ApiHelper from "../../helpers/api-helper";
 import toCamelCase from "../../helpers/camel-case-helper";
 import DefaultSubmitButton from "../common/default-submit-button";
 import toSnakeCase from "../../helpers/snake-case-helper";
-import {NotificationContainer, NotificationManager} from "react-notifications";
 import getValueForJsonObject from "../../helpers/competition-params-helper";
 import withRedirect from "../../helpers/redirect-helper";
+
+import showNotification from "../../helpers/notification-helper";
 
 
 class AfterRegistrationOpenedComponent extends React.Component {
@@ -90,7 +91,7 @@ class AfterRegistrationOpenedComponent extends React.Component {
                     successCallback(bodyJson.message);
                 } else {
                     const mes = bodyJson.message || bodyJson;
-                    NotificationManager.error(mes, "Error", 1200);
+                    showNotification(this).error(mes, "Error", 1200);
                 }
             })
         })
@@ -121,7 +122,7 @@ class AfterRegistrationOpenedComponent extends React.Component {
                     successCallback(toCamelCase(bodyJson));
                 } else {
                     const mes = bodyJson.message || bodyJson;
-                    NotificationManager.error(mes, "Error", 1200);
+                    showNotification(this).error(mes, "Error", 1200);
                 }
             })
         })
@@ -145,7 +146,7 @@ class AfterRegistrationOpenedComponent extends React.Component {
                         text={"Сохранить"}
                         onClick={() => this.updateCompetition({}, (resp) => {
                             this.setState({formState: toCamelCase(resp)});
-                            NotificationManager.success("Competition updated successfully", "Success", 900);
+                            showNotification(this).success("Competition updated successfully", "Success", 900);
                         })}
                         style={{
                             width: "20%",
@@ -196,7 +197,7 @@ class AfterRegistrationOpenedComponent extends React.Component {
                         <DefaultSubmitButton text={"Начать игру"} onClick={() => {
 
                             this.startCompetition(() => {
-                                NotificationManager.success("Competition Started!", "Success", 1500);
+                                showNotification(this).success("Competition Started!", "Success", 1500);
                                 setTimeout(() => {
                                     this.props.history.push("/competitions/process_teacher/" + pin)
                                 }, 1500);
@@ -204,7 +205,6 @@ class AfterRegistrationOpenedComponent extends React.Component {
                         }} style={{padding: "10px 20px"}}/>
                     </div>
                 </div>
-                <NotificationContainer/>
             </div>
         );
     }

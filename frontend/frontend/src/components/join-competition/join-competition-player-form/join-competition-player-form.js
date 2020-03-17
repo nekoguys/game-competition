@@ -1,12 +1,15 @@
 import React from "react";
-import "./join-competition-player-form.css";
 import submitButtonImage from "./submitButton.png";
 import ApiHelper from "../../../helpers/api-helper";
 
-import {NotificationContainer, NotificationManager} from "react-notifications";
 import TeamCollection from "./team-collection";
 import DefaultTextInput from "../../common/default-text-input";
 import {withRouter} from "react-router-dom";
+
+import showNotification from "../../../helpers/notification-helper";
+
+import "./join-competition-player-form.css";
+
 
 export class TextInputWithSubmitButton extends React.Component {
     constructor(props) {
@@ -95,18 +98,18 @@ class JoinCompetitionPlayerForm extends React.Component {
                 obj.json.then(val => {
                     console.log({val});
                     if (val.exists) {
-                        NotificationManager.success("Competition found successfully", "Success", timeout);
+                        showNotification(this).success("Competition found successfully", "Success", timeout);
                         setTimeout(() => {
                             this.setState(prevState => {
                                 return {currentPage: "enterTeamPage"};
                             })
                         }, timeout);
                     } else {
-                        NotificationManager.error("No such competition or registration is closed", "Error", timeout);
+                        showNotification(this).error("No such competition or registration is closed", "Error", timeout);
                     }
                 });
             } else {
-                NotificationManager.error("Error happened", "Error", timeout);
+                showNotification(this).error("Error happened", "Error", timeout);
             }
         })
     };
@@ -226,11 +229,11 @@ class JoinCompetitionPlayerForm extends React.Component {
                 if (resp.success) {
                     const teamName = obj.currentTeamName;
                     window.localStorage.setItem("currentTeamName", teamName);
-                    NotificationManager.success("You joined team " + teamName, "Success", timeout);
+                    showNotification(this).success("You joined team " + teamName, "Success", timeout);
                     this.props.history.push("/competitions/waiting_room/" + this.gameId);
 
                 } else {
-                    NotificationManager.error(obj.message, "Error", timeout);
+                    showNotification(this).error(obj.message, "Error", timeout);
                 }
             })
         })
@@ -248,7 +251,6 @@ class JoinCompetitionPlayerForm extends React.Component {
         return (
             <div>
                 {res}
-                <NotificationContainer/>
             </div>
         )
     }

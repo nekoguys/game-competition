@@ -1,7 +1,7 @@
 import React from "react";
 import {withRouter} from "react-router-dom";
-import {NotificationContainer, NotificationManager} from "react-notifications";
 import ApiHelper from "../../../helpers/api-helper";
+import showNotification from "../../../helpers/notification-helper";
 
 class Verification extends React.Component {
     constructor(props) {
@@ -22,7 +22,7 @@ class Verification extends React.Component {
             if (resp.status < 300) {
                 resp.json().then(jsonBody => {
                     this.setState({isVerified: true});
-                    NotificationManager.success(jsonBody.message, "Success", 2500);
+                    showNotification(this).success(jsonBody.message, "Success", 2500);
 
                     setTimeout(() => {
                         this.props.history.push("/auth/signin");
@@ -30,7 +30,7 @@ class Verification extends React.Component {
                 })
             } else {
                 resp.text().then(text => {
-                    NotificationManager.error(text, "Error", 2500);
+                    showNotification(this).error(text, "Error", 2500);
                 })
             }
         })
@@ -47,9 +47,6 @@ class Verification extends React.Component {
             <div>
                 <div style={{fontSize: "30px"}}>
                     {res}
-                </div>
-                <div>
-                    <NotificationContainer/>
                 </div>
             </div>
         )
