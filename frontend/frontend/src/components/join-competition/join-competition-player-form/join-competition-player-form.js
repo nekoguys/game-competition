@@ -80,9 +80,20 @@ class JoinCompetitionPlayerForm extends React.Component {
         this.gameId = {};
         this.state = {
             currentPage: "gamePinPage",
-            items: []
+            items: [],
+            searchedTeamName: "",
+            foundedTeams: []
         }
     }
+
+    onSearchTeamNameChanged = (text) => {
+        this.setState(prevState => {
+            return {
+                searchedTeamName: text,
+                foundedTeams: prevState.items.filter(el => el.teamName.toLowerCase().includes(text))
+            };
+        })
+    };
 
     onGameIdSubmitButton = (gameId) => {
         console.log(gameId);
@@ -133,7 +144,12 @@ class JoinCompetitionPlayerForm extends React.Component {
                         arr[index] = elem;
                     }
                     
-                    return {items: arr}
+                    return {
+                        items: arr,
+                        foundedTeams: arr.filter(el => {
+                            return el.teamName.toLowerCase().includes(prevState.searchedTeamName)
+                        })
+                    }
                 });
             });
         }
@@ -185,7 +201,7 @@ class JoinCompetitionPlayerForm extends React.Component {
     }
 
     enterTeamPage() {
-        const items = this.state.items;
+        const items = this.state.foundedTeams;
         return (
             <div style={{marginTop: "30px"}}>
                 <div style={{marginTop: "10px", width: "50%", margin:"0 auto"}}>
@@ -197,6 +213,7 @@ class JoinCompetitionPlayerForm extends React.Component {
                             paddingTop: "11px",
                             paddingBottom: "11px"
                           }}
+                        onChange={this.onSearchTeamNameChanged}
                     />
                 </div>
                 <div style={{margin: "70px 15% 20px 15%",}}>
