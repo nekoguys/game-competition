@@ -61,6 +61,7 @@ class CompetitionProcessTeacherBody extends React.Component {
         this.getCompetitionInfo();
         this.setupResultsEvents();
         this.setupPricesEvents();
+        this.setupTimer();
     }
 
     componentWillUnmount() {
@@ -76,7 +77,7 @@ class CompetitionProcessTeacherBody extends React.Component {
     componentDidUpdate(prevProps, prevState, snapshot) {
         if (this.state.isCurrentRoundEnded) {
             clearInterval(this.timerId);
-        } else {
+        } else if (!this.state.isCurrentRoundEnded && prevState.isCurrentRoundEnded) {
             clearInterval(this.timerId);
             this.setupTimer();
         }
@@ -95,6 +96,7 @@ class CompetitionProcessTeacherBody extends React.Component {
     };
 
     getCompetitionInfo() {
+        console.log("getCompetitionInfo call");
         const {pin} = this.props;
 
         ApiHelper.competitionInfoForResultsTable(pin).then(resp => {
@@ -105,6 +107,7 @@ class CompetitionProcessTeacherBody extends React.Component {
             return {success: true, json: resp.json()};
         }).then(resp => {
             resp.json.then(jsonBody => {
+                console.log({competitionInfoCallData: jsonBody});
                 if (resp.success) {
                     this.setState(prevState => {
                         this.props.updateCompetitionNameCallback(jsonBody.name);
@@ -291,6 +294,7 @@ class CompetitionProcessTeacherBody extends React.Component {
     };
 
     sendMessageCallback = (message) => {
+        console.log({sendMessage: message});
         ApiHelper.sendCompetitionMessage(this.props.pin, message).then(resp => {
             console.log({resp});
             if (resp.status >= 300) {

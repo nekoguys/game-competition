@@ -88,21 +88,21 @@ class CompetitionParamsForm extends React.Component {
                     <div className={"form-group row"}>
                         <label className={"col-sm-3 col-form-label text-right"} style={{float: "right"}}>Название игры</label>
                         <div className={"col-sm-9"}>
-                            <DefaultTextInput style={defaultTextInputStyle} defaultText={this.formState.name}
+                            <DefaultTextInput style={defaultTextInputStyle} placeholder={"Например, конкуренция на рынке пшеницы"} defaultText={this.formState.name}
                             onChange={(value) => this.updateFormStateField("name", value)}/>
                         </div>
                     </div>
                     <div className={"form-group row"}>
                         <label className={"col-sm-3 col-form-label  text-right"}>Формула затрат</label>
                         <div className={"col-sm-9"}>
-                            <DefaultTextInput style={defaultTextInputStyle} defaultText={this.formState.expensesFormula}
+                            <DefaultTextInput style={defaultTextInputStyle} placeholder={"1;2;3 - x^2+2x+3; x - объем выпуска"} defaultText={this.formState.expensesFormula}
                             onChange={(value) => this.updateFormStateField("expensesFormula", value)}/>
                         </div>
                     </div>
                     <div className={"form-group row"}>
                         <label className={"col-sm-3 col-form-label text-right"}>Формула спроса</label>
                         <div className={"col-sm-9"}>
-                            <DefaultTextInput style={defaultTextInputStyle} defaultText={this.formState.demandFormula}
+                            <DefaultTextInput style={defaultTextInputStyle} placeholder={"1;2 - p - 2; p - цена"} defaultText={this.formState.demandFormula}
                             onChange={(value) => this.updateFormStateField("demandFormula", value)}/>
                         </div>
                     </div>
@@ -130,9 +130,9 @@ class CompetitionParamsForm extends React.Component {
                         </div>
                     </div>
                     <div className={"form-group row"}>
-                        <label className={"col-sm-3 col-form-label text-right"}>Продолжительность рануда</label>
+                        <label className={"col-sm-3 col-form-label text-right"}>Продолжительность раунда</label>
                         <div className={"col-sm-9"}>
-                            <DefaultTextInput style={defaultTextInputStyle} defaultText={this.formState.roundLength}
+                            <DefaultTextInput style={defaultTextInputStyle} placeholder={"В секундах"} defaultText={this.formState.roundLength}
                             onChange={(value) => this.updateFormStateField("roundLength", value)}/>
                         </div>
                     </div>

@@ -9,7 +9,7 @@ const isAuthenticated = () => {
     const val = localStorage.getItem("expirationTimestamp");
     console.log({val});
 
-    if (val == null || (parseInt(val) <= getUTCSeconds())) {
+    if (val === "undefined" || (parseInt(val) <= getUTCSeconds())) {
         console.log({isAuthenticated: false, val: val, utc: getUTCSeconds()});
         return false;
     }
