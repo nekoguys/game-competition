@@ -1,8 +1,8 @@
 import {EventSourcePolyfill} from 'event-source-polyfill';
 
 class ApiSettings {
-    static #truehost = "http://localhost:8080/";
-    static #host = "http://localhost:8080/api";
+    static #truehost = process.env.REACT_APP_API_HOST;
+    static #host = process.env.REACT_APP_API_HOST + "/api";
     static #signinEndPoint = ApiSettings.#host + "/auth/signin";
     static #signupEndPoint = ApiSettings.#host + "/auth/signup";
     static #createCompetitionEndPoint = ApiSettings.#host + "/competitions/create";

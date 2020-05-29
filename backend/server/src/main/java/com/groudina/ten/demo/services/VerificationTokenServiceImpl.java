@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
+import javax.annotation.PostConstruct;
 import java.util.UUID;
 
 @Component
@@ -29,6 +30,11 @@ public class VerificationTokenServiceImpl implements IVerificationTokenService {
         this.verificationTokenRepository = tokenRepository;
         this.userRepository = userRepository;
         this.emailService = emailService;
+    }
+
+    @PostConstruct
+    void test() {
+        System.out.println("FRONTEND HOST: " + host);
     }
 
     @Override
