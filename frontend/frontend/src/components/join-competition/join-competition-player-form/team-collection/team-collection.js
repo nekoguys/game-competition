@@ -32,7 +32,7 @@ class TeamCollectionElement extends React.Component {
                 items={members}
                 style={{marginRight: "20px", marginLeft: "20px", marginTop: "-20px", marginBottom: "-20px"}}
                 ulstyle={{paddingTop: "20px", paddingBottom: "20px", marginBottom: "0",
-                    fontSize: "30px", listStyle: "none"}}
+                    fontSize: "22px", listStyle: "none"}}
             />
         }
 

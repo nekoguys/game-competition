@@ -1,6 +1,7 @@
 import React from "react";
 
 import "./results-table.css";
+import round from "../../../../helpers/round-helper";
 
 class StudentResultsTable extends React.Component {
     firstRow(roundsCount) {
@@ -36,7 +37,7 @@ class StudentResultsTable extends React.Component {
                     this.range(1, roundsCount + 1).map(roundNumber => {
                         let ans = "";
                         if (roundNumber in source) {
-                            ans = source[roundNumber];
+                            ans = round(source[roundNumber]);
                         }
 
                         return <td key={roundNumber} width={toStr(1)}>{ans}</td>

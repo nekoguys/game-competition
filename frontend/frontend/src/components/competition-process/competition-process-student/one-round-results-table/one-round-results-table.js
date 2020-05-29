@@ -1,4 +1,5 @@
 import React from "react";
+import round from "../../../../helpers/round-helper";
 
 class OneRoundResultsTable extends React.Component {
     firstRow(roundsCount) {
@@ -37,14 +38,14 @@ class OneRoundResultsTable extends React.Component {
         let res;
 
         if (currentRoundNumber > 1) {
-            res = <td key={1} width={toStr(1)}>{source[currentRoundNumber - 1]}</td>
+            res = <td key={1} width={toStr(1)}>{round(source[currentRoundNumber - 1])}</td>
         }
 
         return (
             <tr key={key}>
                 <td key={0} width={toStr(1)}>{heading}</td>
                 {res}
-                <td key={2} width={toStr(1)}>{source[currentRoundNumber]}</td>
+                <td key={2} width={toStr(1)}>{round(source[currentRoundNumber])}</td>
                 {additional}
             </tr>
         )

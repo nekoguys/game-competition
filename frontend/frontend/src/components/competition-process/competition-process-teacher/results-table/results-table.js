@@ -1,6 +1,7 @@
 import React from "react";
 
 import "./results-table.css";
+import round from "../../../../helpers/round-helper";
 
 
 class CompetitionResultsTable extends React.Component{
@@ -53,7 +54,7 @@ class CompetitionResultsTable extends React.Component{
                 let price = "";
 
                 if (roundNumber in this.props.prices) {
-                    price = this.props.prices[roundNumber];
+                    price = round(this.props.prices[roundNumber]);
                 }
 
                 if (el % 2 === 1) {
@@ -70,7 +71,7 @@ class CompetitionResultsTable extends React.Component{
                                 let ans = "";
                                 if (roundNumber in this.props.answers) {
                                     if (teamInd in this.props.answers[roundNumber]) {
-                                        ans = this.props.answers[roundNumber][teamInd];
+                                        ans = round(this.props.answers[roundNumber][teamInd]);
                                     }
                                 }
                                 return (
@@ -105,7 +106,7 @@ class CompetitionResultsTable extends React.Component{
 
                                 if (roundNumber in this.props.results) {
                                     if (teamInd in this.props.results[roundNumber]) {
-                                        ans = this.props.results[roundNumber][teamInd];
+                                        ans = round(this.props.results[roundNumber][teamInd]);
                                     }
                                 }
                                 return (
