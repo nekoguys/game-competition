@@ -38,9 +38,8 @@ public class EmailServiceImpl implements IEmailService {
 
     @PostConstruct
     public void test() {
-        System.out.println("teach team email " + techTeamEmail);
-        System.out.println("teach team password " + techTeamEmailPassword);
-
+        System.out.println("tech team email " + techTeamEmail);
+        System.out.println("tech team password " + techTeamEmailPassword);
     }
 
     public boolean isActive() {
