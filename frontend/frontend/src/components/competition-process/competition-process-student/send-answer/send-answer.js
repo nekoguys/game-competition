@@ -13,7 +13,12 @@ class SendAnswer extends React.Component {
             marginBottom: "5px",
             border: "none",
             overflow: "hidden",
-            marginLeft: "-50px"
+            marginLeft: "-50px",
+        };
+
+        const imgStyle = {
+            height: "35px",
+            width: "35px",
         };
 
         const inputStyle = {
@@ -38,6 +43,7 @@ class SendAnswer extends React.Component {
                         clearOnSubmit={true}
                         onSubmit={this.props.onSubmit}
                         submitOnKey={'enter'}
+                        imgStyle={imgStyle}
                     />
                 </div>
             </div>

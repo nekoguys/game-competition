@@ -8,8 +8,6 @@
 # BLOCK ALL DIRECTORY .idea (NOT RECOMMENDED но кого это волнует?)
 .idea/
 
-package-lock.json
-
 # User-specific stuff
 .idea/**/workspace.xml
 .idea/**/tasks.xml

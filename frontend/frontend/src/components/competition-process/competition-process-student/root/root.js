@@ -83,29 +83,34 @@ class CompetitionProcessStudentRoot extends React.Component {
     }
 
     submitAnswer = (answer) => {
-        const obj = {
-            answer: parseInt(answer, 10),
-            roundNumber: this.state.currentRoundNumber
-        };
-        const {pin} = this.props.match.params;
+        const ans = parseInt(answer, 10);
+        if (Number.isNaN(ans)) {
+            showNotification(this).error("Invalid answer", "Error", 2500);
+        } else {
+            const obj = {
+                answer: ans,
+                roundNumber: this.state.currentRoundNumber
+            };
+            const {pin} = this.props.match.params;
 
-        ApiHelper.submitAnswer(pin, obj).then(resp => {
-            console.log({resp});
-            if (resp.status >= 300) {
-                return {success: false, json: resp.text()};
-            } else {
-                return {success: true, json: resp.json()};
-            }
-        }).then(resp => {
-            resp.json.then(jsonBody => {
-                console.log({jsonBody});
-                if (resp.success) {
-                    showNotification(this).success(jsonBody.message, "Success", 2000);
+            ApiHelper.submitAnswer(pin, obj).then(resp => {
+                console.log({resp});
+                if (resp.status >= 300) {
+                    return {success: false, json: resp.text()};
                 } else {
-                    showNotification(this).error(jsonBody, "Error", 2000);
+                    return {success: true, json: resp.json()};
                 }
+            }).then(resp => {
+                resp.json.then(jsonBody => {
+                    console.log({jsonBody});
+                    if (resp.success) {
+                        showNotification(this).success(jsonBody.message, "Success", 2000);
+                    } else {
+                        showNotification(this).error(jsonBody, "Error", 2000);
+                    }
+                })
             })
-        })
+        }
     };
 
     fetchCompetitionInfo() {
