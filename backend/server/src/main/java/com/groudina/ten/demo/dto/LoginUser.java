@@ -9,6 +9,7 @@ import java.io.Serializable;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
+@ToString
 public class LoginUser implements Serializable {
     @JsonProperty("email")
     @NonNull
