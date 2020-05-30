@@ -10,6 +10,8 @@ import com.groudina.ten.demo.models.DbRole;
 import com.groudina.ten.demo.models.DbUser;
 import com.groudina.ten.demo.services.IRolesMapper;
 import lombok.extern.log4j.Log4j2;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -25,9 +27,9 @@ import java.util.stream.Collectors;
 
 @RequestMapping(path = "/api/roles/{email}")
 @Controller
-@Log4j2
 @CrossOrigin(origins = {"*"}, maxAge = 3600)
 public class RolesController {
+    private final Logger log = LoggerFactory.getLogger(RolesController.class);
     private DbUserRepository userRepository;
     private DbRolesRepository rolesRepository;
     private IRolesMapper rolesMapper;
@@ -61,6 +63,8 @@ public class RolesController {
             DbUser target = args.getT2();
             List<DbRole> targetRoles = args.getT3();
 
+            log.info("POST: /api/roles/{}, email: {}, body: {}", email, principal.getName(), rolePostRequest);
+
             // Check if admin commits suicide.
             if (email.equals(principal.getName()) && !roleName.equals("ROLE_ADMIN"))
                 return Mono.error(new ResponseException("You are not allowed to remove your role \"ROLE_ADMIN\""));
@@ -76,6 +80,8 @@ public class RolesController {
 
     @GetMapping(produces = {MediaType.APPLICATION_JSON_VALUE})
     public Mono<ResponseEntity> getRoles(@PathVariable String email) {
+        log.info("GET: /api/roles/{}", email);
+
         Mono<DbUser> emailNotFoundFallback = Mono.error(
                 new ResponseException(String.format("User with email \"%s\" doesn't exist", email)));
 

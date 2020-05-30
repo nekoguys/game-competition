@@ -8,7 +8,8 @@ import com.groudina.ten.demo.dto.UpdateProfileRequestDto;
 import com.groudina.ten.demo.models.DbUser;
 import com.groudina.ten.demo.services.IEntitiesMapper;
 import com.groudina.ten.demo.services.IEntityUpdater;
-import lombok.extern.log4j.Log4j2;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -19,11 +20,12 @@ import reactor.core.publisher.Mono;
 import javax.validation.Valid;
 import java.security.Principal;
 
-@Log4j2
+
 @RequestMapping(path="/api/profile", produces = {MediaType.APPLICATION_JSON_VALUE})
 @CrossOrigin(origins = {"*"}, maxAge = 3600)
 @RestController
 public class ProfileController {
+    private final Logger log = LoggerFactory.getLogger(ProfileController.class);
     private DbUserRepository userRepository;
     private IEntitiesMapper<DbUser, ProfileInfoResponseDto> profileInfoMapper;
     private IEntityUpdater<DbUser, UpdateProfileRequestDto> userUpdater;
@@ -46,6 +48,7 @@ public class ProfileController {
     @PreAuthorize("hasRole('STUDENT')")
     public Mono<ResponseEntity> getNavBarInfo(Mono<Principal> principalMono) {
         return principalMono.flatMap(principal -> {
+            log.info("GET: /api/profile/navbar_info, email: {}", principal.getName());
             return userRepository.findOneByEmail(principal.getName());
         }).map(user -> {
             return (ResponseEntity)ResponseEntity.ok(navbarInfoMapper.map(user, null));
@@ -58,6 +61,7 @@ public class ProfileController {
     @PreAuthorize("hasRole('STUDENT')")
     public Mono<ResponseEntity> getProfileInfo(Mono<Principal> principalMono) {
         return principalMono.flatMap(principal -> {
+            log.info("GET: /api/profile/get, email: {}", principal.getName());
             return userRepository.findOneByEmail(principal.getName());
         }).map(user -> {
             return (ResponseEntity)ResponseEntity.ok(
@@ -72,6 +76,7 @@ public class ProfileController {
     @PreAuthorize("hasRole('STUDENT')")
     public Mono<ResponseEntity> updateProfile(Mono<Principal> principalMono, @RequestBody @Valid UpdateProfileRequestDto dto) {
         return principalMono.flatMap(principal -> {
+            log.info("POST: /api/profile/update, email: {}, body: {}", principal.getName(), dto);
             return userRepository.findOneByEmail(principal.getName());
         }).flatMap(user -> {
             return userUpdater.update(user, dto);
