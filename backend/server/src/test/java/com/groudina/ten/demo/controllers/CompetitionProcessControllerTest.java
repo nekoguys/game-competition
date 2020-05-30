@@ -355,6 +355,34 @@ class CompetitionProcessControllerTest {
     }
 
     @Test
+    @WithMockUser(value = "email", password = "1234", roles = {"STUDENT"})
+    void testSubmitAnswerOutOfRange() {
+        var user = userRepository.save(DbUser.builder().password("1234").email("email").roles(rolesRepository.findAll().collectList().block()).build()).block();
+        var competition = competitionsRepository.save(DbCompetition.builder()
+                .state(DbCompetition.State.Registration)
+                .pin("1234")
+                .parameters(DbCompetition.Parameters.builder().roundsCount(2).build())
+                .build()).block();
+        var team = teamsRepository.save(DbTeam.builder().captain(user).name("abac").allPlayers(List.of(user)).sourceCompetition(competition).build()).block();
+        competition.addTeam(team);
+        competition = competitionsRepository.save(competition).block();
+
+        gameManagementService.startCompetition(competition).block();
+
+        webTestClient.post().uri("/api/competition_process/1234/submit_answer")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .body(BodyInserters.fromValue(CompetitionAnswerRequestDto.builder().answer(0).roundNumber(1).build()))
+                .exchange()
+                .expectStatus()
+                .isBadRequest()
+                .expectBody(ResponseMessage.class)
+                .value(ex -> assertTrue(ex.getMessage().matches("(.*)too small (.*) too big(.*)")));
+        var comp = competitionsRepository.findByPin("1234").block();
+        assertEquals(comp.getCompetitionProcessInfo().getCurrentRound().getAnswerList().size(), 0);
+    }
+
+    @Test
     @WithMockUser(value = "email", password = "1234", roles = {"TEACHER","STUDENT"})
     void testResultsEvents() {
         var user = userRepository.save(DbUser.builder().password("1234").email("email").roles(rolesRepository.findAll().collectList().block()).build()).block();
