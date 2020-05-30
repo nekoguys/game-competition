@@ -1,9 +1,6 @@
 package com.groudina.ten.demo.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.io.Serializable;
 
@@ -12,6 +9,7 @@ import java.io.Serializable;
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
+@ToString
 public class JoinTeamRequest implements Serializable {
     private static final long serialVersionUID = -5660357487053059461L;
 
