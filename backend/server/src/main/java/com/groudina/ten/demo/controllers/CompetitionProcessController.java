@@ -5,6 +5,7 @@ import com.groudina.ten.demo.datasource.DbTeamsRepository;
 import com.groudina.ten.demo.dto.*;
 import com.groudina.ten.demo.exceptions.IllegalAnswerSubmissionException;
 import com.groudina.ten.demo.models.DbCompetition;
+import com.groudina.ten.demo.services.IAnswersValidator;
 import com.groudina.ten.demo.services.IGameManagementService;
 import com.groudina.ten.demo.services.IStudentTeamFinder;
 import lombok.extern.log4j.Log4j2;
@@ -31,17 +32,20 @@ public class CompetitionProcessController {
     private DbCompetitionsRepository competitionsRepository;
     private IGameManagementService gameManagementService;
     private IStudentTeamFinder teamFinder;
+    private IAnswersValidator answersValidator;
 
     public CompetitionProcessController(
             @Autowired IGameManagementService gameManagementService,
             @Autowired DbCompetitionsRepository competitionsRepository,
             @Autowired DbTeamsRepository teamsRepository,
-            @Autowired IStudentTeamFinder teamFinder
+            @Autowired IStudentTeamFinder teamFinder,
+            @Autowired IAnswersValidator validator
     ) {
         this.gameManagementService = gameManagementService;
         this.competitionsRepository = competitionsRepository;
         this.teamsRepository = teamsRepository;
         this.teamFinder = teamFinder;
+        this.answersValidator = validator;
     }
 
     private <U, T> Mono<ResponseEntity> routine(Mono<U> source, Function<? super U, ? extends Mono<? extends T>> mapper,
@@ -175,6 +179,12 @@ public class CompetitionProcessController {
         );
 
         return routine(competitionAndTeamMono, (tuple) -> {
+            var validationResult = answersValidator.validateAnswer(IAnswersValidator.AnswerValidationRequestDto.builder().answer(answerDto.getAnswer()).build());
+
+            if (!validationResult.isOk()) {
+                return Mono.error(new IllegalAnswerSubmissionException(validationResult.getMessage()));
+            }
+
             DbCompetition competition = tuple.getT1();
             String submitterEmail = tuple.getT2().getName();
             var team = teamFinder.findTeamForStudent(competition, submitterEmail);

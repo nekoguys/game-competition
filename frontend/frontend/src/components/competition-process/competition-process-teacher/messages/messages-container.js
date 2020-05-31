@@ -35,6 +35,7 @@ class MessagesContainer extends React.Component {
                                                onSubmit={this.props.sendMessageCallBack}
                                                clearOnSubmit={true}
                                                submitOnKey={'enter'}
+                                               imgStyle={{width: "35px", height: "35px"}}
                     />
                     <div style={{paddingLeft: "40px"}}>
                         <MessagesListContainer messages={this.props.messages}/>

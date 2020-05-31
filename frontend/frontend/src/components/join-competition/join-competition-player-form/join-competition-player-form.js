@@ -34,7 +34,7 @@ export class TextInputWithSubmitButton extends React.Component {
 
     render() {
         const {type="text", placeholder="", containerStyle={}, buttonStyle={},
-            inputStyle={}, imagePath="", onSubmit=(_value) => {}, alt="submit competition id",
+            inputStyle={}, imagePath="", imgStyle={}, onSubmit=(_value) => {}, alt="submit competition id",
             clearOnSubmit=false
         } = this.props;
 
@@ -66,7 +66,7 @@ export class TextInputWithSubmitButton extends React.Component {
                         this.input.value = "";
                         this.input.focus();
                     }
-                }} type={"submit"}><img src={imagePath} alt={alt}/></button>
+                }} type={"submit"}><img src={imagePath} alt={alt} style={imgStyle}/></button>
             </div>
         )
     }
@@ -194,6 +194,7 @@ class JoinCompetitionPlayerForm extends React.Component {
                     <TextInputWithSubmitButton imagePath={submitButtonImage} containerStyle={{margin: "0 auto"}}
                                                placeholder={"ID игры"} onSubmit={this.onGameIdSubmitButton}
                                                buttonStyle={buttonStyle} inputStyle={inputStyle}
+                                               imgStyle={{width: "35px", height: "35px"}}
                     />
                 </div>
             </div>
