@@ -1,0 +1,23 @@
+.show-description {
+    border-radius: 15px;
+    background-color: #48BDFF;
+    text-align: center;
+    padding-left: 20px;
+    margin-top: 10px;
+    min-width: 200px;
+}
+
+.show-description:hover {
+    background-color: #4398ff;
+    box-shadow: 1px 1px 5px 0 rgba(0,0,0,0.75);
+}
+
+.instruction-holder {
+    background-color: #CACACA;
+    border-radius: 20px;
+    word-break: break-all;
+    text-align: center;
+    width: 70%;
+    margin: 0 auto;
+    padding: 10px;
+}

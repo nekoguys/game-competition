@@ -1,0 +1,23 @@
+.show-messages {
+    border-radius: 15px;
+    background-color: #48BDFF;
+    text-align: center;
+    padding-left: 20px;
+    margin-top: 10px;
+    min-width: 200px;
+}
+
+.show-messages:hover {
+    background-color: #4398ff;
+    box-shadow: 1px 1px 5px 0 rgba(0,0,0,0.75);
+}
+
+.count {
+    z-index: 1;
+    position: absolute;
+    top: -10px;
+    background-color: #d93d00;
+    border-radius: 50%;
+    padding-top: 6px;
+    padding-bottom: 6px;
+}

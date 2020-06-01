@@ -1,0 +1,23 @@
+.text-input {
+    width: auto;
+    flex-grow: 1;
+    height: auto;
+    font-size: 1rem;
+    margin: 1.2rem auto 1.7rem auto;
+}
+
+::-webkit-input-placeholder {
+    text-align: center;
+}
+
+:-moz-placeholder { /* Firefox 18- */
+    text-align: center;
+}
+
+::-moz-placeholder {  /* Firefox 19+ */
+    text-align: center;
+}
+
+:-ms-input-placeholder {
+    text-align: center;
+}

@@ -1,0 +1,20 @@
+.show-settings {
+    border-radius: 15px;
+    background-color: #48BDFF;
+    text-align: center;
+    padding-left: 20px;
+    margin-top: 10px;
+}
+
+.show-settings:hover {
+    background-color: #4398ff;
+    box-shadow: 1px 1px 5px 0 rgba(0,0,0,0.75);
+}
+
+.form-container {
+    border-radius: 30px;
+    padding: 10px 40px 20px;
+    margin-left: 30px;
+    margin-right: 30px;
+    background-color: #E7E7E7;
+}

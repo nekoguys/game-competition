@@ -1,0 +1,21 @@
+.team-members-collection {
+    border-bottom-left-radius: 30px;
+    border-bottom-right-radius: 30px;
+    background-color: white;
+}
+
+.rounded {
+    counter-reset: li;
+    list-style: none;
+    font: 14px "Comic Sans MS", "Comic Sans MS";
+    padding: 0;
+}
+
+.rounded li {
+    position: relative;
+    display: block;
+    padding: .2em .2em .2em .2em;
+    margin: .5em 0;
+    background: #cec5fa;
+    border-radius: .3em;
+}

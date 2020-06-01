@@ -1,0 +1,17 @@
+.game-id-container {
+    border-radius: 30px;
+    margin: 40px 30px 40px 50px;
+    background: #E7E7E7;
+    display: block;
+}
+
+.game-id-field {
+    margin: auto;
+    border-radius: 20px;
+}
+
+.game-info-form-container {
+    background-color: #E7E7E7;
+    border-radius: 30px;
+    padding: 35px 40px 10px 40px;
+}
