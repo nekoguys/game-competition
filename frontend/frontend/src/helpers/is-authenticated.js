@@ -8,8 +8,7 @@ const getUTCSeconds = () => {
 const isAuthenticated = () => {
     const val = localStorage.getItem("expirationTimestamp");
     console.log({val});
-
-    if (val === "undefined" || (parseInt(val) <= getUTCSeconds())) {
+    if (Number.isNaN(parseInt(val)) || (parseInt(val) <= getUTCSeconds())) {
         console.log({isAuthenticated: false, val: val, utc: getUTCSeconds()});
         return false;
     }

@@ -1,9 +1,6 @@
 package com.groudina.ten.demo.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.io.Serializable;
 
@@ -11,6 +8,7 @@ import java.io.Serializable;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
+@ToString
 public class CompetitionMessageRequest implements Serializable {
     private static final long serialVersionUID = 1574696649181677442L;
 

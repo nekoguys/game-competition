@@ -6,7 +6,8 @@ import com.groudina.ten.demo.datasource.DbUserRepository;
 import com.groudina.ten.demo.dto.*;
 import com.groudina.ten.demo.models.DbCompetition;
 import com.groudina.ten.demo.services.*;
-import lombok.extern.log4j.Log4j2;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.util.Pair;
 import org.springframework.http.HttpStatus;
@@ -22,11 +23,11 @@ import javax.validation.Valid;
 import java.security.Principal;
 import java.util.ArrayList;
 
-@Log4j2
 @RequestMapping(path="/api/competitions", produces = {MediaType.APPLICATION_JSON_VALUE})
 @CrossOrigin(origins = {"*"}, maxAge = 3600)
 @RestController
 public class CompetitionsController {
+    private final Logger log = LoggerFactory.getLogger(CompetitionsController.class);
     private DbCompetitionsRepository competitionsRepository;
     private DbUserRepository userRepository;
     private DbTeamsRepository teamsRepository;
@@ -69,6 +70,7 @@ public class CompetitionsController {
     @PostMapping(value = "/update_competition/{pin}")
     @PreAuthorize("hasRole('TEACHER')")
     public Mono<ResponseEntity> updateCompetition(@PathVariable String pin, @Valid @RequestBody NewCompetition competition) {
+        log.info("POST: /api/competitions/update_competition/{}, body: {}", pin, competition);
         return competitionsRepository.findByPin(pin).flatMap(dbCompetition -> {
             return competitionEntityUpdater.update(dbCompetition, competition);
         }).map(competition1 -> {
@@ -81,8 +83,9 @@ public class CompetitionsController {
     @PreAuthorize("hasRole('TEACHER')")
     public Mono<ResponseEntity> createCompetition(Mono<Principal> principalMono, @Valid @RequestBody NewCompetition competition) {
         return principalMono.map(principal -> {
-            log.error(principal.getName());
-            return principal.getName();
+            var name = principal.getName();
+            log.info("POST: /api/competitions/create, email: {}, body: {}", name, competition);
+            return name;
         }).flatMap(userEmail -> {
             return userRepository.findOneByEmail(userEmail);
         }).flatMap(dbUser -> {
@@ -105,6 +108,7 @@ public class CompetitionsController {
     @GetMapping(value = "/get_clone_info/{pin}")
     @PreAuthorize("hasRole('TEACHER')")
     public Mono<ResponseEntity> getCompetitionInfo(@PathVariable String pin) {
+        log.info("GET: /api/competitions/get_clone_info/{}", pin);
         return this.competitionsRepository.findByPin(pin).map(comp -> {
             var compInfo = competitionInfoMapper.map(comp, null);
             return (ResponseEntity)ResponseEntity.ok(compInfo);
@@ -116,6 +120,7 @@ public class CompetitionsController {
     @PostMapping(value = "/create_team")
     @PreAuthorize("hasRole('STUDENT')")
     public Mono<ResponseEntity<ResponseMessage>> joinTeam(@Valid @RequestBody NewTeam newTeam) {
+        log.info("POST: /api/competitions/create_team, body: {}", newTeam);
         return this.addTeamToCompetitionService.addTeamToCompetition(newTeam).map(team -> {
             return ResponseEntity.ok(ResponseMessage.of("Team created successfully"));
         }).onErrorResume(ex ->
@@ -126,6 +131,7 @@ public class CompetitionsController {
     @PostMapping(value = "/check_pin")
     @PreAuthorize("hasRole('STUDENT')")
     public Mono<ResponseEntity<GamePinCheckResponse>> checkIfGameExists(@Valid @RequestBody GamePinCheckRequest pinCheck) {
+        log.info("POST: /api/competitions/check_pin, body: {}", pinCheck);
         return competitionsRepository.findByPin(pinCheck.getPin()).map(comp -> {
             if (comp.getState() != DbCompetition.State.Registration) {
                 return ResponseEntity.ok(GamePinCheckResponse.of(false));
@@ -136,6 +142,7 @@ public class CompetitionsController {
 
     @RequestMapping(value = "/team_join_events/{pin}", produces = {MediaType.TEXT_EVENT_STREAM_VALUE})
     public Flux<ServerSentEvent<?>> subscribeToTeamJoinEvents(@PathVariable String pin) {
+        log.info("REQUEST: /api/competitions/team_join_events/{}", pin);
         return teamConnectionNotifyService.getTeamEventForGame(pin).map(e -> ServerSentEvent.builder(e).build());
     }
 
@@ -147,6 +154,7 @@ public class CompetitionsController {
         var userMono = principalMono
                 .map(Principal::getName)
                 .flatMap(userEmail -> {
+                    log.info("POST: /api/competitions/join_team, email: {}, body: {}", userEmail, joinTeamRequest);
                     return userRepository.findOneByEmail(userEmail);
                 });
 
@@ -169,6 +177,7 @@ public class CompetitionsController {
     @GetMapping(value = "/competition_results/{pin}")
     @PreAuthorize("hasRole('TEACHER')")
     public Mono<ResponseEntity> competitionResults(@PathVariable String pin) {
+        log.info("GET: /api/competitions/competition_results/{}", pin);
         return this.competitionsRepository.findByPin(pin).map(el -> {
             return (ResponseEntity)ResponseEntity.ok(resultsFormatter.getCompetitionResults(el));
         }).switchIfEmpty(Mono.defer(() -> {
@@ -182,7 +191,10 @@ public class CompetitionsController {
     public Mono<ResponseEntity> competitionsHistory(Mono<Principal> principalMono, @PathVariable Integer start, @PathVariable Integer amount) {
         return principalMono
                 .map(Principal::getName)
-                .flatMapMany(email -> pageableCompetitionService.getByEmail(email, start, amount))
+                .flatMapMany(email -> {
+                    log.info("GET: /api/competitions/competitions_history/{}/{}, email: {}", start, amount, email);
+                    return pageableCompetitionService.getByEmail(email, start, amount);
+                })
                 .collectList()
                 .map(ResponseEntity::ok);
     }

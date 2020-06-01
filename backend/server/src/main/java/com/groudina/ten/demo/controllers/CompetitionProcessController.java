@@ -9,6 +9,8 @@ import com.groudina.ten.demo.services.IAnswersValidator;
 import com.groudina.ten.demo.services.IGameManagementService;
 import com.groudina.ten.demo.services.IStudentTeamFinder;
 import lombok.extern.log4j.Log4j2;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -23,11 +25,11 @@ import java.security.Principal;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-@Log4j2
 @RequestMapping(path="/api/competition_process/{pin}", produces = {MediaType.APPLICATION_JSON_VALUE})
 @CrossOrigin(origins = {"*"}, maxAge = 3600)
 @RestController
 public class CompetitionProcessController {
+    private Logger log = LoggerFactory.getLogger(CompetitionProcessController.class);
     private DbTeamsRepository teamsRepository;
     private DbCompetitionsRepository competitionsRepository;
     private IGameManagementService gameManagementService;
@@ -64,6 +66,7 @@ public class CompetitionProcessController {
     @GetMapping("/start_competition")
     @PreAuthorize("hasRole('TEACHER')")
     public Mono<ResponseEntity> startCompetition(@PathVariable String pin) {
+        log.info("GET: /api/competition_process/{}/start_competition", pin);
         return routine(competitionsRepository.findByPin(pin), (competition) -> {
             return gameManagementService.startCompetition(competition).thenReturn(false);
         }, () -> "Competition started successfully", () -> "Competition with pin: " + pin + " not found");
@@ -72,6 +75,7 @@ public class CompetitionProcessController {
     @GetMapping("/end_round")
     @PreAuthorize("hasRole('TEACHER')")
     public Mono<ResponseEntity> endRound(@PathVariable String pin) {
+        log.info("GET: /api/competition_process/{}/end_round", pin);
         return routine(competitionsRepository.findByPin(pin), (competition) -> {
             return gameManagementService.endCurrentRound(competition).thenReturn(false);
         }, () -> "Round ended successfully", () -> "Competition with pin: " + pin + " not found");
@@ -80,6 +84,7 @@ public class CompetitionProcessController {
     @GetMapping("/start_round")
     @PreAuthorize("hasRole('TEACHER')")
     public Mono<ResponseEntity> startNewRound(@PathVariable String pin) {
+        log.info("GET: /api/competition_process/{}/start_round", pin);
         return routine(competitionsRepository.findByPin(pin), (competition) -> {
             return gameManagementService.startNewRound(competition).thenReturn(false);
         }, () -> "Round has started successfully", () -> "Competition with pin: " + pin + " not found");
@@ -88,6 +93,7 @@ public class CompetitionProcessController {
     @PostMapping("/send_message")
     @PreAuthorize("hasRole('TEACHER')")
     public Mono<ResponseEntity> sendTeacherMessage(@PathVariable String pin, @Valid @RequestBody CompetitionMessageRequest request) {
+        log.info("POST: /api/competition_process/{}/send_message, body: {}", pin, request);
         return routine(competitionsRepository.findByPin(pin), (competition) -> {
             return gameManagementService.addMessage(competition, request).thenReturn(false);
         }, () -> "Message sent successfully", () -> "Competition with pin: " + pin + " not found");
@@ -96,6 +102,7 @@ public class CompetitionProcessController {
     @RequestMapping(value = "/answers_stream", produces = {MediaType.TEXT_EVENT_STREAM_VALUE})
     @PreAuthorize("hasRole('TEACHER')")
     public Flux<ServerSentEvent<?>> getTeamsAnswers(@PathVariable String pin) {
+        log.info("REQUEST: /api/competition_process/{}/answers_stream", pin);
         return competitionsRepository.findByPin(pin)
                 .flatMapMany(comp -> gameManagementService.teamsAnswersEvents(comp))
                 .map(dto -> {
@@ -106,6 +113,7 @@ public class CompetitionProcessController {
     @RequestMapping(value = "/results_stream", produces = {MediaType.TEXT_EVENT_STREAM_VALUE})
     @PreAuthorize("hasRole('TEACHER')")
     public Flux<ServerSentEvent<?>> getResultsEvents(@PathVariable String pin) {
+        log.info("REQUEST: /api/competition_process/{}/results_stream", pin);
         return competitionsRepository.findByPin(pin)
                 .flatMapMany(comp -> gameManagementService.getRoundResultsEvents(comp))
                 .map(roundTeamResultDto -> ServerSentEvent.builder(roundTeamResultDto).build());
@@ -114,6 +122,7 @@ public class CompetitionProcessController {
     @RequestMapping(value = "/prices_stream", produces = {MediaType.TEXT_EVENT_STREAM_VALUE})
     @PreAuthorize("hasRole('STUDENT')")
     public Flux<ServerSentEvent<?>> getPricesEvents(@PathVariable String pin) {
+        log.info("REQUEST: /api/competition_process/{}/prices_stream", pin);
         return competitionsRepository.findByPin(pin)
                 .flatMapMany(comp -> gameManagementService.getRoundPricesEvents(comp))
                 .map(dto -> ServerSentEvent.builder(dto).build());
@@ -122,6 +131,7 @@ public class CompetitionProcessController {
     @GetMapping(value = "/comp_info", produces = {MediaType.APPLICATION_JSON_VALUE})
     @PreAuthorize("hasRole('TEACHER')")
     public Mono<ResponseEntity> getCompetitionInfoForResultsTable(@PathVariable String pin) {
+        log.info("GET: /api/competition_process/{}/comp_info", pin);
         return competitionsRepository.findByPin(pin)
                 .flatMap(comp -> {
                     var dto = CompetitionInfoForResultsTableDto.builder()
@@ -141,6 +151,7 @@ public class CompetitionProcessController {
     @GetMapping(value = "/student_comp_info")
     @PreAuthorize("hasRole('STUDENT')")
     public Mono<ResponseEntity> getStudentCompetitionInfo(Mono<Principal> principalMono, @PathVariable String pin) {
+        log.info("GET: /api/competition_process/{}/student_comp_info", pin);
         return Mono.zip(principalMono, competitionsRepository.findByPin(pin))
                 .flatMap(tuple -> {
                     var competition = tuple.getT2();
@@ -187,6 +198,8 @@ public class CompetitionProcessController {
 
             DbCompetition competition = tuple.getT1();
             String submitterEmail = tuple.getT2().getName();
+            log.info("POST: /api/competition_process/{}/submit_answer, email: {}, body: {}", pin, submitterEmail, answerDto);
+
             var team = teamFinder.findTeamForStudent(competition, submitterEmail);
 
             if (team.isEmpty()) {
@@ -204,6 +217,7 @@ public class CompetitionProcessController {
     @RequestMapping(value = "/messages_stream", produces = {MediaType.TEXT_EVENT_STREAM_VALUE})
     @PreAuthorize("hasRole('STUDENT')")
     public Flux<ServerSentEvent<?>> getCompetitionMessages(@PathVariable String pin) {
+        log.info("REQUEST: /api/competition_process/{}/messages_stream", pin);
         return competitionsRepository.findByPin(pin).flatMapMany(comp -> gameManagementService.getCompetitionMessages(comp))
                 .map(e -> ServerSentEvent.builder().data(e).build());
     }
@@ -211,6 +225,7 @@ public class CompetitionProcessController {
     @RequestMapping(value = "/rounds_stream", produces = {MediaType.TEXT_EVENT_STREAM_VALUE})
     @PreAuthorize("hasRole('STUDENT')")
     public Flux<ServerSentEvent<?>> getCompetitionRoundEvents(@PathVariable String pin) {
+        log.info("REQUEST: /api/competition_process/{}/rounds_stream", pin);
         return competitionsRepository.findByPin(pin).flatMapMany(comp -> gameManagementService.beginEndRoundEvents(comp))
                 .map(e -> ServerSentEvent.builder().data(e).build());
     }
@@ -223,6 +238,7 @@ public class CompetitionProcessController {
                     var comp = tuple.getT2();
                     var email = tuple.getT1().getName();
                     var team = this.teamFinder.findTeamForStudent(comp, email);
+                    log.info("REQUEST: /api/competition_process/{}/my_answers_stream, email: {}", pin, email);
 
                     if (team.isEmpty()) {
                         return Flux.empty();
@@ -242,6 +258,8 @@ public class CompetitionProcessController {
                     var comp = tuple.getT2();
                     var email = tuple.getT1().getName();
                     var team = this.teamFinder.findTeamForStudent(comp, email);
+
+                    log.info("REQUEST: /api/competition_process/{}/my_results_stream, email: {}", pin, email);
 
                     if (team.isEmpty()) {
                         return Flux.empty();

@@ -5,6 +5,9 @@ import com.groudina.ten.demo.datasource.DbUserRepository;
 import com.groudina.ten.demo.dto.NewUserWithRole;
 import com.groudina.ten.demo.dto.ResponseMessage;
 import com.groudina.ten.demo.models.DbUser;
+import lombok.extern.log4j.Log4j2;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -27,6 +30,7 @@ import java.util.stream.Stream;
 @CrossOrigin(origins = {"*"}, maxAge = 3600)
 @RequestMapping(path = "/api/users", produces = {MediaType.APPLICATION_JSON_VALUE})
 public class UserController {
+    private final Logger log = LoggerFactory.getLogger(UserController.class);
 
     private DbUserRepository userRepository;
     private PasswordEncoder passwordEncoder;
@@ -43,6 +47,7 @@ public class UserController {
     @PostMapping(value = "/create")
     @PreAuthorize("hasRole('ADMIN')")
     public Mono<ResponseEntity<ResponseMessage>> createUser(@Valid @RequestBody NewUserWithRole newUser) {
+        log.info("POST: /api/users/create, body: {}", newUser);
         return userRepository.findOneByEmail(newUser.getEmail())
                 .flatMap(user -> Mono.just(new ResponseEntity<>(new ResponseMessage(
                         String.format("User with email '%s' already exists!", newUser.getEmail())), HttpStatus.UNPROCESSABLE_ENTITY)))

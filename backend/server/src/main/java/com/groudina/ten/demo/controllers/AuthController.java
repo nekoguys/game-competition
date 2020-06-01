@@ -11,6 +11,9 @@ import com.groudina.ten.demo.models.DbUser;
 import com.groudina.ten.demo.services.IEmailService;
 import com.groudina.ten.demo.services.IEmailValidator;
 import com.groudina.ten.demo.services.IVerificationTokenService;
+import lombok.extern.log4j.Log4j2;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -33,6 +36,7 @@ import java.util.stream.Collectors;
 @RequestMapping(path="/api/auth", produces = {MediaType.APPLICATION_JSON_VALUE})
 @Controller
 public class AuthController {
+    private Logger log = LoggerFactory.getLogger(AuthController.class);
     private JWTProvider jwtProvider;
     private DbUserRepository userRepository;
     private DbRolesRepository rolesRepository;
@@ -56,6 +60,7 @@ public class AuthController {
 
     @GetMapping(value="/test_email")
     public Mono<ResponseEntity<ResponseMessage>> testEmail() {
+        log.info("GET: /api/auth/test_email");
         return this.emailService.sendEmail("s18b3_benua@179.ru", "https://google.com")
                 .then(Mono.just(ResponseEntity.ok(ResponseMessage.of("success"))))
                 .onErrorResume(ex -> {
@@ -67,6 +72,7 @@ public class AuthController {
 
     @PostMapping(value="/signin")
     public Mono<ResponseEntity<? extends Serializable>> authenticateUser(@Valid @RequestBody LoginUser loginUser) {
+        log.info("POST: /api/auth/signin, body: {}", loginUser);
         return userRepository.findOneByEmail(loginUser.getEmail()).flatMap(user -> {
             if (passwordEncoder.matches(loginUser.getPassword(), user.getPassword())) {
                 if (user.isVerified()) {
@@ -87,6 +93,7 @@ public class AuthController {
 
     @PostMapping("/signup")
     public Mono<ResponseEntity> registerUser(@Valid @RequestBody NewUser newUser) {
+        log.info("POST: /api/auth/signup, body: {}", newUser);
         if (emailValidator.validateEmail(newUser.getEmail())) {
             return userRepository.findOneByEmail(newUser.getEmail()).flatMap(user -> {
                 return Mono.just(new ResponseEntity(new ResponseMessage(String.format("User with email %s already exists!", newUser.getEmail())), HttpStatus.BAD_REQUEST));
@@ -105,6 +112,7 @@ public class AuthController {
 
     @GetMapping("/verification/{token}")
     public Mono<ResponseEntity<ResponseMessage>> verifyUser(@PathVariable String token) {
+        log.info("GET: /api/auth/verification/{}", token);
         return this.verificationTokenService.verifyUser(token).map(__ -> {
             return ResponseEntity.ok(ResponseMessage.of("Verified successfully"));
         }).switchIfEmpty(Mono.defer(() -> {
