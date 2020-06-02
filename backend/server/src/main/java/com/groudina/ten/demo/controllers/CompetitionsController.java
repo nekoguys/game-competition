@@ -175,7 +175,7 @@ public class CompetitionsController {
     }
 
     @GetMapping(value = "/competition_results/{pin}")
-    @PreAuthorize("hasRole('TEACHER')")
+    @PreAuthorize("hasRole('STUDENT')")
     public Mono<ResponseEntity> competitionResults(@PathVariable String pin) {
         log.info("GET: /api/competitions/competition_results/{}", pin);
         return this.competitionsRepository.findByPin(pin).map(el -> {
