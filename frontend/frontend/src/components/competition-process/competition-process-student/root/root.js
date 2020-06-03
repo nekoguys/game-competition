@@ -49,7 +49,7 @@ class CompetitionProcessStudentRoot extends React.Component {
     componentDidUpdate(prevProps, prevState, snapshot) {
         if (this.state.isCurrentRoundEnded) {
             clearInterval(this.timerId);
-        } else {
+        } else if (!this.state.isCurrentRoundEnded && prevState.isCurrentRoundEnded) {
             clearInterval(this.timerId);
             this.setupTimer();
         }
