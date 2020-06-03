@@ -9,7 +9,9 @@ class JoinCompetitionForm extends React.Component {
     constructor(props) {
         super(props);
 
-        this.formState = {};
+        this.formState = {
+            teamName: ""
+        };
     }
 
     updateFormStateField(key, value) {

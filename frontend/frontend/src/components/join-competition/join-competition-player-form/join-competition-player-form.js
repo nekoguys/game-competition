@@ -137,6 +137,9 @@ class JoinCompetitionPlayerForm extends React.Component {
                 this.setState((prevState) => {
                     let arr = prevState.items.slice(0);
                     const elem = JSON.parse(event.data);
+                    if (elem.teamName === null) {
+                        elem.teamName = "";
+                    }
                     const index = arr.findIndex(el => {return el.teamName === elem.teamName});
                     if (index === -1) {
                         arr.push(elem);
