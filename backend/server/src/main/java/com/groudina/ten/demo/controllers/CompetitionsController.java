@@ -172,8 +172,10 @@ public class CompetitionsController {
             return (ResponseEntity)ResponseEntity
                     .ok(JoinTeamResponse.builder().currentTeamName(team.getName()).build());
         })
-                .onErrorResume(ex ->
-                        Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseMessage.of(ex.getMessage()))))
+                .onErrorResume(ex -> {
+                    log.info(String.format("Predicted exception: %s and %s", ex.getClass().getName(), ex.getMessage()));
+                        ex.printStackTrace();
+                        return Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseMessage.of(ex.getMessage())));})
                 .defaultIfEmpty(
                         ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseMessage.of("No competition with pin: " + joinTeamRequest.getCompetitionPin())));
     }
