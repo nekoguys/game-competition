@@ -53,7 +53,25 @@ class CompetitionProcessStudentRoot extends React.Component {
             clearInterval(this.timerId);
             this.setupTimer();
         }
+
+        if (this.state.roundsCount > 0 && this.state.roundsCount === this.state.currentRoundNumber && this.state.isCurrentRoundEnded) {
+            this.onRedirectToResultsPage();
+        }
     }
+
+    onRedirectToResultsPage = () => {
+        this.setState(prevState => {
+            if (!prevState.didEnd) {
+                showNotification(this).success("Игра закончена", "Игра закончена", 2500);
+
+                setTimeout(() => {
+                    const {pin} = this.props.match.params;
+                    this.props.history.push("/competitions/results/" + pin);
+                }, 2500);
+                return {didEnd: true};
+            }
+        });
+    };
 
     setupTimer = () => {
         this.timerId = setInterval(() => {

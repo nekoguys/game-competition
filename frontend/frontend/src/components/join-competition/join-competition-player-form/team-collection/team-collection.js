@@ -39,7 +39,8 @@ class TeamCollectionElement extends React.Component {
         let input;
 
         if (!this.props.isReadOnly) {
-            input = (<DefaultTextInput
+            input = (<div className={"col-5"}>
+                <DefaultTextInput
                 style={{margin: "0 10px 0 10px", float: "right"}}
                 onChange={(text) => this.setState(prevState => {
                     return {teamPassword: text}
@@ -56,24 +57,18 @@ class TeamCollectionElement extends React.Component {
                 }}
                 onClick={(ev) => {
                     ev.stopPropagation();
-                }}
-            />);
+                }}/></div>);
         }
-
+        const colSize = input ? '6' : '11'
         return (
             <div onClick={(ev) => {
-
                 this.setState(prevState => {
                     return {isExpanded: !prevState.isExpanded}
-            })}}
-                 style={{paddingBottom: "20px"}}
-            >
-            <div className={"item-container"}>
-                <div className={"row"}>
-                    <div className={"col-6"} style={{fontSize: "28px"}}>{this.getName()}</div>
-                    <div className={"col-5"}>
-                        {input}
-                    </div>
+            })}} style={{paddingBottom: "20px"}}>
+            <div className={"item-container "}>
+                <div className={"row justify-content-between"}>
+                    <div className={`col-${colSize}`} style={{fontSize: "28px"}}>{this.getName()}</div>
+                    {input}
                     <div style={{padding:"0px"}} className={"col-1"}>
                         <div style={{transform: "scale(0.3) translate(-30px, 0)"}}>
                             <button style={{
