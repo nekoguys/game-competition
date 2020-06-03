@@ -150,7 +150,7 @@ class JoinCompetitionPlayerForm extends React.Component {
                     return {
                         items: arr,
                         foundedTeams: arr.filter(el => {
-                            return el.teamName.toLowerCase().includes(prevState.searchedTeamName)
+                            return el.teamName.toLowerCase().includes(prevState.searchedTeamName.toLowerCase())
                         })
                     }
                 });
