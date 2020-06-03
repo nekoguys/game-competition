@@ -46,9 +46,19 @@ class CompetitionParamsForm extends React.Component {
         const {initialState} = props;
         this.formState = new CompetitionParams({initialParams: initialState});
 
+        let demandFormula_a = "";
+        let demandFormula_b = "";
+        if ('demandFormula' in this.formState) {
+            const demandSpl = this.formState.demandFormula.split(';');
+            if (demandSpl.length === 2) {
+                demandFormula_a = demandSpl[0];
+                demandFormula_b = demandSpl[1];
+            }
+        }
+
         this.demand = {
-            demandFormula_a: "",
-            demandFormula_b: ""
+            demandFormula_a: demandFormula_a,
+            demandFormula_b: demandFormula_b
         }
         this.onFormStateUpdated();
     }
@@ -97,8 +107,15 @@ class CompetitionParamsForm extends React.Component {
         const checkBoxButtonLabelStyle = {
             fontSize: "26px"
         };
+        const demandFormulaSplit = this.formState.demandFormula.split(';')
+        let demandFormula_a;
+        let demandFormula_b;
+        if (demandFormulaSplit.length === 2) {
+            demandFormula_a = demandFormulaSplit[0];
+            demandFormula_b = demandFormulaSplit[1];
+        }
 
-       return (
+        return (
 
                 <form>
                     <div className={"form-group row"}>
@@ -118,13 +135,13 @@ class CompetitionParamsForm extends React.Component {
                     <div className={"form-group row "}>
                         <label className={"col-sm-3 col-form-label text-right justify-content-end"}>Формула спроса</label>
                         <div className={'col-sm-9 row'} style={{marginLeft: "0"}}>
-                            <DefaultTextInput style={{maxWidth: "250px"}} additionalClassNames={'formula'} placeholder={"Свободный коэффициент"} defaultText={this.formState.demandFormula}
+                            <DefaultTextInput style={{maxWidth: "250px"}} additionalClassNames={'formula'} placeholder={"Свободный коэффициент"} defaultText={demandFormula_a}
                             onChange={(value) => this.updateDemand("demandFormula_a", value)}/>
                             <div style={{position: "relative", minWidth: "2rem"}}>
                                 <p style={{position: "absolute", top: "50%", transform: "translate(0, -60%)", margin: "0"}}>a -</p>
                             </div>
 
-                            <DefaultTextInput style={{maxWidth: "250px"}} additionalClassNames={'formula'} placeholder={"Коэффициент при цене"} defaultText={this.formState.demandFormula}
+                            <DefaultTextInput style={{maxWidth: "250px"}} additionalClassNames={'formula'} placeholder={"Коэффициент при цене"} defaultText={demandFormula_b}
                                                   onChange={(value) => this.updateDemand("demandFormula_b", value)}/>
                             <div style={{position: "relative", minWidth: "2rem"}}>
                                 <p style={{position: "absolute", top: "50%", transform: "translate(0, -60%)", margin: "0"}}>bP</p>
