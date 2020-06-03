@@ -26,7 +26,7 @@ class CompetitionProcessStudentRoot extends React.Component {
             results: {},
             currentRoundNumber: 5,
             timeTillRoundEnd: 55,
-            isCurrentRoundEnded: false,
+            isCurrentRoundEnded: true,
             teamName: "teamName",
             teamIdInGame: 0,
             messages: [],
@@ -48,8 +48,10 @@ class CompetitionProcessStudentRoot extends React.Component {
 
     componentDidUpdate(prevProps, prevState, snapshot) {
         if (this.state.isCurrentRoundEnded) {
+            console.log("cleared interval");
             clearInterval(this.timerId);
         } else if (!this.state.isCurrentRoundEnded && prevState.isCurrentRoundEnded) {
+            console.log("Cleared interval and launch once again");
             clearInterval(this.timerId);
             this.setupTimer();
         }
@@ -75,6 +77,7 @@ class CompetitionProcessStudentRoot extends React.Component {
 
     setupTimer = () => {
         this.timerId = setInterval(() => {
+            console.log("timer event");
             this.setState(prevState => {
                 return {timeTillRoundEnd: Math.max(prevState.timeTillRoundEnd - 1, 0)};
             })
