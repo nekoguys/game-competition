@@ -22,6 +22,7 @@ import reactor.core.publisher.Mono;
 import javax.validation.Valid;
 import java.security.Principal;
 import java.util.ArrayList;
+import java.util.Objects;
 
 @RequestMapping(path="/api/competitions", produces = {MediaType.APPLICATION_JSON_VALUE})
 @CrossOrigin(origins = {"*"}, maxAge = 3600)
@@ -121,6 +122,9 @@ public class CompetitionsController {
     @PreAuthorize("hasRole('STUDENT')")
     public Mono<ResponseEntity<ResponseMessage>> joinTeam(@Valid @RequestBody NewTeam newTeam) {
         log.info("POST: /api/competitions/create_team, body: {}", newTeam);
+        if (Objects.isNull(newTeam)) {
+            return Mono.just(ResponseEntity.badRequest().body(ResponseMessage.of("Too short or empty name")));
+        }
         return this.addTeamToCompetitionService.addTeamToCompetition(newTeam).map(team -> {
             return ResponseEntity.ok(ResponseMessage.of("Team created successfully"));
         }).onErrorResume(ex ->
