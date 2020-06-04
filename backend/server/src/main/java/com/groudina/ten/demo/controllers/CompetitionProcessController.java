@@ -8,7 +8,6 @@ import com.groudina.ten.demo.models.DbCompetition;
 import com.groudina.ten.demo.services.IAnswersValidator;
 import com.groudina.ten.demo.services.IGameManagementService;
 import com.groudina.ten.demo.services.IStudentTeamFinder;
-import lombok.extern.log4j.Log4j2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -170,6 +169,7 @@ public class CompetitionProcessController {
                             .name(parameters.getName())
                             .roundsCount(parameters.getRoundsCount())
                             .teamName(team.get().getName())
+                            .shouldShowResultTableInEnd(parameters.isShouldShowResultTableInEnd())
                             .shouldShowResultTable(parameters.isShouldShowStudentPreviousRoundResults())
                             .teamIdInGame(team.get().getIdInGame())
                             .build();
