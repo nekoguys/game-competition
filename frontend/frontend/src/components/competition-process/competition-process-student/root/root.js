@@ -32,6 +32,7 @@ class CompetitionProcessStudentRoot extends React.Component {
             messages: [],
             description: "",
             shouldShowResultTable: false,
+            shouldShowResultTableInEnd: false,
             unreadMessages: 0,
             isCaptain: false
         }
@@ -56,7 +57,11 @@ class CompetitionProcessStudentRoot extends React.Component {
             this.setupTimer();
         }
 
-        if (this.state.roundsCount > 0 && this.state.roundsCount === this.state.currentRoundNumber && this.state.isCurrentRoundEnded) {
+        if (this.state.roundsCount > 0
+            && this.state.roundsCount === this.state.currentRoundNumber
+            && this.state.isCurrentRoundEnded
+            && this.state.shouldShowResultTableInEnd
+        ) {
             this.onRedirectToResultsPage();
         }
     }
@@ -153,6 +158,7 @@ class CompetitionProcessStudentRoot extends React.Component {
                             description: jsonBody.description,
                             competitionName: jsonBody.name,
                             shouldShowResultTable: jsonBody.shouldShowResultTable,
+                            shouldShowResultTableInEnd: jsonBody.shouldShowResultTableInEnd,
                             isCaptain: jsonBody.isCaptain
                         }
                     })
