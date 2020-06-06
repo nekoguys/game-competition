@@ -16,6 +16,7 @@ class CompetitionParams {
         this.roundsCount = "";
         this.roundLength = "";
         this.instruction = "";
+        this.teamLossUpperbound = "";
         this.shouldShowStudentPreviousRoundResults = false;
         this.shouldEndRoundBeforeAllAnswered = false;
         this.shouldShowResultTableInEnd = false;
@@ -104,6 +105,13 @@ class CompetitionParamsForm extends React.Component {
                         <div className={"col-sm-9"}>
                             <DefaultTextInput style={defaultTextInputStyle} placeholder={"1;2 - p - 2; p - цена"} defaultText={this.formState.demandFormula}
                             onChange={(value) => this.updateFormStateField("demandFormula", value)}/>
+                        </div>
+                    </div>
+                    <div className={"form-group row"}>
+                        <label className={"col-sm-3 col-form-label text-right"}>Максимальные убытки</label>
+                        <div className={"col-sm-9"}>
+                            <DefaultTextInput style={defaultTextInputStyle} placeholder={"Модуль максимальных убытков"} defaultText={this.formState.teamLossUpperbound}
+                                              onChange={(value) => this.updateFormStateField("teamLossUpperbound", value)}/>
                         </div>
                     </div>
                     <div className={"form-group row"}>

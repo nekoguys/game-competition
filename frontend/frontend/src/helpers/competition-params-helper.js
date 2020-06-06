@@ -8,6 +8,7 @@ function getValueForJsonObject(fieldName, value) {
         roundLength: parseInt,
         maxTeamSize: parseInt,
         maxTeamsAmount: parseInt,
+        teamLossUpperbound: parseFloat
     };
 
     return (rules[fieldName] || identity)(value);

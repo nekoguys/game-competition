@@ -104,6 +104,10 @@ class ApiSettings {
         return ApiSettings.host() + "/competition_process/" + pin + "/prices_stream";
     }
 
+    static competitionTeamBanStream(pin) {
+        return ApiSettings.host() + "/competition_process/" + pin + "/bans";
+    }
+
     static competitionAllResults(pin) {
         return ApiSettings.host() + "/competitions/competition_results/" + pin;
     }
@@ -302,6 +306,13 @@ export default class ApiHelper {
 
     static competitionRoundPricesStream(pin) {
         return new EventSourcePolyfill(ApiSettings.competitionRoundPricesStream(pin), {
+            headers: this.authDefaultHeaders(),
+            heartbeatTimeout: 1000*60*60
+        })
+    }
+
+    static competitionTeamBanStream(pin) {
+        return new EventSourcePolyfill(ApiSettings.competitionTeamBanStream(pin), {
             headers: this.authDefaultHeaders(),
             heartbeatTimeout: 1000*60*60
         })

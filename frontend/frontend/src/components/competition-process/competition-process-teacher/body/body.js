@@ -26,8 +26,9 @@ class CompetitionProcessTeacherBody extends React.Component {
             answers: {},
             results: {},
             prices: {},
-            messages: []
-        }
+            messages: [],
+            bannedTeams: []
+        };
     }
 
     render() {
@@ -43,6 +44,7 @@ class CompetitionProcessTeacherBody extends React.Component {
             roundsCount={this.state.roundsCount}
             results={this.state.results}
             prices={this.state.prices}
+            bannedTeams={this.state.bannedTeams}
         />);
 
         return (
@@ -61,6 +63,7 @@ class CompetitionProcessTeacherBody extends React.Component {
         this.getCompetitionInfo();
         this.setupResultsEvents();
         this.setupPricesEvents();
+        //this.setupBanEvents();
         this.setupTimer();
     }
 
@@ -70,6 +73,7 @@ class CompetitionProcessTeacherBody extends React.Component {
         this.closeAnswersEvents();
         this.closeCompetitionResultsEvents();
         this.closePricesEvents();
+        //this.closeBanEvents();
 
         clearInterval(this.timerId);
     }
@@ -126,6 +130,23 @@ class CompetitionProcessTeacherBody extends React.Component {
                     showNotification(this).error(jsonBody.message, "Error", 1500);
                 }
             })
+        })
+    }
+
+    setupBanEvents() {
+        const {pin} = this.props;
+
+        this.bansEventSource = ApiHelper.competitionTeamBanStream(pin);
+
+        this.bansEventSource.addEventListener("message", (message) => {
+            const obj = JSON.parse(message.data);
+            this.setState(prevState => {
+                const bannedTeams = [...prevState.bannedTeams];
+                bannedTeams.push(obj.teamIdInGame);
+                return {bannedTeams};
+            });
+
+            showNotification(this).warning(`Team ${obj.teamIdInGame} "${obj.teamName}" was banned`, 'BAN', 3000);
         })
     }
 
@@ -250,6 +271,12 @@ class CompetitionProcessTeacherBody extends React.Component {
         }
     }
 
+    closeBanEvents() {
+        if (this.bansEventSource !== undefined) {
+            this.bansEventSource.close();
+        }
+    }
+
     closeAnswersEvents() {
         if (this.answersEventSource !== undefined) {
             this.answersEventSource.close();
@@ -349,6 +376,7 @@ class CompetitionProcessTeacherActive extends React.Component {
                                              answers={this.props.answers}
                                              results={this.props.results}
                                              prices={this.props.prices}
+                                             bannedTeams={this.props.bannedTeams}
                     />
                 </div>
                 <div style={{paddingTop: "20px"}}>
