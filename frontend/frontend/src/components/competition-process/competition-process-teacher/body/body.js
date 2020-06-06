@@ -321,13 +321,15 @@ class CompetitionProcessTeacherActive extends React.Component {
 
         const rightButtonText = isRoundEnded ? "Начать новый раунд" : "Закончить раунд";
 
+        const roundText = round === 0 ? "Игра еще не началась" : ("Текущий раунд: " + round.toString() + (isRoundEnded ? " закончен" : ""));
+
         return (
             <div>
                 <div className={"row justify-content-between"}>
                     <div className={"col-4"}>
                         <div>
                             <div style={{textAlign: "center", fontSize: "23px"}}>
-                                {"Текущий раунд: " + round}
+                                {roundText}
                             </div>
                             <div style={{paddingTop: "20px"}}>
                                 <DefaultSubmitButton text={"Начать раунд заново"}/>
