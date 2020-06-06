@@ -10,12 +10,19 @@ class JoinCompetitionForm extends React.Component {
         super(props);
 
         this.formState = {
-            teamName: ""
+            teamName: "",
+            password: ""
         };
+
+        this.state = {
+            isEnterGameButtonEnabled: false
+        }
     }
 
     updateFormStateField(key, value) {
         this.formState[key] = value;
+
+        this.setState({isEnterGameButtonEnabled: this.formState['teamName'].length >= 4 && this.formState['password'].length >= 4});
     }
 
     render() {
@@ -71,7 +78,7 @@ class JoinCompetitionForm extends React.Component {
                             paddingTop: "10px",
                             paddingBottom: "10px",
                             flexGrow: "0.2",
-                        }} onClick={() => onFormSubmit(this.formState)}/>
+                        }} isDisabled={!this.state.isEnterGameButtonEnabled} onClick={() => onFormSubmit(this.formState)}/>
                     </div>
                 </div>
             </div>

@@ -43,6 +43,9 @@ public class AddTeamToCompetitionServiceImpl implements IAddTeamToCompetitionSer
 
     @Override
     public Mono<DbTeam> addTeamToCompetition(NewTeam newTeam) {
+        if (Objects.isNull(newTeam.getName()) || newTeam.getName().length() < 4) {
+            return Mono.error(new InvalidTeamNameException("Team name is empty or too small"));
+        }
         var zipped = Mono.zip(userRepository.findOneByEmail(newTeam.getCaptainEmail()),
                 competitionsRepository.findByPin(newTeam.getCompetitionId()));
         return zipped.

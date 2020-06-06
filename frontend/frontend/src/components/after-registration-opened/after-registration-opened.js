@@ -2,6 +2,7 @@ import React from "react";
 import "./after-registration-opened.css";
 import TeamCollection from "../join-competition/join-competition-player-form/team-collection";
 import buttonUpImage from "../join-competition/join-competition-player-form/team-collection/buttonUp.png";
+import buttonDownImage from "../join-competition/join-competition-player-form/team-collection/buttonDown.png";
 import CompetitionParamsForm from "../create-competition/competition-params";
 import ApiHelper from "../../helpers/api-helper";
 import toCamelCase from "../../helpers/camel-case-helper";
@@ -134,6 +135,8 @@ class AfterRegistrationOpenedComponent extends React.Component {
 
         let res;
 
+        const image = this.state.isExpanded ? buttonDownImage : buttonUpImage;
+
         if (this.state.isExpanded) {
             res = (
                 <div>
@@ -183,7 +186,7 @@ class AfterRegistrationOpenedComponent extends React.Component {
                             backgroundColor: "Transparent",
                             marginLeft: "15px",
                             transform: "scale(0.35) translate(-20px, -5px)"
-                        }}><img src={buttonUpImage} alt={"unwind"}/></button>
+                        }}><img src={image} alt={"unwind"}/></button>
                     </div>
                     </div>
                     <div style={{paddingTop: "20px"}}>

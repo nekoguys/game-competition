@@ -287,6 +287,8 @@ class CompetitionProcessStudentRoot extends React.Component {
             );
         }
 
+        const roundText = currentRoundNumber === 0 ? "Игра ещё не началась" : ("Текущий раунд: " + currentRoundNumber + (this.state.isCurrentRoundEnded ? " закончен" : ""));
+
         return (
             <div>
                 <div>
@@ -301,7 +303,7 @@ class CompetitionProcessStudentRoot extends React.Component {
                             <div className={"col-4"}>
                                 <div>
                                     <div style={{textAlign: "center", fontSize: "23px"}}>
-                                        {"Текущий раунд: " + currentRoundNumber + (this.state.isCurrentRoundEnded ? " закончен" : "")}
+                                        {roundText}
                                     </div>
                                 </div>
                             </div>
