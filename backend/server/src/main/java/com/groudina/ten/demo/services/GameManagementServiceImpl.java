@@ -220,9 +220,24 @@ public class GameManagementServiceImpl implements IGameManagementService {
 
         return processInfosRepository.save(processInfo).flatMap((savedProcessInfo) -> {
             competition.setCompetitionProcessInfo(savedProcessInfo);
-
-            return this.startNewRound(competition);
-        });
+            return competitionsRepository.save(competition);
+        }).doOnNext(el -> {
+            var event = EndRoundEventDto.builder()
+                    .roundNumber(0)
+                    .isEndOfGame(false)
+                    .build();
+            var pin = competition.getPin();
+            this.beginEndRoundEventsStorage.compute(pin, (__, before) -> {
+                if (Objects.isNull(before)) {
+                    var flux = createBeginEndRoundsProcessor(competition);
+                    beginEndRoundEventsSinks.get(pin).next(event);
+                    return flux;
+                } else {
+                    beginEndRoundEventsSinks.get(pin).next(event);
+                    return before;
+                }
+            });
+        }).then();
     }
 
     @Override
