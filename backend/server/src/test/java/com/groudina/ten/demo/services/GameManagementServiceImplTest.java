@@ -126,6 +126,10 @@ class GameManagementServiceImplTest {
 
         var teams = teamsRepository.findAll(Sort.by(Sort.Direction.ASC, "idInGame")).collectList().block();
 
+        assertEquals(comp.getCompetitionProcessInfo().getCurrentRoundNumber(), 0);
+
+        gameManagementService.startNewRound(comp).block();
+
         assertEquals(comp.getCompetitionProcessInfo().getCurrentRoundNumber(), 1);
 
         var answersVerifier = StepVerifier.create(gameManagementService.teamsAnswersEvents(comp));
@@ -262,6 +266,7 @@ class GameManagementServiceImplTest {
         var comp = commonPart();
 
         gameManagementService.startCompetition(comp).block();
+        gameManagementService.startNewRound(comp).block();
 
         var team = teamsRepository.findAll().collectList().block().get(0);
         StepVerifier.create(gameManagementService.submitAnswer(comp, team, 10, 1))
@@ -294,6 +299,7 @@ class GameManagementServiceImplTest {
                 .expectError(IllegalGameStateException.class).verify();
 
         gameManagementService.startCompetition(comp).block();
+        gameManagementService.startNewRound(comp).block();
         gameManagementService.endCurrentRound(comp).block();
         gameManagementService.startNewRound(comp).block();
         gameManagementService.endCurrentRound(comp).block();
@@ -310,6 +316,7 @@ class GameManagementServiceImplTest {
         var teams = teamsRepository.findAll().collectList().block();
 
         gameManagementService.startCompetition(comp).block();
+        gameManagementService.startNewRound(comp).block();
 
         gameManagementService.submitAnswer(comp, teams.get(0), 10, 1).block();
 
@@ -336,6 +343,7 @@ class GameManagementServiceImplTest {
         var teams = teamsRepository.findAll().collectList().block();
 
         gameManagementService.startCompetition(comp).block();
+        gameManagementService.startNewRound(comp).block();
 
         gameManagementService.submitAnswer(comp, teams.get(0), 10, 1).block();
         gameManagementService.submitAnswer(comp, teams.get(1), 30, 1).block();
@@ -356,10 +364,12 @@ class GameManagementServiceImplTest {
         var comp = commonPart();
 
         var verifier = StepVerifier.create(gameManagementService.beginEndRoundEvents(comp))
+                .expectNextCount(1)
                 .consumeNextWith(dto -> {
                     assertEquals(dto.getType(), "NewRound");
                 }).thenCancel().verifyLater();
         gameManagementService.startCompetition(comp).block();
+        gameManagementService.startNewRound(comp).block();
         verifier.verify();
     }
 }

@@ -168,6 +168,14 @@ class CompetitionProcessControllerTest {
                     assertTrue(responseMessage.getMessage().contains("started"));
                 });
 
+        webTestClient.get().uri("/api/competition_process/1234/start_round")
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange()
+                .expectStatus()
+                .isOk()
+                .expectBody(ResponseMessage.class)
+                .value(responseMessage -> assertTrue(responseMessage.getMessage().contains("success")));
+
         var roundStream = webTestClient.get().uri("/api/competition_process/1234/rounds_stream")
                 .accept(MediaType.TEXT_EVENT_STREAM)
                 .exchange()
@@ -277,6 +285,7 @@ class CompetitionProcessControllerTest {
         competition = competitionsRepository.save(competition).block();
 
         gameManagementService.startCompetition(competition).block();
+        gameManagementService.startNewRound(competition).block();
 
         webTestClient.post().uri("/api/competition_process/1234/submit_answer")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -340,6 +349,8 @@ class CompetitionProcessControllerTest {
         competition = competitionsRepository.save(competition).block();
 
         gameManagementService.startCompetition(competition).block();
+        gameManagementService.startNewRound(competition).block();
+
 
         webTestClient.post().uri("/api/competition_process/1234/submit_answer")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -368,6 +379,7 @@ class CompetitionProcessControllerTest {
         competition = competitionsRepository.save(competition).block();
 
         gameManagementService.startCompetition(competition).block();
+        gameManagementService.startNewRound(competition).block();
 
         webTestClient.post().uri("/api/competition_process/1234/submit_answer")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -403,6 +415,8 @@ class CompetitionProcessControllerTest {
         competition = competitionsRepository.save(competition).block();
 
         gameManagementService.startCompetition(competition).block();
+        gameManagementService.startNewRound(competition).block();
+
 
         gameManagementService.submitAnswer(competition, team, 10, 1).block();
         gameManagementService.submitAnswer(competition, team2, 30, 1).block();
@@ -446,6 +460,7 @@ class CompetitionProcessControllerTest {
         competition = competitionsRepository.save(competition).block();
 
         gameManagementService.startCompetition(competition).block();
+        gameManagementService.startNewRound(competition).block();
 
         gameManagementService.submitAnswer(competition, team, 10, 1).block();
         gameManagementService.submitAnswer(competition, team2, 30, 1).block();
@@ -560,6 +575,7 @@ class CompetitionProcessControllerTest {
         competition.addTeam(team2);
 
         gameManagementService.startCompetition(competition).block();
+        gameManagementService.startNewRound(competition).block();
         gameManagementService.submitAnswer(competition, team, 10, 1).block();
         gameManagementService.submitAnswer(competition, team2, 20, 1).block();
 

@@ -795,6 +795,7 @@ class CompetitionsControllerTest {
         competition = competitionsRepository.save(competition).block();
 
         gameManagementService.startCompetition(competition).block();
+        gameManagementService.startNewRound(competition).block();
 
         gameManagementService.submitAnswer(competition, team, 10, 1).block();
         gameManagementService.submitAnswer(competition, team2, 30, 1).block();
