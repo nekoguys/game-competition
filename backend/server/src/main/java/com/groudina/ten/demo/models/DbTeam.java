@@ -1,9 +1,6 @@
 package com.groudina.ten.demo.models;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -26,6 +23,11 @@ public class DbTeam {
 
     @Getter
     private int idInGame;//should be generated sequentially
+
+    @Builder.Default
+    @Getter
+    @Setter
+    private boolean isBanned = false;
 
     @Getter
     private String password;

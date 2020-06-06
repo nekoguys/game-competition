@@ -19,13 +19,22 @@ public class RoundResultsCalculatorImpl implements IRoundResultsCalculator {
         double price = calculatePrice(roundInfo, competition.getParameters());
         List<DbRoundResultElement> results = new ArrayList<>();
         Set<Integer> visited = new HashSet<>();
+
+        List<Integer> bannedTeams = new ArrayList<>();
+        double teamLossUpperbound = competition.getParameters().getTeamLossUpperbound();
         for (var answer : roundInfo.getAnswerList()) {
-            double totalCost = getTotalCosts(answer.getValue(), competition.getParameters());
-            double income = answer.getValue() * price - totalCost;
+            if (!answer.getSubmitter().isBanned()) {
+                double totalCost = getTotalCosts(answer.getValue(), competition.getParameters());
+                double income = answer.getValue() * price - totalCost;
 
-            visited.add(answer.getSubmitter().getIdInGame());
+                if (income < -teamLossUpperbound) {
+                    bannedTeams.add(answer.getSubmitter().getIdInGame());
+                }
 
-            results.add(DbRoundResultElement.builder().income(income).team(answer.getSubmitter()).build());
+                visited.add(answer.getSubmitter().getIdInGame());
+
+                results.add(DbRoundResultElement.builder().income(income).team(answer.getSubmitter()).build());
+            }
         }
 
         competition.getTeams().stream()
@@ -38,8 +47,9 @@ public class RoundResultsCalculatorImpl implements IRoundResultsCalculator {
                     );
                 });
 
-        return RoundResultsHolder.builder().price(price).results(results).build();
+        return RoundResultsHolder.builder().bannedTeams(bannedTeams).price(price).results(results).build();
     }
+
 
     private double getTotalCosts(int produced, DbCompetition.Parameters competitionParameters) {
         var expensesFormula = competitionParameters.getExpensesFormula();
@@ -51,7 +61,10 @@ public class RoundResultsCalculatorImpl implements IRoundResultsCalculator {
     }
 
     private double calculatePrice(DbCompetitionRoundInfo roundInfo, DbCompetition.Parameters competitionParameters) {
-        int totalProduced = roundInfo.getAnswerList().stream().map(DbAnswer::getValue).reduce(Integer::sum).orElse(0);
+        int totalProduced = roundInfo.getAnswerList().stream()
+                .filter(el -> !el.getSubmitter().isBanned())
+                .map(DbAnswer::getValue)
+                .reduce(Integer::sum).orElse(0);
         //Q = a - bp
         //p = (a-Q)/b
         double a = Double.parseDouble(competitionParameters.getDemandFormula().get(0));

@@ -4,7 +4,7 @@ import "./results-table.css";
 import round from "../../../../helpers/round-helper";
 
 
-class CompetitionResultsTable extends React.Component{
+class CompetitionResultsTable extends React.Component {
 
     teamsPermutation = (teamsCount) => {
         let range;
@@ -43,7 +43,7 @@ class CompetitionResultsTable extends React.Component{
         );
     }
 
-    roundRows(teamsCount, roundsCount) {
+    roundRows(teamsCount, roundsCount, bannedTeams) {
         const oneColWidth = (100 / (teamsCount + 4 + 2));
 
         const toStr = (x) => (oneColWidth * x) + "%";
@@ -74,8 +74,12 @@ class CompetitionResultsTable extends React.Component{
                                         ans = round(this.props.answers[roundNumber][teamInd]);
                                     }
                                 }
+                                let style = {};
+                                if (bannedTeams.includes(teamInd)) {
+                                    style.backgroundColor = '#ffffed'
+                                }
                                 return (
-                                    <td width={toStr(1)} key={teamInd}>{ans}</td>
+                                    <td width={toStr(1)} key={teamInd} style={style}>{ans}</td>
                                 );
                             })}
 
@@ -109,8 +113,12 @@ class CompetitionResultsTable extends React.Component{
                                         ans = round(this.props.results[roundNumber][teamInd]);
                                     }
                                 }
+                                let style = {};
+                                if (bannedTeams.includes(teamInd)) {
+                                    style.backgroundColor = '#ffffed'
+                                }
                                 return (
-                                    <td width={toStr(1)} key={teamInd}>{ans}</td>
+                                    <td width={toStr(1)} key={teamInd} style={style}>{ans}</td>
                                 )
                             })}
                         </tr>
@@ -152,8 +160,7 @@ class CompetitionResultsTable extends React.Component{
     };
 
     render() {
-        const {teamsCount, roundsCount} = this.props;
-
+        const {teamsCount, roundsCount, bannedTeams=[]} = this.props;
         return (
             <div style={{width: "100%"}}>
                 <div style={{textAlign: "center", fontSize: "23px", paddingBottom: "10px"}}>
@@ -162,7 +169,7 @@ class CompetitionResultsTable extends React.Component{
                 <table style={{width: "100%"}}>
                     <tbody>
                     {this.firstRow(teamsCount)}
-                    {this.roundRows(teamsCount, roundsCount)}
+                    {this.roundRows(teamsCount, roundsCount, bannedTeams)}
                     </tbody>
                 </table>
             </div>
