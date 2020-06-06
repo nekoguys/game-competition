@@ -22,6 +22,7 @@ import reactor.core.publisher.Mono;
 import javax.validation.Valid;
 import java.security.Principal;
 import java.util.ArrayList;
+import java.util.Objects;
 
 @RequestMapping(path="/api/competitions", produces = {MediaType.APPLICATION_JSON_VALUE})
 @CrossOrigin(origins = {"*"}, maxAge = 3600)
@@ -121,6 +122,9 @@ public class CompetitionsController {
     @PreAuthorize("hasRole('STUDENT')")
     public Mono<ResponseEntity<ResponseMessage>> joinTeam(@Valid @RequestBody NewTeam newTeam) {
         log.info("POST: /api/competitions/create_team, body: {}", newTeam);
+        if (Objects.isNull(newTeam)) {
+            return Mono.just(ResponseEntity.badRequest().body(ResponseMessage.of("Too short or empty name")));
+        }
         return this.addTeamToCompetitionService.addTeamToCompetition(newTeam).map(team -> {
             return ResponseEntity.ok(ResponseMessage.of("Team created successfully"));
         }).onErrorResume(ex ->
@@ -168,14 +172,16 @@ public class CompetitionsController {
             return (ResponseEntity)ResponseEntity
                     .ok(JoinTeamResponse.builder().currentTeamName(team.getName()).build());
         })
-                .onErrorResume(ex ->
-                        Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseMessage.of(ex.getMessage()))))
+                .onErrorResume(ex -> {
+                    log.info(String.format("Predicted exception: %s and %s", ex.getClass().getName(), ex.getMessage()));
+                        ex.printStackTrace();
+                        return Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseMessage.of(ex.getMessage())));})
                 .defaultIfEmpty(
                         ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseMessage.of("No competition with pin: " + joinTeamRequest.getCompetitionPin())));
     }
 
     @GetMapping(value = "/competition_results/{pin}")
-    @PreAuthorize("hasRole('TEACHER')")
+    @PreAuthorize("hasRole('STUDENT')")
     public Mono<ResponseEntity> competitionResults(@PathVariable String pin) {
         log.info("GET: /api/competitions/competition_results/{}", pin);
         return this.competitionsRepository.findByPin(pin).map(el -> {

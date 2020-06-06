@@ -10,6 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
+import java.util.Objects;
+
 
 @Service
 public class TeamJoinServiceImpl implements ITeamJoinService {
@@ -27,7 +29,7 @@ public class TeamJoinServiceImpl implements ITeamJoinService {
             return Mono.error(new IllegalGameStateException("Illegal competition state"));
         }
 
-        var optTeam = competition.getTeams().stream().filter(_team -> _team.getName().equals(request.getTeamName())).findFirst();
+        var optTeam = competition.getTeams().stream().filter(_team -> Objects.equals(_team.getName(),request.getTeamName())).findFirst();
 
         if (optTeam.isPresent()) {
             var team = optTeam.get();

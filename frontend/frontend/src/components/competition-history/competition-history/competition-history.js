@@ -62,7 +62,7 @@ class CompetitionHistory extends React.Component {
                 this.props.history.push('/competitions/process_captain/' + item.pin);
             }
         } else if (item.state.toLowerCase() === "ended") {
-            if (isTeacher) {
+            if (isTeacher || item.shouldShowResultTableInEnd) {
                 this.props.history.push('/competitions/results/' + item.pin);
             }
         } else if (item.state.toLowerCase() === "draft") {

@@ -787,7 +787,7 @@ class CompetitionsControllerTest {
                 .jsonPath("$[1].length()").isEqualTo(15);
     }
     @Test
-    @WithMockUser(value = "email", password = "1234", roles = {"TEACHER"})
+    @WithMockUser(value = "email", password = "1234", roles = {"TEACHER", "STUDENT"})
     void testResultsFormatter() {
         var user = userRepository.save(DbUser.builder().password("1234").email("email").roles(rolesRepository.findAll().collectList().block()).build()).block();
         var captain = userRepository.save(DbUser.builder().password("1234").email("anotherEmail").roles(rolesRepository.findAll().collectList().block()).build()).block();
