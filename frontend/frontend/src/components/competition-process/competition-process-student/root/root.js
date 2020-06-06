@@ -26,12 +26,13 @@ class CompetitionProcessStudentRoot extends React.Component {
             results: {},
             currentRoundNumber: 5,
             timeTillRoundEnd: 55,
-            isCurrentRoundEnded: false,
+            isCurrentRoundEnded: true,
             teamName: "teamName",
             teamIdInGame: 0,
             messages: [],
             description: "",
             shouldShowResultTable: false,
+            shouldShowResultTableInEnd: false,
             unreadMessages: 0,
             isCaptain: false
         }
@@ -48,15 +49,40 @@ class CompetitionProcessStudentRoot extends React.Component {
 
     componentDidUpdate(prevProps, prevState, snapshot) {
         if (this.state.isCurrentRoundEnded) {
+            console.log("cleared interval");
             clearInterval(this.timerId);
-        } else {
+        } else if (!this.state.isCurrentRoundEnded && prevState.isCurrentRoundEnded) {
+            console.log("Cleared interval and launch once again");
             clearInterval(this.timerId);
             this.setupTimer();
         }
+
+        if (this.state.roundsCount > 0
+            && this.state.roundsCount === this.state.currentRoundNumber
+            && this.state.isCurrentRoundEnded
+            && this.state.shouldShowResultTableInEnd
+        ) {
+            this.onRedirectToResultsPage();
+        }
     }
+
+    onRedirectToResultsPage = () => {
+        this.setState(prevState => {
+            if (!prevState.didEnd) {
+                showNotification(this).success("Игра закончена", "Игра закончена", 2500);
+
+                setTimeout(() => {
+                    const {pin} = this.props.match.params;
+                    this.props.history.push("/competitions/results/" + pin);
+                }, 2500);
+                return {didEnd: true};
+            }
+        });
+    };
 
     setupTimer = () => {
         this.timerId = setInterval(() => {
+            console.log("timer event");
             this.setState(prevState => {
                 return {timeTillRoundEnd: Math.max(prevState.timeTillRoundEnd - 1, 0)};
             })
@@ -132,6 +158,7 @@ class CompetitionProcessStudentRoot extends React.Component {
                             description: jsonBody.description,
                             competitionName: jsonBody.name,
                             shouldShowResultTable: jsonBody.shouldShowResultTable,
+                            shouldShowResultTableInEnd: jsonBody.shouldShowResultTableInEnd,
                             isCaptain: jsonBody.isCaptain
                         }
                     })

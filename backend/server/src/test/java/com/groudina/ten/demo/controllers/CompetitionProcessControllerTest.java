@@ -512,6 +512,7 @@ class CompetitionProcessControllerTest {
                         .demandFormula(List.of("100", "10"))
                         .maxTeamsAmount(100)
                         .shouldShowStudentPreviousRoundResults(true)
+                        .shouldShowResultTableInEnd(true)
                         .instruction("instr")
                         .build())
                 .build()).block();
@@ -530,6 +531,7 @@ class CompetitionProcessControllerTest {
                     assertEquals(el.getName(), "name");
                     assertEquals(el.getRoundsCount(), 3);
                     assertTrue(el.isShouldShowResultTable());
+                    assertTrue(el.isShouldShowResultTableInEnd());
                     assertEquals(el.getTeamName(), "tutu");
         });
     }
