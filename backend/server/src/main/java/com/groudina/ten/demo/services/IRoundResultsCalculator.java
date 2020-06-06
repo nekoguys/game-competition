@@ -16,6 +16,7 @@ public interface IRoundResultsCalculator {
     @Builder
     static class RoundResultsHolder {
         private List<DbRoundResultElement> results;
+        private List<Integer> bannedTeams;
         private double price;
     }
 

@@ -99,6 +99,7 @@ class GameManagementServiceImplTest {
                 .expensesFormula(List.of("1", "2", "3"))
                 .demandFormula(List.of("100", "10"))
                 .roundLengthInSeconds(60)
+                .teamLossUpperbound(10000)
                 .build();
         var comp = DbCompetition.builder()
                 .parameters(competitionParams)
@@ -361,5 +362,29 @@ class GameManagementServiceImplTest {
                 }).thenCancel().verifyLater();
         gameManagementService.startCompetition(comp).block();
         verifier.verify();
+    }
+
+    @Test
+    void checkBanTeams() {
+        var comp = commonPart();
+        var team = comp.getTeams().get(0);
+
+        gameManagementService.startCompetition(comp).block();
+        // TODO after merging with branch about not starting game
+        //gameManagementService.startNewRound(comp).block();
+
+        var banVerifier = StepVerifier.create(gameManagementService.getBannedTeamEvents(comp))
+                .consumeNextWith(dto -> {
+                    assertEquals(dto.getTeamIdInGame(), team.getIdInGame());
+                }).thenCancel().verifyLater();
+        var messageVerifier = StepVerifier.create(gameManagementService.getCompetitionMessages(comp))
+                .consumeNextWith(dto -> {
+                    System.out.println(dto.getMessage());
+                }).thenCancel().verifyLater();
+
+        gameManagementService.submitAnswer(comp, team, 1100, 1).block();
+        gameManagementService.endCurrentRound(comp).block();
+        banVerifier.verify();
+        messageVerifier.verify();
     }
 }

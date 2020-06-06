@@ -76,6 +76,10 @@ public class DbCompetition {
         @Field("round_length_in_seconds")
         private int roundLengthInSeconds;
 
+        @Builder.Default
+        @Field("team_loss_upperbound")
+        private double teamLossUpperbound = 10000;
+
         private String instruction;
 
         @Field("show_prev_results")
