@@ -14,6 +14,39 @@ class RoundResultsCalculatorImplTest {
     private RoundResultsCalculatorImpl roundResultsCalculator = new RoundResultsCalculatorImpl();
 
     @Test
+    void testNegativePrice() {
+        var params = DbCompetition.Parameters.builder()
+                .roundsCount(2)
+                .maxTeamsAmount(2)
+                .expensesFormula(List.of("1", "2", "3"))
+                .demandFormula(List.of("1", "2"))
+                .build();
+        var competition = DbCompetition.builder()
+                .parameters(params)
+                .build();
+
+        var team1 = DbTeam.builder().sourceCompetition(competition).idInGame(0).id("1").build();
+        var team2 = DbTeam.builder().sourceCompetition(competition).idInGame(1).id("2").build();
+        competition.addTeam(team1); competition.addTeam(team2);
+        DbCompetitionRoundInfo roundInfo = DbCompetitionRoundInfo.builder()
+                .answerList(
+                        List.of(
+                                DbAnswer.builder().submitter(team1).value(1).build(),
+                                DbAnswer.builder().submitter(team2).value(2).build()
+                        ))
+                .build();
+
+        var results_ = roundResultsCalculator.calculateResults(roundInfo, competition);
+        var results = results_.getResults();
+        assertEquals(0, results_.getPrice(), 0.01);
+        assertEquals(results.get(0).getTeam().getId(), team1.getId());
+
+        assertEquals(results.get(0).getIncome(), -1 - 2 - 3);
+        assertEquals(results.get(1).getTeam().getId(), team2.getId());
+        assertEquals(results.get(1).getIncome(), -4 - 4 - 3);
+    }
+
+    @Test
     void testResultsCalculations() {
         var params = DbCompetition.Parameters.builder()
                 .roundsCount(2)
