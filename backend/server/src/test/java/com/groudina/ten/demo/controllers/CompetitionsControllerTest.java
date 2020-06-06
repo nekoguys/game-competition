@@ -265,6 +265,7 @@ class CompetitionsControllerTest {
                                 .captainEmail("email")
                                 .competitionId("123")
                                 .password("password")
+                                .name("teamname")
                                 .build()
                 )).accept(MediaType.APPLICATION_JSON)
                 .exchange().expectStatus().isOk()
@@ -273,6 +274,19 @@ class CompetitionsControllerTest {
         var dbComp = competitionsRepository.findAll().collect(Collectors.toList()).block().get(0);
         assertEquals(dbComp.getTeams().size(), 1);
         assertEquals(dbComp.getTeams().get(0).getCaptain().getEmail(), "email");
+
+        webTestClient.post().uri("/api/competitions/create_team")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(BodyInserters.fromValue(
+                        NewTeam.builder()
+                                .captainEmail("email")
+                                .competitionId("123")
+                                .password("password")
+                                .name("sml")
+                                .build()
+                )).accept(MediaType.APPLICATION_JSON)
+                .exchange().expectStatus().isBadRequest()
+                .expectBody(ResponseMessage.class);
     }
 
     @Test
