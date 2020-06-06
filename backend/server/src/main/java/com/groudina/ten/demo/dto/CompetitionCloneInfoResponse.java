@@ -35,6 +35,9 @@ public class CompetitionCloneInfoResponse implements Serializable {
     @JsonProperty("round_length")
     private int roundLength;
 
+    @JsonProperty("team_loss_upperbound")
+    private Double teamLossUpperbound;
+
     private String instruction;
 
     @JsonProperty("should_show_student_previous_round_results")
