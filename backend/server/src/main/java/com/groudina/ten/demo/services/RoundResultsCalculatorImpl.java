@@ -57,6 +57,6 @@ public class RoundResultsCalculatorImpl implements IRoundResultsCalculator {
         double a = Double.parseDouble(competitionParameters.getDemandFormula().get(0));
         double b = Double.parseDouble(competitionParameters.getDemandFormula().get(1));
 
-        return (a - totalProduced) / b;
+        return Math.max((a - totalProduced) / b, 0);
     }
 }
