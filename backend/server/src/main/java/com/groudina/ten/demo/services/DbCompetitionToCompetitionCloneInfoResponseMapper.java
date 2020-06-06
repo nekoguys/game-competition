@@ -19,6 +19,7 @@ public class DbCompetitionToCompetitionCloneInfoResponseMapper implements IEntit
                 .maxTeamSize(params.getMaxTeamSize())
                 .roundLength(params.getRoundLengthInSeconds())
                 .roundsCount(params.getRoundsCount())
+                .teamLossUpperbound(params.getTeamLossUpperbound())
                 .shouldEndRoundBeforeAllAnswered(params.isShouldEndRoundBeforeAllAnswered())
                 .shouldShowResultTableInEnd(params.isShouldShowResultTableInEnd())
                 .shouldShowStudentPreviousRoundResults(params.isShouldShowStudentPreviousRoundResults())
