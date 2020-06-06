@@ -8,7 +8,6 @@ import com.groudina.ten.demo.models.DbCompetition;
 import com.groudina.ten.demo.services.IAnswersValidator;
 import com.groudina.ten.demo.services.IGameManagementService;
 import com.groudina.ten.demo.services.IStudentTeamFinder;
-import lombok.extern.log4j.Log4j2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -145,6 +144,15 @@ public class CompetitionProcessController {
                 }));
     }
 
+    @RequestMapping(value="/bans", produces = {MediaType.TEXT_EVENT_STREAM_VALUE})
+    @PreAuthorize("hasRole('STUDENT')")
+    public Flux<ServerSentEvent<?>> getBanEvents(@PathVariable String pin) {
+        log.info("Request: /api/competition_process/{}/bans", pin);
+        return competitionsRepository.findByPin(pin)
+                .flatMapMany(comp -> gameManagementService.getBannedTeamEvents(comp))
+                .map(dto -> ServerSentEvent.builder(dto).build());
+    }
+
     //TEACHER END
     //STUDENT BEGIN
 
@@ -204,6 +212,9 @@ public class CompetitionProcessController {
 
             if (team.isEmpty()) {
                 return Mono.error(new IllegalAnswerSubmissionException("User with email: " + submitterEmail + " has no team"));
+            }
+            if (team.get().isBanned()) {
+                return Mono.error(new IllegalAnswerSubmissionException("Your team is banned"));
             }
 
             if (team.get().getCaptain().getEmail().equals(submitterEmail)) {

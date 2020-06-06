@@ -23,6 +23,8 @@ public interface IGameManagementService {
 
     Flux<PriceInRoundDto> getRoundPricesEvents(DbCompetition competition);
 
+    Flux<TeamBanEventDto> getBannedTeamEvents(DbCompetition competition);
+
     Mono<Void> endCurrentRound(DbCompetition competition);
 
     Mono<Void> startNewRound(DbCompetition competition);

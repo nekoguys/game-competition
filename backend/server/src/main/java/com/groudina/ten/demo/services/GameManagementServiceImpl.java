@@ -19,9 +19,11 @@ import reactor.core.publisher.ReplayProcessor;
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 @Component
 @Scope(value = ConfigurableBeanFactory.SCOPE_SINGLETON)
@@ -34,6 +36,7 @@ public class GameManagementServiceImpl implements IGameManagementService {
     private DbCompetitionMessagesRepository messagesRepository;
     private IRoundResultsCalculator roundResultsCalculator;
     private DbRoundResultElementsRepository roundResultElementsRepository;
+    private DbTeamsRepository teamsRepository;
 
     private Map<String, Flux<RoundTeamAnswerDto>> teamAnswersStorage = new ConcurrentHashMap<>();
     private Map<String, FluxSink<RoundTeamAnswerDto>> teamAnswersSinks = new ConcurrentHashMap<>();
@@ -50,6 +53,9 @@ public class GameManagementServiceImpl implements IGameManagementService {
     private Map<String, Flux<PriceInRoundDto>> roundPricesStorage = new ConcurrentHashMap<>();
     private Map<String, FluxSink<PriceInRoundDto>> roundPricesSinks = new ConcurrentHashMap<>();
 
+    private Map<String, Flux<TeamBanEventDto>> teamBanStorage = new ConcurrentHashMap<>();
+    private Map<String, FluxSink<TeamBanEventDto>> teamBanSinks = new ConcurrentHashMap<>();
+
     public GameManagementServiceImpl(
             @Autowired DbCompetitionsRepository competitionsRepository,
             @Autowired DbCompetitionRoundInfosRepository roundInfosRepository,
@@ -57,7 +63,8 @@ public class GameManagementServiceImpl implements IGameManagementService {
             @Autowired DbAnswersRepository answersRepository,
             @Autowired DbCompetitionMessagesRepository messagesRepository,
             @Autowired DbRoundResultElementsRepository roundResultElementsRepository,
-            @Autowired IRoundResultsCalculator roundResultsCalculator
+            @Autowired IRoundResultsCalculator roundResultsCalculator,
+            @Autowired DbTeamsRepository teamsRepository
     ) {
         this.competitionsRepository = competitionsRepository;
         this.roundInfosRepository = roundInfosRepository;
@@ -66,6 +73,29 @@ public class GameManagementServiceImpl implements IGameManagementService {
         this.messagesRepository = messagesRepository;
         this.roundResultElementsRepository = roundResultElementsRepository;
         this.roundResultsCalculator = roundResultsCalculator;
+        this.teamsRepository = teamsRepository;
+    }
+
+    private Flux<TeamBanEventDto> createTeamBanProcessor(DbCompetition competition) {
+        String pin = competition.getPin();
+        var processor = ReplayProcessor.<TeamBanEventDto>create().serialize();
+
+        teamBanSinks.computeIfAbsent(pin, (__) -> {
+            var sink = processor.sink();
+
+            competition.getTeams().forEach(team -> {
+                if (team.isBanned()) {
+                    sink.next(TeamBanEventDto.builder()
+                            .teamIdInGame(team.getIdInGame())
+                            .teamName(team.getName()).build());
+                }
+            });
+
+            return sink;
+        });
+
+
+        return processor;
     }
 
     private Flux<PriceInRoundDto> createPricesProcessor(DbCompetition competition) {
@@ -356,6 +386,13 @@ public class GameManagementServiceImpl implements IGameManagementService {
     }
 
     @Override
+    public Flux<TeamBanEventDto> getBannedTeamEvents(DbCompetition competition) {
+        return teamBanStorage.computeIfAbsent(competition.getPin(), (pin) -> {
+            return createTeamBanProcessor(competition);
+        });
+    }
+
+    @Override
     public Mono<Void> endCurrentRound(DbCompetition competition) {
         if (competition.getState() != DbCompetition.State.InProcess) {
             return Mono.error(new RoundEndInNotStartedCompetitionException("Attempt to end round but game not started"));
@@ -369,7 +406,28 @@ public class GameManagementServiceImpl implements IGameManagementService {
         }
 
         var results = roundResultsCalculator.calculateResults(lastRound, competition);
-        return roundResultElementsRepository.saveAll(
+
+        /// TODO ask teacher about banning and ban only then
+        var bannedTeams = this.banTeams(results.getBannedTeams(), competition).flatMap(team -> {
+            return this.addMessage(competition,
+                    CompetitionMessageRequest.builder()
+                            .message(String.format("Игра: команда %d:\"%s\" выбывает из-за убытков", team.getIdInGame(), team.getName()))
+                            .build()).thenReturn(team);
+        }).collectList().doOnNext(banTeams -> {
+            teamBanStorage.compute(competition.getPin(), (pin, before) -> {
+                if (Objects.isNull(before)) {
+                    return createTeamBanProcessor(competition);
+                } else {
+                    var sink = teamBanSinks.get(pin);
+                    banTeams.forEach(team -> {
+                        sink.next(TeamBanEventDto.builder().teamName(team.getName()).teamIdInGame(team.getIdInGame()).build());
+                    });
+                    return before;
+                }
+            });
+        });
+
+        return bannedTeams.then(roundResultElementsRepository.saveAll(
                 results.getResults()
         ).collectList().doOnNext(savedRoundResults -> {
             lastRound.addRoundResults(savedRoundResults);
@@ -407,7 +465,7 @@ public class GameManagementServiceImpl implements IGameManagementService {
                     return before;
                 }
             });
-        })
+        }))
                 .then(roundInfosRepository.save(lastRound).then(competitionsRepository.save(competition)
                 .doOnNext((savedCompetition) -> {
                     String pin = savedCompetition.getPin();
@@ -516,8 +574,17 @@ public class GameManagementServiceImpl implements IGameManagementService {
         teamResultsSinks.clear();
         roundPricesSinks.clear();
         roundPricesStorage.clear();
+        teamBanSinks.clear();
+        teamBanStorage.clear();;
 
         return Mono.just(1).then();
+    }
+
+    private Flux<DbTeam> banTeams(List<Integer> bannedTeams, DbCompetition competition) {
+        var teams = competition.getTeams().stream()
+                .filter(el -> bannedTeams.contains(el.getIdInGame())).collect(Collectors.toList());
+        teams.forEach(team -> team.setBanned(true));
+        return teamsRepository.saveAll(teams);
     }
 
 }

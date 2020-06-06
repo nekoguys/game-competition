@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertIterableEquals;
 
 class RoundResultsCalculatorImplTest {
     private RoundResultsCalculatorImpl roundResultsCalculator = new RoundResultsCalculatorImpl();
@@ -20,6 +21,7 @@ class RoundResultsCalculatorImplTest {
                 .maxTeamsAmount(2)
                 .expensesFormula(List.of("1", "2", "3"))
                 .demandFormula(List.of("100", "10"))
+                .teamLossUpperbound(500)
                 .build();
         var competition = DbCompetition.builder()
                 .parameters(params)
@@ -45,5 +47,7 @@ class RoundResultsCalculatorImplTest {
         assertEquals(results.get(1).getTeam().getId(), team2.getId());
         assertEquals(results.get(1).getIncome(), 6 * 30 - 30*30 - 30*2 - 3);
         assertEquals(results.get(2).getIncome(), -3);
+
+        assertIterableEquals(results_.getBannedTeams(), List.of(1));
     }
 }
