@@ -380,8 +380,7 @@ class GameManagementServiceImplTest {
         var team = comp.getTeams().get(0);
 
         gameManagementService.startCompetition(comp).block();
-        // TODO after merging with branch about not starting game
-        //gameManagementService.startNewRound(comp).block();
+        gameManagementService.startNewRound(comp).block();
 
         var banVerifier = StepVerifier.create(gameManagementService.getBannedTeamEvents(comp))
                 .consumeNextWith(dto -> {
