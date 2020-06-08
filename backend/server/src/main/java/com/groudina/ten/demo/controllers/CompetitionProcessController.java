@@ -105,7 +105,7 @@ public class CompetitionProcessController {
         return competitionsRepository.findByPin(pin)
                 .flatMapMany(comp -> gameManagementService.teamsAnswersEvents(comp))
                 .map(dto -> {
-                    return ServerSentEvent.builder().data(dto).build();
+                    return ServerSentEvent.builder().data(dto).id("answerStream").build();
                 });
     }
 
@@ -115,7 +115,7 @@ public class CompetitionProcessController {
         log.info("REQUEST: /api/competition_process/{}/results_stream", pin);
         return competitionsRepository.findByPin(pin)
                 .flatMapMany(comp -> gameManagementService.getRoundResultsEvents(comp))
-                .map(roundTeamResultDto -> ServerSentEvent.builder(roundTeamResultDto).build());
+                .map(roundTeamResultDto -> ServerSentEvent.builder(roundTeamResultDto).id("resultStream").build());
     }
 
     @RequestMapping(value = "/prices_stream", produces = {MediaType.TEXT_EVENT_STREAM_VALUE})
@@ -124,7 +124,7 @@ public class CompetitionProcessController {
         log.info("REQUEST: /api/competition_process/{}/prices_stream", pin);
         return competitionsRepository.findByPin(pin)
                 .flatMapMany(comp -> gameManagementService.getRoundPricesEvents(comp))
-                .map(dto -> ServerSentEvent.builder(dto).build());
+                .map(dto -> ServerSentEvent.builder(dto).id("priceStream").build());
     }
 
     @GetMapping(value = "/comp_info", produces = {MediaType.APPLICATION_JSON_VALUE})
@@ -150,7 +150,7 @@ public class CompetitionProcessController {
         log.info("Request: /api/competition_process/{}/bans", pin);
         return competitionsRepository.findByPin(pin)
                 .flatMapMany(comp -> gameManagementService.getBannedTeamEvents(comp))
-                .map(dto -> ServerSentEvent.builder(dto).build());
+                .map(dto -> ServerSentEvent.builder(dto).id("banStream").build());
     }
 
     //TEACHER END
@@ -231,7 +231,7 @@ public class CompetitionProcessController {
     public Flux<ServerSentEvent<?>> getCompetitionMessages(@PathVariable String pin) {
         log.info("REQUEST: /api/competition_process/{}/messages_stream", pin);
         return competitionsRepository.findByPin(pin).flatMapMany(comp -> gameManagementService.getCompetitionMessages(comp))
-                .map(e -> ServerSentEvent.builder().data(e).build());
+                .map(e -> ServerSentEvent.builder().data(e).id("messagesStream").build());
     }
 
     @RequestMapping(value = "/rounds_stream", produces = {MediaType.TEXT_EVENT_STREAM_VALUE})
@@ -239,7 +239,7 @@ public class CompetitionProcessController {
     public Flux<ServerSentEvent<?>> getCompetitionRoundEvents(@PathVariable String pin) {
         log.info("REQUEST: /api/competition_process/{}/rounds_stream", pin);
         return competitionsRepository.findByPin(pin).flatMapMany(comp -> gameManagementService.beginEndRoundEvents(comp))
-                .map(e -> ServerSentEvent.builder().data(e).build());
+                .map(e -> ServerSentEvent.builder().data(e).id("roundStream").build());
     }
 
     @RequestMapping(value = "/my_answers_stream", produces = {MediaType.TEXT_EVENT_STREAM_VALUE})
@@ -259,7 +259,7 @@ public class CompetitionProcessController {
                     return gameManagementService.teamsAnswersEvents(comp).filter(roundTeamAnswerDto -> {
                         return roundTeamAnswerDto.getTeamIdInGame() == team.get().getIdInGame();
                     });
-                }).map(e -> ServerSentEvent.builder().data(e).build());
+                }).map(e -> ServerSentEvent.builder().data(e).id("answerStream").build());
     }
 
     @RequestMapping(value = "/my_results_stream", produces = {MediaType.TEXT_EVENT_STREAM_VALUE})
@@ -281,7 +281,32 @@ public class CompetitionProcessController {
                             .filter(roundTeamResultDto -> {
                                 return roundTeamResultDto.getTeamIdInGame() == team.get().getIdInGame();
                             });
-                }).map(e -> ServerSentEvent.builder(e).build());
+                }).map(e -> ServerSentEvent.builder(e).id("resultStream").build());
+    }
+
+    @RequestMapping(value = "/student_all_in_one", produces = {MediaType.TEXT_EVENT_STREAM_VALUE})
+    @PreAuthorize("hasRole('STUDENT')")
+    public Flux<ServerSentEvent<?>> getAllStudent(Mono<Principal> principalMono, @PathVariable String pin) {
+        return Flux.merge(
+                getMyTeamAnswersEvents(principalMono, pin),
+                getMyTeamResultsEvents(principalMono, pin),
+                getCompetitionRoundEvents(pin),
+                getCompetitionMessages(pin),
+                getPricesEvents(pin)
+        );
+    }
+
+    @RequestMapping(value = "/teacher_all_in_one", produces = {MediaType.TEXT_EVENT_STREAM_VALUE})
+    @PreAuthorize("hasRole('TEACHER')")
+    public Flux<ServerSentEvent<?>> getAllTeacher(Mono<Principal> principalMono, @PathVariable String pin) {
+        return Flux.merge(
+                getTeamsAnswers(pin),
+                getResultsEvents(pin),
+                getCompetitionRoundEvents(pin),
+                getCompetitionMessages(pin),
+                getPricesEvents(pin),
+                getBanEvents(pin)
+        );
     }
 
 }

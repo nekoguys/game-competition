@@ -22,9 +22,11 @@ import org.springframework.web.reactive.function.BodyInserters;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
+import java.io.Serializable;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.TimeZone;
 
@@ -601,6 +603,202 @@ class CompetitionProcessControllerTest {
         gameManagementService.startNewRound(competition).block();
 
         gameManagementService.submitAnswer(competition, team, 20, 2).block();
+        verifier.verify();
+    }
+
+    private StepVerifier.Step<LinkedHashMap<String, Object>> testAllInOneStudentStreamValidate(StepVerifier.FirstStep<LinkedHashMap<String, Object>> step) {
+        return step.consumeNextWith(el -> {
+            System.out.println(el);
+            assertEquals(el.get("type"), "EndRound");
+            assertEquals(el.get("roundNumber"), 0);
+            assertFalse((Boolean)el.get("endOfGame"));
+        }).consumeNextWith(el -> {
+            assertEquals(el.get("teamAnswer"), 10);
+            assertEquals(el.get("roundNumber"), 1);
+            assertEquals(el.get("teamIdInGame"), 0);
+        }).consumeNextWith(el -> {
+            assertEquals(el.get("type"), "NewRound");
+            assertEquals(el.get("roundNumber"), 1);
+        }).consumeNextWith(el -> {
+            assertEquals(el.get("message"), "message");
+        }).consumeNextWith(el -> {
+            assertEquals((Double)el.get("price"), 7, 0.01);
+            assertEquals(el.get("roundNumber"), 1);
+        }).consumeNextWith(el -> {
+            System.out.println(el);
+            assertEquals(el.get("teamIdInGame"), 0);
+            assertEquals(el.get("roundNumber"), 1);
+            assertEquals((Double)el.get("income"), -53.0, 0.01);
+        }).consumeNextWith(el -> {
+            System.out.println(el);
+            assertEquals(el.get("type"), "EndRound");
+            assertEquals(el.get("roundNumber"), 1);
+            assertEquals(el.get("endOfGame"), false);
+        }).consumeNextWith(el -> {
+            System.out.println(el);
+            assertEquals(el.get("type"), "NewRound");
+            assertEquals(el.get("roundNumber"), 2);
+        });
+    }
+
+    @Test
+    @WithMockUser(value = "anotherEmail", password = "1234", roles = {"STUDENT"})
+    void testAllInOneStudentStream() {
+        var user = userRepository.save(DbUser.builder().password("1234").email("anotherEmail").roles(rolesRepository.findAll().collectList().block()).build()).block();
+        var secUser = userRepository.save(DbUser.builder().password("1234").email("email").roles(rolesRepository.findAll().collectList().block()).build()).block();
+        var competition = competitionsRepository.save(DbCompetition.builder()
+                .state(DbCompetition.State.Registration)
+                .pin("1234")
+                .parameters(DbCompetition.Parameters.builder()
+                        .roundsCount(3)
+                        .name("name")
+                        .expensesFormula(List.of("1", "2", "3"))
+                        .demandFormula(List.of("100", "10"))
+                        .maxTeamsAmount(100)
+                        .shouldShowStudentPreviousRoundResults(true)
+                        .instruction("instr")
+                        .build())
+                .build()).block();
+        competition = competitionsRepository.save(competition).block();
+        var team = teamsRepository.save(DbTeam.builder().sourceCompetition(competition).name("tutu").idInGame(0).captain(user).build()).block();
+        var team2 = teamsRepository.save(DbTeam.builder().sourceCompetition(competition).name("abab").idInGame(1).captain(secUser).build()).block();
+
+        competition.addTeam(team);
+        competition.addTeam(team2);
+
+        gameManagementService.startCompetition(competition).block();
+
+        var allFlux = webTestClient.get().uri("/api/competition_process/1234/student_all_in_one")
+                .exchange().expectStatus().isOk()
+                .returnResult(Serializable.class)
+                .getResponseBody();
+
+
+        gameManagementService.startNewRound(competition).block();
+        gameManagementService.submitAnswer(competition, team, 10, 1).block();
+        gameManagementService.submitAnswer(competition, team2, 20, 1).block();
+
+
+        var verifier = testAllInOneStudentStreamValidate(StepVerifier.create(allFlux.map(el -> (LinkedHashMap<String, Object>)el))).thenCancel().verifyLater();
+
+        gameManagementService.addMessage(competition, CompetitionMessageRequest.builder().message("message").build()).block();
+        gameManagementService.endCurrentRound(competition).block();
+
+        gameManagementService.startNewRound(competition).block();
+
+        verifier.verify();
+
+        var lst = webTestClient.get().uri("/api/competition_process/1234/student_all_in_one")
+                .exchange().expectStatus().isOk()
+                .returnResult(Serializable.class)
+                .getResponseBody().map(el -> (LinkedHashMap<String, Object>)el).take(5).collectList().block();
+
+
+        assertTrue(lst.stream().anyMatch(el -> {
+            return el.containsKey("message") && el.get("message").equals("message");
+        }));
+
+        assertTrue(lst.stream().anyMatch(el -> {
+            return el.containsKey("type") && el.get("type").equals("NewRound") && el.get("roundNumber").equals(2);
+        }));
+
+        assertTrue(lst.stream().anyMatch(el -> {
+            return el.containsKey("teamAnswer") && el.get("teamAnswer").equals(10) && el.get("roundNumber").equals(1);
+        }));
+
+        assertTrue(lst.stream().anyMatch(el -> {
+            return el.containsKey("price") && el.get("price").equals(7.0) && el.get("roundNumber").equals(1);
+        }));
+
+        assertTrue(lst.stream().anyMatch(el -> {
+            return el.containsKey("income") && el.get("income").equals(-53.0) && el.get("roundNumber").equals(1);
+        }));
+    }
+
+    @Test
+    @WithMockUser(value = "anotherEmail", password = "1234", roles = {"TEACHER","STUDENT"})
+    void testAllInOneTeacher() {
+        var user = userRepository.save(DbUser.builder().password("1234").email("anotherEmail").roles(rolesRepository.findAll().collectList().block()).build()).block();
+        var secUser = userRepository.save(DbUser.builder().password("1234").email("email").roles(rolesRepository.findAll().collectList().block()).build()).block();
+        var competition = competitionsRepository.save(DbCompetition.builder()
+                .state(DbCompetition.State.Registration)
+                .pin("1234")
+                .parameters(DbCompetition.Parameters.builder()
+                        .roundsCount(3)
+                        .name("name")
+                        .expensesFormula(List.of("1", "2", "3"))
+                        .demandFormula(List.of("100", "10"))
+                        .maxTeamsAmount(100)
+                        .shouldShowStudentPreviousRoundResults(true)
+                        .instruction("instr")
+                        .build())
+                .build()).block();
+        competition = competitionsRepository.save(competition).block();
+        var team = teamsRepository.save(DbTeam.builder().sourceCompetition(competition).name("tutu").idInGame(0).captain(user).build()).block();
+        var team2 = teamsRepository.save(DbTeam.builder().sourceCompetition(competition).name("abab").idInGame(1).captain(secUser).build()).block();
+
+        competition.addTeam(team);
+        competition.addTeam(team2);
+
+        gameManagementService.startCompetition(competition).block();
+
+        var allFlux = webTestClient.get().uri("/api/competition_process/1234/teacher_all_in_one")
+                .exchange().expectStatus().isOk()
+                .returnResult(Serializable.class)
+                .getResponseBody();
+
+        gameManagementService.startNewRound(competition).block();
+        gameManagementService.submitAnswer(competition, team, 10, 1).block();
+        gameManagementService.submitAnswer(competition, team2, 20, 1).block();
+
+        var verifier = StepVerifier.create(allFlux.map(el -> (LinkedHashMap<String, Object>)el))
+                .consumeNextWith(el -> {
+                    System.out.println(el);
+                    assertEquals(el.get("type"), "EndRound");
+                    assertEquals(el.get("roundNumber"), 0);
+                    assertFalse((Boolean)el.get("endOfGame"));
+                }).consumeNextWith(el -> {
+                    assertEquals(el.get("teamAnswer"), 10);
+                    assertEquals(el.get("roundNumber"), 1);
+                    assertEquals(el.get("teamIdInGame"), 0);
+                }).consumeNextWith(el -> {
+                    assertEquals(el.get("teamAnswer"), 20);
+                    assertEquals(el.get("roundNumber"), 1);
+                    assertEquals(el.get("teamIdInGame"), 1);
+                }).consumeNextWith(el -> {
+                    assertEquals(el.get("type"), "NewRound");
+                    assertEquals(el.get("roundNumber"), 1);
+                }).consumeNextWith(el -> {
+                    assertEquals(el.get("message"), "message");
+                }).consumeNextWith(el -> {
+                    assertEquals((Double)el.get("price"), 7, 0.01);
+                    assertEquals(el.get("roundNumber"), 1);
+                }).consumeNextWith(el -> {
+                    System.out.println(el);
+                    assertEquals(el.get("teamIdInGame"), 0);
+                    assertEquals(el.get("roundNumber"), 1);
+                    assertEquals((Double)el.get("income"), -53.0, 0.01);
+                }).consumeNextWith(el -> {
+                    System.out.println(el);
+                    assertEquals(el.get("teamIdInGame"), 1);
+                    assertEquals(el.get("roundNumber"), 1);
+                    assertEquals((Double)el.get("income"), -303.0, 0.01);
+                }).consumeNextWith(el -> {
+                    System.out.println(el);
+                    assertEquals(el.get("type"), "EndRound");
+                    assertEquals(el.get("roundNumber"), 1);
+                    assertEquals(el.get("endOfGame"), false);
+                }).consumeNextWith(el -> {
+                    System.out.println(el);
+                    assertEquals(el.get("type"), "NewRound");
+                    assertEquals(el.get("roundNumber"), 2);
+                }).thenCancel().verifyLater();
+
+        gameManagementService.addMessage(competition, CompetitionMessageRequest.builder().message("message").build()).block();
+        gameManagementService.endCurrentRound(competition).block();
+
+        gameManagementService.startNewRound(competition).block();
+
         verifier.verify();
     }
 }
