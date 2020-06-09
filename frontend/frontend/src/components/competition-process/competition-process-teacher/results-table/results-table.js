@@ -141,7 +141,7 @@ class CompetitionResultsTable extends React.Component {
                                 }
                                 return (
                                     <td width={toStr(1)} style={style} key={teamInd}>
-                                        {this.range(1, roundsCount + 1).map(round => {
+                                        {round(this.range(1, roundsCount + 1).map(round => {
                                             let ans = 0;
                                             if (round in this.props.results) {
                                                 if (teamInd in this.props.results[round]) {
@@ -151,7 +151,7 @@ class CompetitionResultsTable extends React.Component {
                                             return ans;
                                         }).reduce((prev, curr) => {
                                             return prev + curr;
-                                        }, 0)}
+                                        }, 0))}
                                     </td>
                                 )
                             })}
