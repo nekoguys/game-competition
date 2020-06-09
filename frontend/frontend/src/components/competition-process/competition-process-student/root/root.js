@@ -13,6 +13,8 @@ import OneRoundResultsTable from "../one-round-results-table";
 import showNotification from "../../../../helpers/notification-helper";
 import withAuthenticated from "../../../../helpers/with-authenticated";
 
+import * as Constants from "../../../../helpers/constants";
+
 
 class CompetitionProcessStudentRoot extends React.Component {
     constructor(props) {
@@ -40,11 +42,7 @@ class CompetitionProcessStudentRoot extends React.Component {
 
     componentDidMount() {
         this.fetchCompetitionInfo();
-        this.setupMessagesStream();
-        this.setupRoundEventsStream();
-        this.setupResultsEventsStream();
-        this.setupPricesEventsStream();
-        this.setupMyAnswersEventsStream();
+        this.setupAllInOneEvents();
     }
 
     componentDidUpdate(prevProps, prevState, snapshot) {
@@ -90,21 +88,10 @@ class CompetitionProcessStudentRoot extends React.Component {
     };
 
     componentWillUnmount() {
-        if (this.messagesEventSource !== undefined) {
-            this.messagesEventSource.close();
+        if (this.eventSource !== undefined) {
+            this.eventSource.close();
         }
-        if (this.roundEventsSource !== undefined) {
-            this.roundEventsSource.close();
-        }
-        if (this.resultsEventsSource !== undefined) {
-            this.resultsEventsSource.close();
-        }
-        if (this.pricesEventSource !== undefined) {
-            this.pricesEventSource.close();
-        }
-        if (this.answersEventSource !== undefined) {
-            this.answersEventSource.close();
-        }
+
         clearInterval(this.timerId);
     }
 
@@ -167,95 +154,66 @@ class CompetitionProcessStudentRoot extends React.Component {
         })
     }
 
-    setupMyAnswersEventsStream() {
-        const {pin} = this.props.match.params;
+    processAnswer = (answer) => {
+        this.setState((prevState) => {
+            let answers = {...prevState.answers};
+            answers[answer.roundNumber] = answer.teamAnswer;
 
-        this.answersEventSource = ApiHelper.myAnswersStream(pin);
-
-        this.answersEventSource.addEventListener("error", (err) => console.log({answersEventSourceErr: err}));
-
-        this.answersEventSource.addEventListener("message", (message) => {
-            const data = JSON.parse(message.data);
-
-            this.setState((prevState) => {
-                let answers = {...prevState.answers};
-                answers[data.roundNumber] = data.teamAnswer;
-
-                return {answers: answers};
-            })
+            return {answers: answers};
         })
     }
 
-    setupPricesEventsStream() {
+    setupAllInOneEvents() {
         const {pin} = this.props.match.params;
 
-        this.pricesEventSource = ApiHelper.competitionRoundPricesStream(pin);
+        this.eventSource = ApiHelper.allInOneStudentStream(pin);
 
-        this.pricesEventSource.addEventListener("erorr", err => console.log({pricesEventSourceErr: err}));
+        this.eventSource.addEventListener("error", (err) => console.log({eventSource: err}));
 
-        this.pricesEventSource.addEventListener("message", (message) => {
-            const data = JSON.parse(message.data);
-
-            this.setState(prevState => {
-                let prices = {...prevState.prices};
-
-                prices[data.roundNumber] = data.price;
-
-                return {prices: prices};
-            })
+        this.eventSource.addEventListener("message", (message) => {
+            if (message.lastEventId === Constants.ANSWER_EVENT_ID) {
+                this.processAnswer(JSON.parse(message.data));
+            } else if (message.lastEventId === Constants.MESSAGE_EVENT_ID) {
+                this.processMessage(message);
+            } else if (message.lastEventId === Constants.PRICE_EVENT_ID) {
+                this.processPrice(JSON.parse(message.data));
+            } else if (message.lastEventId === Constants.RESULT_EVENT_ID) {
+                this.processResult(JSON.parse(message.data));
+            } else if (message.lastEventId === Constants.ROUND_EVENT_ID) {
+                this.processRound(message)
+            }
         })
     }
 
-    setupResultsEventsStream() {
-        const {pin} = this.props.match.params;
+    processPrice = (data) => {
+        this.setState(prevState => {
+            let prices = {...prevState.prices};
 
-        this.resultsEventsSource = ApiHelper.myResultsStream(pin);
+            prices[data.roundNumber] = data.price;
 
-        this.resultsEventsSource.addEventListener("error", err => console.log({resultsEventSourceErr: err}));
-
-        this.resultsEventsSource.addEventListener("message", (message) => {
-            const data = JSON.parse(message.data);
-            this.setState((prevState) => {
-                let results = {...prevState.results};
-                results[data.roundNumber] = data.income;
-
-                return {results: results};
-            })
-        });
+            return {prices: prices};
+        })
     }
 
-    setupRoundEventsStream() {
-        const {pin} = this.props.match.params;
+    processResult = (data) => {
+        this.setState((prevState) => {
+            let results = {...prevState.results};
+            results[data.roundNumber] = data.income;
 
-        this.roundEventsSource = ApiHelper.competitionRoundEventsStream(pin);
-
-        this.roundEventsSource.addEventListener("error", (err) => {
-            console.log("roundsEventSource error");
-            console.log({err});
-        });
-
-        this.roundEventsSource.addEventListener("message", (message) => {
-            this.setState(prevState => {
-                return processRoundsEvents(message);
-            })
-        });
+            return {results: results};
+        })
     }
 
-    setupMessagesStream() {
-        const {pin} = this.props.match.params;
+    processRound = (message) => {
+        this.setState(prevState => {
+            return processRoundsEvents(message);
+        })
+    }
 
-        this.messagesEventSource = ApiHelper.competitionMessagesEventSource(pin);
-
-        this.messagesEventSource.addEventListener("error", (err) => {
-            console.log("messagesEventSource error");
-            console.log({err});
-        });
-
-        this.messagesEventSource.addEventListener("message", (message) => {
-            this.setState(prevState => {
-                let newState = processMessagesEvents(message, [...prevState.messages]);
-                return {...newState, unreadMessages: prevState.unreadMessages + newState.messages.length - prevState.messages.length};
-            })
+    processMessage = (message) => {
+        this.setState(prevState => {
+            let newState = processMessagesEvents(message, [...prevState.messages]);
+            return {...newState, unreadMessages: prevState.unreadMessages + newState.messages.length - prevState.messages.length};
         })
     }
 
