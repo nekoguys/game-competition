@@ -2,10 +2,7 @@ package com.groudina.ten.demo.services;
 
 import com.groudina.ten.demo.datasource.*;
 import com.groudina.ten.demo.dto.*;
-import com.groudina.ten.demo.exceptions.IllegalAnswerSubmissionException;
-import com.groudina.ten.demo.exceptions.IllegalGameStateException;
-import com.groudina.ten.demo.exceptions.RoundEndInNotStartedCompetitionException;
-import com.groudina.ten.demo.exceptions.RoundLengthIncreaseInNotStartedCompException;
+import com.groudina.ten.demo.exceptions.*;
 import com.groudina.ten.demo.models.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -197,6 +194,18 @@ public class GameManagementServiceImpl implements IGameManagementService {
         return processor;
     }
 
+    private int findRoundLength(int roundNumber, DbCompetition.Parameters.RoundsLengthHistory history) {
+        int roundLength = 0;
+
+        for (int ind = 0; ind < history.getRoundNumbers().size(); ++ind) {
+            if (history.getRoundNumbers().get(ind) <= roundNumber) {
+                roundLength = history.getRoundLength().get(ind);
+            }
+        }
+
+        return roundLength;
+    }
+
     private Flux<ITypedEvent> createBeginEndRoundsProcessor(DbCompetition competition) {
         String pin = competition.getPin();
         var processor = ReplayProcessor.<ITypedEvent>create(1).serialize();
@@ -212,13 +221,16 @@ public class GameManagementServiceImpl implements IGameManagementService {
 
             if (currentRound != 0) {
                 var lastRoundInfo = competition.getCompetitionProcessInfo().getCurrentRound();
+                var history = competition.getParameters().getRoundsLengthHistory();
+                int roundLength = findRoundLength(currentRound, history);
 
                 if (!lastRoundInfo.isEnded()) {
+
                     sink.next(
                             NewRoundEventDto
                                     .builder()
                                     .beginTime(lastRoundInfo.getStartTime().atOffset(ZoneOffset.UTC).toEpochSecond())// IMPORTANT
-                                    .roundLength(competition.getParameters().getRoundLengthInSeconds() + lastRoundInfo.getAdditionalMinutes() * 60)
+                                    .roundLength(roundLength + lastRoundInfo.getAdditionalMinutes() * 60)
                                     .roundNumber(currentRound)
                                     .build()
                     );
@@ -228,6 +240,7 @@ public class GameManagementServiceImpl implements IGameManagementService {
                                     .builder()
                                     .isEndOfGame(currentRound == competition.getParameters().getRoundsCount())
                                     .roundNumber(currentRound)
+                                    .roundLength(roundLength)
                                     .build()
                     );
                 }
@@ -254,6 +267,7 @@ public class GameManagementServiceImpl implements IGameManagementService {
         }).doOnNext(el -> {
             var event = EndRoundEventDto.builder()
                     .roundNumber(0)
+                    .roundLength(competition.getParameters().getRoundLengthInSeconds())
                     .isEndOfGame(false)
                     .build();
             var pin = competition.getPin();
@@ -491,6 +505,7 @@ public class GameManagementServiceImpl implements IGameManagementService {
                             beginEndRoundEventsSinks.get(pin)
                                     .next(EndRoundEventDto.builder()
                                             .roundNumber(currentRoundNumber)
+                                            .roundLength(findRoundLength(currentRoundNumber, competition.getParameters().getRoundsLengthHistory()))
                                             .isEndOfGame(currentRoundNumber == savedCompetition.getParameters().getRoundsCount())
                                             .build()
                                     );
@@ -531,7 +546,7 @@ public class GameManagementServiceImpl implements IGameManagementService {
                                         NewRoundEventDto
                                                 .builder()
                                                 .roundNumber(currentRound + 1)
-                                                .roundLength(savedCompetition.getParameters().getRoundLengthInSeconds())
+                                                .roundLength(findRoundLength(currentRound + 1, savedCompetition.getParameters().getRoundsLengthHistory()))
                                                 .beginTime(LocalDateTime.now().atOffset(ZoneOffset.UTC).toEpochSecond())
                                                 .build()
                                 );
@@ -575,6 +590,16 @@ public class GameManagementServiceImpl implements IGameManagementService {
                 }
             });
         }).then();
+    }
+
+    @Override
+    public Mono<Void> changeRoundLength(DbCompetition competition, int newRoundLength) {
+        if (newRoundLength <= 1) {
+            return Mono.error(new ResponseException("Round length is too small"));
+        }
+        competition.getParameters().getRoundsLengthHistory().add(competition.getCompetitionProcessInfo().getCurrentRoundNumber() + 1,newRoundLength);
+
+        return competitionsRepository.save(competition).then();
     }
 
     @Override

@@ -98,6 +98,16 @@ public class CompetitionProcessController {
         }, () -> "Message sent successfully", () -> "Competition with pin: " + pin + " not found");
     }
 
+    @PostMapping("/change_round_length")
+    @PreAuthorize("hasRole('TEACHER')")
+    public Mono<ResponseEntity> changeRoundLength(@PathVariable String pin, @Valid @RequestBody RoundLengthChangeRequestDto request) {
+        log.info("POST: /api/competition_process/{}/change_round_length, body: {}", pin, request);
+
+        return routine(competitionsRepository.findByPin(pin), (competition) -> {
+            return gameManagementService.changeRoundLength(competition, request.getNewRoundLength()).thenReturn(false);
+        }, () -> "Round length changed successfully", () -> "Competition with pin: " + pin + " not found");
+    }
+
     @RequestMapping(value = "/answers_stream", produces = {MediaType.TEXT_EVENT_STREAM_VALUE})
     @PreAuthorize("hasRole('TEACHER')")
     public Flux<ServerSentEvent<?>> getTeamsAnswers(@PathVariable String pin) {
