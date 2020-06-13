@@ -91,6 +91,7 @@ public class CompetitionResultsFormatterImpl implements ICompetitionResultsForma
                 .setProduced(produce)
                 .setMessage(messages)
                 .setTeams(teamMembers)
+                .instruction(competition.getParameters().getInstruction())
                 .build();
     }
 }
