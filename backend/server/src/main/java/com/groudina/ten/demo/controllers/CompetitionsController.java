@@ -147,7 +147,7 @@ public class CompetitionsController {
     @RequestMapping(value = "/team_join_events/{pin}", produces = {MediaType.TEXT_EVENT_STREAM_VALUE})
     public Flux<ServerSentEvent<?>> subscribeToTeamJoinEvents(@PathVariable String pin) {
         log.info("REQUEST: /api/competitions/team_join_events/{}", pin);
-        return teamConnectionNotifyService.getTeamEventForGame(pin).map(e -> ServerSentEvent.builder(e).build());
+        return teamConnectionNotifyService.getTeamEventForGame(pin).map(e -> ServerSentEvent.builder(e).id("teamStream").build());
     }
 
     @PostMapping(value = "/join_team")

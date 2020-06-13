@@ -128,6 +128,14 @@ class ApiSettings {
         return ApiSettings.host() + "/competition_process/" + pin + "/my_results_stream";
     }
 
+    static allInOneStudentEvents(pin) {
+        return ApiSettings.host() + "/competition_process/" + pin + "/student_all_in_one";
+    }
+
+    static allInOneTeacherEvents(pin) {
+        return ApiSettings.host() + "/competition_process/" + pin + "/teacher_all_in_one";
+    }
+    
     static getChangeRoundLengthEndPoint(pin) {
         return ApiSettings.host() + "/competition_process/" + pin + "/change_round_length";
     }
@@ -353,6 +361,20 @@ export default class ApiHelper {
 
     static myResultsStream(pin) {
         return new EventSourcePolyfill(ApiSettings.myResultsEvents(pin), {
+            headers: this.authDefaultHeaders(),
+            heartbeatTimeout: 1000*60*60
+        })
+    }
+
+    static allInOneStudentStream(pin) {
+        return new EventSourcePolyfill(ApiSettings.allInOneStudentEvents(pin), {
+            headers: this.authDefaultHeaders(),
+            heartbeatTimeout: 1000*60*60
+        })
+    }
+
+    static allInOneTeacherStream(pin) {
+        return new EventSourcePolyfill(ApiSettings.allInOneTeacherEvents(pin), {
             headers: this.authDefaultHeaders(),
             heartbeatTimeout: 1000*60*60
         })

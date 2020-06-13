@@ -34,6 +34,8 @@ class AfterRegistrationOpenedComponent extends React.Component {
                 console.log("EventSource failed: ", err)
             });
         this.eventSource.addEventListener("message", (event) => {
+            console.log({eventId: event.lastEventId});
+            console.log({event});
             console.log({data: event.data});
             this.setState((prevState) => {
                 let arr = prevState.items.slice(0);
