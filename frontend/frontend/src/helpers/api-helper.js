@@ -135,6 +135,10 @@ class ApiSettings {
     static allInOneTeacherEvents(pin) {
         return ApiSettings.host() + "/competition_process/" + pin + "/teacher_all_in_one";
     }
+    
+    static getChangeRoundLengthEndPoint(pin) {
+        return ApiSettings.host() + "/competition_process/" + pin + "/change_round_length";
+    }
 
     static verificationEndPoint(token) {
         return ApiSettings.host() + "/auth/verification/" + token;
@@ -403,5 +407,13 @@ export default class ApiHelper {
             method: "GET",
             headers: this.authDefaultHeaders()
         })
+    }
+
+    static changeRoundLength(pin, roundLength) {
+        return fetch(ApiSettings.getChangeRoundLengthEndPoint(pin), {
+            method: "POST",
+            headers: this.authDefaultHeaders(),
+            body: JSON.stringify({newRoundLength: roundLength})
+        });
     }
 }

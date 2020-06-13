@@ -9,6 +9,7 @@ import processRoundsEvents from "../../../../helpers/rounds-event-source-helper"
 import processMessagesEvents from "../../../../helpers/messages-event-source-helper";
 import showNotification from "../../../../helpers/notification-helper";
 import * as Constants from "../../../../helpers/constants";
+import ChangeRoundLengthContainer from "../change-round-length-container";
 
 
 class CompetitionProcessTeacherBody extends React.Component {
@@ -21,6 +22,7 @@ class CompetitionProcessTeacherBody extends React.Component {
             currentRoundNumber: 0,
             timeTillRoundEnd: 0,
             isCurrentRoundEnded: false,
+            currentRoundLength: 0,
             name: "",
             teamsCount: 10,
             roundsCount: 0,
@@ -46,6 +48,8 @@ class CompetitionProcessTeacherBody extends React.Component {
             results={this.state.results}
             prices={this.state.prices}
             bannedTeams={this.state.bannedTeams}
+            currentRoundLength={this.state.currentRoundLength}
+            changeRoundLengthCallback={this.changeRoundLength}
         />);
 
         return (
@@ -125,6 +129,32 @@ class CompetitionProcessTeacherBody extends React.Component {
                 }
             })
         })
+    }
+
+    changeRoundLength = (newRoundLength) => {
+        const ans = parseInt(newRoundLength, 10);
+        if (Number.isNaN(ans)) {
+            showNotification(this).error("Invalid round length", "Error", 2500);
+        } else {
+            const {pin} = this.props;
+
+            ApiHelper.changeRoundLength(pin, ans).then(resp => {
+                if (resp.status >= 300) {
+                    return {success: false, json: resp.text()};
+                }
+
+                return {success: true, json: resp.json()};
+            }).then(resp => {
+                resp.json.then(jsonBody => {
+                    console.log({changeRoundLengthResponse: jsonBody});
+                    if (resp.success) {
+                        showNotification(this).success(jsonBody.message, "Success", 2500);
+                    } else {
+                        showNotification(this).error(jsonBody.message, "Error", 2500);
+                    }
+                })
+            })
+        }
     }
 
     setupAllInOneEvents() {
@@ -312,6 +342,9 @@ class CompetitionProcessTeacherActive extends React.Component {
                     />
                 </div>
                 <div style={{paddingTop: "20px"}}>
+                    <ChangeRoundLengthContainer currentRoundLength={this.props.currentRoundLength} changeRoundLengthCallback={this.props.changeRoundLengthCallback}/>
+                </div>
+                <div style={{paddingTop: "40px"}}>
                     <MessagesContainer messages={this.props.messages} sendMessageCallBack={this.props.sendMessageCallBack}/>
                 </div>
             </div>

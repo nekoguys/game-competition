@@ -48,6 +48,7 @@ export class TextInputWithSubmitButton extends React.Component {
                     onSubmit(this.state.text);
                     if (clearOnSubmit) {
                         this.input.value = "";
+                        this.setState({text: ""});
                         this.input.focus();
                     }
                 }
@@ -64,6 +65,7 @@ export class TextInputWithSubmitButton extends React.Component {
                     onSubmit(this.state.text);
                     if (clearOnSubmit) {
                         this.input.value = "";
+                        this.setState({text: ""});
                         this.input.focus();
                     }
                 }} type={"submit"}><img src={imagePath} alt={alt} style={imgStyle}/></button>
