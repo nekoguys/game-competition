@@ -27,6 +27,7 @@ public class ITypedEventDeserializer extends StdDeserializer<ITypedEvent> {
             EndRoundEventDto endRoundEventDto = EndRoundEventDto.builder()
                     .isEndOfGame(node.get("endOfGame").asBoolean())
                     .roundNumber(node.get("roundNumber").asInt())
+                    .roundLength(node.get("roundLength").asInt())
                     .build();
             return endRoundEventDto;
         } else { //NewRound

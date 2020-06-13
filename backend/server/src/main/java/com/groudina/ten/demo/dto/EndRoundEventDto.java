@@ -19,4 +19,6 @@ public class EndRoundEventDto implements ITypedEvent {
     private int roundNumber;
 
     private boolean isEndOfGame;
+
+    private int roundLength;
 }
