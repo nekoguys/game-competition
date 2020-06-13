@@ -135,6 +135,17 @@ class AdminkaComponent extends React.Component {
           console.log({roleChanges: this.roleChanges});
     };
 
+    // call after fetching user roles from server, for showing already modified roles
+    processServerUsers = (userList) => {
+        return userList.map(el => {
+            let {email} = el;
+            if (email in this.roleChanges) {
+                return {email, role: this.roleChanges[email]};
+            }
+            return el;
+        })
+    };
+
     onDoSearch = () => {
         console.log(`Request with search string: ${this.searchString}`);
         //request
@@ -143,6 +154,14 @@ class AdminkaComponent extends React.Component {
 
     onSaveButtonClick = () => {
         //TODO
+        // Promise.all(Object.keys(this.roleChanges).map(el => {
+        //     return ApiHelper.changeRole(el.email)
+        // })).catch(err => {
+        //     console.log({err});
+        //     showNotification(this).error(err.toString(), "Error", 3000);
+        // }).then(_ => {
+        //     showNotification(this).success("Роли успешно изменены", 3000);
+        // });
     };
 
     render() {
