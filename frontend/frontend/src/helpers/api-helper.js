@@ -387,10 +387,11 @@ export default class ApiHelper {
         })
     }
 
-    static changeRole(email) {
+    static changeRole(email, role) {
         return fetch(ApiSettings.changeRoleEndPoint(email), {
             method: "POST",
             headers: this.authDefaultHeaders(),
+            body: JSON.stringify({role})
         })
     }
 }

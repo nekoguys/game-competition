@@ -25,7 +25,7 @@ class UsersCollection extends React.Component {
             <div className={"user-grid user-grid-padding"}>
                 {items.map(el => {
                     return (
-                        <UserGridItem item={el} handleRoleChange={this.handleRoleChange}/>
+                        <UserGridItem item={el} key={el.email} handleRoleChange={this.handleRoleChange}/>
                     )
                 })}
             </div>
@@ -118,21 +118,26 @@ class AdminkaComponent extends React.Component {
             items: [
                 {email: "iivanov@hse.ru", role: "ROLE_TEACHER"},
                 {email: "kpbenua@edu.hse.ru", role: "ROLE_STUDENT"},
-                {email: "sdfomin@edu.hse.ru", role: "ROLE_STUDENT"},
-                {email: "sdfomin@edu.hse.ru", role: "ROLE_STUDENT"},
-                {email: "sdfomin@edu.hse.ru", role: "ROLE_STUDENT"},
-                {email: "sdfomin@edu.hse.ru", role: "ROLE_STUDENT"},
-                {email: "sdfomin@edu.hse.ru", role: "ROLE_STUDENT"},
-                {email: "sdfomin@edu.hse.ru", role: "ROLE_STUDENT"},
-            ]
+                {email: "sdfomin1@edu.hse.ru", role: "ROLE_STUDENT"},
+                {email: "sdfomin2@edu.hse.ru", role: "ROLE_STUDENT"},
+                {email: "sdfomin3@edu.hse.ru", role: "ROLE_STUDENT"},
+                {email: "sdfomin4@edu.hse.ru", role: "ROLE_STUDENT"},
+                {email: "sdfomin5@edu.hse.ru", role: "ROLE_STUDENT"},
+                {email: "sdfomin6@edu.hse.ru", role: "ROLE_STUDENT"},
+            ],
+            isShowingChanges: false
         };
         this.searchString = "";
         this.roleChanges = {};
     }
 
     handleRoleChange = ({email, role}) => {
-          this.roleChanges[email] = role;
-          console.log({roleChanges: this.roleChanges});
+        this.roleChanges[email] = role;
+        console.log({roleChanges: this.roleChanges});
+
+        if (this.state.items.filter(el => el.email === email)[0].role === role) {
+            delete this.roleChanges[email];
+        }
     };
 
     // call after fetching user roles from server, for showing already modified roles
@@ -150,18 +155,35 @@ class AdminkaComponent extends React.Component {
         console.log(`Request with search string: ${this.searchString}`);
         //request
         // TODO apply changes from roleChanges to fetched items
+        // TODO after request set `isShowingChanges` to false
     };
 
     onSaveButtonClick = () => {
         //TODO
         // Promise.all(Object.keys(this.roleChanges).map(el => {
-        //     return ApiHelper.changeRole(el.email)
+        //     return ApiHelper.changeRole(el, this.roleChanges[el])
         // })).catch(err => {
         //     console.log({err});
         //     showNotification(this).error(err.toString(), "Error", 3000);
         // }).then(_ => {
         //     showNotification(this).success("Роли успешно изменены", 3000);
         // });
+    };
+
+    onShowOrHideChanges = () => {
+        this.setState(prevState => {
+            return {isShowingChanges: !prevState.isShowingChanges};
+        })
+    };
+
+    getChangesAsArray = () => {
+        let arr = [];
+        console.log(Object.entries(this.roleChanges));
+        for (const [key, value] of Object.entries(this.roleChanges)) {
+            arr.push({email: key, role: value});
+        }
+        console.log({arr});
+        return arr;
     };
 
     render() {
@@ -178,6 +200,9 @@ class AdminkaComponent extends React.Component {
             height: "100%",
             lineHeight: "1.5"
         };
+
+        const items = this.state.isShowingChanges ? this.getChangesAsArray() : this.state.items;
+
         return (
             <div>
                 <div>
@@ -189,6 +214,10 @@ class AdminkaComponent extends React.Component {
                         <div style={{textAlign: "center", fontSize: "1.25rem"}}>Найти пользователя</div>
                         </div>
                         <div className={"row justify-content-end"} style={{paddingTop: "10px"}}>
+                            <div className={"col-3"}>
+                                <DefaultSubmitButton text={this.state.isShowingChanges ? "Скрыть изменения" : "Показать изменения"}
+                                                     style={buttonStyle} onClick={this.onShowOrHideChanges}/>
+                            </div>
                             <div className={"col-6"}>
                                 <DefaultTextInput
                                     placeholder={"Имя, фамилия или email"}
@@ -210,7 +239,7 @@ class AdminkaComponent extends React.Component {
                         </div>
                     </div>
                     <div style={{paddingTop: "30px"}}>
-                        <UsersCollection handleRoleChange={this.handleRoleChange} items={this.state.items}/>
+                        <UsersCollection handleRoleChange={this.handleRoleChange} items={items}/>
                     </div>
                 </div>
             </div>
