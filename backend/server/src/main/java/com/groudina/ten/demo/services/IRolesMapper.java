@@ -7,4 +7,5 @@ import java.util.List;
 
 public interface IRolesMapper {
     Mono<List<DbRole>> map(String role);
+    String getTopRoleName(List<DbRole> roles);
 }
