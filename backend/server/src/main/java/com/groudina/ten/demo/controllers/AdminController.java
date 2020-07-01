@@ -41,14 +41,14 @@ public class AdminController {
     public Mono<ResponseEntity> search(@Valid @RequestBody UserSearchRequest request) {
         log.info("POST: /api/admin/search, body: {}", request);
 
-//        Хотел проверку сделать, но передумал
-//        if (!request.getQuery().chars().allMatch(Character::isLetterOrDigit)) {
-//            var errorBody = new ResponseMessage("Request must contain only digits and letters");
-//            return Mono.just(ResponseEntity.badRequest().body(errorBody));
-//        }
+        var query = request.getQuery().trim();
+        if (!query.chars().allMatch(Character::isLetter)) {
+            var errorBody = new ResponseMessage("Request must contain only letters");
+            return Mono.just(ResponseEntity.badRequest().body(errorBody));
+        }
 
         var pageRequest = PageRequest.of(request.getPage(), request.getPageSize());
-        var regex = String.format("^%s", request.getQuery());
+        var regex = String.format("^%s", query);
         var results = userRepository.findByRegex(regex, pageRequest);
 
         return results.map(user -> {

@@ -84,7 +84,7 @@ public class AdminControllerTest {
     @WithMockUser(username = "gaiduk@hse.ru", password = "1234", roles = {"STUDENT"})
     void adminkaForbidden() {
         var request = UserSearchRequest.builder()
-                .query("literally anything")
+                .query("literallyanything")
                 .build();
 
         webTestClient.post().uri("/api/admin/search")
@@ -98,7 +98,7 @@ public class AdminControllerTest {
     @WithMockUser(value = "teacher@hse.ru", password = "1234", roles = {"TEACHER"})
     void searchWithNoResults() {
         var request = UserSearchRequest.builder()
-                .query("literally anything")
+                .query("anything")
                 .page(0)
                 .pageSize(10)
                 .build();
@@ -130,12 +130,7 @@ public class AdminControllerTest {
                 .body(BodyInserters.fromValue(request))
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
-                .expectStatus().isOk()
-                .expectBody(UserSearchResponse.class)
-                .value(response -> {
-                    var results = response.getResults();
-                    assertEquals(0, results.size());
-                });
+                .expectStatus().isBadRequest();
     }
 
     @Test
