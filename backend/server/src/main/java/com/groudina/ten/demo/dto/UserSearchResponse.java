@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.util.List;
 
 @Getter
 @Builder
@@ -14,7 +15,17 @@ import java.io.Serializable;
 public class UserSearchResponse implements Serializable {
     private static final long serialVersionUID = -1235235235231L;
 
-    private String email;
+    private List<Info> results;
 
-    private String role;
+    @Getter
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class Info implements Serializable {
+        private static final long serialVersionUID = -2765235235231L;
+
+        private String email;
+
+        private String role;
+    }
 }

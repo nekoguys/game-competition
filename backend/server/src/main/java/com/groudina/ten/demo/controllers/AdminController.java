@@ -1,13 +1,17 @@
 package com.groudina.ten.demo.controllers;
 
 import com.groudina.ten.demo.datasource.DbUserRepository;
+import com.groudina.ten.demo.dto.ResponseMessage;
 import com.groudina.ten.demo.dto.UserSearchRequest;
 import com.groudina.ten.demo.dto.UserSearchResponse;
 import com.groudina.ten.demo.services.IRolesMapper;
+import com.mongodb.MongoException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.mongodb.UncategorizedMongoDbException;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -36,14 +40,28 @@ public class AdminController {
     public Mono<ResponseEntity> search(@Valid @RequestBody UserSearchRequest request) {
         log.info("POST: /api/admin/search, body: {}", request);
 
+//        Хотел проверку сделать, но лучше не надо
+//        if (!request.getQuery().chars().allMatch(Character::isLetterOrDigit)) {
+//            var errorBody = new ResponseMessage("Request must contain only digits and letters");
+//            return Mono.just(ResponseEntity.badRequest().body(errorBody));
+//        }
+
         var pageRequest = PageRequest.of(request.getPage(), request.getPageSize());
         var regex = String.format("^%s", request.getQuery());
         var results = userRepository.findByRegex(regex, pageRequest);
 
+        var errorFallback = ResponseEntity.badRequest()
+                .body(new ResponseMessage("Wrong pattern"));
+
         return results.map(user -> {
             var role = rolesMapper.getTopRoleName(user.getRoles());
             var email = user.getEmail();
-            return new UserSearchResponse(email, role);
-        }).collectList().map(ResponseEntity::ok);
+            return new UserSearchResponse.Info(email, role);
+        }).collectList().map(infos -> (ResponseEntity) ResponseEntity.ok(new UserSearchResponse(infos)))
+        .doOnError(ex -> {
+            int x = 0;
+            x += 1;
+        })
+          .onErrorReturn(DataAccessException.class, errorFallback);
     }
 }
