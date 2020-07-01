@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
 import javax.validation.Valid;
+import java.util.Collections;
 
 @CrossOrigin(origins = {"*"}, maxAge = 3600)
 @RequestMapping(path = "/api/admin", produces = {MediaType.APPLICATION_JSON_VALUE})
@@ -50,14 +51,12 @@ public class AdminController {
         var regex = String.format("^%s", request.getQuery());
         var results = userRepository.findByRegex(regex, pageRequest);
 
-        var errorFallback = ResponseEntity.badRequest()
-                .body(new ResponseMessage("Wrong pattern"));
-
         return results.map(user -> {
             var role = rolesMapper.getTopRoleName(user.getRoles());
             var email = user.getEmail();
             return new UserSearchResponse.Info(email, role);
-        }).collectList().map(infos -> (ResponseEntity) ResponseEntity.ok(new UserSearchResponse(infos)))
-          .onErrorReturn(DataAccessException.class, errorFallback);
+        }).collectList()
+                .onErrorReturn(DataAccessException.class, Collections.emptyList())
+                .map(infos -> (ResponseEntity) ResponseEntity.ok(new UserSearchResponse(infos)));
     }
 }

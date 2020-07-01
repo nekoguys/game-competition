@@ -130,7 +130,12 @@ public class AdminControllerTest {
                 .body(BodyInserters.fromValue(request))
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
-                .expectStatus()/*.isBadRequest()*/;
+                .expectStatus().isOk()
+                .expectBody(UserSearchResponse.class)
+                .value(response -> {
+                    var results = response.getResults();
+                    assertEquals(0, results.size());
+                });
     }
 
     @Test
