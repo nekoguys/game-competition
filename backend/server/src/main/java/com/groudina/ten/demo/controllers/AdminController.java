@@ -40,7 +40,7 @@ public class AdminController {
     public Mono<ResponseEntity> search(@Valid @RequestBody UserSearchRequest request) {
         log.info("POST: /api/admin/search, body: {}", request);
 
-//        Хотел проверку сделать, но лучше не надо
+//        Хотел проверку сделать, но передумал
 //        if (!request.getQuery().chars().allMatch(Character::isLetterOrDigit)) {
 //            var errorBody = new ResponseMessage("Request must contain only digits and letters");
 //            return Mono.just(ResponseEntity.badRequest().body(errorBody));
@@ -58,10 +58,6 @@ public class AdminController {
             var email = user.getEmail();
             return new UserSearchResponse.Info(email, role);
         }).collectList().map(infos -> (ResponseEntity) ResponseEntity.ok(new UserSearchResponse(infos)))
-        .doOnError(ex -> {
-            int x = 0;
-            x += 1;
-        })
           .onErrorReturn(DataAccessException.class, errorFallback);
     }
 }
