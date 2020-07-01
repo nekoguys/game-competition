@@ -43,7 +43,7 @@ public class AdminController {
         return results.map(user -> {
             var role = rolesMapper.getTopRoleName(user.getRoles());
             var email = user.getEmail();
-            return new UserSearchResponse(email, role);
-        }).collectList().map(ResponseEntity::ok);
+            return new UserSearchResponse.Info(email, role);
+        }).collectList().map(infos -> ResponseEntity.ok(new UserSearchResponse(infos)));
     }
 }
