@@ -6,6 +6,11 @@ import "./adminka.css";
 import NavbarHeader from "../competition-history/navbar-header/navbar-header";
 import DefaultTextInput from "../common/default-text-input";
 import DefaultSubmitButton from "../common/default-submit-button";
+import {ADMINKA_PAGE_SIZE} from "../../helpers/constants";
+import ApiHelper from "../../helpers/api-helper";
+import showNotification from "../../helpers/notification-helper";
+import withRedirect from "../../helpers/redirect-helper";
+import {isAdmin} from "../../helpers/role-helper";
 
 
 class UsersCollection extends React.Component {
@@ -40,12 +45,17 @@ class UserGridItem extends React.Component {
 
         this.options = [
             {value: "ROLE_STUDENT", label: "Студент"},
-            {value: "ROLE_TEACHER", label: "Преподаватель"}
+            {value: "ROLE_TEACHER", label: "Преподаватель"},
+            {value: "ROLE_ADMIN", label: "Админ"}
         ];
 
         this.state = {
             selectedOption: this.options.filter(option => option.value === props.item.role)
         };
+    }
+
+    isAdmin = () => {
+        return this.props.item.role === "ROLE_ADMIN";
     }
 
     handleRoleChange = (selectedOption) => {
@@ -63,10 +73,16 @@ class UserGridItem extends React.Component {
         const {selectedOption} = this.state;
         console.log({state: this.state});
 
+        let options = [...this.options];
+        if (!this.isAdmin()) {
+            options = options.slice(0, 2);
+        }
+
         const selectOptions = {
             value: selectedOption,
             onChange: this.handleRoleChange,
-            options: this.options,
+            options: options,
+            isDisabled: this.isAdmin(),
             styles: {
                 container: (provided, state) => {
                     // none of react-select's styles are passed to <Control />
@@ -111,24 +127,17 @@ class UserGridItem extends React.Component {
 }
 
 class AdminkaComponent extends React.Component {
+
     constructor(props) {
         super(props);
 
         this.state = {
-            items: [
-                {email: "iivanov@hse.ru", role: "ROLE_TEACHER"},
-                {email: "kpbenua@edu.hse.ru", role: "ROLE_STUDENT"},
-                {email: "sdfomin1@edu.hse.ru", role: "ROLE_STUDENT"},
-                {email: "sdfomin2@edu.hse.ru", role: "ROLE_STUDENT"},
-                {email: "sdfomin3@edu.hse.ru", role: "ROLE_STUDENT"},
-                {email: "sdfomin4@edu.hse.ru", role: "ROLE_STUDENT"},
-                {email: "sdfomin5@edu.hse.ru", role: "ROLE_STUDENT"},
-                {email: "sdfomin6@edu.hse.ru", role: "ROLE_STUDENT"},
-            ],
+            items: [],
             isShowingChanges: false
         };
         this.searchString = "";
         this.roleChanges = {};
+        this.lastFetchedPage = -1;
     }
 
     handleRoleChange = ({email, role}) => {
@@ -151,23 +160,58 @@ class AdminkaComponent extends React.Component {
         })
     };
 
-    onDoSearch = () => {
+    onDoSearch = (shouldResetLastFetchedPage) => {
         console.log(`Request with search string: ${this.searchString}`);
         //request
-        // TODO apply changes from roleChanges to fetched items
-        // TODO after request set `isShowingChanges` to false
+        if (shouldResetLastFetchedPage) {
+            this.lastFetchedPage = -1;
+        }
+        const query = {
+            query: this.searchString,
+            page: this.lastFetchedPage + 1,
+            pageSize: ADMINKA_PAGE_SIZE
+        };
+
+        ApiHelper.adminkaSearchUsers(query).then(resp => {
+            if (resp.status > 300) {
+                return {success: false, json: resp.text()}
+            }
+            return {success: true, json: resp.json()}
+        }).then(el => {
+            if (!el.success) {
+                el.json.then(text => {
+                    showNotification(this).error("Ошибка", text, 3000);
+                })
+            } else {
+                el.json.then(jsonBody => {
+                    this.lastFetchedPage += 1;
+                    this.setState(prevState => {
+                        console.log(this.lastFetchedPage);
+                        if (this.lastFetchedPage === 0) {
+                            return {
+                                items: this.processServerUsers(jsonBody.results),
+                                isShowingChanges: false
+                            }
+                        } else {
+                            return {
+                                items: this.processServerUsers(prevState.items.concat(jsonBody.results))
+                            }
+                        }
+                    })
+                })
+            }
+        })
     };
 
     onSaveButtonClick = () => {
-        //TODO
-        // Promise.all(Object.keys(this.roleChanges).map(el => {
-        //     return ApiHelper.changeRole(el, this.roleChanges[el])
-        // })).catch(err => {
-        //     console.log({err});
-        //     showNotification(this).error(err.toString(), "Error", 3000);
-        // }).then(_ => {
-        //     showNotification(this).success("Роли успешно изменены", 3000);
-        // });
+        Promise.all(Object.keys(this.roleChanges).map(el => {
+            return ApiHelper.changeRole(el, this.roleChanges[el])
+        })).catch(err => {
+            console.log({err});
+            showNotification(this).error("Error", err.toString(), 3000);
+        }).then(_ => {
+            showNotification(this).success("Успех", "Роли успешно изменены", 3000);
+        });
     };
 
     onShowOrHideChanges = () => {
@@ -203,6 +247,17 @@ class AdminkaComponent extends React.Component {
 
         const items = this.state.isShowingChanges ? this.getChangesAsArray() : this.state.items;
 
+        let loadMoreButton;
+        if (!this.state.isShowingChanges && this.state.items.length > 0) {
+            loadMoreButton = (
+                <div style={{paddingTop: "30px"}}>
+                <div style={{margin: "0 auto", width: "30%"}}>
+                    <DefaultSubmitButton text={"Показать ещё"} style={buttonStyle} onClick={() => {
+                        this.onDoSearch(false);
+                    }}/>
+                </div>
+            </div>)
+        }
         return (
             <div>
                 <div>
@@ -227,7 +282,7 @@ class AdminkaComponent extends React.Component {
                                         if (event.key === 'Enter') {
                                             event.preventDefault();
                                             event.stopPropagation();
-                                            this.onDoSearch();
+                                            this.onDoSearch(true);
                                         }
                                 }}
                                 />
@@ -241,10 +296,12 @@ class AdminkaComponent extends React.Component {
                     <div style={{paddingTop: "30px"}}>
                         <UsersCollection handleRoleChange={this.handleRoleChange} items={items}/>
                     </div>
+                    {loadMoreButton}
+
                 </div>
             </div>
         )
     }
 }
 
-export default AdminkaComponent;
+export default withRedirect(AdminkaComponent, isAdmin);

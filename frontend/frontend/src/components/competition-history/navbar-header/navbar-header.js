@@ -7,7 +7,7 @@ import buttonUpImage from "../../join-competition/join-competition-player-form/t
 import buttonDownImage from "../../join-competition/join-competition-player-form/team-collection/buttonDown.png";
 import profileImage from "./profile-image.png";
 import exitImage from "./exit-image.png";
-import isTeacher from "../../../helpers/role-helper";
+import {isTeacher} from "../../../helpers/role-helper";
 import makeCancelable from "../../../helpers/cancellable-promise";
 
 class NavbarHeader extends React.Component {

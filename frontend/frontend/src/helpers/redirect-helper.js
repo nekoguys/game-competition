@@ -1,16 +1,16 @@
 import React from "react";
 import {withRouter} from "react-router-dom";
-import isTeacher from "./role-helper";
+import {isTeacher} from "./role-helper";
 
-function withRedirect(Component) {
+function withRedirect(Component, checkFunc = isTeacher) {
     return withRouter(class extends React.Component {
         componentDidMount() {
-            if (!isTeacher())
+            if (!checkFunc())
                 this.props.history.push("/forbidden");
         }
 
         render() {
-            if (isTeacher())
+            if (checkFunc())
                 return <Component {...this.props}/>;
 
             return <div/>;
