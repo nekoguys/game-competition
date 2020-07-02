@@ -14,7 +14,8 @@ import Verification from "../auth/verification/verification";
 import EndedCompetitionResultsRoot from "../competition-process/ended-competition-results/root";
 import UserProfileRoot from "../user-profile/root";
 
-import {NotificationManager, NotificationContainer} from "react-notifications";
+import {NotificationContainer, NotificationManager} from "react-notifications";
+import AdminkaComponent from "../adminka";
 
 
 const paths = [
@@ -73,6 +74,10 @@ const paths = [
     {
         path: "/profile",
         component: UserProfileRoot
+    },
+    {
+        path: "/adminka",
+        component: AdminkaComponent
     }
 ];
 

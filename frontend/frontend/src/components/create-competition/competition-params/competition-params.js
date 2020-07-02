@@ -60,7 +60,7 @@ class CompetitionParamsForm extends React.Component {
         this.demand = {
             demandFormula_a: demandFormula_a,
             demandFormula_b: demandFormula_b
-        }
+        };
         this.onFormStateUpdated();
     }
 

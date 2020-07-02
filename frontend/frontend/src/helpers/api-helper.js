@@ -155,6 +155,10 @@ class ApiSettings {
     static getNavBarInfoEndPoint() {
         return ApiSettings.#navBarInfo;
     }
+
+    static changeRoleEndPoint(email) {
+        return ApiSettings.#host + "/roles/" + email;
+    }
 }
 
 export default class ApiHelper {
@@ -408,6 +412,13 @@ export default class ApiHelper {
             headers: this.authDefaultHeaders()
         })
     }
+
+    static changeRole(email, role) {
+        return fetch(ApiSettings.changeRoleEndPoint(email), {
+            method: "POST",
+            headers: this.authDefaultHeaders(),
+            body: JSON.stringify({role})
+        })
 
     static changeRoundLength(pin, roundLength) {
         return fetch(ApiSettings.getChangeRoundLengthEndPoint(pin), {
