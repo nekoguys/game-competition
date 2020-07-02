@@ -159,6 +159,10 @@ class ApiSettings {
     static changeRoleEndPoint(email) {
         return ApiSettings.#host + "/roles/" + email;
     }
+
+    static adminkaSearchUsersEndPoint() {
+        return ApiSettings.#host + "/admin/search"
+    }
 }
 
 export default class ApiHelper {
@@ -419,6 +423,7 @@ export default class ApiHelper {
             headers: this.authDefaultHeaders(),
             body: JSON.stringify({role})
         })
+    };
 
     static changeRoundLength(pin, roundLength) {
         return fetch(ApiSettings.getChangeRoundLengthEndPoint(pin), {
@@ -426,5 +431,13 @@ export default class ApiHelper {
             headers: this.authDefaultHeaders(),
             body: JSON.stringify({newRoundLength: roundLength})
         });
+    }
+
+    static adminkaSearchUsers(params) {
+        return fetch(ApiSettings.adminkaSearchUsersEndPoint(), {
+            method: "POST",
+            headers: this.authDefaultHeaders(),
+            body: JSON.stringify(params)
+        })
     }
 }
