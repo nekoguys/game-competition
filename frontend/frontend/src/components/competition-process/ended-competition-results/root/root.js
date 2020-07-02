@@ -6,6 +6,7 @@ import NavbarHeader from "../../../competition-history/navbar-header/navbar-head
 import ReadonlyMessagesContainer from "../messages";
 import ApiHelper from "../../../../helpers/api-helper";
 import TeamCollection from "../../../join-competition/join-competition-player-form/team-collection";
+import DescriptionHolder from "../../competition-process-student/description";
 
 class EndedCompetitionResultsRoot extends React.Component {
     constructor(props) {
@@ -71,7 +72,8 @@ class EndedCompetitionResultsRoot extends React.Component {
                 produced: jsonBody.produced,
                 results: jsonBody.income,
                 prices: jsonBody.prices,
-                messages: messages
+                messages: messages,
+                instruction: jsonBody.instruction
             })
         })
     }
@@ -107,7 +109,7 @@ class EndedCompetitionResultsRoot extends React.Component {
                         </div>
                     </div>
                 </div>
-                <div>
+                <div style={{paddingBottom: "20px"}}>
                     <div className={"game-state-holder"}>
                         {res}
                         <div style={{paddingTop: "20px"}}>
@@ -117,6 +119,9 @@ class EndedCompetitionResultsRoot extends React.Component {
                             <div style={{width: "70%", minWidth: "200px", margin: "0 auto"}}>
                             <TeamCollection items={this.state.teams} isReadOnly={true}/>
                             </div>
+                        </div>
+                        <div>
+                            <DescriptionHolder instruction={this.state.instruction}/>
                         </div>
                     </div>
                 </div>

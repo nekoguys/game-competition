@@ -54,7 +54,6 @@ public class DbCompetition {
     @NoArgsConstructor
     @Getter
     @Setter
-    @Builder
     public static class Parameters {
         private String name;
 
@@ -76,7 +75,9 @@ public class DbCompetition {
         @Field("round_length_in_seconds")
         private int roundLengthInSeconds;
 
-        @Builder.Default
+        @Field("rounds_length_history")
+        private RoundsLengthHistory roundsLengthHistory = new RoundsLengthHistory();
+
         @Field("team_loss_upperbound")
         private double teamLossUpperbound = 10000;
 
@@ -90,6 +91,133 @@ public class DbCompetition {
 
         @Field("show_result_table")
         private boolean shouldShowResultTableInEnd;
+
+        public static ParametersBuilder builder() {
+            return new ParametersBuilder();
+        }
+
+        @AllArgsConstructor
+        @NoArgsConstructor
+        @Getter
+        @Setter
+        @Builder
+        public static class RoundsLengthHistory {
+            @Builder.Default
+            private List<Integer> roundNumbers = new ArrayList<>();
+            @Builder.Default
+            private List<Integer> roundLength = new ArrayList<>();
+
+            public void add(int round, int newRoundLength) {
+                if (roundNumbers.size() > 0 && roundNumbers.get(roundNumbers.size() - 1) == round) {
+                    roundLength.set(roundLength.size() - 1, newRoundLength);
+                } else {
+                    roundNumbers.add(round);
+                    roundLength.add(newRoundLength);
+                }
+            }
+        }
+
+        public static class ParametersBuilder {
+            private String name;
+
+            private List<String> expensesFormula;//polynomial
+
+            private List<String> demandFormula;//constant - constant*Price
+
+            private int maxTeamsAmount;
+
+            private int maxTeamSize;
+
+            private int roundsCount;
+
+            private int roundLengthInSeconds;
+
+            private RoundsLengthHistory roundsLengthHistory = new RoundsLengthHistory();
+
+            private double teamLossUpperbound = 10000;
+
+            private String instruction;
+
+            private boolean shouldShowStudentPreviousRoundResults;
+
+            private boolean shouldEndRoundBeforeAllAnswered;
+
+            private boolean shouldShowResultTableInEnd;
+
+            public ParametersBuilder name(String name) {
+                this.name = name;
+                return this;
+            }
+
+            public ParametersBuilder expensesFormula(List<String> expensesFormula) {
+                this.expensesFormula = expensesFormula;
+                return this;
+            }
+
+            public ParametersBuilder demandFormula(List<String> demandFormula) {
+                this.demandFormula = demandFormula;
+                return this;
+            }
+
+            public ParametersBuilder maxTeamsAmount(int maxTeamsAmount) {
+                this.maxTeamsAmount = maxTeamsAmount;
+                return this;
+            }
+
+            public ParametersBuilder maxTeamSize(int maxTeamSize) {
+                this.maxTeamSize = maxTeamSize;
+                return this;
+            }
+
+            public ParametersBuilder roundsCount(int roundsCount) {
+                this.roundsCount = roundsCount;
+                return this;
+            }
+
+            public ParametersBuilder roundLengthInSeconds(int roundLengthInSeconds) {
+                this.roundLengthInSeconds = roundLengthInSeconds;
+                return this;
+            }
+
+            public ParametersBuilder roundsLengthHistory(RoundsLengthHistory roundsLengthHistory) {
+                this.roundsLengthHistory = roundsLengthHistory;
+                return this;
+            }
+
+            public ParametersBuilder teamLossUpperbound(double teamLossUpperbound) {
+                this.teamLossUpperbound = teamLossUpperbound;
+                return this;
+            }
+
+            public ParametersBuilder instruction(String instruction) {
+                this.instruction = instruction;
+                return this;
+            }
+
+            public ParametersBuilder shouldShowStudentPreviousRoundResults(boolean shouldShowStudentPreviousRoundResults) {
+                this.shouldShowStudentPreviousRoundResults = shouldShowStudentPreviousRoundResults;
+                return this;
+            }
+
+            public ParametersBuilder shouldEndRoundBeforeAllAnswered(boolean shouldEndRoundBeforeAllAnswered) {
+                this.shouldEndRoundBeforeAllAnswered = shouldEndRoundBeforeAllAnswered;
+                return this;
+            }
+
+            public ParametersBuilder shouldShowResultTableInEnd(boolean shouldShowResultTableInEnd) {
+                this.shouldShowResultTableInEnd = shouldShowResultTableInEnd;
+                return this;
+            }
+
+            public Parameters build() {
+                if (roundsLengthHistory.getRoundNumbers().size() == 0) {
+                    roundsLengthHistory.add(0, roundLengthInSeconds);
+                }
+                return new Parameters(name, expensesFormula, demandFormula, maxTeamsAmount, maxTeamSize, roundsCount,
+                        roundLengthInSeconds, roundsLengthHistory, teamLossUpperbound, instruction,
+                        shouldShowStudentPreviousRoundResults, shouldEndRoundBeforeAllAnswered, shouldShowResultTableInEnd);
+            }
+        }
     }
 
     private LocalDateTime lastModifiedDate;

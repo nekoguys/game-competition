@@ -8,6 +8,8 @@ import ApiHelper from "../../../../helpers/api-helper";
 import processRoundsEvents from "../../../../helpers/rounds-event-source-helper";
 import processMessagesEvents from "../../../../helpers/messages-event-source-helper";
 import showNotification from "../../../../helpers/notification-helper";
+import * as Constants from "../../../../helpers/constants";
+import ChangeRoundLengthContainer from "../change-round-length-container";
 
 
 class CompetitionProcessTeacherBody extends React.Component {
@@ -20,6 +22,7 @@ class CompetitionProcessTeacherBody extends React.Component {
             currentRoundNumber: 0,
             timeTillRoundEnd: 0,
             isCurrentRoundEnded: false,
+            currentRoundLength: 0,
             name: "",
             teamsCount: 10,
             roundsCount: 0,
@@ -45,6 +48,8 @@ class CompetitionProcessTeacherBody extends React.Component {
             results={this.state.results}
             prices={this.state.prices}
             bannedTeams={this.state.bannedTeams}
+            currentRoundLength={this.state.currentRoundLength}
+            changeRoundLengthCallback={this.changeRoundLength}
         />);
 
         return (
@@ -57,23 +62,16 @@ class CompetitionProcessTeacherBody extends React.Component {
     }
 
     componentDidMount() {
-        this.setupCompetitionMessagesEvents();
-        this.setupRoundsEvents();
-        this.setupAnswerEvents();
         this.getCompetitionInfo();
-        this.setupResultsEvents();
-        this.setupPricesEvents();
-        //this.setupBanEvents();
+        this.setupAllInOneEvents();
+
         this.setupTimer();
     }
 
     componentWillUnmount() {
-        this.closeCompetitionMessagesEvents();
-        this.closeRoundEvents();
-        this.closeAnswersEvents();
-        this.closeCompetitionResultsEvents();
-        this.closePricesEvents();
-        //this.closeBanEvents();
+        if (this.eventSource !== undefined) {
+            this.eventSource.close();
+        }
 
         clearInterval(this.timerId);
     }
@@ -133,160 +131,122 @@ class CompetitionProcessTeacherBody extends React.Component {
         })
     }
 
-    setupBanEvents() {
-        const {pin} = this.props;
+    changeRoundLength = (newRoundLength) => {
+        const ans = parseInt(newRoundLength, 10);
+        if (Number.isNaN(ans)) {
+            showNotification(this).error("Invalid round length", "Error", 2500);
+        } else {
+            const {pin} = this.props;
 
-        this.bansEventSource = ApiHelper.competitionTeamBanStream(pin);
-
-        this.bansEventSource.addEventListener("message", (message) => {
-            const obj = JSON.parse(message.data);
-            this.setState(prevState => {
-                const bannedTeams = [...prevState.bannedTeams];
-                bannedTeams.push(obj.teamIdInGame);
-                return {bannedTeams};
-            });
-
-            showNotification(this).warning(`Team ${obj.teamIdInGame} "${obj.teamName}" was banned`, 'BAN', 3000);
-        })
-    }
-
-    setupPricesEvents() {
-        const {pin} = this.props;
-
-        this.pricesEventSource = ApiHelper.competitionRoundPricesStream(pin);
-
-        this.pricesEventSource.addEventListener("message", (message) => {
-            const {price, roundNumber} = JSON.parse(message.data);
-
-            this.setState(prevState => {
-                const prices = {...prevState.prices};
-
-                prices[roundNumber] = price;
-                return {prices};
-            })
-        })
-    }
-
-    setupResultsEvents() {
-        const {pin} = this.props;
-
-        this.resultsEventSource = ApiHelper.competitionResultsStream(pin);
-
-        this.resultsEventSource.addEventListener("error", (err) => {
-            console.log("resultsEventSource error: ");
-            console.log({err});
-        });
-
-        this.resultsEventSource.addEventListener("message", (message) => {
-            const resultsData = JSON.parse(message.data);
-            console.log({resultsData});
-            const teamIdInGame = resultsData.teamIdInGame;
-            const round = resultsData.roundNumber;
-            const income = resultsData.income;
-
-            this.setState(prevState => {
-                const results = {...prevState.results};
-
-                if (!(round in results)) {
-                    results[round] = {[teamIdInGame]: income};
-                } else {
-                    results[round][teamIdInGame] = income;
+            ApiHelper.changeRoundLength(pin, ans).then(resp => {
+                if (resp.status >= 300) {
+                    return {success: false, json: resp.text()};
                 }
 
-                return {results: results};
+                return {success: true, json: resp.json()};
+            }).then(resp => {
+                resp.json.then(jsonBody => {
+                    console.log({changeRoundLengthResponse: jsonBody});
+                    if (resp.success) {
+                        showNotification(this).success(jsonBody.message, "Success", 2500);
+                    } else {
+                        showNotification(this).error(jsonBody.message, "Error", 2500);
+                    }
+                })
             })
+        }
+    }
+
+    setupAllInOneEvents() {
+        const {pin} = this.props;
+
+        this.eventSource = ApiHelper.allInOneTeacherStream(pin);
+
+        this.eventSource.addEventListener("error", (err) => console.log({eventSource: err}));
+
+        this.eventSource.addEventListener("message", (message) => {
+            if (message.lastEventId === Constants.ANSWER_EVENT_ID) {
+                this.processAnswer(JSON.parse(message.data));
+            } else if (message.lastEventId === Constants.MESSAGE_EVENT_ID) {
+                this.processMessage(message);
+            } else if (message.lastEventId === Constants.PRICE_EVENT_ID) {
+                this.processPrice(JSON.parse(message.data));
+            } else if (message.lastEventId === Constants.RESULT_EVENT_ID) {
+                this.processResult(JSON.parse(message.data));
+            } else if (message.lastEventId === Constants.ROUND_EVENT_ID) {
+                this.processRound(message)
+            } else if (message.lastEventId === Constants.BAN_EVENT_ID) {
+                this.processBan(JSON.parse(message.data));
+            }
+        })
+
+    }
+
+    processBan = (obj) => {
+        this.setState(prevState => {
+            const bannedTeams = [...prevState.bannedTeams];
+            bannedTeams.push(obj.teamIdInGame);
+            return {bannedTeams};
+        });
+
+        showNotification(this).warning(`Team ${obj.teamIdInGame} "${obj.teamName}" was banned`, 'BAN', 3000);
+    }
+
+    processPrice = (obj) => {
+        this.setState(prevState => {
+            const prices = {...prevState.prices};
+
+            prices[obj.roundNumber] = obj.price;
+            return {prices};
         })
     }
 
-    setupAnswerEvents() {
-        const {pin} = this.props;
+    processResult = (data) => {
+        const teamIdInGame = data.teamIdInGame;
+        const round = data.roundNumber;
+        const income = data.income;
 
-        this.answersEventSource = ApiHelper.competitionAnswersStream(pin);
+        this.setState(prevState => {
+            const results = {...prevState.results};
 
-        this.answersEventSource.addEventListener("error", (err) => {
-            console.log("answersEventSource error: " + err);
-        });
+            if (!(round in results)) {
+                results[round] = {[teamIdInGame]: income};
+            } else {
+                results[round][teamIdInGame] = income;
+            }
 
-        this.answersEventSource.addEventListener("message", (message) => {
-            const answerData = JSON.parse(message.data);
-            const teamIdInGame = answerData.teamIdInGame;
-            const round = answerData.roundNumber;
-            const answer = answerData.teamAnswer;
-
-            this.setState(prevState => {
-                const answers = {...prevState.answers};
-
-                if (!(round in answers)) {
-                    answers[round] = {[teamIdInGame]: answer}
-                } else {
-                    answers[round][teamIdInGame] = answer;
-                }
-
-                return {answers: answers};
-            })
-        });
-    }
-
-    setupRoundsEvents() {
-        const {pin} = this.props;
-
-        this.competitionRoundEventSource = ApiHelper.competitionRoundEventsStream(pin);
-        this.competitionRoundEventSource.addEventListener("error",
-            (err) => console.log("competitionRoundEventSource failed: " + err));
-
-        this.competitionRoundEventSource.addEventListener("message", (message) => {
-            this.setState((prevState) => {
-                return processRoundsEvents(message);
-            });
-        });
-    }
-
-    setupCompetitionMessagesEvents() {
-        const {pin} = this.props;
-
-        this.eventsSource = ApiHelper.competitionMessagesEventSource(pin);
-        this.eventsSource.addEventListener("error", (err) => console.log("EventSource failed: " + err));
-
-        this.eventsSource.addEventListener("message", event => {
-            this.setState(prevState => {
-                return processMessagesEvents(event, [...prevState.messages]);
-            });
+            return {results: results};
         })
     }
 
-    closeCompetitionResultsEvents() {
-        if (this.resultsEventSource !== undefined) {
-            this.resultsEventSource.close();
-        }
+    processAnswer = (answerData) => {
+        const teamIdInGame = answerData.teamIdInGame;
+        const round = answerData.roundNumber;
+        const answer = answerData.teamAnswer;
+
+        this.setState(prevState => {
+            const answers = {...prevState.answers};
+
+            if (!(round in answers)) {
+                answers[round] = {[teamIdInGame]: answer}
+            } else {
+                answers[round][teamIdInGame] = answer;
+            }
+
+            return {answers: answers};
+        })
     }
 
-    closeCompetitionMessagesEvents() {
-        if (this.eventSource !== undefined)
-            this.eventSource.close();
+    processRound = (message) => {
+        this.setState((prevState) => {
+            return processRoundsEvents(message);
+        });
     }
 
-    closePricesEvents() {
-        if (this.pricesEventSource !== undefined) {
-            this.pricesEventSource.close();
-        }
-    }
-
-    closeBanEvents() {
-        if (this.bansEventSource !== undefined) {
-            this.bansEventSource.close();
-        }
-    }
-
-    closeAnswersEvents() {
-        if (this.answersEventSource !== undefined) {
-            this.answersEventSource.close();
-        }
-    }
-
-    closeRoundEvents() {
-        if (this.competitionRoundEventSource !== undefined) {
-            this.competitionRoundEventSource.close();
-        }
+    processMessage = (event) => {
+        this.setState(prevState => {
+            return processMessagesEvents(event, [...prevState.messages]);
+        });
     }
 
     onStartOrEndRoundButtonClick = () => {
@@ -382,6 +342,9 @@ class CompetitionProcessTeacherActive extends React.Component {
                     />
                 </div>
                 <div style={{paddingTop: "20px"}}>
+                    <ChangeRoundLengthContainer currentRoundLength={this.props.currentRoundLength} changeRoundLengthCallback={this.props.changeRoundLengthCallback}/>
+                </div>
+                <div style={{paddingTop: "40px"}}>
                     <MessagesContainer messages={this.props.messages} sendMessageCallBack={this.props.sendMessageCallBack}/>
                 </div>
             </div>

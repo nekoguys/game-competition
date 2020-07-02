@@ -128,6 +128,18 @@ class ApiSettings {
         return ApiSettings.host() + "/competition_process/" + pin + "/my_results_stream";
     }
 
+    static allInOneStudentEvents(pin) {
+        return ApiSettings.host() + "/competition_process/" + pin + "/student_all_in_one";
+    }
+
+    static allInOneTeacherEvents(pin) {
+        return ApiSettings.host() + "/competition_process/" + pin + "/teacher_all_in_one";
+    }
+    
+    static getChangeRoundLengthEndPoint(pin) {
+        return ApiSettings.host() + "/competition_process/" + pin + "/change_round_length";
+    }
+
     static verificationEndPoint(token) {
         return ApiSettings.host() + "/auth/verification/" + token;
     }
@@ -358,6 +370,20 @@ export default class ApiHelper {
         })
     }
 
+    static allInOneStudentStream(pin) {
+        return new EventSourcePolyfill(ApiSettings.allInOneStudentEvents(pin), {
+            headers: this.authDefaultHeaders(),
+            heartbeatTimeout: 1000*60*60
+        })
+    }
+
+    static allInOneTeacherStream(pin) {
+        return new EventSourcePolyfill(ApiSettings.allInOneTeacherEvents(pin), {
+            headers: this.authDefaultHeaders(),
+            heartbeatTimeout: 1000*60*60
+        })
+    }
+
     static accountVerification(token) {
         return fetch(ApiSettings.verificationEndPoint(token), {
             method: "GET",
@@ -393,5 +419,12 @@ export default class ApiHelper {
             headers: this.authDefaultHeaders(),
             body: JSON.stringify({role})
         })
+
+    static changeRoundLength(pin, roundLength) {
+        return fetch(ApiSettings.getChangeRoundLengthEndPoint(pin), {
+            method: "POST",
+            headers: this.authDefaultHeaders(),
+            body: JSON.stringify({newRoundLength: roundLength})
+        });
     }
 }

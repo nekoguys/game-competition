@@ -396,4 +396,44 @@ class GameManagementServiceImplTest {
         banVerifier.verify();
         messageVerifier.verify();
     }
+
+    @Test
+    void checkRoundLengthChange() {
+        var comp = commonPart();
+
+        gameManagementService.startCompetition(comp).block();
+        gameManagementService.startNewRound(comp).block();
+
+        StepVerifier.create(gameManagementService.beginEndRoundEvents(comp))
+                .assertNext(el -> {
+                    assertEquals(((NewRoundEventDto)el).getRoundLength(), 60);
+                }).thenCancel().verify();
+        gameManagementService.changeRoundLength(comp, 59).block();
+
+        gameManagementService.endCurrentRound(comp).block();
+        gameManagementService.startNewRound(comp).block();
+
+        StepVerifier.create(gameManagementService.beginEndRoundEvents(comp))
+                .assertNext(el -> {
+                    assertEquals(((NewRoundEventDto)el).getRoundLength(), 59);
+                }).thenCancel().verify();
+    }
+
+    @Test
+    void checkRoundLengthChangeInitialization() {
+        var comp = commonPart();
+
+        gameManagementService.startCompetition(comp).block();
+        gameManagementService.startNewRound(comp).block();
+
+        gameManagementService.changeRoundLength(comp, 59).block();
+
+        gameManagementService.endCurrentRound(comp).block();
+        gameManagementService.startNewRound(comp).block();
+
+        StepVerifier.create(gameManagementService.beginEndRoundEvents(comp))
+                .assertNext(el -> {
+                    assertEquals(((NewRoundEventDto)el).getRoundLength(), 59);
+                }).thenCancel().verify();
+    }
 }

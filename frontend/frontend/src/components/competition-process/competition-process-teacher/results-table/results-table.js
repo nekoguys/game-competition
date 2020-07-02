@@ -18,10 +18,11 @@ class CompetitionResultsTable extends React.Component {
         return range;
     };
 
-    firstRow(teamsCount) {
+    firstRow(teamsCount, bannedTeams) {
         const oneColWidth = (100 / (teamsCount + 4 + 2));
 
         const toStr = (x) => (oneColWidth * x) + "%";
+        console.log({bannedTeams})
 
         return (
             <tr key={-1}>
@@ -30,7 +31,11 @@ class CompetitionResultsTable extends React.Component {
                 </td>
                 {
                     this.teamsPermutation(teamsCount).map(el => {
-                        return (<td key={el}>{el}</td>);
+                        let style = {};
+                        if (bannedTeams.includes(el)) {
+                            style['backgroundColor'] = '#ffffed';
+                        }
+                        return (<td key={el} style={style}>{el}</td>);
                     })
                 }
                 <td key={teamsCount+1}>
@@ -130,9 +135,13 @@ class CompetitionResultsTable extends React.Component {
                                 {"ΣП"}
                             </td>
                             {this.teamsPermutation(teamsCount).map(teamInd => {
+                                let style = {};
+                                if (bannedTeams.includes(teamInd)) {
+                                    style.backgroundColor = '#ffffed'
+                                }
                                 return (
-                                    <td width={toStr(1)} key={teamInd}>
-                                        {this.range(1, roundsCount + 1).map(round => {
+                                    <td width={toStr(1)} style={style} key={teamInd}>
+                                        {round(this.range(1, roundsCount + 1).map(round => {
                                             let ans = 0;
                                             if (round in this.props.results) {
                                                 if (teamInd in this.props.results[round]) {
@@ -142,7 +151,7 @@ class CompetitionResultsTable extends React.Component {
                                             return ans;
                                         }).reduce((prev, curr) => {
                                             return prev + curr;
-                                        }, 0)}
+                                        }, 0))}
                                     </td>
                                 )
                             })}
@@ -168,7 +177,7 @@ class CompetitionResultsTable extends React.Component {
                 </div>
                 <table style={{width: "100%"}}>
                     <tbody>
-                    {this.firstRow(teamsCount)}
+                    {this.firstRow(teamsCount, bannedTeams)}
                     {this.roundRows(teamsCount, roundsCount, bannedTeams)}
                     </tbody>
                 </table>
