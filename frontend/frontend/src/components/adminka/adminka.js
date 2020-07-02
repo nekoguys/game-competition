@@ -248,7 +248,7 @@ class AdminkaComponent extends React.Component {
         const items = this.state.isShowingChanges ? this.getChangesAsArray() : this.state.items;
 
         let loadMoreButton;
-        if (!this.state.isShowingChanges) {
+        if (!this.state.isShowingChanges && this.state.items.length > 0) {
             loadMoreButton = (
                 <div style={{paddingTop: "30px"}}>
                 <div style={{margin: "0 auto", width: "30%"}}>
