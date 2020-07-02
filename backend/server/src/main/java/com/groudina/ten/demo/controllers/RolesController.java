@@ -88,20 +88,8 @@ public class RolesController {
         return userRepository.findOneByEmail(email)
                 .switchIfEmpty(emailNotFoundFallback)
                 .map(user -> {
-                    var roleNames = user.getRoles().stream()
-                            .map(DbRole::getName)
-                            .collect(Collectors.toList());
-
-                    if (roleNames.contains("ROLE_ADMIN"))
-                        return "ROLE_ADMIN";
-                    if (roleNames.contains("ROLE_TEACHER"))
-                        return "ROLE_TEACHER";
-                    if (roleNames.contains("ROLE_STUDENT"))
-                        return "ROLE_STUDENT";
-
-                    throw new ResponseException("User doesn't have any roles");
-                }).map(role -> {
-                    return (ResponseEntity) ResponseEntity.ok(new RoleResponse(role));
+                    var topRoleName = rolesMapper.getTopRoleName(user.getRoles());
+                    return (ResponseEntity) ResponseEntity.ok(new RoleResponse(topRoleName));
                 }).onErrorResume(ex -> Mono.just(ResponseEntity.badRequest().body(
                         new ResponseMessage(ex.getMessage()))));
     }

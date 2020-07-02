@@ -10,6 +10,7 @@ import reactor.core.publisher.Mono;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 public class RolesMapperImpl implements IRolesMapper {
@@ -44,5 +45,21 @@ public class RolesMapperImpl implements IRolesMapper {
                 .collectList()
                 .flatMap(list -> list.isEmpty() ? roleNotFoundFallback : Mono.just(list))
                 .switchIfEmpty(roleNotFoundFallback);
+    }
+
+    @Override
+    public String getTopRoleName(List<DbRole> roles) {
+        var roleNames = roles.stream()
+                .map(DbRole::getName)
+                .collect(Collectors.toList());
+
+        if (roleNames.contains("ROLE_ADMIN"))
+            return "ROLE_ADMIN";
+        if (roleNames.contains("ROLE_TEACHER"))
+            return "ROLE_TEACHER";
+        if (roleNames.contains("ROLE_STUDENT"))
+            return "ROLE_STUDENT";
+
+        throw new ResponseException("User doesn't have any roles");
     }
 }
