@@ -147,6 +147,7 @@ public class CompetitionProcessController {
                             .connectedTeamsCount(comp.getTeams().size())
                             .roundsCount(comp.getParameters().getRoundsCount())
                             .name(comp.getParameters().getName())
+                            .isAutoRoundEnding(comp.getParameters().isAutoRoundEnding())
                             .build();
                     return Mono.just((ResponseEntity) ResponseEntity.ok(dto));
                 }).switchIfEmpty(Mono.defer(() -> {

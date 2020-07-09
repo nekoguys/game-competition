@@ -92,6 +92,9 @@ public class DbCompetition {
         @Field("show_result_table")
         private boolean shouldShowResultTableInEnd;
 
+        @Field("is_auto_round_ending")
+        private boolean isAutoRoundEnding = false;
+
         public static ParametersBuilder builder() {
             return new ParametersBuilder();
         }
@@ -143,6 +146,8 @@ public class DbCompetition {
             private boolean shouldEndRoundBeforeAllAnswered;
 
             private boolean shouldShowResultTableInEnd;
+
+            private boolean isAutoRoundEnding = false;
 
             public ParametersBuilder name(String name) {
                 this.name = name;
@@ -209,13 +214,18 @@ public class DbCompetition {
                 return this;
             }
 
+            public ParametersBuilder isAutoRoundEnding(boolean isAutoRoundEnding) {
+                this.isAutoRoundEnding = isAutoRoundEnding;
+                return this;
+            }
+
             public Parameters build() {
                 if (roundsLengthHistory.getRoundNumbers().size() == 0) {
                     roundsLengthHistory.add(0, roundLengthInSeconds);
                 }
                 return new Parameters(name, expensesFormula, demandFormula, maxTeamsAmount, maxTeamSize, roundsCount,
                         roundLengthInSeconds, roundsLengthHistory, teamLossUpperbound, instruction,
-                        shouldShowStudentPreviousRoundResults, shouldEndRoundBeforeAllAnswered, shouldShowResultTableInEnd);
+                        shouldShowStudentPreviousRoundResults, shouldEndRoundBeforeAllAnswered, shouldShowResultTableInEnd, isAutoRoundEnding);
             }
         }
     }

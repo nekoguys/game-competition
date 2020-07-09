@@ -31,7 +31,9 @@ class NewCompetitionToDbMapperTest {
                 .roundsCount(7)
                 .shouldEndRoundBeforeAllAnswered(false)
                 .shouldShowResultTableInEnd(true)
-                .shouldShowStudentPreviousRoundResults(false).build();
+                .shouldShowStudentPreviousRoundResults(false)
+                .isAutoRoundEnding(false)
+                .build();
     }
 
     private void defaultAsserts(NewCompetition competitionDto, DbCompetition result) {

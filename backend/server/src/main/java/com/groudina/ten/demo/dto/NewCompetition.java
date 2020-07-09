@@ -50,4 +50,7 @@ public class NewCompetition implements Serializable {
 
     @JsonProperty("should_show_result_table_in_end")
     private Boolean shouldShowResultTableInEnd;
+
+    @JsonProperty("is_auto_round_ending")
+    private Boolean isAutoRoundEnding;
 }
