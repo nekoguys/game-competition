@@ -129,6 +129,7 @@ class CompetitionsControllerTest {
                 .roundsCount(2)
                 .shouldEndRoundBeforeAllAnswered(true)
                 .shouldShowResultTableInEnd(true)
+                .isAutoRoundEnding(false)
                 .maxTeamSize(3)
                 .build();
         webTestClient.post().uri("/api/competitions/create")
@@ -168,6 +169,7 @@ class CompetitionsControllerTest {
                 .roundsCount(2)
                 .shouldEndRoundBeforeAllAnswered(true)
                 .shouldShowResultTableInEnd(true)
+                .isAutoRoundEnding(true)
                 .maxTeamSize(3)
                 .build();
         webTestClient.post().uri("/api/competitions/create")
@@ -177,9 +179,14 @@ class CompetitionsControllerTest {
                 .exchange().expectStatus().isOk()
                 .expectBody(CompetitionCreationResponse.class)
                 .value((resp) -> {
-                    assertNotNull(resp.getPin());
-                })
-        ;
+                    String pin = resp.getPin();
+                    assertNotNull(pin);
+                    var competition = competitionsRepository.findByPin(pin).block();
+                    assertTrue(competition.getParameters().isAutoRoundEnding());
+                    assertTrue(competition.getParameters().isShouldShowResultTableInEnd());
+                    assertTrue(competition.getParameters().isShouldEndRoundBeforeAllAnswered());
+                });
+
     }
 
     @Test
@@ -202,6 +209,7 @@ class CompetitionsControllerTest {
                         .roundsCount(2)
                         .shouldEndRoundBeforeAllAnswered(false)
                         .shouldShowResultTableInEnd(false)
+                        .isAutoRoundEnding(false)
                         .maxTeamSize(3)
                         .build()))
                 .accept(MediaType.APPLICATION_JSON)
@@ -224,6 +232,7 @@ class CompetitionsControllerTest {
                         .roundsCount(2)
                         .shouldEndRoundBeforeAllAnswered(false)
                         .shouldShowResultTableInEnd(false)
+                        .isAutoRoundEnding(false)
                         .maxTeamSize(3)
                         .build()))
                 .accept(MediaType.APPLICATION_JSON)

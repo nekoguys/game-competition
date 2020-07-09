@@ -72,6 +72,10 @@ public class DbCompetitionUpdater implements IEntityUpdater<DbCompetition, NewCo
             entity.getParameters().setTeamLossUpperbound(competition.getTeamLossUpperbound());
         }
 
+        if (Objects.nonNull(competition.getIsAutoRoundEnding())) {
+            entity.getParameters().setAutoRoundEnding(competition.getIsAutoRoundEnding());
+        }
+
         return repository.save(entity);
     }
 }

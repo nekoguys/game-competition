@@ -20,12 +20,14 @@ public class EndRoundSchedulerImpl implements IEndRoundsScheduler {
     private Map<CompetitionRoundInfoSchedulerDto, MonoProcessor<DbCompetitionRoundInfo>> processors = new ConcurrentHashMap<>();
 
     @Override
-    public Mono<DbCompetitionRoundInfo> submitRoundForScheduler(DbCompetition sourceCompetition, DbCompetitionRoundInfo roundInfo) {
+    public Mono<DbCompetitionRoundInfo> submitRoundForScheduler(DbCompetition sourceCompetition, DbCompetitionRoundInfo roundInfo, int roundLength) {
         var key = getKey(roundInfo);
 
-        long delay = key.getStartTime() + sourceCompetition.getParameters().getRoundLengthInSeconds()
+        int rndLen = roundLength == -1 ? sourceCompetition.getParameters().getRoundLengthInSeconds() : roundLength;
+
+        long delay = Math.max(key.getStartTime() + rndLen
                         + roundInfo.getAdditionalMinutes() * 60
-                        - LocalDateTime.now().atOffset(ZoneOffset.UTC).toEpochSecond();//ATTENTION
+                        - LocalDateTime.now().atOffset(ZoneOffset.UTC).toEpochSecond(), 0);//ATTENTION
 
         return processors.compute(key, (__, before) -> {
             if (Objects.nonNull(before)) {
@@ -38,7 +40,14 @@ public class EndRoundSchedulerImpl implements IEndRoundsScheduler {
                 System.out.println(el);
             });
             return res;
+        }).doOnNext(el -> {
+            processors.remove(key);
         });
+    }
+
+    @Override
+    public Mono<DbCompetitionRoundInfo> submitRoundForScheduler(DbCompetition sourceCompetition, DbCompetitionRoundInfo roundInfo) {
+        return this.submitRoundForScheduler(sourceCompetition, roundInfo, -1);
     }
 
     @Override
