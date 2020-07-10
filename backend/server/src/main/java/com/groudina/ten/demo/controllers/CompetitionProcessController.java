@@ -202,6 +202,8 @@ public class CompetitionProcessController {
                 }));
     }
 
+    @PostMapping("/submit_strategy")
+    @PreAuthorize("hasRole('STUDENT')")
     public Mono<ResponseEntity> submitStrategy(
             Mono<Principal> principalMono, @PathVariable String pin,
             @Valid @RequestBody StrategySubmissionRequestDto strategySubmissionRequestDto
