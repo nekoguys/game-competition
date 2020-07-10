@@ -7,6 +7,7 @@ import com.groudina.ten.demo.exceptions.IllegalAnswerSubmissionException;
 import com.groudina.ten.demo.models.DbCompetition;
 import com.groudina.ten.demo.services.IAnswersValidator;
 import com.groudina.ten.demo.services.IGameManagementService;
+import com.groudina.ten.demo.services.IStrategySubmissionService;
 import com.groudina.ten.demo.services.IStudentTeamFinder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,19 +35,22 @@ public class CompetitionProcessController {
     private IGameManagementService gameManagementService;
     private IStudentTeamFinder teamFinder;
     private IAnswersValidator answersValidator;
+    private IStrategySubmissionService strategySubmissionService;
 
     public CompetitionProcessController(
             @Autowired IGameManagementService gameManagementService,
             @Autowired DbCompetitionsRepository competitionsRepository,
             @Autowired DbTeamsRepository teamsRepository,
             @Autowired IStudentTeamFinder teamFinder,
-            @Autowired IAnswersValidator validator
-    ) {
+            @Autowired IAnswersValidator validator,
+            @Autowired IStrategySubmissionService strategySubmissionService
+            ) {
         this.gameManagementService = gameManagementService;
         this.competitionsRepository = competitionsRepository;
         this.teamsRepository = teamsRepository;
         this.teamFinder = teamFinder;
         this.answersValidator = validator;
+        this.strategySubmissionService = strategySubmissionService;
     }
 
     private <U, T> Mono<ResponseEntity> routine(Mono<U> source, Function<? super U, ? extends Mono<? extends T>> mapper,
@@ -196,6 +200,21 @@ public class CompetitionProcessController {
                 }).switchIfEmpty(Mono.defer(() -> {
                     return Mono.just((ResponseEntity)ResponseEntity.badRequest().body(ResponseMessage.of("No competition with such pin")));
                 }));
+    }
+
+    public Mono<ResponseEntity> submitStrategy(
+            Mono<Principal> principalMono, @PathVariable String pin,
+            @Valid @RequestBody StrategySubmissionRequestDto strategySubmissionRequestDto
+    ) {
+        var comp = competitionsRepository.findByPin(pin);
+
+        return routine(Mono.zip(comp, principalMono), (tuple) -> {
+            var competition = tuple.getT1();
+            String submitterEmail = tuple.getT2().getName();
+
+            log.info("POST: /api/competition_process/{}/submit_strategy, email: {}, body: {}", pin, submitterEmail, strategySubmissionRequestDto);
+            return this.strategySubmissionService.submitStrategy(submitterEmail, competition, new IStrategySubmissionService.StrategyHolder(strategySubmissionRequestDto.getStrategy()));
+        }, () -> "Strategy submitted successfully", () -> "Competition with pin: " + pin + " not found");
     }
 
     @PostMapping("/submit_answer")
