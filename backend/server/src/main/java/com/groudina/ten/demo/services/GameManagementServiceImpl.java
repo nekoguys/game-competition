@@ -307,10 +307,11 @@ public class GameManagementServiceImpl implements IGameManagementService {
                 .flatMap(el -> {
                     return competitionsRepository.findByPin(competition.getPin()).flatMap(savedCompetition -> {
                         return this.endCurrentRound(savedCompetition).thenReturn(1).flatMap(__ -> {
+                            this.endRoundsScheduler.removeRoundFromScheduler(savedCompetition, savedCompetition.getCompetitionProcessInfo().getCurrentRound());
+
                             if (savedCompetition.getParameters().getRoundsCount() != savedCompetition.getCompetitionProcessInfo().getCurrentRoundNumber()) {
                                 return this.startNewRound(savedCompetition);
                             } else {
-                                this.endRoundsScheduler.removeRoundFromScheduler(savedCompetition, savedCompetition.getCompetitionProcessInfo().getCurrentRound());
                                 return Mono.just(1).then();
                             }
                         });
