@@ -26,6 +26,7 @@ class CompetitionProcessTeacherBody extends React.Component {
             name: "",
             teamsCount: 10,
             roundsCount: 0,
+            isAutoRoundEnding: false,
             answers: {},
             results: {},
             prices: {},
@@ -50,6 +51,7 @@ class CompetitionProcessTeacherBody extends React.Component {
             bannedTeams={this.state.bannedTeams}
             currentRoundLength={this.state.currentRoundLength}
             changeRoundLengthCallback={this.changeRoundLength}
+            isAutoRoundEnding={this.state.isAutoRoundEnding}
         />);
 
         return (
@@ -121,7 +123,8 @@ class CompetitionProcessTeacherBody extends React.Component {
                         return {
                             name: jsonBody.name,
                             teamsCount: jsonBody.connectedTeamsCount,
-                            roundsCount: jsonBody.roundsCount
+                            roundsCount: jsonBody.roundsCount,
+                            isAutoRoundEnding: jsonBody.isAutoRoundEnding
                         }
                     })
                 } else {
@@ -306,9 +309,21 @@ class CompetitionProcessTeacherActive extends React.Component {
     render() {
         const {round, timeLeft, isRoundEnded} = this.props;
 
-        const rightButtonText = isRoundEnded ? "Начать новый раунд" : "Закончить раунд";
+
+        const rightButtonText = round === 0 ? "Начать игру" : (isRoundEnded ? "Начать новый раунд" : "Закончить раунд");
 
         const roundText = round === 0 ? "Игра еще не началась" : ("Текущий раунд: " + round.toString() + (isRoundEnded ? " закончен" : ""));
+
+        console.log({props: this.props});
+
+        let beginEndRoundButton;
+        if (!this.props.isAutoRoundEnding || this.props.round === 0) {
+            beginEndRoundButton = (
+                <div style={{paddingTop: "20px"}}>
+                    <DefaultSubmitButton text={rightButtonText} onClick={this.props.rightButtonClick}/>
+                </div>
+            )
+        }
 
         return (
             <div>
@@ -327,9 +342,7 @@ class CompetitionProcessTeacherActive extends React.Component {
                         <div style={{textAlign: "center", fontSize: "23px"}}>
                             {"До конца раунда: " + timeLeft + "сек"}
                         </div>
-                        <div style={{paddingTop: "20px"}}>
-                            <DefaultSubmitButton text={rightButtonText} onClick={this.props.rightButtonClick}/>
-                        </div>
+                        {beginEndRoundButton}
                     </div>
                 </div>
                 <div style={{paddingTop: "20px"}}>
