@@ -215,7 +215,7 @@ public class CompetitionProcessController {
             String submitterEmail = tuple.getT2().getName();
 
             log.info("POST: /api/competition_process/{}/submit_strategy, email: {}, body: {}", pin, submitterEmail, strategySubmissionRequestDto);
-            return this.strategySubmissionService.submitStrategy(submitterEmail, competition, new IStrategySubmissionService.StrategyHolder(strategySubmissionRequestDto.getStrategy()));
+            return this.strategySubmissionService.submitStrategy(submitterEmail, competition, new IStrategySubmissionService.StrategyHolder(strategySubmissionRequestDto.getStrategy())).thenReturn(1);
         }, () -> "Strategy submitted successfully", () -> "Competition with pin: " + pin + " not found");
     }
 
