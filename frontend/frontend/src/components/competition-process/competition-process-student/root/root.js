@@ -14,6 +14,7 @@ import showNotification from "../../../../helpers/notification-helper";
 import withAuthenticated from "../../../../helpers/with-authenticated";
 
 import * as Constants from "../../../../helpers/constants";
+import StrategySubmissionComponent from "../../strategy-submission";
 
 
 class CompetitionProcessStudentRoot extends React.Component {
@@ -217,6 +218,25 @@ class CompetitionProcessStudentRoot extends React.Component {
         })
     }
 
+    submitStrategy = (strategy) => {
+        const {pin} = this.props.match.params;
+        ApiHelper.submitStrategy({strategy}, pin).then(resp => {
+            if (resp.status < 300) {
+                return {success: true, json: resp.json()}
+            } else {
+                return {success: false, json: resp.text()}
+            }
+        }).then(el => {
+            el.json.then(jsonBody => {
+                if (el.success) {
+                    showNotification(this).success(jsonBody.message, "Успех", 2500);
+                } else {
+                    showNotification(this).error(jsonBody, "Ошибка", 4000);
+                }
+            })
+        })
+    }
+
     render() {
         let instr = this.state.description;
         const {competitionName, roundsCount, prices, answers, results, currentRoundNumber, timeTillRoundEnd} = this.state;
@@ -290,6 +310,9 @@ class CompetitionProcessStudentRoot extends React.Component {
                         </div>
                         <div style={{paddingTop: "30px"}}>
                             <DescriptionHolder instruction={instr}/>
+                        </div>
+                        <div style={{paddingTop: "30px"}}>
+                            <StrategySubmissionComponent isExpanded={false} onSubmit={this.submitStrategy}/>
                         </div>
                     </div>
                 </div>
