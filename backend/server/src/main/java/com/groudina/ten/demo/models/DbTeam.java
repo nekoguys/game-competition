@@ -44,6 +44,10 @@ public class DbTeam {
     @Builder.Default
     private List<DbUser> allPlayers = new ArrayList<>();
 
+    @Getter
+    @Setter
+    private String strategy = "";
+
     public void addPlayer(DbUser newPlayer) {
         allPlayers.add(newPlayer);
     }

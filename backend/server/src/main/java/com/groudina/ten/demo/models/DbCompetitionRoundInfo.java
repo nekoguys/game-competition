@@ -21,9 +21,11 @@ public class DbCompetitionRoundInfo {
     private String id;
 
     private LocalDateTime startTime;
+
+    private LocalDateTime endTime;
+
     private int additionalMinutes;
 
-    @Setter
     private boolean isEnded;
 
     @Setter
@@ -36,6 +38,11 @@ public class DbCompetitionRoundInfo {
     @DBRef
     @Builder.Default
     private List<DbAnswer> answerList = new ArrayList<>();
+
+    public void setEnded(boolean isEnded) {
+        this.isEnded = isEnded;
+        this.endTime = LocalDateTime.now();
+    }
 
     public void addAnswer(DbAnswer answer) {
         this.answerList.add(answer);
