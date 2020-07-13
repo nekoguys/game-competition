@@ -61,7 +61,12 @@ class CompetitionProcessStudentRoot extends React.Component {
             && this.state.isCurrentRoundEnded
             && this.state.shouldShowResultTableInEnd
         ) {
-            this.onRedirectToResultsPage();
+            if (this.state.shouldShowResultTableInEnd) {
+                this.onRedirectToResultsPage();
+            } else if (this.state.isCaptain) {
+                    const {pin} = this.props.match.params;
+                    this.props.history.push("/competitions/strategy_captain/" + pin);
+            }
         }
     }
 
