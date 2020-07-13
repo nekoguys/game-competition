@@ -72,7 +72,11 @@ class CompetitionProcessStudentRoot extends React.Component {
 
                 setTimeout(() => {
                     const {pin} = this.props.match.params;
-                    this.props.history.push("/competitions/results/" + pin);
+                    if (prevState.isCaptain) {
+                        this.props.history.push("/competitions/strategy_captain/" + pin);
+                    } else {
+                        this.props.history.push("/competitions/results/" + pin);
+                    }
                 }, 2500);
                 return {didEnd: true};
             }
@@ -147,7 +151,8 @@ class CompetitionProcessStudentRoot extends React.Component {
                             competitionName: jsonBody.name,
                             shouldShowResultTable: jsonBody.shouldShowResultTable,
                             shouldShowResultTableInEnd: jsonBody.shouldShowResultTableInEnd,
-                            isCaptain: jsonBody.isCaptain
+                            isCaptain: jsonBody.isCaptain,
+                            fetchedStrategy: jsonBody.strategy
                         }
                     })
                 }
@@ -264,7 +269,7 @@ class CompetitionProcessStudentRoot extends React.Component {
                 </div>
             );
         }
-
+        console.log(this.state)
         const roundText = currentRoundNumber === 0 ? "Игра ещё не началась" : ("Текущий раунд: " + currentRoundNumber + (this.state.isCurrentRoundEnded ? " закончен" : ""));
 
         return (
@@ -312,7 +317,7 @@ class CompetitionProcessStudentRoot extends React.Component {
                             <DescriptionHolder instruction={instr}/>
                         </div>
                         <div style={{paddingTop: "30px"}}>
-                            <StrategySubmissionComponent isExpanded={false} onSubmit={this.submitStrategy}/>
+                            <StrategySubmissionComponent defaultText={this.state.fetchedStrategy} isExpanded={false} onSubmit={this.submitStrategy}/>
                         </div>
                     </div>
                 </div>

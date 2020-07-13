@@ -10,8 +10,8 @@ class StrategySubmissionComponent extends React.Component {
         super(props);
 
         this.state = {
-            isExpanded: props.isExpanded ?? false
-        }
+            isExpanded: props.isExpanded ?? false,
+        };
 
         this.strategyText = "";
     }
@@ -29,7 +29,7 @@ class StrategySubmissionComponent extends React.Component {
             form = (
                 <div className={"form-group"}>
                     <label htmlFor="strategy-text" style={{paddingLeft: "3px", marginBottom: "3px"}}>Введите стратегию</label>
-                    <textarea className="form-control" id="strategy-text" rows="3" onChange={el => {
+                    <textarea className="form-control" id="strategy-text" rows="3" defaultValue={this.props.defaultText} onChange={el => {
                         this.strategyText = el.target.value.toString();
                     }}/>
                 </div>
