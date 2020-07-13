@@ -25,6 +25,10 @@ public class StrategySubmissionServiceImpl implements IStrategySubmissionService
 
     @Override
     public Mono<Void> submitStrategy(String submitterEmail, DbCompetition competition, IStrategySubmissionService.StrategyHolder holder) {
+        if (holder.getStrategy().length() > 300) {
+            return Mono.error(new IllegalStrategySubmissionException("Can't submit strategy, too long strategy"));
+        }
+
         if (competition.getState() != DbCompetition.State.InProcess && competition.getState() != DbCompetition.State.Ended) {
             return Mono.error(new IllegalStrategySubmissionException("Can't submit strategy, wrong game state: not in process and not ended"));
         }
