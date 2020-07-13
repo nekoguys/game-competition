@@ -195,6 +195,7 @@ public class CompetitionProcessController {
                             .shouldShowResultTableInEnd(parameters.isShouldShowResultTableInEnd())
                             .shouldShowResultTable(parameters.isShouldShowStudentPreviousRoundResults())
                             .teamIdInGame(team.get().getIdInGame())
+                            .strategy(team.get().getStrategy())
                             .build();
                     return Mono.just((ResponseEntity) ResponseEntity.ok(dto));
                 }).switchIfEmpty(Mono.defer(() -> {

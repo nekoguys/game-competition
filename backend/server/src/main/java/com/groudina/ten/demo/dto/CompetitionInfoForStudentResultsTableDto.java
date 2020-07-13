@@ -31,4 +31,6 @@ public class CompetitionInfoForStudentResultsTableDto implements Serializable {
     private boolean isCaptain;
 
     private int roundsCount;
+
+    private String strategy;
 }
