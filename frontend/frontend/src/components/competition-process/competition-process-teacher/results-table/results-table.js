@@ -11,9 +11,11 @@ class CompetitionResultsTable extends React.Component {
         super(props);
 
         this.refsMap = new Map();
+        this.refsCount = new Map();
 
         this.setPopupRef = (element, column) => {
             this.refsMap.set(column, element);
+            this.refsCount.set(column, 0);
         }
     }
 
@@ -24,6 +26,11 @@ class CompetitionResultsTable extends React.Component {
     togglePopup = (column) => {
         let node = ReactDOM.findDOMNode(this.refsMap.get(column));
         node.classList.toggle("show")
+
+        if (this.refsCount.get(column)) {
+            node.classList.toggle("hide");
+        }
+        this.refsCount.set(column, this.refsCount.get(column) + 1)
     }
 
     teamsPermutation = (teamsCount) => {

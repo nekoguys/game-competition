@@ -22,7 +22,7 @@ td {
 }
 
 .popup .popuptext {
-    visibility: hidden;
+    opacity: 0;
     min-width: 20em;
     background-color: #555;
     color: #fff;
@@ -49,4 +49,15 @@ td {
 
 .popup .show {
     visibility: visible;
+    opacity: 1;
+    -webkit-animation: fadeIn 600ms;
+    animation: fadeIn 600ms;
+    transition: opacity 0.5s ease-out;
 }
+
+.popup .hide {
+    /*visibility: hidden;*/
+    transition: opacity 0.5s ease-out;
+    opacity: 0;
+}
+
