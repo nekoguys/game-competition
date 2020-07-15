@@ -23,6 +23,7 @@ public class DbCompetitionToCompetitionCloneInfoResponseMapper implements IEntit
                 .shouldEndRoundBeforeAllAnswered(params.isShouldEndRoundBeforeAllAnswered())
                 .shouldShowResultTableInEnd(params.isShouldShowResultTableInEnd())
                 .shouldShowStudentPreviousRoundResults(params.isShouldShowStudentPreviousRoundResults())
+                .isAutoRoundEnding(params.isAutoRoundEnding())
                 .build();
     }
 }

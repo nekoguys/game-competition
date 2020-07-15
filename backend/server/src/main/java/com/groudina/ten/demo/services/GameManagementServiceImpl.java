@@ -4,6 +4,8 @@ import com.groudina.ten.demo.datasource.*;
 import com.groudina.ten.demo.dto.*;
 import com.groudina.ten.demo.exceptions.*;
 import com.groudina.ten.demo.models.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -13,6 +15,7 @@ import reactor.core.publisher.FluxSink;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.ReplayProcessor;
 
+import javax.annotation.PostConstruct;
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -25,6 +28,7 @@ import java.util.stream.Collectors;
 @Component
 @Scope(value = ConfigurableBeanFactory.SCOPE_SINGLETON)
 public class GameManagementServiceImpl implements IGameManagementService {
+    private static final Logger logger = LoggerFactory.getLogger(GameManagementServiceImpl.class);
     private final int secondsOffset = 2;
     private DbCompetitionsRepository competitionsRepository;
     private DbCompetitionRoundInfosRepository roundInfosRepository;
@@ -34,6 +38,7 @@ public class GameManagementServiceImpl implements IGameManagementService {
     private IRoundResultsCalculator roundResultsCalculator;
     private DbRoundResultElementsRepository roundResultElementsRepository;
     private DbTeamsRepository teamsRepository;
+    private IEndRoundsScheduler endRoundsScheduler;
 
     private Map<String, Flux<RoundTeamAnswerDto>> teamAnswersStorage = new ConcurrentHashMap<>();
     private Map<String, FluxSink<RoundTeamAnswerDto>> teamAnswersSinks = new ConcurrentHashMap<>();
@@ -61,7 +66,8 @@ public class GameManagementServiceImpl implements IGameManagementService {
             @Autowired DbCompetitionMessagesRepository messagesRepository,
             @Autowired DbRoundResultElementsRepository roundResultElementsRepository,
             @Autowired IRoundResultsCalculator roundResultsCalculator,
-            @Autowired DbTeamsRepository teamsRepository
+            @Autowired DbTeamsRepository teamsRepository,
+            @Autowired IEndRoundsScheduler endRoundsScheduler
     ) {
         this.competitionsRepository = competitionsRepository;
         this.roundInfosRepository = roundInfosRepository;
@@ -71,6 +77,14 @@ public class GameManagementServiceImpl implements IGameManagementService {
         this.roundResultElementsRepository = roundResultElementsRepository;
         this.roundResultsCalculator = roundResultsCalculator;
         this.teamsRepository = teamsRepository;
+        this.endRoundsScheduler = endRoundsScheduler;
+    }
+
+    @PostConstruct
+    private void initScheduler() {
+        this.competitionsRepository.findAllByParameters_IsAutoRoundEndingTrueAndState(DbCompetition.State.InProcess).subscribe(el -> {
+            this.scheduleRoundEnd(el).subscribe();
+        });
     }
 
     private Flux<TeamBanEventDto> createTeamBanProcessor(DbCompetition competition) {
@@ -267,13 +281,13 @@ public class GameManagementServiceImpl implements IGameManagementService {
         }).doOnNext(el -> {
             var event = EndRoundEventDto.builder()
                     .roundNumber(0)
-                    .roundLength(competition.getParameters().getRoundLengthInSeconds())
+                    .roundLength(el.getParameters().getRoundLengthInSeconds())
                     .isEndOfGame(false)
                     .build();
             var pin = competition.getPin();
             this.beginEndRoundEventsStorage.compute(pin, (__, before) -> {
                 if (Objects.isNull(before)) {
-                    var flux = createBeginEndRoundsProcessor(competition);
+                    var flux = createBeginEndRoundsProcessor(el);
                     beginEndRoundEventsSinks.get(pin).next(event);
                     return flux;
                 } else {
@@ -282,6 +296,27 @@ public class GameManagementServiceImpl implements IGameManagementService {
                 }
             });
         }).then();
+    }
+
+    private Mono<Void> scheduleRoundEnd(DbCompetition competition) {
+        int currentNumber = competition.getCompetitionProcessInfo().getCurrentRoundNumber();
+        DbCompetitionRoundInfo currentRound = competition.getCompetitionProcessInfo().getCurrentRound();
+
+        return this.endRoundsScheduler.submitRoundForScheduler(competition, currentRound,
+                findRoundLength(currentNumber, competition.getParameters().getRoundsLengthHistory()))
+                .flatMap(el -> {
+                    return competitionsRepository.findByPin(competition.getPin()).flatMap(savedCompetition -> {
+                        return this.endCurrentRound(savedCompetition).thenReturn(1).flatMap(__ -> {
+                            this.endRoundsScheduler.removeRoundFromScheduler(savedCompetition, savedCompetition.getCompetitionProcessInfo().getCurrentRound());
+
+                            if (savedCompetition.getParameters().getRoundsCount() != savedCompetition.getCompetitionProcessInfo().getCurrentRoundNumber()) {
+                                return this.startNewRound(savedCompetition);
+                            } else {
+                                return Mono.just(1).then();
+                            }
+                        });
+                    });
+                });
     }
 
     @Override
@@ -505,7 +540,7 @@ public class GameManagementServiceImpl implements IGameManagementService {
                             beginEndRoundEventsSinks.get(pin)
                                     .next(EndRoundEventDto.builder()
                                             .roundNumber(currentRoundNumber)
-                                            .roundLength(findRoundLength(currentRoundNumber, competition.getParameters().getRoundsLengthHistory()))
+                                            .roundLength(findRoundLength(currentRoundNumber, savedCompetition.getParameters().getRoundsLengthHistory()))
                                             .isEndOfGame(currentRoundNumber == savedCompetition.getParameters().getRoundsCount())
                                             .build()
                                     );
@@ -555,6 +590,13 @@ public class GameManagementServiceImpl implements IGameManagementService {
                             }
                         });
                     }));
+        }).doOnNext(el -> {
+            if (el.getParameters().isAutoRoundEnding()) {
+                this.scheduleRoundEnd(el).subscribe(rnd -> {
+                    logger.info("Ended {} of competition with pin {} (automatic)", el.getCompetitionProcessInfo().getCurrentRound(),
+                            el.getPin());
+                });
+            }
         }).then();
 
     }

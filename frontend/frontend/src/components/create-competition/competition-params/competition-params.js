@@ -20,6 +20,7 @@ class CompetitionParams {
         this.shouldShowStudentPreviousRoundResults = false;
         this.shouldEndRoundBeforeAllAnswered = false;
         this.shouldShowResultTableInEnd = false;
+        this.isAutoRoundEnding = false;
 
         for (const key of Object.keys(initialParams)) {
             this[key] = initialParams[key];
@@ -219,6 +220,15 @@ class CompetitionParamsForm extends React.Component {
                                                style={checkboxButtonStyle} labelStyle={checkBoxButtonLabelStyle}
                                                checked={this.formState.shouldShowResultTableInEnd}
                                                onChange={(value) => this.updateFormStateField("shouldShowResultTableInEnd", value)}
+                        />
+                    </div>
+
+                    <div className={"form-group row"}>
+                        <DefaultCheckboxButton notActiveColor={"#C4C4C4"} activeColor={"#3EE14E"}
+                                               text={"Автоматическое проведение игры"}
+                                               style={checkboxButtonStyle} labelStyle={checkBoxButtonLabelStyle}
+                                               checked={this.formState.isAutoRoundEnding}
+                                               onChange={(value) => this.updateFormStateField("isAutoRoundEnding", value)}
                         />
                     </div>
 
