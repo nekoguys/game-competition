@@ -534,7 +534,7 @@ class CompetitionProcessControllerTest {
                         .build())
                 .build()).block();
         competition = competitionsRepository.save(competition).block();
-        var team = teamsRepository.save(DbTeam.builder().sourceCompetition(competition).name("tutu").idInGame(0).captain(user).build()).block();
+        var team = teamsRepository.save(DbTeam.builder().sourceCompetition(competition).name("tutu").strategy("strat").idInGame(0).captain(user).build()).block();
         competition.addTeam(team);
         competition = competitionsRepository.save(competition).block();
 
@@ -550,6 +550,7 @@ class CompetitionProcessControllerTest {
                     assertTrue(el.isShouldShowResultTable());
                     assertTrue(el.isShouldShowResultTableInEnd());
                     assertEquals(el.getTeamName(), "tutu");
+                    assertEquals(el.getStrategy(), "strat");
         });
     }
 

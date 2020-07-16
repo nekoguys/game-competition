@@ -35,6 +35,8 @@ public interface ICompetitionResultsFormatter {
 
         private List<CompetitionMessageDto> messages;
 
+        private Map<Integer, IStrategySubmissionService.StrategyHolder> strategyHolders;
+
         public static Builder builder() {
             return new Builder();
         }
@@ -53,6 +55,8 @@ public interface ICompetitionResultsFormatter {
             private List<TeamCreationEventDto> teams;
 
             private List<CompetitionMessageDto> messages;
+
+            private Map<Integer, IStrategySubmissionService.StrategyHolder> strategyHolders;
 
             public Builder setCompetitionName(String competitionName) {
                 this.competitionName = competitionName;
@@ -89,6 +93,11 @@ public interface ICompetitionResultsFormatter {
                 return this;
             }
 
+            public Builder strategyHolders(Map<Integer, IStrategySubmissionService.StrategyHolder> lst) {
+                this.strategyHolders = lst;
+                return this;
+            }
+
             public CompetitionResults build() {
                 Map<Integer, Double> totalIncome = new HashMap<>();
                 income.entrySet().forEach(entrySet -> {
@@ -107,7 +116,8 @@ public interface ICompetitionResultsFormatter {
                         .map(Map.Entry::getKey)
                         .collect(Collectors.toList());
 
-                return new CompetitionResults(competitionName, instruction, prices, income, produced, teams, teamsOrder, messages);
+                return new CompetitionResults(competitionName, instruction, prices, income, produced, teams, teamsOrder,
+                        messages, strategyHolders);
             }
         }
     }

@@ -163,6 +163,10 @@ class ApiSettings {
     static adminkaSearchUsersEndPoint() {
         return ApiSettings.#host + "/admin/search"
     }
+
+    static submitStrategyEndPoint(pin) {
+        return ApiSettings.#host + "/competition_process/" + pin + "/submit_strategy";
+    }
 }
 
 export default class ApiHelper {
@@ -435,6 +439,14 @@ export default class ApiHelper {
 
     static adminkaSearchUsers(params) {
         return fetch(ApiSettings.adminkaSearchUsersEndPoint(), {
+            method: "POST",
+            headers: this.authDefaultHeaders(),
+            body: JSON.stringify(params)
+        })
+    }
+
+    static submitStrategy(params, pin) {
+        return fetch(ApiSettings.submitStrategyEndPoint(pin), {
             method: "POST",
             headers: this.authDefaultHeaders(),
             body: JSON.stringify(params)

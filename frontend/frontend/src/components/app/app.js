@@ -16,6 +16,8 @@ import UserProfileRoot from "../user-profile/root";
 
 import {NotificationContainer, NotificationManager} from "react-notifications";
 import AdminkaComponent from "../adminka";
+import FinalStrategySubmissionComponent
+    from "../competition-process/ended-competition-results/final-strategy-submission";
 
 
 const paths = [
@@ -78,6 +80,10 @@ const paths = [
     {
         path: "/adminka",
         component: AdminkaComponent
+    },
+    {
+        path: "/competitions/strategy_captain/:pin",
+        component: FinalStrategySubmissionComponent
     }
 ];
 

@@ -7,6 +7,7 @@ import ReadonlyMessagesContainer from "../messages";
 import ApiHelper from "../../../../helpers/api-helper";
 import TeamCollection from "../../../join-competition/join-competition-player-form/team-collection";
 import DescriptionHolder from "../../competition-process-student/description";
+import {isTeacher} from "../../../../helpers/role-helper";
 
 class EndedCompetitionResultsRoot extends React.Component {
     constructor(props) {
@@ -20,7 +21,8 @@ class EndedCompetitionResultsRoot extends React.Component {
             prices: {1: 6, 2: 5},
             results: {1 : {1: -10, 2: -20}},
             messages: [{message: "message", dateStr: "11:52pm"}],
-            teamsOrder: [2, 1]
+            teamsOrder: [2, 1],
+            strategy: {}
         }
     }
 
@@ -73,7 +75,8 @@ class EndedCompetitionResultsRoot extends React.Component {
                 results: jsonBody.income,
                 prices: jsonBody.prices,
                 messages: messages,
-                instruction: jsonBody.instruction
+                instruction: jsonBody.instruction,
+                strategy: jsonBody.strategyHolders
             })
         })
     }
@@ -81,6 +84,9 @@ class EndedCompetitionResultsRoot extends React.Component {
     render() {
         const {pin} = this.props.match.params;
         const {competitionName} = this.state;
+
+        const isTeacher_ = isTeacher();
+        console.log({strategy: this.state.strategy});
 
         const res = (
             <div style={{marginTop: "-15px"}}>
@@ -90,6 +96,8 @@ class EndedCompetitionResultsRoot extends React.Component {
                                      results={this.state.results}
                                      prices={this.state.prices}
                                      teamsPermutation={this.state.teamsOrder}
+                                     strategy={this.state.strategy}
+                                     showStrategy={isTeacher_}
                 />
             </div>
         );
@@ -99,7 +107,7 @@ class EndedCompetitionResultsRoot extends React.Component {
                 <div>
                     <NavbarHeader/>
                 </div>
-                <div style={{paddingTop: "80px"}}>
+                <div style={{paddingTop: "100px"}}>
                     <div style={{fontSize: "26px"}}>
                         <div style={{textAlign: "center"}}>
                             {"Игра: " + competitionName + ", ID: " + pin}
@@ -117,7 +125,9 @@ class EndedCompetitionResultsRoot extends React.Component {
                         </div>
                         <div style={{paddingTop: "40px"}}>
                             <div style={{width: "70%", minWidth: "200px", margin: "0 auto"}}>
-                            <TeamCollection items={this.state.teams} isReadOnly={true}/>
+                            <TeamCollection items={this.state.teams} isReadOnly={true}
+                                            showStrategy={true} strategy={this.state.strategy}
+                            />
                             </div>
                         </div>
                         <div>

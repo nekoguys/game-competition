@@ -14,6 +14,7 @@ import showNotification from "../../../../helpers/notification-helper";
 import withAuthenticated from "../../../../helpers/with-authenticated";
 
 import * as Constants from "../../../../helpers/constants";
+import StrategySubmissionComponent from "../../strategy-submission";
 
 
 class CompetitionProcessStudentRoot extends React.Component {
@@ -60,7 +61,12 @@ class CompetitionProcessStudentRoot extends React.Component {
             && this.state.isCurrentRoundEnded
             && this.state.shouldShowResultTableInEnd
         ) {
-            this.onRedirectToResultsPage();
+            if (this.state.shouldShowResultTableInEnd) {
+                this.onRedirectToResultsPage();
+            } else if (this.state.isCaptain) {
+                    const {pin} = this.props.match.params;
+                    this.props.history.push("/competitions/strategy_captain/" + pin);
+            }
         }
     }
 
@@ -71,7 +77,11 @@ class CompetitionProcessStudentRoot extends React.Component {
 
                 setTimeout(() => {
                     const {pin} = this.props.match.params;
-                    this.props.history.push("/competitions/results/" + pin);
+                    if (prevState.isCaptain) {
+                        this.props.history.push("/competitions/strategy_captain/" + pin);
+                    } else {
+                        this.props.history.push("/competitions/results/" + pin);
+                    }
                 }, 2500);
                 return {didEnd: true};
             }
@@ -146,7 +156,8 @@ class CompetitionProcessStudentRoot extends React.Component {
                             competitionName: jsonBody.name,
                             shouldShowResultTable: jsonBody.shouldShowResultTable,
                             shouldShowResultTableInEnd: jsonBody.shouldShowResultTableInEnd,
-                            isCaptain: jsonBody.isCaptain
+                            isCaptain: jsonBody.isCaptain,
+                            fetchedStrategy: jsonBody.strategy
                         }
                     })
                 }
@@ -217,6 +228,25 @@ class CompetitionProcessStudentRoot extends React.Component {
         })
     }
 
+    submitStrategy = (strategy) => {
+        const {pin} = this.props.match.params;
+        ApiHelper.submitStrategy({strategy}, pin).then(resp => {
+            if (resp.status < 300) {
+                return {success: true, json: resp.json()}
+            } else {
+                return {success: false, json: resp.text()}
+            }
+        }).then(el => {
+            el.json.then(jsonBody => {
+                if (el.success) {
+                    showNotification(this).success(jsonBody.message, "Успех", 2500);
+                } else {
+                    showNotification(this).error(jsonBody, "Ошибка", 4000);
+                }
+            })
+        })
+    }
+
     render() {
         let instr = this.state.description;
         const {competitionName, roundsCount, prices, answers, results, currentRoundNumber, timeTillRoundEnd} = this.state;
@@ -244,7 +274,7 @@ class CompetitionProcessStudentRoot extends React.Component {
                 </div>
             );
         }
-
+        console.log(this.state)
         const roundText = currentRoundNumber === 0 ? "Игра ещё не началась" : ("Текущий раунд: " + currentRoundNumber + (this.state.isCurrentRoundEnded ? " закончен" : ""));
 
         return (
@@ -290,6 +320,12 @@ class CompetitionProcessStudentRoot extends React.Component {
                         </div>
                         <div style={{paddingTop: "30px"}}>
                             <DescriptionHolder instruction={instr}/>
+                        </div>
+                        <div style={{paddingTop: "30px"}}>
+                            <StrategySubmissionComponent defaultText={this.state.fetchedStrategy}
+                                                         isExpanded={false} onChange={(text) => {
+                                                             this.setState({fetchedStrategy: text});}}
+                                                         onSubmit={this.submitStrategy}/>
                         </div>
                     </div>
                 </div>

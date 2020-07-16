@@ -307,6 +307,7 @@ class CompetitionProcessTeacherBody extends React.Component {
 
 class CompetitionProcessTeacherActive extends React.Component {
     render() {
+        
         const {round, timeLeft, isRoundEnded} = this.props;
 
 
