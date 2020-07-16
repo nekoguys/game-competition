@@ -20,6 +20,12 @@ class StrategySubmissionComponent extends React.Component {
         this.props.onSubmit(this.strategyText);
     }
 
+    onTextChanges = () => {
+        const {onChange=() => {}} = this.props;
+
+        onChange(this.strategyText);
+    }
+
     render() {
         const image = this.state.isExpanded ? buttonDownImage : buttonUpImage;
 
@@ -31,6 +37,7 @@ class StrategySubmissionComponent extends React.Component {
                     <label htmlFor="strategy-text" style={{paddingLeft: "3px", marginBottom: "3px"}}>Введите стратегию</label>
                     <textarea className="form-control" id="strategy-text" rows="3" defaultValue={this.props.defaultText} onChange={el => {
                         this.strategyText = el.target.value.toString();
+                        this.onTextChanges();
                     }}/>
                 </div>
             );

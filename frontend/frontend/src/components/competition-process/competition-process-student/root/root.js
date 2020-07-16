@@ -322,7 +322,10 @@ class CompetitionProcessStudentRoot extends React.Component {
                             <DescriptionHolder instruction={instr}/>
                         </div>
                         <div style={{paddingTop: "30px"}}>
-                            <StrategySubmissionComponent defaultText={this.state.fetchedStrategy} isExpanded={false} onSubmit={this.submitStrategy}/>
+                            <StrategySubmissionComponent defaultText={this.state.fetchedStrategy}
+                                                         isExpanded={false} onChange={(text) => {
+                                                             this.setState({fetchedStrategy: text});}}
+                                                         onSubmit={this.submitStrategy}/>
                         </div>
                     </div>
                 </div>

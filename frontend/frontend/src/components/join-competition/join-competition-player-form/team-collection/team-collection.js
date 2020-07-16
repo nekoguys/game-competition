@@ -119,7 +119,6 @@ class TeamCollection extends React.Component {
 
 
         const items = this.props.items.map((item) => {
-            console.log({idInGame: item.idInGame, strategy: this.props.strategy[item.idInGame], strats: this.props.strategy})
             return (
                 <div key={item.teamName}>
                     <TeamCollectionElement
