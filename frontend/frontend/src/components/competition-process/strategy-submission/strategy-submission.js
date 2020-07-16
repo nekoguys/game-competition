@@ -13,7 +13,7 @@ class StrategySubmissionComponent extends React.Component {
             isExpanded: props.isExpanded ?? false,
         };
 
-        this.strategyText = "";
+        this.strategyText = this.props.defaultText ?? "";
     }
 
     onSubmitButtonClicked = () => {
