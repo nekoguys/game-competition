@@ -26,9 +26,16 @@ class StrategySubmissionComponent extends React.Component {
         onChange(this.strategyText);
     }
 
+    componentDidUpdate(prevProps, prevState, snapshot) {
+        if (prevProps.defaultText !== this.props.defaultText) {
+            this.strategyText = this.props.defaultText;
+            this.onTextChanges();
+        }
+    }
+
     render() {
         const image = this.state.isExpanded ? buttonDownImage : buttonUpImage;
-
+        
         let form;
         let button;
         if (this.state.isExpanded) {
