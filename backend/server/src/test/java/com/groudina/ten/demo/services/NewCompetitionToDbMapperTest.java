@@ -33,6 +33,7 @@ class NewCompetitionToDbMapperTest {
                 .shouldShowResultTableInEnd(true)
                 .shouldShowStudentPreviousRoundResults(false)
                 .isAutoRoundEnding(false)
+                .teamLossUpperbound(1000.)
                 .build();
     }
 

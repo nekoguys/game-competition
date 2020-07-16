@@ -131,6 +131,7 @@ class CompetitionsControllerTest {
                 .shouldShowResultTableInEnd(true)
                 .isAutoRoundEnding(false)
                 .maxTeamSize(3)
+                .teamLossUpperbound(1000.)
                 .build();
         webTestClient.post().uri("/api/competitions/create")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -170,6 +171,7 @@ class CompetitionsControllerTest {
                 .shouldEndRoundBeforeAllAnswered(true)
                 .shouldShowResultTableInEnd(true)
                 .isAutoRoundEnding(true)
+                .teamLossUpperbound(1000.)
                 .maxTeamSize(3)
                 .build();
         webTestClient.post().uri("/api/competitions/create")
@@ -210,6 +212,7 @@ class CompetitionsControllerTest {
                         .shouldEndRoundBeforeAllAnswered(false)
                         .shouldShowResultTableInEnd(false)
                         .isAutoRoundEnding(false)
+                        .teamLossUpperbound(1000.)
                         .maxTeamSize(3)
                         .build()))
                 .accept(MediaType.APPLICATION_JSON)
@@ -233,6 +236,7 @@ class CompetitionsControllerTest {
                         .shouldEndRoundBeforeAllAnswered(false)
                         .shouldShowResultTableInEnd(false)
                         .isAutoRoundEnding(false)
+                        .teamLossUpperbound(1000.)
                         .maxTeamSize(3)
                         .build()))
                 .accept(MediaType.APPLICATION_JSON)
@@ -784,6 +788,7 @@ class CompetitionsControllerTest {
                 .shouldEndRoundBeforeAllAnswered(false)
                 .shouldShowResultTableInEnd(true)
                 .shouldShowStudentPreviousRoundResults(false)
+                .teamLossUpperbound(1000.)
                 .build();
         var comp2 = DbCompetition.builder().pin("23456").owner(user).parameters(params).build();
         comp2 = competitionsRepository.save(comp2).block();
@@ -792,8 +797,8 @@ class CompetitionsControllerTest {
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange().expectStatus().isOk()
                 .expectBody()
-                .jsonPath("$[0].length()").isEqualTo(15)
-                .jsonPath("$[1].length()").isEqualTo(15);
+                .jsonPath("$[0].length()").isEqualTo(18)
+                .jsonPath("$[1].length()").isEqualTo(18);
     }
     @Test
     @WithMockUser(value = "email", password = "1234", roles = {"TEACHER", "STUDENT"})
