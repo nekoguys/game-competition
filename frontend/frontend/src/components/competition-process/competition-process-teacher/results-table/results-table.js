@@ -74,7 +74,7 @@ class CompetitionResultsTable extends React.Component {
                                     this.setPopupRef(element, el);
                                 }}>{strat}
                                 </span>
-                                    <span>{el}</span>
+                                    <span className={"popup-text-table-header"}><u>{el}</u></span>
                                 </div>
                             );
                             onClick_ = () => {

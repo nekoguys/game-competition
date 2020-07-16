@@ -5,6 +5,21 @@ import buttonUpImage from "./buttonUp.png";
 import buttonDownImage from "./buttonDown.png";
 import TeamMembersCollection from "../team-members-collection";
 
+class TeamCollectionStrategyElement extends React.Component {
+    constructor(props) {
+        super(props);
+    }
+
+    render() {
+        return (
+            <div className={"team-collection-strategy-holder"}>
+                <label style={{paddingLeft: "20px", margin: "0"}}>Стратегия:</label>
+                <span className={"team-collection-strategy-span"}>{this.props.strategy ? this.props.strategy : "Пустая стратегия"}</span>
+            </div>
+        )
+    }
+}
+
 class TeamCollectionElement extends React.Component {
     constructor(props) {
         super(props);
@@ -24,6 +39,7 @@ class TeamCollectionElement extends React.Component {
         const {onSubmit = (teamName, password) => {}, members} = this.props;
 
         let res;
+        let strategyHolder;
         let image = buttonUpImage;
 
         if (this.state.isExpanded) {
@@ -31,9 +47,16 @@ class TeamCollectionElement extends React.Component {
             res = <TeamMembersCollection
                 items={members}
                 style={{marginRight: "20px", marginLeft: "20px", marginTop: "-20px", marginBottom: "-20px"}}
-                ulstyle={{paddingTop: "20px", paddingBottom: "20px", marginBottom: "0",
-                    fontSize: "22px", listStyle: "none"}}
+                ulstyle={{
+                    paddingTop: "20px", paddingBottom: "20px", marginBottom: "0",
+                    fontSize: "22px", listStyle: "none"
+                }}
             />
+            if (this.props.showStrategy) {
+                strategyHolder = (
+                    <TeamCollectionStrategyElement strategy={this.props.strategy}/>
+                )
+            }
         }
 
         let input;
@@ -80,6 +103,7 @@ class TeamCollectionElement extends React.Component {
                     </div>
                 </div>
             </div>
+                {strategyHolder}
                 {res}
             </div>
         )
@@ -93,7 +117,9 @@ class TeamCollection extends React.Component {
 
         const {isReadOnly} = this.props;
 
-        const items = this.props.items.map(item => {
+
+        const items = this.props.items.map((item) => {
+            console.log({idInGame: item.idInGame, strategy: this.props.strategy[item.idInGame], strats: this.props.strategy})
             return (
                 <div key={item.teamName}>
                     <TeamCollectionElement
@@ -102,6 +128,8 @@ class TeamCollection extends React.Component {
                         idInGame={item.idInGame}
                         onSubmit={this.props.onSubmit}
                         isReadOnly={isReadOnly}
+                        showStrategy={this.props.showStrategy}
+                        strategy={this.props.strategy?.[item.idInGame]?.strategy}
                     />
                 </div>
             )

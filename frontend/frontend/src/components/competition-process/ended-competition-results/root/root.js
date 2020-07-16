@@ -125,7 +125,9 @@ class EndedCompetitionResultsRoot extends React.Component {
                         </div>
                         <div style={{paddingTop: "40px"}}>
                             <div style={{width: "70%", minWidth: "200px", margin: "0 auto"}}>
-                            <TeamCollection items={this.state.teams} isReadOnly={true}/>
+                            <TeamCollection items={this.state.teams} isReadOnly={true}
+                                            showStrategy={true} strategy={this.state.strategy}
+                            />
                             </div>
                         </div>
                         <div>
