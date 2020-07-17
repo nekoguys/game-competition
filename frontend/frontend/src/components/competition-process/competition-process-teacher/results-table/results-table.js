@@ -21,7 +21,7 @@ class CompetitionResultsTable extends React.Component {
 
     shouldShowStrategy = () => {
         return this.props.showStrategy ?? false;
-    }
+    };
 
     togglePopup = (column) => {
         let node = ReactDOM.findDOMNode(this.refsMap.get(column));

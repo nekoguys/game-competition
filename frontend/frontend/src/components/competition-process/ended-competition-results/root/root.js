@@ -86,6 +86,7 @@ class EndedCompetitionResultsRoot extends React.Component {
         const {competitionName} = this.state;
 
         const isTeacher_ = isTeacher();
+        console.log({isTeacher_});
         console.log({strategy: this.state.strategy});
 
         const res = (
@@ -126,7 +127,7 @@ class EndedCompetitionResultsRoot extends React.Component {
                         <div style={{paddingTop: "40px"}}>
                             <div style={{width: "70%", minWidth: "200px", margin: "0 auto"}}>
                             <TeamCollection items={this.state.teams} isReadOnly={true}
-                                            showStrategy={true} strategy={this.state.strategy}
+                                            showStrategy={isTeacher_} strategy={this.state.strategy}
                             />
                             </div>
                         </div>
