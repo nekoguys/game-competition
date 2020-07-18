@@ -436,4 +436,20 @@ class GameManagementServiceImplTest {
                     assertEquals(((NewRoundEventDto)el).getRoundLength(), 59);
                 }).thenCancel().verify();
     }
+
+    @Test
+    void checkRoundLengthChangeBeforeFirstRound() {
+        var comp = commonPart();
+
+        gameManagementService.startCompetition(comp).block();
+
+        gameManagementService.changeRoundLength(comp, 59).block();
+
+        gameManagementService.startNewRound(comp).block();
+
+        StepVerifier.create(gameManagementService.beginEndRoundEvents(comp))
+                .assertNext(el -> {
+                    assertEquals(((NewRoundEventDto)el).getRoundLength(), 59);
+                }).thenCancel().verify();
+    }
 }
