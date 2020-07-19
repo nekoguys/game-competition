@@ -33,5 +33,7 @@ public interface IGameManagementService {
 
     Mono<Void> changeRoundLength(DbCompetition competition, int newRoundLength);
 
+    Mono<DbCompetition> restartGame(DbCompetition competition);
+
     Mono<Void> clear();
 }

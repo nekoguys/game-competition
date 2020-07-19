@@ -29,6 +29,11 @@ public class DbTeam {
     @Setter
     private boolean isBanned = false;
 
+    @Builder.Default
+    @Getter
+    @Setter
+    private int banRound = 0;
+
     @Getter
     private String password;
 
