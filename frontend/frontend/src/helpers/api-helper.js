@@ -167,6 +167,10 @@ class ApiSettings {
     static submitStrategyEndPoint(pin) {
         return ApiSettings.#host + "/competition_process/" + pin + "/submit_strategy";
     }
+
+    static restartGameEndPoint(pin) {
+        return ApiSettings.#host + "/competition_process/" + pin + "/restart_game";
+    }
 }
 
 export default class ApiHelper {
@@ -450,6 +454,13 @@ export default class ApiHelper {
             method: "POST",
             headers: this.authDefaultHeaders(),
             body: JSON.stringify(params)
+        })
+    }
+
+    static restartGame(pin) {
+        return fetch(ApiSettings.restartGameEndPoint(pin), {
+            method: "GET",
+            headers: this.authDefaultHeaders()
         })
     }
 }
