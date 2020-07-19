@@ -35,7 +35,7 @@ class StrategySubmissionComponent extends React.Component {
 
     render() {
         const image = this.state.isExpanded ? buttonDownImage : buttonUpImage;
-        
+
         let form;
         let button;
         if (this.state.isExpanded) {
