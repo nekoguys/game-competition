@@ -369,7 +369,7 @@ class CompetitionProcessTeacherActive extends React.Component {
 
         let restartGameButton;
 
-        if (this.props.round !== 0) {
+        if (this.props.round !== 0 && !(this.props.isRoundEnded && this.props.round === this.props.roundsCount)) {
             restartGameButton = (
                 <div style={{paddingTop: "20px"}}>
                     <DefaultSubmitButton text={"Начать игру заново"} onClick={this.props.restartGameCallback}/>
