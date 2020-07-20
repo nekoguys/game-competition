@@ -166,12 +166,16 @@ class CompetitionProcessStudentRoot extends React.Component {
     }
 
     processAnswer = (answer) => {
-        this.setState((prevState) => {
-            let answers = {...prevState.answers};
-            answers[answer.roundNumber] = answer.teamAnswer;
+        if ((answer.type ?? "") === "cancel") {
+            this.setState({answers: {}})
+        } else {
+            this.setState((prevState) => {
+                let answers = {...prevState.answers};
+                answers[answer.roundNumber] = answer.teamAnswer;
 
-            return {answers: answers};
-        })
+                return {answers: answers};
+            })
+        }
     }
 
     setupAllInOneEvents() {
@@ -182,6 +186,7 @@ class CompetitionProcessStudentRoot extends React.Component {
         this.eventSource.addEventListener("error", (err) => console.log({eventSource: err}));
 
         this.eventSource.addEventListener("message", (message) => {
+            console.log({messageDataExt: JSON.parse(message.data)});
             if (message.lastEventId === Constants.ANSWER_EVENT_ID) {
                 this.processAnswer(JSON.parse(message.data));
             } else if (message.lastEventId === Constants.MESSAGE_EVENT_ID) {
@@ -197,22 +202,30 @@ class CompetitionProcessStudentRoot extends React.Component {
     }
 
     processPrice = (data) => {
-        this.setState(prevState => {
-            let prices = {...prevState.prices};
+        if ((data.type ?? "") === "cancel") {
+            this.setState({prices: {}});
+        } else {
+            this.setState(prevState => {
+                let prices = {...prevState.prices};
 
-            prices[data.roundNumber] = data.price;
+                prices[data.roundNumber] = data.price;
 
-            return {prices: prices};
-        })
+                return {prices: prices};
+            })
+        }
     }
 
     processResult = (data) => {
-        this.setState((prevState) => {
-            let results = {...prevState.results};
-            results[data.roundNumber] = data.income;
+        if ((data.type ?? "") === "cancel") {
+            this.setState({results: {}});
+        } else {
+            this.setState((prevState) => {
+                let results = {...prevState.results};
+                results[data.roundNumber] = data.income;
 
-            return {results: results};
-        })
+                return {results: results};
+            })
+        }
     }
 
     processRound = (message) => {

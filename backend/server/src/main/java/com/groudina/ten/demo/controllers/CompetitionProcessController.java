@@ -159,6 +159,16 @@ public class CompetitionProcessController {
                 }));
     }
 
+    @GetMapping(value = "/restart_game", produces = {MediaType.APPLICATION_JSON_VALUE})
+    @PreAuthorize("hasRole('TEACHER')")
+    public Mono<ResponseEntity> restartGame(@PathVariable String pin) {
+        log.info("GET: /api/competition_process/{}/restart_game", pin);
+
+        return routine(competitionsRepository.findByPin(pin), (competition) -> {
+            return gameManagementService.restartGame(competition).thenReturn(false);
+        }, () -> "Game restarted successfully!", () -> "No game with such pin");
+    }
+
     @RequestMapping(value="/bans", produces = {MediaType.TEXT_EVENT_STREAM_VALUE})
     @PreAuthorize("hasRole('STUDENT')")
     public Flux<ServerSentEvent<?>> getBanEvents(@PathVariable String pin) {
@@ -290,7 +300,7 @@ public class CompetitionProcessController {
                     }
 
                     return gameManagementService.teamsAnswersEvents(comp).filter(roundTeamAnswerDto -> {
-                        return roundTeamAnswerDto.getTeamIdInGame() == team.get().getIdInGame();
+                        return roundTeamAnswerDto.getTeamIdInGame() == team.get().getIdInGame() || roundTeamAnswerDto.getTeamIdInGame() == -1;
                     });
                 }).map(e -> ServerSentEvent.builder().data(e).id("answerStream").build());
     }
@@ -312,7 +322,7 @@ public class CompetitionProcessController {
 
                     return gameManagementService.getRoundResultsEvents(comp)
                             .filter(roundTeamResultDto -> {
-                                return roundTeamResultDto.getTeamIdInGame() == team.get().getIdInGame();
+                                return roundTeamResultDto.getTeamIdInGame() == team.get().getIdInGame() || roundTeamResultDto.getTeamIdInGame() == -1;
                             });
                 }).map(e -> ServerSentEvent.builder(e).id("resultStream").build());
     }
