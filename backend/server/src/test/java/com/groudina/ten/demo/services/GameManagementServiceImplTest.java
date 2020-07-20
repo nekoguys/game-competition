@@ -470,6 +470,9 @@ class GameManagementServiceImplTest {
 
         gameManagementService.endCurrentRound(findByPin(pin)).block();
 
+        team1.setBanned(true);
+        team1 = teamsRepository.save(team1).block();
+
         var savedComp = findByPin(pin);
         assertEquals(savedComp.getCompetitionProcessInfo().getCurrentRoundNumber(), 1);
         var roundInfoIds = savedComp.getCompetitionProcessInfo().getRoundInfos().stream().map(DbCompetitionRoundInfo::getId).collect(Collectors.toList());
@@ -507,7 +510,6 @@ class GameManagementServiceImplTest {
         assertEquals(roundResultElementsRepository.findAllById(roundResultsIds).collectList().block().size(), 0);
         assertEquals(answersRepository.findAllById(answerIds).collectList().block().size(), 0);
         assertEquals(competitionRoundInfosRepository.findAllById(roundInfoIds).collectList().block().size(), 0);
-
-
+        assertTrue(findByPin(pin).getTeams().stream().noneMatch(DbTeam::isBanned));
     }
 }

@@ -1,10 +1,12 @@
 package com.groudina.ten.demo.dto;
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 
 @Getter
+@NoArgsConstructor
 public class RoundTeamResultCancellationDto extends RoundTeamResultDto implements Serializable {
     private static final long serialVersionUID = -9167911416648916452L;
 

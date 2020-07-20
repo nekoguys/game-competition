@@ -1,10 +1,12 @@
 package com.groudina.ten.demo.dto;
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 
 @Getter
+@NoArgsConstructor
 public class TeamBanEventCancellationDto extends TeamBanEventDto implements Serializable {
     private static final long serialVersionUID = -3504827798268338863L;
 
