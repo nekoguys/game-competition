@@ -802,4 +802,84 @@ class CompetitionProcessControllerTest {
 
         verifier.verify();
     }
+
+    @Test
+    @WithMockUser(value = "anotherEmail", password = "1234", roles = {"TEACHER","STUDENT"})
+    void testGameRestartEvents() {
+        var user = userRepository.save(DbUser.builder().password("1234").email("anotherEmail").roles(rolesRepository.findAll().collectList().block()).build()).block();
+        var secUser = userRepository.save(DbUser.builder().password("1234").email("email").roles(rolesRepository.findAll().collectList().block()).build()).block();
+        var competition = competitionsRepository.save(DbCompetition.builder()
+                .state(DbCompetition.State.Registration)
+                .pin("1234")
+                .parameters(DbCompetition.Parameters.builder()
+                        .roundsCount(3)
+                        .name("name")
+                        .expensesFormula(List.of("1", "2", "3"))
+                        .demandFormula(List.of("100", "10"))
+                        .maxTeamsAmount(100)
+                        .shouldShowStudentPreviousRoundResults(true)
+                        .instruction("instr")
+                        .build())
+                .build()).block();
+        competition = competitionsRepository.save(competition).block();
+        var team = teamsRepository.save(DbTeam.builder().sourceCompetition(competition).name("tutu").idInGame(0).captain(user).build()).block();
+        var team2 = teamsRepository.save(DbTeam.builder().sourceCompetition(competition).name("abab").idInGame(1).captain(secUser).build()).block();
+
+        competition.addTeam(team);
+        competition.addTeam(team2);
+
+        gameManagementService.startCompetition(competition).block();
+        gameManagementService.startNewRound(competition).block();
+        gameManagementService.submitAnswer(competition, team, 10, 1).block();
+        gameManagementService.submitAnswer(competition, team2, 20, 1).block();
+        gameManagementService.endCurrentRound(competition).block();
+
+        var respFlux = webTestClient.get().uri("/api/competition_process/1234/my_answers_stream")
+                .exchange().expectStatus().isOk()
+                .returnResult(RoundTeamAnswerDto.class)
+                .getResponseBody();
+
+        var respFluxResults = webTestClient.get().uri("/api/competition_process/1234/my_results_stream")
+                .exchange().expectStatus().isOk()
+                .returnResult(RoundTeamResultDto.class)
+                .getResponseBody();
+
+        var respFluxPrice = webTestClient.get().uri("/api/competition_process/1234/prices_stream")
+                .exchange().expectStatus().isOk()
+                .returnResult(PriceInRoundDto.class)
+                .getResponseBody();
+
+        gameManagementService.restartGame(competition).block();
+
+        var stepVerifier = StepVerifier.create(respFlux)
+                .consumeNextWith(el -> {
+                    assertEquals(el.getTeamIdInGame(), 0);
+                    assertEquals(el.getRoundNumber(), 1);
+                    assertEquals(el.getTeamAnswer(), 10);
+                }).consumeNextWith(el -> {
+                    assertEquals(el.getTeamIdInGame(), -1);
+                    assertEquals(el.getTeamAnswer(), -1);
+                    assertEquals(el.getRoundNumber(), -1);
+                    assertEquals(((RoundTeamAnswerCancellationDto)el).getCancellationInfo().getCancelRoundCount(), 1);
+                }).thenCancel().verify();
+
+        StepVerifier.create(respFluxResults)
+                .consumeNextWith(el -> {
+                    assertEquals(el.getTeamIdInGame(), 0);
+                    assertEquals(el.getRoundNumber(), 1);
+                }).consumeNextWith(el -> {
+                    assertEquals(el.getTeamIdInGame(), -1);
+                    assertEquals(el.getRoundNumber(), -1);
+                    assertEquals(((RoundTeamResultCancellationDto)el).getCancellationInfo().getCancelRoundCount(), 1);
+                }).thenCancel().verify();
+
+        StepVerifier.create(respFluxPrice)
+                .consumeNextWith(el -> {
+                    assertEquals(el.getRoundNumber(), 1);
+                }).consumeNextWith(el -> {
+                    assertEquals(el.getRoundNumber(), -1);
+                    assertEquals(el.getPrice(), -1);
+                    assertEquals(((PriceInRoundCancellationDto)el).getCancellationInfo().getCancelRoundCount(), 1);
+                }).thenCancel().verify();
+    }
 }

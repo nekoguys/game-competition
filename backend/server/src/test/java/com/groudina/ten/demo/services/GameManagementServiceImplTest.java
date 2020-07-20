@@ -2,15 +2,11 @@ package com.groudina.ten.demo.services;
 
 import com.groudina.ten.demo.EnableEmbeddedMongo;
 import com.groudina.ten.demo.datasource.*;
-import com.groudina.ten.demo.dto.CompetitionMessageRequest;
-import com.groudina.ten.demo.dto.EndRoundEventDto;
-import com.groudina.ten.demo.dto.NewRoundEventDto;
+import com.groudina.ten.demo.dto.*;
 import com.groudina.ten.demo.exceptions.IllegalAnswerSubmissionException;
 import com.groudina.ten.demo.exceptions.IllegalGameStateException;
 import com.groudina.ten.demo.exceptions.RoundEndInNotStartedCompetitionException;
-import com.groudina.ten.demo.models.DbCompetition;
-import com.groudina.ten.demo.models.DbRole;
-import com.groudina.ten.demo.models.DbTeam;
+import com.groudina.ten.demo.models.*;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,6 +21,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -385,6 +382,7 @@ class GameManagementServiceImplTest {
         var banVerifier = StepVerifier.create(gameManagementService.getBannedTeamEvents(comp))
                 .consumeNextWith(dto -> {
                     assertEquals(dto.getTeamIdInGame(), team.getIdInGame());
+                    assertEquals(dto.getRound(), 1);
                 }).thenCancel().verifyLater();
         var messageVerifier = StepVerifier.create(gameManagementService.getCompetitionMessages(comp))
                 .consumeNextWith(dto -> {
@@ -451,5 +449,67 @@ class GameManagementServiceImplTest {
                 .assertNext(el -> {
                     assertEquals(((NewRoundEventDto)el).getRoundLength(), 59);
                 }).thenCancel().verify();
+    }
+
+    private DbCompetition findByPin(String pin) {
+        return competitionsRepository.findByPin(pin).block();
+    }
+
+    @Test
+    void checkGameRestartAndClearingResources() {
+        var comp = commonPart();
+        var pin = comp.getPin();
+        var team1 = comp.getTeams().get(0);
+        var team2 = comp.getTeams().get(1);
+
+        gameManagementService.startCompetition(comp).block();
+        gameManagementService.startNewRound(comp).block();
+
+        gameManagementService.submitAnswer(findByPin(pin), team1, 10, 1).block();
+        gameManagementService.submitAnswer(findByPin(pin), team2, 20, 1).block();
+
+        gameManagementService.endCurrentRound(findByPin(pin)).block();
+
+        team1.setBanned(true);
+        team1 = teamsRepository.save(team1).block();
+
+        var savedComp = findByPin(pin);
+        assertEquals(savedComp.getCompetitionProcessInfo().getCurrentRoundNumber(), 1);
+        var roundInfoIds = savedComp.getCompetitionProcessInfo().getRoundInfos().stream().map(DbCompetitionRoundInfo::getId).collect(Collectors.toList());
+        var answers = savedComp.getCompetitionProcessInfo().getCurrentRound().getAnswerList();
+        var answerIds = answers.stream().map(DbAnswer::getId).collect(Collectors.toList());
+        assertEquals(answers.size(), 2);
+
+        var roundResults = savedComp.getCompetitionProcessInfo().getCurrentRound().getRoundResult();
+        var roundResultsIds = roundResults.stream().map(DbRoundResultElement::getId).collect(Collectors.toList());
+        assertEquals(roundResults.size(), 2);
+
+        var teamAnswersStepVerifier = StepVerifier
+                .create(gameManagementService.teamsAnswersEvents(savedComp))
+                .expectNextCount(2)
+                .consumeNextWith(el -> {
+                    assertTrue(el instanceof RoundTeamAnswerCancellationDto);
+                    assertEquals(((RoundTeamAnswerCancellationDto)el).getCancellationInfo().getCancelRoundCount(), 1);
+                }).thenCancel().verifyLater();
+        var roundTeamResultsVerifier = StepVerifier
+                .create(gameManagementService.getRoundResultsEvents(savedComp))
+                .expectNextCount(2)
+                .consumeNextWith(el -> {
+                    assertTrue(el instanceof RoundTeamResultCancellationDto);
+                    assertEquals(((RoundTeamResultCancellationDto)el).getCancellationInfo().getCancelRoundCount(), 1);
+                }).thenCancel().verifyLater();
+
+        var getComp = gameManagementService.restartGame(findByPin(pin)).block();
+
+        teamAnswersStepVerifier.verify();
+        roundTeamResultsVerifier.verify();
+
+        var modComp = findByPin(pin);
+        assertEquals(modComp.getCompetitionProcessInfo().getCurrentRoundNumber(), 0);
+        assertEquals(modComp.getCompetitionProcessInfo().getRoundInfos().size(), 0);
+        assertEquals(roundResultElementsRepository.findAllById(roundResultsIds).collectList().block().size(), 0);
+        assertEquals(answersRepository.findAllById(answerIds).collectList().block().size(), 0);
+        assertEquals(competitionRoundInfosRepository.findAllById(roundInfoIds).collectList().block().size(), 0);
+        assertTrue(findByPin(pin).getTeams().stream().noneMatch(DbTeam::isBanned));
     }
 }

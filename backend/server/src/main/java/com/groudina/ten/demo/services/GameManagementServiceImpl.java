@@ -83,7 +83,9 @@ public class GameManagementServiceImpl implements IGameManagementService {
     @PostConstruct
     private void initScheduler() {
         this.competitionsRepository.findAllByParameters_IsAutoRoundEndingTrueAndState(DbCompetition.State.InProcess).subscribe(el -> {
-            this.scheduleRoundEnd(el).subscribe();
+            if (el.getCompetitionProcessInfo().getCurrentRoundNumber() != 0) {
+                this.scheduleRoundEnd(el).subscribe();
+            }
         });
     }
 
@@ -98,7 +100,10 @@ public class GameManagementServiceImpl implements IGameManagementService {
                 if (team.isBanned()) {
                     sink.next(TeamBanEventDto.builder()
                             .teamIdInGame(team.getIdInGame())
-                            .teamName(team.getName()).build());
+                            .teamName(team.getName())
+                            .round(team.getBanRound())
+                            .build()
+                    );
                 }
             });
 
@@ -484,7 +489,9 @@ public class GameManagementServiceImpl implements IGameManagementService {
                 } else {
                     var sink = teamBanSinks.get(pin);
                     banTeams.forEach(team -> {
-                        sink.next(TeamBanEventDto.builder().teamName(team.getName()).teamIdInGame(team.getIdInGame()).build());
+                        sink.next(TeamBanEventDto.builder().teamName(team.getName())
+                                .round(team.getBanRound())
+                                .teamIdInGame(team.getIdInGame()).build());
                     });
                     return before;
                 }
@@ -645,6 +652,113 @@ public class GameManagementServiceImpl implements IGameManagementService {
     }
 
     @Override
+    public Mono<DbCompetition> restartGame(DbCompetition competition) {
+        if (competition.getState() != DbCompetition.State.InProcess) {
+            return Mono.error(new IllegalGameRestartException("Game is not in process, can't restart"));
+        } else if (competition.getCompetitionProcessInfo().getCurrentRoundNumber() == 0) {
+            return Mono.error(new IllegalGameRestartException("First round in game has not been started, makes no sense to restart"));
+        }
+        if (competition.getParameters().isAutoRoundEnding()) {
+            endRoundsScheduler.removeRoundFromScheduler(competition, competition.getCompetitionProcessInfo().getCurrentRound());
+        }
+
+        int currentRound = competition.getCompetitionProcessInfo().getCurrentRoundNumber();
+        competition.getCompetitionProcessInfo().setCurrentRoundNumber(0);
+        //var toDeleteFlux = Mono.from(roundInfosRepository.deleteAll(competition.getCompetitionProcessInfo().getRoundInfos()));
+
+        var answersToDelete = competition.getCompetitionProcessInfo().getRoundInfos().stream().flatMap(el -> {
+            var stream = List.copyOf(el.getAnswerList()).stream();
+            el.getAnswerList().clear();
+            return stream;
+        }).peek(el -> {
+            logger.info("Deleting DbAnswer {}", el.getId());
+        }).collect(Collectors.toList());
+        var resultsToDelete = competition.getCompetitionProcessInfo().getRoundInfos().stream().flatMap(el -> {
+            var stream = List.copyOf(el.getRoundResult()).stream();
+            el.getRoundResult().clear();
+            return stream;
+        }).peek(el -> {
+            logger.info("Deleting DbRoundResultElement {}", el.getId());
+        }).collect(Collectors.toList());
+
+        var roundInfos = List.copyOf(competition.getCompetitionProcessInfo().getRoundInfos());
+        competition.getCompetitionProcessInfo().getRoundInfos().clear();
+
+        var toDeleteFlux = Mono.zip(answersRepository.deleteAll(answersToDelete).thenReturn(1),
+                        roundResultElementsRepository.deleteAll(resultsToDelete).thenReturn(1)
+                ).then(
+                        roundInfosRepository.deleteAll(roundInfos).thenReturn(1)
+        );
+
+        competition.getCompetitionProcessInfo().getRoundInfos().clear();
+
+        teamAnswersSinks.computeIfPresent(competition.getPin(), (pin, before) -> {
+            before.next(
+                    new RoundTeamAnswerCancellationDto(-1, -1, -1,
+                            new CancellationInfoDto(currentRound)//cancel all rounds results
+                    ));
+            return before;
+        });
+
+        teamResultsSinks.computeIfPresent(competition.getPin(), (pin, before) -> {
+            before.next(
+                    new RoundTeamResultCancellationDto(-1, -1, -1,
+                            new CancellationInfoDto(currentRound))
+            );
+            return before;
+        });
+
+        roundPricesSinks.computeIfPresent(competition.getPin(), (pin, before) -> {
+            before.next(
+                    new PriceInRoundCancellationDto(-1, -1, new CancellationInfoDto(currentRound))
+            );
+            return before;
+        });
+
+        teamBanSinks.computeIfPresent(competition.getPin(), (pin, before) -> {
+            before.next(
+                    new TeamBanEventCancellationDto(-1, "any", -1, new CancellationInfoDto(currentRound))
+            );
+            return before;
+        });
+
+        beginEndRoundEventsSinks.computeIfPresent(competition.getPin(), (pin, before) -> {
+            var roundNumber = competition.getCompetitionProcessInfo().getCurrentRoundNumber();
+            before.next(
+                    EndRoundEventDto.builder()
+                            .isEndOfGame(roundNumber == competition.getParameters().getRoundsCount())
+                            .roundLength(findRoundLength(roundNumber,
+                                    competition.getParameters().getRoundsLengthHistory()))
+                            .roundNumber(competition.getCompetitionProcessInfo().getCurrentRoundNumber())
+                            .build()
+            );
+            return before;
+        });
+
+        var teams = competition.getTeams().stream().filter(DbTeam::isBanned).collect(Collectors.toList());
+        for (var team : teams) {
+            team.setBanned(false);
+        }
+
+
+        return toDeleteFlux
+                .then(teamsRepository.saveAll(teams).collectList())
+                .then(processInfosRepository.save(competition.getCompetitionProcessInfo())
+        ).flatMap(savedProcessInfo -> {
+            competition.getParameters().getRoundsLengthHistory().getRoundNumbers().clear();
+            competition.getParameters().getRoundsLengthHistory().getRoundLength().clear();
+
+            competition.getParameters().getRoundsLengthHistory().add(
+                    competition.getCompetitionProcessInfo().getCurrentRoundNumber(),
+                    competition.getParameters().getRoundLengthInSeconds()
+            );
+
+            competition.setCompetitionProcessInfo(savedProcessInfo);
+            return competitionsRepository.save(competition);
+        });
+    }
+
+    @Override
     public Mono<Void> clear() {
         teamAnswersStorage.clear();
         teamAnswersSinks.clear();
@@ -665,7 +779,10 @@ public class GameManagementServiceImpl implements IGameManagementService {
     private Flux<DbTeam> banTeams(List<Integer> bannedTeams, DbCompetition competition) {
         var teams = competition.getTeams().stream()
                 .filter(el -> bannedTeams.contains(el.getIdInGame())).collect(Collectors.toList());
-        teams.forEach(team -> team.setBanned(true));
+        teams.forEach(team -> {
+            team.setBanned(true);
+            team.setBanRound(competition.getCompetitionProcessInfo().getCurrentRoundNumber());
+        });
         return teamsRepository.saveAll(teams);
     }
 
