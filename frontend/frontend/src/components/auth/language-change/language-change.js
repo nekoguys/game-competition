@@ -5,7 +5,8 @@ import "./language-change.css";
 class LanguageChangeComponent extends React.Component {
 
     onChangeLanguage = (lang) => {
-      this.props.i18n.changeLanguage(lang);
+        window.localStorage.setItem("language", lang);
+        this.props.i18n.changeLanguage(lang);
     };
 
     render() {
