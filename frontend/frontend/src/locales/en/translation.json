@@ -1,0 +1,13 @@
+{
+  "key": "value of key",
+  "welcome": {
+    "title": "Hello"
+  },
+  "auth": {
+    "check": "kk",
+    "login": {
+      "enter": "Sign in",
+      "register": "Sign up"
+    }
+  }
+}

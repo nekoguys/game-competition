@@ -1,0 +1,9 @@
+{
+  "key": "value of key",
+  "auth": {
+    "login": {
+      "enter": "Вход",
+      "register": "Регистрация"
+    }
+  }
+}

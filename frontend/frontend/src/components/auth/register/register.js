@@ -6,6 +6,8 @@ import {withRouter} from "react-router-dom";
 import "../login/login.css";
 import RegisterForm from "../register-form/register-form";
 import showNotification from "../../../helpers/notification-helper";
+import {withTranslation} from "react-i18next";
+import LanguageChangeComponent from "../language-change/language-change";
 
 class Register extends React.Component {
     constructor(props) {
@@ -80,10 +82,11 @@ class Register extends React.Component {
         };
 
         return (
+            <div>
             <div className={"container login-group"}>
                 <div className={"d-flex headers"}>
-                    <Header text={"Войти"} style={headerStyle} isSelected={false} onClick={this.onLoginHeaderClick}/>
-                    <Header text={"Регистрация"} isSelected={true}/>
+                    <Header text={this.props.t("auth.login.enter")} style={headerStyle} isSelected={false} onClick={this.onLoginHeaderClick}/>
+                    <Header text={this.props.t("auth.login.register")} isSelected={true}/>
                 </div>
                 <RegisterForm onEmailChanged={this.onEmailChanged}
                            onPasswordChanged={this.onPasswordChanged}
@@ -92,8 +95,10 @@ class Register extends React.Component {
                            isRegButtonDisabled={this.state.isRegButtonDisabled}
                 />
             </div>
+                <div><LanguageChangeComponent/></div>
+            </div>
         )
     }
 }
 
-export default withRouter(Register);
+export default withTranslation('translation')(withRouter(Register));
