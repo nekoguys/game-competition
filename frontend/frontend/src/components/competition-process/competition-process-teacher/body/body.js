@@ -37,7 +37,10 @@ class CompetitionProcessTeacherBody extends React.Component {
     }
 
     render() {
+        const { i18n } = this.props;
+
         let res = (<CompetitionProcessTeacherActive
+            i18n={i18n}
             round={this.state.currentRoundNumber}
             timeLeft={this.state.timeTillRoundEnd}
             isRoundEnded={this.state.isCurrentRoundEnded}
@@ -354,7 +357,7 @@ class CompetitionProcessTeacherActive extends React.Component {
 
 
         const rightButtonText = round === 0 ? 
-        this.props.i18n.t("competition_process.teacher.body.game") : (isRoundEnded ? this.props.i18n.t("competition_process.teacher.body.start_new_round") : this.props.i18n.t("competition_process.teacher.body.end_round"));
+        this.props.i18n.t("competition_process.teacher.body.start_game") : (isRoundEnded ? this.props.i18n.t("competition_process.teacher.body.start_new_round") : this.props.i18n.t("competition_process.teacher.body.end_round"));
 
         const roundText = round === 0 ? 
             this.props.i18n.t("competition_process.teacher.body.game_not_started_yet") : 
@@ -395,7 +398,7 @@ class CompetitionProcessTeacherActive extends React.Component {
                     </div>
                     <div className={"col-4"}>
                         <div style={{textAlign: "center", fontSize: "23px"}}>
-                            {this.props.i18n.t("competition_process.teacher.body.until_round_end") + timeLeft + this.props.i18n.t("competition_process.teacher.body.second")}
+                            {this.props.i18n.t("competition_process.teacher.body.until_round_end") + timeLeft + this.props.i18n.t("competition_process.teacher.body.seconds")}
                         </div>
                         {beginEndRoundButton}
                     </div>

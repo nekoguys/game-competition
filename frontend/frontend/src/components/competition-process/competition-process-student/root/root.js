@@ -313,7 +313,7 @@ class CompetitionProcessStudentRoot extends React.Component {
                             </div>
                             <div className={"col-4"}>
                                 <div style={{textAlign: "center", fontSize: "23px"}}>
-                                    {this.props.i18n.t("competition_process.student.root.until_end") + timeTillRoundEnd + "сек"}
+                                    {this.props.i18n.t("competition_process.student.root.until_end") + timeTillRoundEnd + this.props.i18n.t("competition_process.student.root.seconds")}
                                 </div>
                             </div>
                         </div>
