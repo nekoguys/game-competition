@@ -4,6 +4,7 @@ import buttonDownImage from "../../join-competition/join-competition-player-form
 
 import "./strategy-submission.css";
 import DefaultSubmitButton from "../../common/default-submit-button";
+import {withTranslation} from "react-i18next";
 
 class StrategySubmissionComponent extends React.Component {
     constructor(props) {
@@ -41,7 +42,7 @@ class StrategySubmissionComponent extends React.Component {
         if (this.state.isExpanded) {
             form = (
                 <div className={"form-group"}>
-                    <label htmlFor="strategy-text" style={{paddingLeft: "3px", marginBottom: "3px"}}>Введите стратегию</label>
+                    <label htmlFor="strategy-text" style={{paddingLeft: "3px", marginBottom: "3px"}}>this.props.i18n.t("competition_process.strategy.enter"</label>
                     <textarea className="form-control" id="strategy-text" rows="3" defaultValue={this.props.defaultText} onChange={el => {
                         this.strategyText = el.target.value.toString();
                         this.onTextChanges();
@@ -52,7 +53,7 @@ class StrategySubmissionComponent extends React.Component {
             button = (
                 <div style={{paddingTop: "10px"}} className={"row justify-content-center"}>
                     <div style={{width: "20%", minWidth: "15em"}}>
-                    <DefaultSubmitButton text={"Отправить стратегию"} onClick={this.onSubmitButtonClicked}/>
+                    <DefaultSubmitButton text={this.props.i18n.t("competition_process.strategy.send")} onClick={this.onSubmitButtonClicked}/>
                     </div>
                 </div>
             )
@@ -65,7 +66,7 @@ class StrategySubmissionComponent extends React.Component {
                              onClick={() => this.setState(prevState => {
                          return {isExpanded: !prevState.isExpanded};
                      })}><div className={"col-7"} style={{padding: 0, margin: "5px 0"}}>
-                            Стратегия
+                            {this.props.i18n.t("competition_process.strategy.strategy")}
                         </div>
                             <div className={"col-2"} style={{padding: 0, height: 0}}>
                             <button style={{
@@ -87,4 +88,4 @@ class StrategySubmissionComponent extends React.Component {
     }
 }
 
-export default StrategySubmissionComponent;
+export default withTranslation('translation')(StrategySubmissionComponent);

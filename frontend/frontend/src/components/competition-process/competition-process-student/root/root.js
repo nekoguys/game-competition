@@ -291,7 +291,7 @@ class CompetitionProcessStudentRoot extends React.Component {
         console.log(this.state)
         const roundText = currentRoundNumber === 0 ? 
             this.props.i18n.t("competition_process.student.root.game_not_started_yet") : 
-            (this.props.i18n.t("competition_process.student.root.current_round") + currentRoundNumber + (this.state.isCurrentRoundEnded ? " закончен" : ""));
+            (this.props.i18n.t("competition_process.student.root.current_round") + currentRoundNumber + (this.state.isCurrentRoundEnded ? this.props.i18n.t("competition_process.student.root.ended") : ""));
 
         return (
             <div>

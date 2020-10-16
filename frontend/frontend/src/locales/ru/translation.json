@@ -39,10 +39,12 @@
       "root": {
         "game_not_started_yet": "Игра ещё не началась",
         "current_round": "Текущий раунд",
+        "ended": " закончен",
         "game": "Игра: ",
         "until_end": "До конца раунда: ",
         "team": "Команда ",
-        "seconds": "sec"
+        "seconds": "сек",
+        "strategy": "Стратегия"
       },
       "send_answer": {
         "production_in_new_round": "Выпуск в новом раунде"
@@ -75,6 +77,11 @@
       "root": {
         "game": "Игра: "
       }
+    },
+    "strategy": {
+      "send": "Отправить стратегию",
+      "strategy": "Стратегия",
+      "enter": "Введите стратегию"
     }
   },
   "competition_history": {

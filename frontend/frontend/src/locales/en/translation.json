@@ -39,10 +39,12 @@
       "root": {
         "game_not_started_yet": "Game has not started yet",
         "current_round": "Current round",
+        "ended": " ended",
         "game": "Game: ",
         "until_end": "Until round end: ",
         "team": "Team ",
-        "seconds": "sec"
+        "seconds": "sec",
+        "strategy": "Strategy"
       },
       "send_answer": {
         "production_in_new_round": "Production in new round"
@@ -76,6 +78,11 @@
         "game": "Game: "
       }
     }
+  },
+  "strategy": {
+    "send": "Send strategy",
+    "strategy": "Strategy",
+    "enter": "Enter strategy"
   },
   "competition_history": {
     "last_games": "Recent games",
