@@ -1,5 +1,6 @@
 import React from "react";
 import round from "../../../../helpers/round-helper";
+import {withTranslation} from "react-i18next";
 
 class OneRoundResultsTable extends React.Component {
     firstRow(roundsCount) {
@@ -17,7 +18,9 @@ class OneRoundResultsTable extends React.Component {
 
         return (
             <tr key={-1}>
-                <td key={0} width={toStr(1)}>{"Раунд"}</td>
+                <td key={0} width={toStr(1)}>
+                    {this.props.i18n.t("competition_process.student.results.round")}
+                </td>
 
                 {res}
 
@@ -73,4 +76,4 @@ class OneRoundResultsTable extends React.Component {
     }
 }
 
-export default OneRoundResultsTable;
+export default withTranslation('translation')(OneRoundResultsTable);

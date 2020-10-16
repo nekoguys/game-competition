@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom'
 
 import "./results-table.css";
 import round from "../../../../helpers/round-helper";
+import {withTranslation} from "react-i18next";
 
 
 class CompetitionResultsTable extends React.Component {
@@ -54,7 +55,7 @@ class CompetitionResultsTable extends React.Component {
         return (
             <tr key={-1}>
                 <td colSpan={4} width={toStr(4)} style={{textAlign: "center"}} key={0}>
-                    {"Раунд/Команда"}
+                    {this.props.i18n.t("competition_process.teacher.table.round_team")}
                 </td>
                 {
                     this.teamsPermutation(teamsCount).map(el => {
@@ -67,7 +68,7 @@ class CompetitionResultsTable extends React.Component {
                         let onClick_ = () => {};
                         if (this.shouldShowStrategy()) {
                             className = "popup";
-                            const strat = el in this.props.strategy ? this.props.strategy[el]['strategy'] : "Стратегии нет";
+                            const strat = el in this.props.strategy ? this.props.strategy[el]['strategy'] : this.props.i18n.t("competition_process.teacher.table.no_strategy");
                             popup = (
                                 <div>
                                 <span className={"popuptext"} ref={(element) => {
@@ -227,7 +228,7 @@ class CompetitionResultsTable extends React.Component {
         return (
             <div style={{width: "100%"}}>
                 <div style={{textAlign: "center", fontSize: "23px", paddingBottom: "10px"}}>
-                    {"Статистика"}
+                    {this.props.i18n.t("competition_process.teacher.table.stats")}
                 </div>
                 <table style={{width: "100%"}}>
                     <tbody>
@@ -240,4 +241,4 @@ class CompetitionResultsTable extends React.Component {
     }
 }
 
-export default CompetitionResultsTable;
+export default withTranslation('translation')(CompetitionResultsTable);

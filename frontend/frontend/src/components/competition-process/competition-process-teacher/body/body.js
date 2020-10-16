@@ -10,6 +10,7 @@ import processMessagesEvents from "../../../../helpers/messages-event-source-hel
 import showNotification from "../../../../helpers/notification-helper";
 import * as Constants from "../../../../helpers/constants";
 import ChangeRoundLengthContainer from "../change-round-length-container";
+import {withTranslation} from "react-i18next";
 
 
 class CompetitionProcessTeacherBody extends React.Component {
@@ -352,9 +353,12 @@ class CompetitionProcessTeacherActive extends React.Component {
         const {round, timeLeft, isRoundEnded} = this.props;
 
 
-        const rightButtonText = round === 0 ? "Начать игру" : (isRoundEnded ? "Начать новый раунд" : "Закончить раунд");
+        const rightButtonText = round === 0 ? 
+        this.props.i18n.t("competition_process.teacher.body.game") : (isRoundEnded ? this.props.i18n.t("competition_process.teacher.body.start_new_round") : this.props.i18n.t("competition_process.teacher.body.end_round"));
 
-        const roundText = round === 0 ? "Игра еще не началась" : ("Текущий раунд: " + round.toString() + (isRoundEnded ? " закончен" : ""));
+        const roundText = round === 0 ? 
+            this.props.i18n.t("competition_process.teacher.body.game_not_started_yet") : 
+            (this.props.i18n.t("competition_process.teacher.body.current_round") + round.toString() + (isRoundEnded ? this.props.i18n.t("competition_process.teacher.body.ended") : ""));
 
         console.log({props: this.props});
 
@@ -372,7 +376,8 @@ class CompetitionProcessTeacherActive extends React.Component {
         if (this.props.round !== 0 && !(this.props.isRoundEnded && this.props.round === this.props.roundsCount)) {
             restartGameButton = (
                 <div style={{paddingTop: "20px"}}>
-                    <DefaultSubmitButton text={"Начать игру заново"} onClick={this.props.restartGameCallback}/>
+                    <DefaultSubmitButton text={this.props.i18n.t("competition_process.teacher.body.restart_game")} 
+                                         onClick={this.props.restartGameCallback}/>
                 </div>
             )
         }
@@ -390,7 +395,7 @@ class CompetitionProcessTeacherActive extends React.Component {
                     </div>
                     <div className={"col-4"}>
                         <div style={{textAlign: "center", fontSize: "23px"}}>
-                            {"До конца раунда: " + timeLeft + "сек"}
+                            {this.props.i18n.t("competition_process.teacher.body.until_round_end") + timeLeft + this.props.i18n.t("competition_process.teacher.body.second")}
                         </div>
                         {beginEndRoundButton}
                     </div>
@@ -415,4 +420,4 @@ class CompetitionProcessTeacherActive extends React.Component {
     }
 }
 
-export default CompetitionProcessTeacherBody;
+export default withTranslation('translation')(CompetitionProcessTeacherBody);
