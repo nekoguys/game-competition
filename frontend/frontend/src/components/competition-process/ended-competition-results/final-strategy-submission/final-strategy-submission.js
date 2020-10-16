@@ -7,6 +7,8 @@ import showNotification from "../../../../helpers/notification-helper";
 import DefaultSubmitButton from "../../../common/default-submit-button";
 import withAuthenticated from "../../../../helpers/with-authenticated";
 
+import {withTranslation} from "react-i18next";
+
 class FinalStrategySubmissionComponent extends React.Component {
     constructor(props) {
         super(props);
@@ -71,6 +73,9 @@ class FinalStrategySubmissionComponent extends React.Component {
     };
 
     render() {
+
+        const {i18n} = this.props;
+
         return (
             <div>
                 <div style={{textAlign: "center", fontSize: "26px"}}>

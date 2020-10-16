@@ -1,8 +1,14 @@
 import React from "react";
 import {MessagesListContainer} from "../../competition-process-teacher/messages/messages-container";
 
+import {withTranslation} from "react-i18next";
+
 class ReadonlyMessagesContainer extends React.Component {
     render() {
+
+
+        const {i18n} = this.props;
+
         const buttonStyle = {
             backgroundColor: "Transparent",
             padding: "-5px",
@@ -20,6 +26,7 @@ class ReadonlyMessagesContainer extends React.Component {
         };
 
         return (
+
             <div className={"row"}>
                 <div className={"col-3"} style={{textAlign: "right", paddingTop: "10px"}}>
                     {i18n.t('competition_results.messages')}

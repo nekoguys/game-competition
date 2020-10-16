@@ -8,6 +8,9 @@ import DefaultSubmitButton from "../../common/default-submit-button";
 import withRedirect from "../../../helpers/redirect-helper";
 import showNotification from "../../../helpers/notification-helper";
 
+import {withTranslation} from "react-i18next";
+
+
 class CreateCompetition extends React.Component {
     constructor(props) {
         super(props);
@@ -82,6 +85,7 @@ class CreateCompetition extends React.Component {
     };
 
     onCreateCompetition = (obj, successCallback) => {
+        
         const timeout = 800;
 
         ApiHelper.createCompetition(obj).then(response => {
@@ -117,6 +121,9 @@ class CreateCompetition extends React.Component {
     };
 
     render() {
+
+        const {i18n} = this.props;
+
         return (
             <div>
                 <div>

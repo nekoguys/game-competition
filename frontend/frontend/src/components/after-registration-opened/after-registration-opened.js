@@ -12,6 +12,7 @@ import getValueForJsonObject from "../../helpers/competition-params-helper";
 import withRedirect from "../../helpers/redirect-helper";
 
 import showNotification from "../../helpers/notification-helper";
+import {withTranslation} from "react-i18next";
 
 
 class AfterRegistrationOpenedComponent extends React.Component {
@@ -132,6 +133,9 @@ class AfterRegistrationOpenedComponent extends React.Component {
     };
 
     render() {
+        
+        const {i18n} = this.props;
+
         const {pin} = this.props.match.params;
         console.log(pin);
 
