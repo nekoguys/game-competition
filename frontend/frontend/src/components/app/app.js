@@ -96,20 +96,20 @@ export default class App extends React.Component{
     render() {
         return (
             <div>
-            <Router>
-                <Switch>
-                    <Redirect exact from="/" to="/auth/signin" />
-                    {
-                        paths.map(({path, component: C}, index) => {
-                            return (
-                                <Route key={index} path={path}
-                                       render={(props) => <C {...props} showNotification={this.showNotification}/>}
-                                />
-                            )
-                        })
-                    }
-                </Switch>
-            </Router>
+                <Router>
+                    <Switch>
+                        <Redirect exact from="/" to="/auth/signin" />
+                        {
+                            paths.map(({path, component: C}, index) => {
+                                return (
+                                    <Route key={index} path={path}
+                                           render={(props) => <C {...props} showNotification={this.showNotification}/>}
+                                    />
+                                )
+                            })
+                        }
+                    </Switch>
+                </Router>
                 <div>
                     <NotificationContainer/>
                 </div>

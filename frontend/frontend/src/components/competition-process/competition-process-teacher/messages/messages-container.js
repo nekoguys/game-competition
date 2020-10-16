@@ -2,6 +2,7 @@ import React from "react";
 import {TextInputWithSubmitButton} from "../../../join-competition/join-competition-player-form/join-competition-player-form.js";
 import submitButtonImage from "../../../join-competition/join-competition-player-form/submitButton.png";
 import "./messages-container.css";
+import {withTranslation} from "react-i18next";
 
 class MessagesContainer extends React.Component {
     render() {
@@ -24,7 +25,7 @@ class MessagesContainer extends React.Component {
         return (
             <div className={"row"}>
                 <div className={"col-4"} style={{textAlign: "right", paddingTop: "5px"}}>
-                    {"Сообщение студентам"}
+                    {this.props.i18n.t("competition_process.teacher.messages.message")}
                 </div>
                 <div className={"col-5"}>
                     <TextInputWithSubmitButton imagePath={submitButtonImage}
@@ -81,4 +82,4 @@ class SingleMessageContainer extends React.Component {
     }
 }
 
-export default MessagesContainer;
+export default withTranslation('translation')(MessagesContainer);

@@ -8,6 +8,9 @@ import DefaultSubmitButton from "../../common/default-submit-button";
 import withRedirect from "../../../helpers/redirect-helper";
 import showNotification from "../../../helpers/notification-helper";
 
+import {withTranslation} from "react-i18next";
+
+
 class CreateCompetition extends React.Component {
     constructor(props) {
         super(props);
@@ -82,6 +85,7 @@ class CreateCompetition extends React.Component {
     };
 
     onCreateCompetition = (obj, successCallback) => {
+        
         const timeout = 800;
 
         ApiHelper.createCompetition(obj).then(response => {
@@ -117,6 +121,9 @@ class CreateCompetition extends React.Component {
     };
 
     render() {
+
+        const {i18n} = this.props;
+
         return (
             <div>
                 <div>
@@ -124,7 +131,7 @@ class CreateCompetition extends React.Component {
                 </div>
                 <div style={{paddingTop: "100px"}}>
                     <div style={{margin: "0 auto", textAlign: "center", fontSize: "36px"}}>
-                        <span>Создание Игры
+                        <span>i18n.t('create_competition.create_game')
                         </span>
                     </div>
                     <div className={"competition-form-holder"}>
@@ -132,11 +139,11 @@ class CreateCompetition extends React.Component {
                                                initialState={this.props.history.location.state ? this.props.history.location.state.initialState : {}}/>
                         <div className={"form-group row"} style={{marginTop: "30px", marginLeft: "7.5%", marginRight: "7.5%"}}>
                             <div className={"mr-auto p-2"}>
-                                <DefaultSubmitButton text={"Сохранить черновик"} style={{height: "100%", fontSize: "26px",
+                                <DefaultSubmitButton text={i18n.t('create_competition.save_draft')} style={{height: "100%", fontSize: "26px",
                                     paddingTop: "15.5px", paddingBottom: "15.5px"}} onClick={() => this.onSaveAsDraftClick()}/>
                             </div>
                             <div className={"p-2"}>
-                                <DefaultSubmitButton text={"Открыть регистрацию"} style={{height: "100%", fontSize: "26px",
+                                <DefaultSubmitButton text={i18n.t('create_competition.open_registration')} style={{height: "100%", fontSize: "26px",
                                     paddingTop: "15.5px", paddingBottom: "15.5px"}}
                                                      onClick={() => this.onOpenRegistrationClick()}/>
                             </div>
@@ -150,4 +157,4 @@ class CreateCompetition extends React.Component {
     }
 }
 
-export default withRedirect(CreateCompetition);
+export default withTranslation('translation')(withRedirect(CreateCompetition));

@@ -7,6 +7,8 @@ import showNotification from "../../../../helpers/notification-helper";
 import DefaultSubmitButton from "../../../common/default-submit-button";
 import withAuthenticated from "../../../../helpers/with-authenticated";
 
+import {withTranslation} from "react-i18next";
+
 class FinalStrategySubmissionComponent extends React.Component {
     constructor(props) {
         super(props);
@@ -57,9 +59,9 @@ class FinalStrategySubmissionComponent extends React.Component {
         }).then(el => {
             el.json.then(jsonBody => {
                 if (el.success) {
-                    showNotification(this).success(jsonBody.message, "Успех", 2500);
+                    showNotification(this).success(jsonBody.message, "Success", 2500);
                 } else {
-                    showNotification(this).error(jsonBody, "Ошибка", 4000);
+                    showNotification(this).error(jsonBody, "Error", 4000);
                 }
             })
         })
@@ -71,21 +73,24 @@ class FinalStrategySubmissionComponent extends React.Component {
     };
 
     render() {
+
+        const {i18n} = this.props;
+
         return (
             <div>
                 <div style={{textAlign: "center", fontSize: "26px"}}>
-                    {"Игра: " + this.state.competitionName}
+                    {i18n.t('competition_results.game') + this.state.competitionName}
                 </div>
                 <div className={"game-state-holder"}>
                     <div style={{textAlign: "center", fontSize: "26px"}}>
-                        {"Команда " + this.state.teamIdInGame + ": " + this.state.teamName}
+                        {i18n.t('competition_results.team') + this.state.teamIdInGame + ": " + this.state.teamName}
                     </div>
                     <div style={{paddingTop: "30px"}}>
                         <StrategySubmissionComponent defaultText={this.state.fetchedStrategy} isExpanded={true} onSubmit={this.submitStrategy}/>
                     </div>
                     <div style={{paddingTop: "30px"}} className={"row justify-content-center"}>
                         <div style={{width: "20%", minWidth: "15em"}}>
-                            <DefaultSubmitButton text={"Продолжить"} onClick={this.onSubmitButtonClicked}/>
+                            <DefaultSubmitButton text={i18n.t('competition_results.continue')} onClick={this.onSubmitButtonClicked}/>
                         </div>
                     </div>
                 </div>
@@ -95,4 +100,4 @@ class FinalStrategySubmissionComponent extends React.Component {
 
 }
 
-export default withAuthenticated(FinalStrategySubmissionComponent);
+export default withTranslation('translation')(withAuthenticated(FinalStrategySubmissionComponent));

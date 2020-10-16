@@ -8,6 +8,7 @@ import ApiHelper from "../../../../helpers/api-helper";
 import TeamCollection from "../../../join-competition/join-competition-player-form/team-collection";
 import DescriptionHolder from "../../competition-process-student/description";
 import {isTeacher} from "../../../../helpers/role-helper";
+import {withTranslation} from "react-i18next";
 
 class EndedCompetitionResultsRoot extends React.Component {
     constructor(props) {
@@ -82,6 +83,9 @@ class EndedCompetitionResultsRoot extends React.Component {
     }
 
     render() {
+
+        const {i18n} = this.props;
+
         const {pin} = this.props.match.params;
         const {competitionName} = this.state;
 
@@ -111,10 +115,10 @@ class EndedCompetitionResultsRoot extends React.Component {
                 <div style={{paddingTop: "100px"}}>
                     <div style={{fontSize: "26px"}}>
                         <div style={{textAlign: "center"}}>
-                            {"Игра: " + competitionName + ", ID: " + pin}
+                            {i18n.t('competition_results.game') + competitionName + ", ID: " + pin}
                         </div>
                         <div style={{textAlign: "center"}}>
-                            {"Закончена"}
+                            {i18n.t('competition_results.ended')}
                         </div>
                     </div>
                 </div>
@@ -141,4 +145,4 @@ class EndedCompetitionResultsRoot extends React.Component {
     }
 }
 
-export default EndedCompetitionResultsRoot;
+export default withTranslation('translation')(EndedCompetitionResultsRoot);

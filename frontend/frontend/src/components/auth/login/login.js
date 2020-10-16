@@ -4,11 +4,12 @@ import LoginForm from "../login-form";
 import {withRouter} from "react-router-dom";
 import ApiHelper from "../../../helpers/api-helper";
 import 'react-notifications/lib/notifications.css';
-
+import {withTranslation} from "react-i18next";
 
 import "./login.css"
 import showNotification from "../../../helpers/notification-helper";
 import isAuthenticated from "../../../helpers/is-authenticated";
+import LanguageChangeComponent from "../language-change/language-change";
 
 class Login extends React.Component {
     constructor(props) {
@@ -83,18 +84,21 @@ class Login extends React.Component {
         };
 
         return (
+            <div>
             <div className={"container login-group"}>
                 <div className={"d-flex headers"}>
-                    <Header text={"Войти"} style={headerStyle} isSelected={true}/>
-                    <Header text={"Регистрация"} isSelected={false} onClick={this.onHeaderRegisterClick} />
+                    <Header text={this.props.i18n.t("auth.login.enter")} style={headerStyle} isSelected={true}/>
+                    <Header text={this.props.i18n.t("auth.login.register")} isSelected={false} onClick={this.onHeaderRegisterClick} />
                 </div>
                 <LoginForm onEmailChanged={this.onEmailChanged}
                            onPasswordChanged={this.onPasswordChanged}
                            onSubmit={this.onSubmitClick}
                 />
             </div>
+                <LanguageChangeComponent/>
+            </div>
         )
     }
 }
 
-export default withRouter(Login);
+export default withTranslation('translation')(withRouter(Login));

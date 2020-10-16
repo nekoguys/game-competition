@@ -15,6 +15,7 @@ import withAuthenticated from "../../../../helpers/with-authenticated";
 
 import * as Constants from "../../../../helpers/constants";
 import StrategySubmissionComponent from "../../strategy-submission";
+import {withTranslation} from "react-i18next";
 
 
 class CompetitionProcessStudentRoot extends React.Component {
@@ -73,7 +74,7 @@ class CompetitionProcessStudentRoot extends React.Component {
     onRedirectToResultsPage = () => {
         this.setState(prevState => {
             if (!prevState.didEnd) {
-                showNotification(this).success("Игра закончена", "Игра закончена", 2500);
+                showNotification(this).success("Game over", "Game over", 2500);
 
                 setTimeout(() => {
                     const {pin} = this.props.match.params;
@@ -252,9 +253,9 @@ class CompetitionProcessStudentRoot extends React.Component {
         }).then(el => {
             el.json.then(jsonBody => {
                 if (el.success) {
-                    showNotification(this).success(jsonBody.message, "Успех", 2500);
+                    showNotification(this).success(jsonBody.message, "Success", 2500);
                 } else {
-                    showNotification(this).error(jsonBody, "Ошибка", 4000);
+                    showNotification(this).error(jsonBody, "Error", 4000);
                 }
             })
         })
@@ -288,7 +289,9 @@ class CompetitionProcessStudentRoot extends React.Component {
             );
         }
         console.log(this.state)
-        const roundText = currentRoundNumber === 0 ? "Игра ещё не началась" : ("Текущий раунд: " + currentRoundNumber + (this.state.isCurrentRoundEnded ? " закончен" : ""));
+        const roundText = currentRoundNumber === 0 ? 
+            this.props.i18n.t("competition_process.student.root.game_not_started_yet") : 
+            (this.props.i18n.t("competition_process.student.root.current_round") + currentRoundNumber + (this.state.isCurrentRoundEnded ? " закончен" : ""));
 
         return (
             <div>
@@ -297,7 +300,7 @@ class CompetitionProcessStudentRoot extends React.Component {
                 </div>
                 <div style={{paddingTop: "80px"}}>
                     <div style={{textAlign: "center", fontSize: "26px"}}>
-                        {"Игра: " + competitionName}
+                        {this.props.i18n.t("competition_process.student.root.game") + competitionName}
                     </div>
                     <div className={"game-state-holder"}>
                         <div className={"row justify-content-between"}>
@@ -310,12 +313,12 @@ class CompetitionProcessStudentRoot extends React.Component {
                             </div>
                             <div className={"col-4"}>
                                 <div style={{textAlign: "center", fontSize: "23px"}}>
-                                    {"До конца раунда: " + timeTillRoundEnd + "сек"}
+                                    {this.props.i18n.t("competition_process.student.root.until_end") + timeTillRoundEnd + "сек"}
                                 </div>
                             </div>
                         </div>
                         <div style={{textAlign: "center", fontSize: "26px"}}>
-                            {"Команда " + this.state.teamIdInGame + ": " + this.state.teamName}
+                            {this.props.i18n.t("competition_process.student.root.team") + this.state.teamIdInGame + ": " + this.state.teamName}
                         </div>
                         <div style={{paddingTop: "10px", width: "100%"}}>
                             {table}
@@ -347,4 +350,4 @@ class CompetitionProcessStudentRoot extends React.Component {
     }
 }
 
-export default withAuthenticated(CompetitionProcessStudentRoot);
+export default withTranslation('translation')(withAuthenticated(CompetitionProcessStudentRoot));
