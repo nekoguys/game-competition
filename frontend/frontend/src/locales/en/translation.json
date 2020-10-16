@@ -77,12 +77,12 @@
       "root": {
         "game": "Game: "
       }
-    }
-  },
-  "strategy": {
-    "send": "Send strategy",
-    "strategy": "Strategy",
-    "enter": "Enter strategy"
+    },
+    "strategy": {
+      "send": "Send strategy",
+      "strategy": "Strategy",
+      "enter": "Enter strategy"
+    },
   },
   "competition_history": {
     "last_games": "Recent games",
