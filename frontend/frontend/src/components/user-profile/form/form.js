@@ -2,6 +2,7 @@ import React from "react";
 import DefaultTextInput from "../../common/default-text-input";
 
 import "./form.css";
+import {withTranslation} from "react-i18next";
 
 class UserProfileForm extends React.Component {
     constructor(props) {
@@ -24,12 +25,14 @@ class UserProfileForm extends React.Component {
             textAlign: "left"
         };
 
+        const { i18n } = this.props;
+
         return (
             <div>
                 <div>
                     <div className={"row my-row"}>
                         <div className={"col-3 flex-center-vertically label-style"}>
-                            {"Фамилия:"}
+                            {i18n.t('profile.last_name') + ":"}
                         </div>
                         <div className={"col-9"}>
                             <DefaultTextInput style={textInputStyle} onChange={(val) => {
@@ -39,7 +42,7 @@ class UserProfileForm extends React.Component {
                     </div>
                     <div className={"row my-row"}>
                         <div className={"col-3 flex-center-vertically label-style"} >
-                            {"Имя:"}
+                            {i18n.t('profile.first_name') + ":"}
                         </div>
                         <div className={"col-9"}>
                             <DefaultTextInput style={textInputStyle} onChange={(val) => {
@@ -57,7 +60,7 @@ class UserProfileForm extends React.Component {
                     </div>
                     <div className={"row my-row"}>
                         <div className={"col-3 flex-center-vertically label-style"} >
-                            {"Новый пароль:"}
+                            {i18n.t('profile.new_password') + ":"}
                         </div>
                         <div className={"col-9"}>
                             <DefaultTextInput style={textInputStyle} type={"password"} onChange={(val) => {
@@ -71,4 +74,4 @@ class UserProfileForm extends React.Component {
     }
 }
 
-export default UserProfileForm;
+export default withTranslation('translation')(UserProfileForm);

@@ -27,7 +27,7 @@ class ForbiddenError extends React.Component {
                 </div>
                 <div style={{paddingTop: "320px", textAlign: "center", fontSize: "36px"}}>
                     <span>
-                            Отказано в доступе
+                            Otkazano v dostupe
                         <br/>
                             403
                     </span>

@@ -87,5 +87,46 @@
       "draft": "Черновик",
       "ended": "Завершено"
     }
+  },
+  "profile": {
+    "last_name": "Фамилия",
+    "first_name": "Имя",
+    "new_password": "Новый пароль",
+    "profile": "Профиль",
+    "save": "Сохранить"
+  },
+  "join_competition": {
+    "join": {
+      "captain": "Капитан",
+      "member": "Участник"
+    },
+    "captain": {
+      "game": "ID игры",
+      "team_name": "Название команды",
+      "password": "Пароль для входа",
+      "enter": "Войти в игру"
+    },
+    "member": {
+      "find": "Найти команды"
+    }
+  },
+  "waiting_room": {
+    "save": "Сохранить",
+    "create": "Создание игры: ",
+    "registration_opened": "Регистрация открыта",
+    "show_settings": "Показать настройки",
+    "start_game": "Начать игру"
+  },
+  "create_competiton": {
+    "create_game": "Создание Игры",
+    "save_draft": "Сохранить черновик",
+    "open_registration": "Открыть регистрацию"
+  },
+  "competition_results": {
+    "game": "Игра: ",
+    "team": "Команда ",
+    "continue": "Продолжить",
+    "ended": "Закончена",
+    "messages": "Сообщения:"
   }
 }

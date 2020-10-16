@@ -69,9 +69,10 @@ class UserInfo extends React.Component {
             const split = userDesc.split('-');
             const role = split[split.length - 1];
             const prefix = userDesc.substring(0, userDesc.length - role.length);
-            if (role.toLowerCase() === "админ") {
+            console.log({role});
+            if (role.toLowerCase().endsWith("админ")) {
                 return prefix + " Admin";
-            } else if (role.toLowerCase() === "учитель") {
+            } else if (role.toLowerCase().endsWith("учитель")) {
                 return prefix + " Teacher"
             } else {
                 return prefix + " Student"

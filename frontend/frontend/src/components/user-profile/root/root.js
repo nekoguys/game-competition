@@ -7,6 +7,7 @@ import ApiHelper from "../../../helpers/api-helper";
 import DefaultSubmitButton from "../../common/default-submit-button";
 import showNotification from "../../../helpers/notification-helper";
 import withAuthenticated from "../../../helpers/with-authenticated";
+import {withTranslation} from "react-i18next";
 
 
 class UserProfileRoot extends React.Component {
@@ -82,6 +83,7 @@ class UserProfileRoot extends React.Component {
     };
 
     render() {
+        const {i18n} = this.props;
         console.log({state: this.state.formState});
         return (
             <div>
@@ -91,7 +93,7 @@ class UserProfileRoot extends React.Component {
 
                 <div style={{paddingTop: "80px"}}>
                     <div style={{fontSize: "27px", textAlign: "center", paddingTop: "30px", paddingBottom: "30px"}}>
-                        {"Профиль"}
+                        {i18n.t('profile.profile')}
                     </div>
                     <div className={"profile-form-holder"}>
                         <div>
@@ -99,7 +101,7 @@ class UserProfileRoot extends React.Component {
                         </div>
                         <div style={{marginBottom: "-10px"}}>
                             <div style={{width: "15%", margin: "0 auto"}}>
-                            <DefaultSubmitButton style={{width: "100%"}} text={"Сохранить"} onClick={this.onSave}/>
+                            <DefaultSubmitButton style={{width: "100%"}} text={i18n.t('profile.save')} onClick={this.onSave}/>
                             </div>
                         </div>
                     </div>
@@ -109,4 +111,4 @@ class UserProfileRoot extends React.Component {
     }
 }
 
-export default withAuthenticated(UserProfileRoot);
+export default withTranslation('translation')(withAuthenticated(UserProfileRoot));
