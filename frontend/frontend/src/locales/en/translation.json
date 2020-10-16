@@ -36,5 +36,27 @@
       "draft": "Draft",
       "ended": "Ended"
     }
+  },
+  "profile": {
+    "last_name": "Last Name",
+    "first_name": "First Name",
+    "new_password": "New Password",
+    "profile": "Profile",
+    "save": "Save"
+  },
+  "join_competition": {
+    "join": {
+      "captain": "Captain",
+      "member": "Member"
+    },
+    "captain": {
+      "game": "Game ID",
+      "team_name": "Team Name",
+      "password": "Password for joining team",
+      "enter": "Enter the Game"
+    },
+    "member": {
+      "find": "Find Team"
+    }
   }
 }

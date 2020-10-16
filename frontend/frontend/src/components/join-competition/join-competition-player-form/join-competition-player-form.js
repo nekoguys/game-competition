@@ -9,6 +9,7 @@ import {withRouter} from "react-router-dom";
 import showNotification from "../../../helpers/notification-helper";
 
 import "./join-competition-player-form.css";
+import {withTranslation} from "react-i18next";
 
 
 export class TextInputWithSubmitButton extends React.Component {
@@ -192,12 +193,13 @@ class JoinCompetitionPlayerForm extends React.Component {
             paddingBottom: "5px",
             backgroundColor: "white"
         };
+        const {i18n} = this.props;
 
         return (
             <div style={{marginTop: "40px"}}>
                 <div style={innerContainerStyle}>
                     <TextInputWithSubmitButton imagePath={submitButtonImage} containerStyle={{margin: "0 auto"}}
-                                               placeholder={"ID игры"} onSubmit={this.onGameIdSubmitButton}
+                                               placeholder={i18n.t('join_competition.captain.game')} onSubmit={this.onGameIdSubmitButton}
                                                buttonStyle={buttonStyle} inputStyle={inputStyle}
                                                imgStyle={{width: "35px", height: "35px"}}
                     />
@@ -212,7 +214,7 @@ class JoinCompetitionPlayerForm extends React.Component {
             <div style={{marginTop: "30px"}}>
                 <div style={{marginTop: "10px", width: "50%", margin:"0 auto"}}>
                     <DefaultTextInput
-                        placeholder={"Найти команду"}
+                        placeholder={this.props.i18n.t('join_competition.member.find')}
                         style={{
                             width: "100%",
                             borderRadius: "20px",
@@ -279,4 +281,4 @@ class JoinCompetitionPlayerForm extends React.Component {
     }
 }
 
-export default withRouter(JoinCompetitionPlayerForm);
+export default withTranslation('translation')(withRouter(JoinCompetitionPlayerForm));

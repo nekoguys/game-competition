@@ -95,7 +95,7 @@ class CompetitionHistory extends React.Component {
                             <div className={"row justify-content-center"}>
 
                                 <div style={{flex: "0 0 12.5%", paddingRight: "15px"}}>
-                                    <DefaultSubmitButton text={"Ещё"} onClick={() => {
+                                    <DefaultSubmitButton text={i18n.t('competition_history.more')} onClick={() => {
                                         this.updateHistory(CompetitionHistory.itemsPerPage);
                                     }} style={{padding: "10px 20px", width: "100%"}}/>
                                 </div>

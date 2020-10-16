@@ -9,6 +9,10 @@ class LanguageChangeComponent extends React.Component {
         this.props.i18n.changeLanguage(lang);
     };
 
+    componentDidMount() {
+        this.onChangeLanguage("en");
+    }
+
     render() {
         return (
             <div>
