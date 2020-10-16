@@ -23,6 +23,8 @@ class ChangeRoundLengthContainer extends React.Component {
             outline: "none"
         };
 
+        const { i18n } = this.props;
+
         return (
             <div className={"row"}>
                 <div className={"col-4"} style={{textAlign: "right"}}>
@@ -40,7 +42,7 @@ class ChangeRoundLengthContainer extends React.Component {
                                                imgStyle={{width: "35px", height: "35px"}}
                     />
                     <div style={{paddingTop: "10px"}}>
-                        <CurrentRoundLengthContainer currentRoundLength={this.props.currentRoundLength}/>
+                        <CurrentRoundLengthContainer i18n={i18n} currentRoundLength={this.props.currentRoundLength}/>
                     </div>
                 </div>
             </div>
