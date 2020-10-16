@@ -1,13 +1,15 @@
 {
-  "key": "value of key",
-  "welcome": {
-    "title": "Hello"
-  },
   "auth": {
-    "check": "kk",
     "login": {
       "enter": "Sign in",
-      "register": "Sign up"
+      "register": "Sign up",
+      "mail": "E-mail",
+      "password": "Password",
+      "button": "Enter"
+    },
+    "register": {
+      "button": "Register",
+      "repeat_password": "Confirm password"
     }
   }
 }

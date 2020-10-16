@@ -1,9 +1,15 @@
 {
-  "key": "value of key",
   "auth": {
     "login": {
       "enter": "Вход",
-      "register": "Регистрация"
+      "register": "Регистрация",
+      "mail": "Почта",
+      "password": "Пароль",
+      "button": "Войти"
+    },
+    "register": {
+      "button": "Зарегистрироваться",
+      "repeat_password": "Повторите пароль"
     }
   }
 }

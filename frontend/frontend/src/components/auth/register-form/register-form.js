@@ -3,6 +3,7 @@ import DefaultTextInput from "../../common/default-text-input";
 import DefaultSubmitButton from "../../common/default-submit-button";
 
 import "../login-form/login-form.css";
+import {useTranslation} from "react-i18next";
 
 const RegisterForm = ({isRegButtonDisabled = false,
                           onEmailChanged = () => {},
@@ -22,12 +23,14 @@ const RegisterForm = ({isRegButtonDisabled = false,
         marginBottom: "0.7rem"
     };
 
+    const { t } = useTranslation();
+
     return (
         <div className={"login-form form-group "}>
-            <DefaultTextInput style={formInputStyle} placeholder={"Почта"} onChange={onEmailChanged} />
-            <DefaultTextInput style={formInputStyle} placeholder={"Пароль"} type={"password"} onChange={onPasswordChanged} />
-            <DefaultTextInput style={formInputStyle} placeholder={"Повторите пароль"} type={"password"} onChange={onConfPasswordChanged} />
-            <DefaultSubmitButton text={"Зарегистрироваться"} style={buttonStyle} onClick={onSubmit} isDisabled={isRegButtonDisabled} />
+            <DefaultTextInput style={formInputStyle} placeholder={t('auth.login.mail')} onChange={onEmailChanged} />
+            <DefaultTextInput style={formInputStyle} placeholder={t('auth.login.password')} type={"password"} onChange={onPasswordChanged} />
+            <DefaultTextInput style={formInputStyle} placeholder={t('auth.register.repeat_password')} type={"password"} onChange={onConfPasswordChanged} />
+            <DefaultSubmitButton text={t('auth.register.button')} style={buttonStyle} onClick={onSubmit} isDisabled={isRegButtonDisabled} />
         </div>
     )
 };
