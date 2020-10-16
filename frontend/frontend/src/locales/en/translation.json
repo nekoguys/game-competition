@@ -10,6 +10,31 @@
     "register": {
       "button": "Register",
       "repeat_password": "Confirm password"
+    },
+    "verification": {
+      "process": "We are verifying your account",
+      "done": "Your account was verified"
+    }
+  },
+  "navbar": {
+    "header": {
+      "profile": "Profile",
+      "exit": "Exit",
+      "history": "Games history",
+      "create": "Create Game",
+      "join": "Join Game"
+    }
+  },
+  "competition_history": {
+    "last_games": "Recent games",
+    "name": "Name",
+    "status": "Status",
+    "more": "More",
+    "list": {
+      "registration": "registration",
+      "in_process": "In process",
+      "draft": "Draft",
+      "ended": "Ended"
     }
   }
 }

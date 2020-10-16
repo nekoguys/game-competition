@@ -10,6 +10,31 @@
     "register": {
       "button": "Зарегистрироваться",
       "repeat_password": "Повторите пароль"
+    },
+    "verification": {
+      "process": "Идет подтверждение аккаунта",
+      "done": "Аккаунт успешно подтвержден!"
+    }
+  },
+  "navbar": {
+    "header": {
+      "profile": "Профиль",
+      "exit": "Выйти",
+      "history": "История игр",
+      "create": "Создать игру",
+      "join": "Войти в игру"
+    }
+  },
+  "competition_history": {
+    "last_games": "Последние игры",
+    "name": "Название",
+    "status": "Статус",
+    "more": "Ещё",
+    "list": {
+      "registration": "Регистрация",
+      "in_process": "Запущено",
+      "draft": "Черновик",
+      "ended": "Завершено"
     }
   }
 }

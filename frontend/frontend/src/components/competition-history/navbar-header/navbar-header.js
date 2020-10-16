@@ -1,6 +1,7 @@
 import React from "react";
 import DefaultSubmitButton from "../../common/default-submit-button";
 import {withRouter} from "react-router-dom";
+import {withTranslation} from "react-i18next";
 import './navbar-header.css';
 import ApiHelper from "../../../helpers/api-helper";
 import buttonUpImage from "../../join-competition/join-competition-player-form/team-collection/buttonUp.png";
@@ -36,23 +37,23 @@ class NavbarHeader extends React.Component {
             paddingLeft: "20px",
             paddingRight: "20px"
         };
-
+        const { i18n } = this.props;
         let navbarButton;
         if (isTeacher())
-            navbarButton = <DefaultSubmitButton text="Создать игру" style={buttonsStyle} onClick={this.onCreateGameClick}/>;
+            navbarButton = <DefaultSubmitButton text={i18n.t('navbar.header.create')} style={buttonsStyle} onClick={this.onCreateGameClick}/>;
         else
-            navbarButton = <DefaultSubmitButton text="Войти в игру" style={buttonsStyle} onClick={this.onEnterGameClick}/>;
+            navbarButton = <DefaultSubmitButton text={i18n.t('navbar.header.join')} style={buttonsStyle} onClick={this.onEnterGameClick}/>;
 
         return (
             <div className="navbar-header-fixed-top">
                 <div className={"d-flex"} style={{marginTop: "20px", marginLeft: "40px"}}>
-                    <DefaultSubmitButton text="История игр" style={{...buttonsStyle, marginRight: "50px"}} onClick={this.onGameHistoryClick}/>
+                    <DefaultSubmitButton text={i18n.t('navbar.header.history')} style={{...buttonsStyle, marginRight: "50px"}} onClick={this.onGameHistoryClick}/>
                     {navbarButton}
 
 
                     <div style={{marginLeft: "auto"}}>
                         <div style={{paddingRight: "50px"}}>
-                        <UserInfo onRedirect={this.onRedirect} onNoNeedUpdateNavbar={this.props.onNoNeedUpdateNavbar} needUpdate={this.props.needUpdate}/>
+                        <UserInfo i18n={i18n} onRedirect={this.onRedirect} onNoNeedUpdateNavbar={this.props.onNoNeedUpdateNavbar} needUpdate={this.props.needUpdate}/>
                         </div>
                     </div>
                 </div>
@@ -62,6 +63,23 @@ class NavbarHeader extends React.Component {
 }
 
 class UserInfo extends React.Component {
+
+    translateRole = (userDesc) => {
+        if (window.localStorage.getItem("language") === "en") {
+            const split = userDesc.split('-');
+            const role = split[split.length - 1];
+            const prefix = userDesc.substring(0, userDesc.length - role.length);
+            if (role.toLowerCase() === "админ") {
+                return prefix + " Admin";
+            } else if (role.toLowerCase() === "учитель") {
+                return prefix + " Teacher"
+            } else {
+                return prefix + " Student"
+            }
+        }
+        return userDesc;
+    };
+
     constructor(props) {
         super(props);
 
@@ -140,6 +158,7 @@ class UserInfo extends React.Component {
     render() {
         let image;
         let res;
+        const { i18n } = this.props;
 
         if (this.state.isMenuOpened) {
             image = buttonDownImage;
@@ -155,7 +174,7 @@ class UserInfo extends React.Component {
                                 <img src={profileImage} width={"24px"} height={"24px"}/>
                             </div>
                             <div style={{textAlign: "center"}}>
-                            {"Профиль"}
+                            {i18n.t('navbar.header.profile')}
                             </div>
                         </div>
                     </div>
@@ -172,7 +191,7 @@ class UserInfo extends React.Component {
                                 <img src={exitImage} width={"24px"} height={"24px"}/>
                             </div>
                             <div style={{margin: "0 auto"}}>
-                                {"Выйти"}
+                                {i18n.t('navbar.header.exit')}
                             </div>
                         </div>
                     </div>
@@ -185,7 +204,7 @@ class UserInfo extends React.Component {
         return (
             <div className={"row"}>
                 <div style={{fontSize: "20px"}}>
-                    {this.state.userDesc}
+                    {this.translateRole(this.state.userDesc)}
                 </div>
                 <div>
                     <div className={"menu-button"} onClick={this.showMenu}>
@@ -208,4 +227,4 @@ class UserInfo extends React.Component {
     }
 }
 
-export default withRouter(NavbarHeader);
+export default withTranslation('translation')(withRouter(NavbarHeader));

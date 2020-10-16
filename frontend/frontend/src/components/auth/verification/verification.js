@@ -1,5 +1,6 @@
 import React from "react";
 import {withRouter} from "react-router-dom";
+import {withTranslation} from "react-i18next";
 import ApiHelper from "../../../helpers/api-helper";
 import showNotification from "../../../helpers/notification-helper";
 
@@ -38,9 +39,9 @@ class Verification extends React.Component {
 
     render() {
 
-        let res = "Идет подтверждение аккаунта";
+        let res = this.props.i18n.t('auth.verification.process');
         if (this.state.isVerified) {
-            res = "Аккаунт успешно подтвержден!";
+            res = this.props.i18n.t('auth.verification.done');
         }
 
         return (
@@ -53,4 +54,4 @@ class Verification extends React.Component {
     }
 }
 
-export default withRouter(Verification);
+export default withTranslation('translation')(withRouter(Verification));

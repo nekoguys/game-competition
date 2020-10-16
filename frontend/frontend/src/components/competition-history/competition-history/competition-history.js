@@ -7,6 +7,7 @@ import DefaultSubmitButton from "../../common/default-submit-button";
 
 import "./competition-history.css";
 import withAuthenticated from "../../../helpers/with-authenticated";
+import {withTranslation} from "react-i18next";
 
 class CompetitionHistory extends React.Component {
     static itemsPerPage = 4;
@@ -77,6 +78,7 @@ class CompetitionHistory extends React.Component {
     };
 
     render() {
+        const {i18n} = this.props;
         return (
             <div>
                 <div>
@@ -84,7 +86,7 @@ class CompetitionHistory extends React.Component {
                 </div>
                 <div style={{padding: "80px 40px 0px 40px"}}>
                     <div style={{fontSize: "28px", padding: "40px 0", textAlign: "center"}}>
-                        {"Последние игры"}
+                        {i18n.t('competition_history.last_games')}
                     </div>
                     <div className={"collection-holder"} style={{margin: "0 auto"}}>
                         <CompetitionCollection items={this.state.items} onHistoryItemClickCallback={this.onHistoryItemClickCallback} isAnyCloneable={this.state.isAnyCloneable}/>
@@ -111,4 +113,4 @@ class CompetitionHistory extends React.Component {
     }
 }
 
-export default withAuthenticated(CompetitionHistory);
+export default withTranslation('translation')(withAuthenticated(CompetitionHistory));
