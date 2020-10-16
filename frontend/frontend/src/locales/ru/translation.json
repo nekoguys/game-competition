@@ -41,7 +41,8 @@
         "current_round": "Текущий раунд",
         "game": "Игра: ",
         "until_end": "До конца раунда: ",
-        "team": "Команда "
+        "team": "Команда ",
+        "seconds": "sec"
       },
       "send_answer": {
         "production_in_new_round": "Выпуск в новом раунде"

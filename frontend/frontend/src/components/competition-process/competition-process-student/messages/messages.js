@@ -49,7 +49,7 @@ class MessagesContainer extends React.Component {
                     <div className={"show-messages"} style={{width: "40%", margin: "0 auto"}} onClick={this.expandOrCollapse}>
                         <div>
                         <div style={{display: "inline"}}>
-                            {this.props.i18n.t("auth.login.enter")}
+                            {this.props.i18n.t("competition_process.student.messages.messages")}
                         </div>
                         <button style={{
                             border: "none",
