@@ -41,7 +41,8 @@
         "current_round": "Current round",
         "game": "Game: ",
         "until_end": "Until round end: ",
-        "team": "Team "
+        "team": "Team ",
+        "seconds": "sec"
       },
       "send_answer": {
         "production_in_new_round": "Production in new round"
