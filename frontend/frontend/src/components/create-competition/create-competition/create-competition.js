@@ -131,7 +131,7 @@ class CreateCompetition extends React.Component {
                 </div>
                 <div style={{paddingTop: "100px"}}>
                     <div style={{margin: "0 auto", textAlign: "center", fontSize: "36px"}}>
-                        <span>i18n.t('create_competition.create_game')
+                        <span>{i18n.t('create_competition.create_game')}
                         </span>
                     </div>
                     <div className={"competition-form-holder"}>
