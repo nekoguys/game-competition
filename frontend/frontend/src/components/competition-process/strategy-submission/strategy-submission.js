@@ -42,7 +42,7 @@ class StrategySubmissionComponent extends React.Component {
         if (this.state.isExpanded) {
             form = (
                 <div className={"form-group"}>
-                    <label htmlFor="strategy-text" style={{paddingLeft: "3px", marginBottom: "3px"}}>this.props.i18n.t("competition_process.strategy.enter"</label>
+                    <label htmlFor="strategy-text" style={{paddingLeft: "3px", marginBottom: "3px"}}>{this.props.i18n.t("competition_process.strategy.enter")}</label>
                     <textarea className="form-control" id="strategy-text" rows="3" defaultValue={this.props.defaultText} onChange={el => {
                         this.strategyText = el.target.value.toString();
                         this.onTextChanges();
