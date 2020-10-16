@@ -58,5 +58,24 @@
     "member": {
       "find": "Найти команды"
     }
+  },
+  "waiting_room": {
+    "save": "Сохранить",
+    "create": "Создание игры: ",
+    "registration_opened": "Регистрация открыта",
+    "show_settings": "Показать настройки",
+    "start_game": "Начать игру"
+  },
+  "create_competiton": {
+    "create_game": "Создание Игры",
+    "save_draft": "Сохранить черновик",
+    "open_registration": "Открыть регистрацию"
+  },
+  "competition_results": {
+    "game": "Игра: ",
+    "team": "Команда ",
+    "continue": "Продолжить",
+    "ended": "Закончена",
+    "messages": "Сообщения:"
   }
 }

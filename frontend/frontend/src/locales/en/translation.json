@@ -37,6 +37,7 @@
       "ended": "Ended"
     }
   },
+
   "profile": {
     "last_name": "Last Name",
     "first_name": "First Name",
@@ -58,5 +59,25 @@
     "member": {
       "find": "Find Team"
     }
+  },
+
+  "waiting_room": {
+    "save": "Save",
+    "create": "Create game: ",
+    "registration_opened": "Registration is opened",
+    "show_settings": "Show settings",
+    "start_game": "Start game"
+  },
+  "create_competiton": {
+    "create_game": "Create game",
+    "save_draft": "Save draft",
+    "open_registration": "Open registration"
+  },
+  "competition_results": {
+    "game": "Game: ",
+    "team": "Team ",
+    "continue": "Continue",
+    "ended": "Ended",
+    "messages": "Messages:"
   }
 }

@@ -148,7 +148,7 @@ class AfterRegistrationOpenedComponent extends React.Component {
                     }}/>
                 </div>
                     <DefaultSubmitButton
-                        text={"Сохранить"}
+                        text={i18n.t('waiting_room.save')}
                         onClick={() => this.updateCompetition({}, (resp) => {
                             this.setState({formState: toCamelCase(resp)});
                             showNotification(this).success("Competition updated successfully", "Success", 900);
@@ -168,10 +168,10 @@ class AfterRegistrationOpenedComponent extends React.Component {
             <div>
                 <div style={{fontSize: "31px"}}>
                     <div style={{textAlign: "center"}}>
-                        {"Создание игры: " + pin}
+                        {i18n.t('waiting_room.create') + pin}
                     </div>
                     <div style={{textAlign: "center"}}>
-                        Регистрация открыта
+                        {i18n.t('waiting_room.registration_opened')}
                     </div>
                 </div>
                 <div className={"form-container"}>
@@ -181,7 +181,7 @@ class AfterRegistrationOpenedComponent extends React.Component {
                              return {isExpanded: !prevState.isExpanded};
                          })}>
                             <div style={{display: "inline"}}>
-                        Показать настройки
+                            {i18n.t('waiting_room.show_settings')}
                                 </div>
                         <button style={{
                             border: "none",
@@ -199,7 +199,7 @@ class AfterRegistrationOpenedComponent extends React.Component {
                         <TeamCollection items={this.state.items} isReadOnly={true}/>
                     </div>
                     <div style={{paddingTop: "40px", width: "25%", margin: "0 auto"}}>
-                        <DefaultSubmitButton text={"Начать игру"} onClick={() => {
+                        <DefaultSubmitButton text={i18n.t('waiting_room.start_game')} onClick={() => {
 
                             this.startCompetition(() => {
                                 showNotification(this).success("Competition Started!", "Success", 1500);
@@ -215,4 +215,4 @@ class AfterRegistrationOpenedComponent extends React.Component {
     }
 }
 
-export default withRedirect(AfterRegistrationOpenedComponent);
+export default withTranslation('translation')(withRedirect(AfterRegistrationOpenedComponent));

@@ -111,10 +111,10 @@ class EndedCompetitionResultsRoot extends React.Component {
                 <div style={{paddingTop: "100px"}}>
                     <div style={{fontSize: "26px"}}>
                         <div style={{textAlign: "center"}}>
-                            {"Игра: " + competitionName + ", ID: " + pin}
+                            {i18n.t('competition_results.game') + competitionName + ", ID: " + pin}
                         </div>
                         <div style={{textAlign: "center"}}>
-                            {"Закончена"}
+                            {i18n.t('competition_results.ended')}
                         </div>
                     </div>
                 </div>
@@ -141,4 +141,4 @@ class EndedCompetitionResultsRoot extends React.Component {
     }
 }
 
-export default EndedCompetitionResultsRoot;
+export default withTranslation('translation')(WithEndedCompetitionResultsRoot);

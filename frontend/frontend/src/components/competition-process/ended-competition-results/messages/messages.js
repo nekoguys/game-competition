@@ -22,7 +22,7 @@ class ReadonlyMessagesContainer extends React.Component {
         return (
             <div className={"row"}>
                 <div className={"col-3"} style={{textAlign: "right", paddingTop: "10px"}}>
-                    {"Сообщения:"}
+                    {i18n.t('competition_results.messages')}
                 </div>
                 <div className={"col-6"}>
                     <div>
@@ -34,4 +34,4 @@ class ReadonlyMessagesContainer extends React.Component {
     }
 }
 
-export default ReadonlyMessagesContainer;
+export default withTranslation('translation')(ReadonlyMessagesContainer);
