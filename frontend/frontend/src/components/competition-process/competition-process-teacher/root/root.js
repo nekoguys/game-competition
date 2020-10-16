@@ -5,6 +5,7 @@ import NavbarHeader from "../../../competition-history/navbar-header/navbar-head
 import CompetitionProcessTeacherBody from "../body";
 import withRedirect from "../../../../helpers/redirect-helper";
 import showNotification from "../../../../helpers/notification-helper";
+import {withTranslation} from "react-i18next";
 
 class CompetitionProcessTeacherRootComponent extends React.Component {
     constructor(props) {
@@ -23,7 +24,7 @@ class CompetitionProcessTeacherRootComponent extends React.Component {
     onRedirectToResultsPage = () => {
         this.setState(prevState => {
            if (!prevState.didEnd) {
-               showNotification(this).success("Игра закончена", "Игра закончена", 2500);
+               showNotification(this).success("Game over", "Game over", 2500);
 
                setTimeout(() => {
                    const {pin} = this.props.match.params;
@@ -46,7 +47,7 @@ class CompetitionProcessTeacherRootComponent extends React.Component {
                 <div style={{paddingTop: "80px"}}>
                     <div style={{fontSize: "26px"}}>
                         <div style={{textAlign: "center"}}>
-                            {"Игра: " + competitionName}
+                            {this.props.i18n.t("competition_process.teacher.root.game") + competitionName}
                         </div>
                         <div style={{textAlign: "center"}}>
                             {"ID: " + pin}
@@ -63,4 +64,4 @@ class CompetitionProcessTeacherRootComponent extends React.Component {
     }
 }
 
-export default withRedirect(CompetitionProcessTeacherRootComponent);
+export default withTranslation('translation')(withRedirect(CompetitionProcessTeacherRootComponent));

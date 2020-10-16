@@ -25,6 +25,57 @@
       "join": "Join Game"
     }
   },
+  "competition_process": {
+    "student": {
+      "description": {
+        "description": "Description"
+      },
+      "messages": {
+        "messages": "Messages"
+      },
+      "results": {
+        "round": "Round"
+      },
+      "root": {
+        "game_not_started_yet": "Game has not started yet",
+        "current_round": "Current round",
+        "game": "Game: ",
+        "until_end": "Until round end: ",
+        "team": "Team "
+      },
+      "send_answer": {
+        "production_in_new_round": "Production in new round"
+      }
+    },
+    "teacher": {
+      "body": {
+        "start_game": "Start game",
+        "start_new_round": "Start new round",
+        "end_round": "End round",
+        "game_not_started_yet": "Game has not started yet",
+        "current_round": "Current round: ",
+        "ended": " ended",
+        "restart_game": "Restart game",
+        "until_round_end": "Until round's end: ",
+        "seconds": "sec"
+      },
+      "round_length": {
+        "change_length": "Change round's length",
+        "current_length": "Current round's length"
+      },
+      "messages": {
+        "message": "Messages for students"
+      },
+      "table": {
+        "round_team": "Round/Team",
+        "no_strategy": "No strategy",
+        "stats": "Statistics"
+      },
+      "root": {
+        "game": "Game: "
+      }
+    }
+  },
   "competition_history": {
     "last_games": "Recent games",
     "name": "Name",

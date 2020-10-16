@@ -3,6 +3,7 @@ import {TextInputWithSubmitButton} from "../../../join-competition/join-competit
 
 import "./send-answer.css";
 import submitButtonImage from "../../../join-competition/join-competition-player-form/submitButton.png"
+import {withTranslation} from "react-i18next";
 
 class SendAnswer extends React.Component {
     render() {
@@ -32,7 +33,7 @@ class SendAnswer extends React.Component {
         return (
             <div className={"row"}>
                 <div className={"col-4"} style={{textAlign: 'right', paddingRight: "20px", paddingTop: "10px"}}>
-                    {"Выпуск в новом раунде"}
+                    {this.props.i18n.t("competition_process.student.send_answer.production_in_new_round")}
                 </div>
                 <div className={"col-5"} style={{paddingRight: "50px"}}>
                     <TextInputWithSubmitButton
@@ -51,4 +52,4 @@ class SendAnswer extends React.Component {
     }
 }
 
-export default SendAnswer;
+export default withTranslation('translation')(SendAnswer);

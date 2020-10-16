@@ -25,6 +25,57 @@
       "join": "Войти в игру"
     }
   },
+  "competition_process": {
+    "student": {
+      "description": {
+        "description": "Описание"
+      },
+      "messages": {
+        "messages": "Сообщения"
+      },
+      "results": {
+        "round": "Раунд"
+      },
+      "root": {
+        "game_not_started_yet": "Игра ещё не началась",
+        "current_round": "Текущий раунд",
+        "game": "Игра: ",
+        "until_end": "До конца раунда: ",
+        "team": "Команда "
+      },
+      "send_answer": {
+        "production_in_new_round": "Выпуск в новом раунде"
+      }
+    },
+    "teacher": {
+      "body": {
+        "start_game": "Начать игру",
+        "start_new_round": "Начать новый раунд",
+        "end_round": "Закончить раунд",
+        "game_not_started_yet": "Игра ещё не началась",
+        "current_round": "Текущий раунд: ",
+        "ended": " закончен",
+        "restart_game": "Начать игру заново",
+        "until_round_end": "До конца раунда: ",
+        "seconds": "сек"
+      },
+      "round_length": {
+        "change_length": "Изменение длины раунда",
+        "current_length": "Длина текущего раунда"
+      },
+      "messages": {
+        "message": "Сообщение студентам"
+      },
+      "table": {
+        "round_team": "Раунд/Команда",
+        "no_strategy": "Стратегии нет",
+        "stats": "Статистика"
+      },
+      "root": {
+        "game": "Игра: "
+      }
+    }
+  },
   "competition_history": {
     "last_games": "Последние игры",
     "name": "Название",

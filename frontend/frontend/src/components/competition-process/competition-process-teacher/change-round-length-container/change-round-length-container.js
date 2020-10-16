@@ -3,6 +3,7 @@ import React from "react";
 import "./change-round-length-container.css";
 import submitButtonImage from "../../../join-competition/join-competition-player-form/submitButton.png";
 import {TextInputWithSubmitButton} from "../../../join-competition/join-competition-player-form/join-competition-player-form";
+import {withTranslation} from "react-i18next";
 
 class ChangeRoundLengthContainer extends React.Component {
     render() {
@@ -25,7 +26,7 @@ class ChangeRoundLengthContainer extends React.Component {
         return (
             <div className={"row"}>
                 <div className={"col-4"} style={{textAlign: "right"}}>
-                    Изменение длины раунда
+                    {this.props.i18n.t("competition_process.teacher.round_length.change_length")}
                 </div>
                 <div className={"col-5"}>
                     <TextInputWithSubmitButton imagePath={submitButtonImage}
@@ -51,7 +52,7 @@ class ChangeRoundLengthContainer extends React.Component {
 class CurrentRoundLengthContainer extends React.Component {
     render() {
         const {currentRoundLength} = this.props;
-        const message = `Длина текущего раунда: ${currentRoundLength}`;
+        const message = `${this.props.i18n.t("competition_process.teacher.round_length.current_length")}: ${currentRoundLength}`;
         return (
             <div className={"row current-round-length-container"}>
                 {message}
@@ -60,4 +61,4 @@ class CurrentRoundLengthContainer extends React.Component {
     }
 }
 
-export default ChangeRoundLengthContainer;
+export default withTranslation('translation')(ChangeRoundLengthContainer);

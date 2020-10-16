@@ -480,7 +480,7 @@ public class GameManagementServiceImpl implements IGameManagementService {
         var bannedTeams = this.banTeams(results.getBannedTeams(), competition).flatMap(team -> {
             return this.addMessage(competition,
                     CompetitionMessageRequest.builder()
-                            .message(String.format("Игра: команда %d:\"%s\" выбывает из-за убытков", team.getIdInGame(), team.getName()))
+                            .message(String.format("Game: Team %d:\"%s\" is banned for exceeding loss limit", team.getIdInGame(), team.getName()))
                             .build()).thenReturn(team);
         }).collectList().doOnNext(banTeams -> {
             teamBanStorage.compute(competition.getPin(), (pin, before) -> {
