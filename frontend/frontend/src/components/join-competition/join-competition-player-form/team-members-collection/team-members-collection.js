@@ -9,7 +9,7 @@ class TeamMembersCollection extends React.Component {
 
         const elems = items.map(el => {
             return (<li key={el}>
-                {el}
+                🥺👉👈
             </li>)
         });
 
