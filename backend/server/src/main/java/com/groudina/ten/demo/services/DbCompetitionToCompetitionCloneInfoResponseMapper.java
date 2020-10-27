@@ -24,6 +24,7 @@ public class DbCompetitionToCompetitionCloneInfoResponseMapper implements IEntit
                 .shouldShowResultTableInEnd(params.isShouldShowResultTableInEnd())
                 .shouldShowStudentPreviousRoundResults(params.isShouldShowStudentPreviousRoundResults())
                 .isAutoRoundEnding(params.isAutoRoundEnding())
+                .showOtherTeamsMembers(params.isShowOtherTeamsMembers())
                 .build();
     }
 }
