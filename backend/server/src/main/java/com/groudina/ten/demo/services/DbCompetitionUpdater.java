@@ -76,6 +76,10 @@ public class DbCompetitionUpdater implements IEntityUpdater<DbCompetition, NewCo
             entity.getParameters().setAutoRoundEnding(competition.getIsAutoRoundEnding());
         }
 
+        if (Objects.nonNull(competition.getShowOtherTeamsMembers())) {
+            entity.getParameters().setShowOtherTeamsMembers(competition.getShowOtherTeamsMembers());
+        }
+
         return repository.save(entity);
     }
 }

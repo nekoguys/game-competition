@@ -34,6 +34,7 @@ class NewCompetitionToDbMapperTest {
                 .shouldShowStudentPreviousRoundResults(false)
                 .isAutoRoundEnding(false)
                 .teamLossUpperbound(1000.)
+                .showOtherTeamsMembers(true)
                 .build();
     }
 
@@ -50,7 +51,7 @@ class NewCompetitionToDbMapperTest {
         assertEquals(competitionDto.getShouldEndRoundBeforeAllAnswered(), result.getParameters().isShouldEndRoundBeforeAllAnswered());
         assertEquals(competitionDto.getShouldShowResultTableInEnd(), result.getParameters().isShouldShowResultTableInEnd());
         assertEquals(competitionDto.getShouldShowStudentPreviousRoundResults(), result.getParameters().isShouldShowStudentPreviousRoundResults());
-
+        assertEquals(competitionDto.getShowOtherTeamsMembers(), result.getParameters().isShowOtherTeamsMembers());
     }
 
     @Test

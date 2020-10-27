@@ -53,4 +53,7 @@ public class NewCompetition implements Serializable {
 
     @JsonProperty("is_auto_round_ending")
     private Boolean isAutoRoundEnding;
+
+    @JsonProperty("show_other_teams_members")
+    private Boolean showOtherTeamsMembers;
 }
