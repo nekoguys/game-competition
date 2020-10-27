@@ -34,18 +34,27 @@ class TeamCollectionElement extends React.Component {
         return "Команда " + (this.props.idInGame !== undefined ? this.props.idInGame.toString() + " :" : "") + this.props.name;
     }
 
+    isCurrentUserInTeam() {
+        const userEmail = window.localStorage.getItem("user_email");
+        return this.props.members.includes(userEmail);
+    }
+
     render() {
 
-        const {onSubmit = (teamName, password) => {}, members} = this.props;
+        const {onSubmit = (teamName, password) => {}, members = []} = this.props;
 
         let res;
         let strategyHolder;
         let image = buttonUpImage;
+        let realMembers = members;
+        if (!this.isCurrentUserInTeam() && !this.props.showOtherTeamsMembers) {
+            realMembers = members.map((el, ind) => "Completely Secret Team Member_" + ind.toString());
+        }
 
         if (this.state.isExpanded) {
             image = buttonDownImage;
             res = <TeamMembersCollection
-                items={members}
+                items={realMembers}
                 style={{marginRight: "20px", marginLeft: "20px", marginTop: "-20px", marginBottom: "-20px"}}
                 ulstyle={{
                     paddingTop: "20px", paddingBottom: "20px", marginBottom: "0",
@@ -115,13 +124,14 @@ class TeamCollection extends React.Component {
     render() {
         console.log(this.props.items);
 
-        const {isReadOnly} = this.props;
+        const {isReadOnly, showTeamMembers = true} = this.props;
 
 
         const items = this.props.items.map((item) => {
             return (
                 <div key={item.teamName}>
                     <TeamCollectionElement
+                        showOtherTeamsMembers={showTeamMembers}
                         name={item.teamName}
                         members={item.teamMembers}
                         idInGame={item.idInGame}

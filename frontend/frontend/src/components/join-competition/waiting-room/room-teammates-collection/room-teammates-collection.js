@@ -9,7 +9,7 @@ class RoomTeammatesCollection extends React.Component {
 
         return (
             <div style={{width: "80%", margin: "0 auto"}}>
-                <TeamCollection items={items} isReadOnly={true}/>
+                <TeamCollection showTeamMembers={this.props.showTeamMembers} items={items} isReadOnly={true}/>
             </div>
         );
     }

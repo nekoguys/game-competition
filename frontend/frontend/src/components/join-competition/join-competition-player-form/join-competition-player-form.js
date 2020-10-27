@@ -85,7 +85,8 @@ class JoinCompetitionPlayerForm extends React.Component {
             currentPage: "gamePinPage",
             items: [],
             searchedTeamName: "",
-            foundedTeams: []
+            foundedTeams: [],
+            showTeamMembers: true
         }
     }
 
@@ -113,6 +114,7 @@ class JoinCompetitionPlayerForm extends React.Component {
                     console.log({val});
                     if (val.exists) {
                         showNotification(this).success("Competition found successfully", "Success", timeout);
+                        this.fetchCompetitionInfo();
                         setTimeout(() => {
                             this.setState(prevState => {
                                 return {currentPage: "enterTeamPage"};
@@ -127,6 +129,28 @@ class JoinCompetitionPlayerForm extends React.Component {
             }
         })
     };
+
+    fetchCompetitionInfo() {
+        const pin = this.gameId;
+        ApiHelper.competitionInfoForTeams(pin).then(resp => {
+            if (resp.status >= 300) {
+                return {success: false, json: resp.text()}
+            } else {
+                return {success: true, json: resp.json()}
+            }
+        }).then(resp => {
+            resp.json.then(jsonBody => {
+                if (resp.success) {
+                    console.log("ShowTeamMembers", jsonBody.showTeamMembers, jsonBody);
+                    this.setState(prevState => {
+                        return {
+                            showTeamMembers: jsonBody.showTeamMembers ?? true
+                        }
+                    })
+                }
+            })
+        })
+    }
 
     setupTeamEventConnections() {
         if (this.eventSource === undefined) {
@@ -225,7 +249,7 @@ class JoinCompetitionPlayerForm extends React.Component {
                     />
                 </div>
                 <div style={{margin: "70px 15% 20px 15%",}}>
-                <TeamCollection items={items} gamePin={this.gameId} onSubmit={this.onSubmit}
+                <TeamCollection showTeamMembers={this.state.showTeamMembers} items={items} gamePin={this.gameId} onSubmit={this.onSubmit}
                 />
                 </div>
             </div>

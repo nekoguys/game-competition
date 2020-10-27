@@ -116,6 +116,10 @@ class ApiSettings {
         return ApiSettings.host() + "/competition_process/" + pin + "/student_comp_info";
     }
 
+    static competitionInfoForTeams(pin) {
+        return ApiSettings.host() + "/competition_process/" + pin + "/comp_info_teams";
+    }
+
     static submitAnswerEndPoint(pin) {
         return ApiSettings.host() + "/competition_process/" + pin + "/submit_answer";
     }
@@ -355,6 +359,13 @@ export default class ApiHelper {
 
     static studentCompetitionInfo(pin) {
         return fetch(ApiSettings.studentCompetitionInfo(pin), {
+            method: "GET",
+            headers: this.authDefaultHeaders()
+        })
+    }
+
+    static competitionInfoForTeams(pin) {
+        return fetch(ApiSettings.competitionInfoForTeams(pin), {
             method: "GET",
             headers: this.authDefaultHeaders()
         })
