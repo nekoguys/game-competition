@@ -18,3 +18,41 @@
 .grid-item-line {
     padding-top: 0.4rem;
 }
+
+.mymodal {
+    width: 500px;
+    background: white;
+    box-shadow: -5px 5px 5px rgba(0, 0, 0, 0.2);
+    margin: 0 auto;
+    position: absolute;
+    top: 50%;
+    right: 50%;
+    transform: translate(50%, -50%);
+}
+
+
+.mymodal h2 {
+    border-bottom: 1px solid #ccc;
+    padding: 1rem;
+    margin: 0;
+}
+.mymodal .content {
+    padding: 1rem;
+}
+.mymodal .actions {
+    background: #eee;
+    padding: 0.5rem 1rem;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+.mymodal .actions button {
+    border: 0;
+    background: #78f89f;
+    border-radius: 5px;
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+    line-height: 1;
+    width: 50%;
+    margin: 0 auto;
+}
