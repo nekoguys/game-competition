@@ -13,13 +13,15 @@ class WaitingRoom extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            items: []
+            items: [],
+            showTeamMembers: true
         }
     }
 
     componentDidMount() {
         this.setupTeamEventConnection();
         this.setupGameStartListener();
+        this.fetchCompetitionInfo();
     }
 
     componentWillUnmount() {
@@ -52,6 +54,7 @@ class WaitingRoom extends React.Component {
                     <RoomTeammatesCollection items={items}
                                              style={{paddingTop: "100px", fontSize: "20px"}}
                                              ulstyle={{listStyle: "none", MarginTop: "-10px"}}
+                                             showTeamMembers={this.state.showTeamMembers}
                     />
                     </div>
                 </div>
@@ -75,6 +78,28 @@ class WaitingRoom extends React.Component {
                 this.props.history.push("/competitions/process_captain/" + pin);
             }, timeout + 100);
         });
+    }
+
+    fetchCompetitionInfo() {
+        const {pin} = this.props.match.params;
+        ApiHelper.competitionInfoForTeams(pin).then(resp => {
+            if (resp.status >= 300) {
+                return {success: false, json: resp.text()}
+            } else {
+                return {success: true, json: resp.json()}
+            }
+        }).then(resp => {
+            resp.json.then(jsonBody => {
+                if (resp.success) {
+                    console.log("ShowTeamMembers", jsonBody.showTeamMembers, jsonBody);
+                    this.setState(prevState => {
+                        return {
+                            showTeamMembers: jsonBody.showTeamMembers ?? true
+                        }
+                    })
+                }
+            })
+        })
     }
 
     setupTeamEventConnection() {

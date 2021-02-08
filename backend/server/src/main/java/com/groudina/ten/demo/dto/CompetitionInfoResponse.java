@@ -40,6 +40,9 @@ public class CompetitionInfoResponse implements Serializable {
     @JsonProperty("isAutoRoundEnding")
     private boolean isAutoRoundEnding;
 
+    @JsonProperty("showOtherTeamsMembers")
+    private boolean showOtherTeamsMembers;
+
     private double teamLossUpperbound;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy")

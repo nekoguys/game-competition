@@ -132,6 +132,7 @@ class CompetitionsControllerTest {
                 .isAutoRoundEnding(false)
                 .maxTeamSize(3)
                 .teamLossUpperbound(1000.)
+                .showOtherTeamsMembers(true)
                 .build();
         webTestClient.post().uri("/api/competitions/create")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -173,6 +174,7 @@ class CompetitionsControllerTest {
                 .isAutoRoundEnding(true)
                 .teamLossUpperbound(1000.)
                 .maxTeamSize(3)
+                .showOtherTeamsMembers(true)
                 .build();
         webTestClient.post().uri("/api/competitions/create")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -214,6 +216,7 @@ class CompetitionsControllerTest {
                         .isAutoRoundEnding(false)
                         .teamLossUpperbound(1000.)
                         .maxTeamSize(3)
+                        .showOtherTeamsMembers(true)
                         .build()))
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange().expectStatus().isOk()
@@ -238,6 +241,7 @@ class CompetitionsControllerTest {
                         .isAutoRoundEnding(false)
                         .teamLossUpperbound(1000.)
                         .maxTeamSize(3)
+                        .showOtherTeamsMembers(true)
                         .build()))
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange().expectStatus().isOk()
@@ -789,6 +793,7 @@ class CompetitionsControllerTest {
                 .shouldShowResultTableInEnd(true)
                 .shouldShowStudentPreviousRoundResults(false)
                 .teamLossUpperbound(1000.)
+                .showOtherTeamsMembers(true)
                 .build();
         var comp2 = DbCompetition.builder().pin("23456").owner(user).parameters(params).build();
         comp2 = competitionsRepository.save(comp2).block();
@@ -797,8 +802,8 @@ class CompetitionsControllerTest {
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange().expectStatus().isOk()
                 .expectBody()
-                .jsonPath("$[0].length()").isEqualTo(18)
-                .jsonPath("$[1].length()").isEqualTo(18);
+                .jsonPath("$[0].length()").isEqualTo(19)
+                .jsonPath("$[1].length()").isEqualTo(19);
     }
     @Test
     @WithMockUser(value = "email", password = "1234", roles = {"TEACHER", "STUDENT"})

@@ -51,4 +51,7 @@ public class CompetitionCloneInfoResponse implements Serializable {
 
     @JsonProperty("is_auto_round_ending")
     private boolean isAutoRoundEnding;
+
+    @JsonProperty("show_other_teams_members")
+    private boolean showOtherTeamsMembers;
 }

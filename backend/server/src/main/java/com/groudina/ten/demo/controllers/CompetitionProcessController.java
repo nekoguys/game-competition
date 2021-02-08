@@ -214,6 +214,23 @@ public class CompetitionProcessController {
                 }));
     }
 
+    @GetMapping(value = "/comp_info_teams")
+    @PreAuthorize("hasRole('STUDENT')")
+    public Mono<ResponseEntity> getCompetitionInfoForTeams(@PathVariable String pin) {
+        log.info("GET: /api/competition_process/{}/comp_info_teams", pin);
+
+        return competitionsRepository.findByPin(pin)
+                .map(comp -> {
+                    return (ResponseEntity)ResponseEntity.ok(
+                            TeamsSettingCompetitionInfoResponse.builder()
+                                    .showTeamMembers(comp.getParameters().isShowOtherTeamsMembers())
+                                    .build());
+                })
+                .switchIfEmpty(Mono.defer(() -> {
+                    return Mono.just((ResponseEntity)ResponseEntity.badRequest().body(ResponseMessage.of("No competition with such pin")));
+                }));
+    }
+
     @PostMapping("/submit_strategy")
     @PreAuthorize("hasRole('STUDENT')")
     public Mono<ResponseEntity> submitStrategy(
