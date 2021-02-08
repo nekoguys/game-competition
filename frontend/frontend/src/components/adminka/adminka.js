@@ -13,9 +13,45 @@ import withRedirect from "../../helpers/redirect-helper";
 import {isAdmin} from "../../helpers/role-helper";
 
 
+class Modal extends React.Component {
+    constructor(props) {
+        super(props)
+    }
+
+    render() {
+        console.log({props: this.props})
+        if (!this.props.show) {
+            return null;
+        }
+        return (
+            <div style={{paddingTop: "10px"}}>
+            <div className={"mymodal"}>
+                <div className={"content"}>
+                {this.props.children}
+                </div>
+                <div className={"actions"} style={{marginBottom: "-10px"}}>
+                    <div className={"col d-flex justify-content-center"}>
+                        <button onClick={this.props.onOk}>Ok</button>
+                    </div>
+                    <div className={"col d-flex justify-content-center"}>
+                        <button onClick={this.props.onCancel}>Отмена</button>
+                    </div>
+                </div>
+            </div>
+            </div>
+        )
+    }
+}
+
+
 class UsersCollection extends React.Component {
     constructor(props) {
         super(props);
+
+        this.state = {
+            isShowingModal: false,
+            lastChangePasswordEmail: ""
+        }
     }
 
     handleRoleChange = ({email, role}) => {
@@ -23,16 +59,53 @@ class UsersCollection extends React.Component {
         this.props.handleRoleChange({email, role});
     };
 
+    onShowModal = (email) => {
+        console.log(email)
+        this.setState({isShowingModal: true, lastChangePasswordEmail: email})
+    }
+
+    onCancelModal = () => {
+        this.setState({isShowingModal: false, lastChangePasswordEmail: ""});
+    }
+
+    onOkModal = () => {
+        ApiHelper
+            .adminkaChangePassword({userEmail: this.state.lastChangePasswordEmail})
+            .then(resp => {
+                console.log({resp});
+                if (resp.status >= 300) {
+                    return {success: false, json: resp.text()};
+                }
+
+                return {success: true, json: resp.json()};
+            }).then(resp => {
+                resp.json.then(jsonBody => {
+                    console.log(jsonBody);
+                    if (resp.success) {
+                        showNotification(this).success(jsonBody.message, "Success, password reset to 1234", 2500);
+                    } else {
+                        showNotification(this).success(jsonBody.message, "Error", 5000);
+                    }
+                    this.setState({isShowingModal: false, lastChangePasswordEmail: ""});
+                })
+        })
+    }
+
     render() {
         const items = this.props.items;
-
+        console.log(this.state);
         return (
+            <div>
             <div className={"user-grid user-grid-padding"}>
                 {items.map(el => {
                     return (
-                        <UserGridItem item={el} key={el.email} handleRoleChange={this.handleRoleChange}/>
+                        <UserGridItem onShowModal={this.onShowModal} item={el} key={el.email} handleRoleChange={this.handleRoleChange}/>
                     )
                 })}
+            </div>
+                <div>
+                    <Modal onCancel={this.onCancelModal} onOk={this.onOkModal} show={this.state.isShowingModal}>SomeTextInside</Modal>
+                </div>
             </div>
         )
     }
@@ -68,6 +141,10 @@ class UserGridItem extends React.Component {
         );
     };
 
+    showChangePasswordDialogModal = () => {
+        this.props.onShowModal(this.props.item.email);
+    }
+
     render() {
         const {item} = this.props;
         const {selectedOption} = this.state;
@@ -77,6 +154,13 @@ class UserGridItem extends React.Component {
         if (!this.isAdmin()) {
             options = options.slice(0, 2);
         }
+
+        const buttonStyle = {
+            backgroundColor: "#48BDFF",
+            borderWidth: "0",
+            height: "100%",
+            lineHeight: "1.5"
+        };
 
         const selectOptions = {
             value: selectedOption,
@@ -120,6 +204,9 @@ class UserGridItem extends React.Component {
                     <div className={"col"} style={{paddingLeft: 0}}>
                     <MySelect {...selectOptions}/>
                     </div>
+                </div>
+                <div style={{paddingTop: "20px", marginBottom: "-10px"}}>
+                    <DefaultSubmitButton onClick={this.showChangePasswordDialogModal} style={buttonStyle} text={"Сбросить пароль"} isDisabled={this.isAdmin()}/>
                 </div>
             </div>
         )
@@ -294,7 +381,7 @@ class AdminkaComponent extends React.Component {
                         </div>
                     </div>
                     <div style={{paddingTop: "30px"}}>
-                        <UsersCollection handleRoleChange={this.handleRoleChange} items={items}/>
+                        <UsersCollection showNotification={this.props.showNotification} handleRoleChange={this.handleRoleChange} items={items}/>
                     </div>
                     {loadMoreButton}
 

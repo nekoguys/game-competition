@@ -2,10 +2,10 @@ package com.groudina.ten.demo.controllers;
 
 import com.groudina.ten.demo.datasource.DbRolesRepository;
 import com.groudina.ten.demo.datasource.DbUserRepository;
+import com.groudina.ten.demo.dto.ChangeUserPasswordRequestDto;
 import com.groudina.ten.demo.dto.NewUserWithRole;
 import com.groudina.ten.demo.dto.ResponseMessage;
 import com.groudina.ten.demo.models.DbUser;
-import lombok.extern.log4j.Log4j2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,6 +61,19 @@ public class UserController {
                             return userRepository.save(user)
                                     .thenReturn(ResponseEntity.ok(new ResponseMessage("User created successfully!")));
                         }));
+    }
+
+    @PostMapping(value = "/change_pwd")
+    @PreAuthorize("hasRole('ADMIN')")
+    public Mono<ResponseEntity<ResponseMessage>> changeUserPwd(@Valid @RequestBody ChangeUserPasswordRequestDto dto) {
+        log.info("POST: /api/users/change_pwd, body: {}", dto);
+        return userRepository.findOneByEmail(dto.getUserEmail())
+                .flatMap(user -> {
+                    user.setPassword(passwordEncoder.encode(dto.getNewPassword()));
+
+                    return userRepository.save(user).thenReturn(ResponseEntity.ok(new ResponseMessage("Changed password successfully")));
+                })
+                .switchIfEmpty(Mono.just(ResponseEntity.ok(new ResponseMessage("No such user"))));
     }
 
     private Stream<String> getAllRoles(String topRoleName) {

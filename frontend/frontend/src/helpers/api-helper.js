@@ -164,6 +164,10 @@ class ApiSettings {
         return ApiSettings.#host + "/admin/search"
     }
 
+    static adminkaChangePassword() {
+        return ApiSettings.#host + "/users/change_pwd"
+    }
+
     static submitStrategyEndPoint(pin) {
         return ApiSettings.#host + "/competition_process/" + pin + "/submit_strategy";
     }
@@ -443,6 +447,14 @@ export default class ApiHelper {
 
     static adminkaSearchUsers(params) {
         return fetch(ApiSettings.adminkaSearchUsersEndPoint(), {
+            method: "POST",
+            headers: this.authDefaultHeaders(),
+            body: JSON.stringify(params)
+        })
+    }
+
+    static adminkaChangePassword(params) {
+        return fetch(ApiSettings.adminkaChangePassword(), {
             method: "POST",
             headers: this.authDefaultHeaders(),
             body: JSON.stringify(params)
