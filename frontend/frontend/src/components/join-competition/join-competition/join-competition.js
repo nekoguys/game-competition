@@ -9,6 +9,7 @@ import {withRouter} from "react-router-dom";
 
 import showNotification from "../../../helpers/notification-helper";
 import withAuthenticated from "../../../helpers/with-authenticated";
+import {withTranslation} from "react-i18next";
 
 
 class JoinCompetition extends React.Component {
@@ -63,6 +64,7 @@ class JoinCompetition extends React.Component {
     };
 
     render() {
+        const {i18n} = this.props;
         let res;
         if (this.state.currentPage === "captain") {
             res = <JoinCompetitionForm showNotification={this.props.showNotification} onFormSubmit={this.onCreateTeamClick}/>
@@ -79,7 +81,7 @@ class JoinCompetition extends React.Component {
                 <div className={"d-flex"}>
                     <div style={{margin: "0 auto", width: "26%"}}>
                         <DefaultCheckboxButtonGroup
-                            choices={["Капитан", "Участник"]}
+                            choices={[i18n.t('join_competition.join.captain'), i18n.t('join_competition.join.member')]}
                             buttonStyle={{width: "51%", fontSize: "1.3rem",
                                 textOverflow: "ellipsis", overflow: "hidden"}}
                             style={{width: "100%"}}
@@ -96,4 +98,4 @@ class JoinCompetition extends React.Component {
     }
 }
 
-export default withAuthenticated(JoinCompetition);
+export default withTranslation('translation')(withAuthenticated(JoinCompetition));

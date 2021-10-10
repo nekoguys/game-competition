@@ -25,8 +25,12 @@ public class CompetitionInfoForStudentResultsTableDto implements Serializable {
 
     private boolean shouldShowResultTable;
 
+    private boolean shouldShowResultTableInEnd;
+
     @JsonProperty("isCaptain")
     private boolean isCaptain;
 
     private int roundsCount;
+
+    private String strategy;
 }

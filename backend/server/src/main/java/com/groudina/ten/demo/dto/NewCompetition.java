@@ -37,6 +37,9 @@ public class NewCompetition implements Serializable {
     @JsonProperty("round_length")
     private Integer roundLength;
 
+    @JsonProperty("team_loss_upperbound")
+    private Double teamLossUpperbound;
+
     private String instruction;
 
     @JsonProperty("should_show_student_previous_round_results")
@@ -47,4 +50,10 @@ public class NewCompetition implements Serializable {
 
     @JsonProperty("should_show_result_table_in_end")
     private Boolean shouldShowResultTableInEnd;
+
+    @JsonProperty("is_auto_round_ending")
+    private Boolean isAutoRoundEnding;
+
+    @JsonProperty("show_other_teams_members")
+    private Boolean showOtherTeamsMembers;
 }

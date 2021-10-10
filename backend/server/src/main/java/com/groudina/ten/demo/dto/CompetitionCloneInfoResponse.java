@@ -35,6 +35,9 @@ public class CompetitionCloneInfoResponse implements Serializable {
     @JsonProperty("round_length")
     private int roundLength;
 
+    @JsonProperty("team_loss_upperbound")
+    private Double teamLossUpperbound;
+
     private String instruction;
 
     @JsonProperty("should_show_student_previous_round_results")
@@ -45,4 +48,10 @@ public class CompetitionCloneInfoResponse implements Serializable {
 
     @JsonProperty("should_show_result_table_in_end")
     private boolean shouldShowResultTableInEnd;
+
+    @JsonProperty("is_auto_round_ending")
+    private boolean isAutoRoundEnding;
+
+    @JsonProperty("show_other_teams_members")
+    private boolean showOtherTeamsMembers;
 }

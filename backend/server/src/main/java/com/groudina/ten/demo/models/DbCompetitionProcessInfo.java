@@ -1,14 +1,10 @@
 package com.groudina.ten.demo.models;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,6 +26,7 @@ public class DbCompetitionProcessInfo {
     private List<DbCompetitionMessage> messages = new ArrayList<>();
 
     @Builder.Default
+    @Setter
     private int currentRoundNumber = 0;
 
     public void addRoundInfo(DbCompetitionRoundInfo roundInfo) {

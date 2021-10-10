@@ -3,17 +3,18 @@ import "./competition-collection.css";
 
 import DefaultSubmitButton from "../../../common/default-submit-button";
 import {withRouter} from "react-router-dom";
+import {withTranslation} from "react-i18next";
 
 class CompetitionCollectionElement extends React.Component {
     stateMapper(state) {
         if (state === "Registration")
-            return "Регистрация";
+            return this.props.i18n.t('competition_history.list.registration');
         else if (state === "InProcess")
-            return "Запущено";
+            return this.props.i18n.t('competition_history.list.in_process');
         else if (state === "Draft")
-            return "Черновик";
+            return this.props.i18n.t('competition_history.list.draft');
         else if (state === "Ended")
-            return "Завершено";
+            return this.props.i18n.t('competition_history.list.ended');
         else
             return "Неизвестно";
     }
@@ -36,7 +37,7 @@ class CompetitionCollectionElement extends React.Component {
 
         let button;
         if (owned)
-            button = <DefaultSubmitButton text={"Клонировать"} onClick={(ev) => {
+            button = <DefaultSubmitButton text={this.props.i18n.t('competition_history.clone')} onClick={(ev) => {
                 console.log(this);
                 this.props.history.push('/competitions/create/', {initialState: this.props.item});
                 ev.stopPropagation();
@@ -71,19 +72,19 @@ class CompetitionCollectionElement extends React.Component {
 
 class CompetitionCollection extends React.Component {
     render() {
-        const {items} = this.props;
+        const {items, i18n} = this.props;
         console.log({items});
 
         const elements = items.map(item => {
-            return <CompetitionCollectionElement onItemClickCallback={this.props.onHistoryItemClickCallback}
+            return <CompetitionCollectionElement i18n={i18n} onItemClickCallback={this.props.onHistoryItemClickCallback}
                     key={item.pin} item={item} history={this.props.history} isAnyCloneable={this.props.isAnyCloneable}/>
         });
 
         return (
             <div className={"collection-container"}>
                 <div className={"row"} style={{textAlign: "center"}}>
-                    <div className={"col-7"}>Название</div>
-                    <div className={"col-3"}>Статус</div>
+                    <div className={"col-7"}>{i18n.t('competition_history.name')}</div>
+                    <div className={"col-3"}>{i18n.t('competition_history.status')}</div>
                     {this.props.isAnyCloneable ? <div className={"col-2"}/> : undefined}
                 </div>
                 {elements}
@@ -92,4 +93,4 @@ class CompetitionCollection extends React.Component {
     }
 }
 
-export default withRouter(CompetitionCollection);
+export default withTranslation('translation')(withRouter(CompetitionCollection));

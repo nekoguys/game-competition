@@ -1,10 +1,38 @@
 import React from "react";
+import ReactDOM from 'react-dom'
 
 import "./results-table.css";
 import round from "../../../../helpers/round-helper";
+import {withTranslation} from "react-i18next";
 
 
-class CompetitionResultsTable extends React.Component{
+class CompetitionResultsTable extends React.Component {
+
+    constructor(props) {
+        super(props);
+
+        this.refsMap = new Map();
+        this.refsCount = new Map();
+
+        this.setPopupRef = (element, column) => {
+            this.refsMap.set(column, element);
+            this.refsCount.set(column, 0);
+        }
+    }
+
+    shouldShowStrategy = () => {
+        return this.props.showStrategy ?? false;
+    };
+
+    togglePopup = (column) => {
+        let node = ReactDOM.findDOMNode(this.refsMap.get(column));
+        node.classList.toggle("show")
+
+        if (this.refsCount.get(column)) {
+            node.classList.toggle("hide");
+        }
+        this.refsCount.set(column, this.refsCount.get(column) + 1)
+    }
 
     teamsPermutation = (teamsCount) => {
         let range;
@@ -18,19 +46,51 @@ class CompetitionResultsTable extends React.Component{
         return range;
     };
 
-    firstRow(teamsCount) {
+    firstRow(teamsCount, bannedTeams) {
         const oneColWidth = (100 / (teamsCount + 4 + 2));
 
         const toStr = (x) => (oneColWidth * x) + "%";
-
+        console.log({bannedTeams})
+        console.log({strat: this.props.strategy})
         return (
             <tr key={-1}>
                 <td colSpan={4} width={toStr(4)} style={{textAlign: "center"}} key={0}>
-                    {"Раунд/Команда"}
+                    {this.props.i18n.t("competition_process.teacher.table.round_team")}
                 </td>
                 {
                     this.teamsPermutation(teamsCount).map(el => {
-                        return (<td key={el}>{el}</td>);
+                        let style = {};
+                        let className;
+                        let popup;
+                        if (bannedTeams.includes(el)) {
+                            style['backgroundColor'] = '#ffffed';
+                        }
+                        let onClick_ = () => {};
+                        if (this.shouldShowStrategy()) {
+                            className = "popup";
+                            const strat = el in this.props.strategy ? this.props.strategy[el]['strategy'] : this.props.i18n.t("competition_process.teacher.table.no_strategy");
+                            popup = (
+                                <div>
+                                <span className={"popuptext"} ref={(element) => {
+                                    this.setPopupRef(element, el);
+                                }}>{strat}
+                                </span>
+                                    <span className={"popup-text-table-header"}><u>{el}</u></span>
+                                </div>
+                            );
+                            onClick_ = () => {
+                                this.togglePopup(el);
+                            }
+                        } else {
+                            popup = el;
+                        }
+                        return (
+                            <td key={el} style={style} onClick={onClick_}>
+                                <div className={className}>
+                                    {popup}
+                                </div>
+                            </td>
+                        );
                     })
                 }
                 <td key={teamsCount+1}>
@@ -43,7 +103,7 @@ class CompetitionResultsTable extends React.Component{
         );
     }
 
-    roundRows(teamsCount, roundsCount) {
+    roundRows(teamsCount, roundsCount, bannedTeams) {
         const oneColWidth = (100 / (teamsCount + 4 + 2));
 
         const toStr = (x) => (oneColWidth * x) + "%";
@@ -74,8 +134,12 @@ class CompetitionResultsTable extends React.Component{
                                         ans = round(this.props.answers[roundNumber][teamInd]);
                                     }
                                 }
+                                let style = {};
+                                if (bannedTeams.includes(teamInd)) {
+                                    style.backgroundColor = '#ffffed'
+                                }
                                 return (
-                                    <td width={toStr(1)} key={teamInd}>{ans}</td>
+                                    <td width={toStr(1)} key={teamInd} style={style}>{ans}</td>
                                 );
                             })}
 
@@ -109,8 +173,12 @@ class CompetitionResultsTable extends React.Component{
                                         ans = round(this.props.results[roundNumber][teamInd]);
                                     }
                                 }
+                                let style = {};
+                                if (bannedTeams.includes(teamInd)) {
+                                    style.backgroundColor = '#ffffed'
+                                }
                                 return (
-                                    <td width={toStr(1)} key={teamInd}>{ans}</td>
+                                    <td width={toStr(1)} key={teamInd} style={style}>{ans}</td>
                                 )
                             })}
                         </tr>
@@ -122,9 +190,13 @@ class CompetitionResultsTable extends React.Component{
                                 {"ΣП"}
                             </td>
                             {this.teamsPermutation(teamsCount).map(teamInd => {
+                                let style = {};
+                                if (bannedTeams.includes(teamInd)) {
+                                    style.backgroundColor = '#ffffed'
+                                }
                                 return (
-                                    <td width={toStr(1)} key={teamInd}>
-                                        {this.range(1, roundsCount + 1).map(round => {
+                                    <td width={toStr(1)} style={style} key={teamInd}>
+                                        {round(this.range(1, roundsCount + 1).map(round => {
                                             let ans = 0;
                                             if (round in this.props.results) {
                                                 if (teamInd in this.props.results[round]) {
@@ -134,7 +206,7 @@ class CompetitionResultsTable extends React.Component{
                                             return ans;
                                         }).reduce((prev, curr) => {
                                             return prev + curr;
-                                        }, 0)}
+                                        }, 0))}
                                     </td>
                                 )
                             })}
@@ -152,17 +224,16 @@ class CompetitionResultsTable extends React.Component{
     };
 
     render() {
-        const {teamsCount, roundsCount} = this.props;
-
+        const {teamsCount, roundsCount, bannedTeams=[]} = this.props;
         return (
             <div style={{width: "100%"}}>
                 <div style={{textAlign: "center", fontSize: "23px", paddingBottom: "10px"}}>
-                    {"Статистика"}
+                    {this.props.i18n.t("competition_process.teacher.table.stats")}
                 </div>
                 <table style={{width: "100%"}}>
                     <tbody>
-                    {this.firstRow(teamsCount)}
-                    {this.roundRows(teamsCount, roundsCount)}
+                    {this.firstRow(teamsCount, bannedTeams)}
+                    {this.roundRows(teamsCount, roundsCount, bannedTeams)}
                     </tbody>
                 </table>
             </div>
@@ -170,4 +241,4 @@ class CompetitionResultsTable extends React.Component{
     }
 }
 
-export default CompetitionResultsTable;
+export default withTranslation('translation')(CompetitionResultsTable);

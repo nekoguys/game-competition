@@ -129,7 +129,10 @@ class CompetitionsControllerTest {
                 .roundsCount(2)
                 .shouldEndRoundBeforeAllAnswered(true)
                 .shouldShowResultTableInEnd(true)
+                .isAutoRoundEnding(false)
                 .maxTeamSize(3)
+                .teamLossUpperbound(1000.)
+                .showOtherTeamsMembers(true)
                 .build();
         webTestClient.post().uri("/api/competitions/create")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -168,7 +171,10 @@ class CompetitionsControllerTest {
                 .roundsCount(2)
                 .shouldEndRoundBeforeAllAnswered(true)
                 .shouldShowResultTableInEnd(true)
+                .isAutoRoundEnding(true)
+                .teamLossUpperbound(1000.)
                 .maxTeamSize(3)
+                .showOtherTeamsMembers(true)
                 .build();
         webTestClient.post().uri("/api/competitions/create")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -177,9 +183,14 @@ class CompetitionsControllerTest {
                 .exchange().expectStatus().isOk()
                 .expectBody(CompetitionCreationResponse.class)
                 .value((resp) -> {
-                    assertNotNull(resp.getPin());
-                })
-        ;
+                    String pin = resp.getPin();
+                    assertNotNull(pin);
+                    var competition = competitionsRepository.findByPin(pin).block();
+                    assertTrue(competition.getParameters().isAutoRoundEnding());
+                    assertTrue(competition.getParameters().isShouldShowResultTableInEnd());
+                    assertTrue(competition.getParameters().isShouldEndRoundBeforeAllAnswered());
+                });
+
     }
 
     @Test
@@ -202,7 +213,10 @@ class CompetitionsControllerTest {
                         .roundsCount(2)
                         .shouldEndRoundBeforeAllAnswered(false)
                         .shouldShowResultTableInEnd(false)
+                        .isAutoRoundEnding(false)
+                        .teamLossUpperbound(1000.)
                         .maxTeamSize(3)
+                        .showOtherTeamsMembers(true)
                         .build()))
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange().expectStatus().isOk()
@@ -224,7 +238,10 @@ class CompetitionsControllerTest {
                         .roundsCount(2)
                         .shouldEndRoundBeforeAllAnswered(false)
                         .shouldShowResultTableInEnd(false)
+                        .isAutoRoundEnding(false)
+                        .teamLossUpperbound(1000.)
                         .maxTeamSize(3)
+                        .showOtherTeamsMembers(true)
                         .build()))
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange().expectStatus().isOk()
@@ -265,6 +282,7 @@ class CompetitionsControllerTest {
                                 .captainEmail("email")
                                 .competitionId("123")
                                 .password("password")
+                                .name("teamname")
                                 .build()
                 )).accept(MediaType.APPLICATION_JSON)
                 .exchange().expectStatus().isOk()
@@ -273,6 +291,19 @@ class CompetitionsControllerTest {
         var dbComp = competitionsRepository.findAll().collect(Collectors.toList()).block().get(0);
         assertEquals(dbComp.getTeams().size(), 1);
         assertEquals(dbComp.getTeams().get(0).getCaptain().getEmail(), "email");
+
+        webTestClient.post().uri("/api/competitions/create_team")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(BodyInserters.fromValue(
+                        NewTeam.builder()
+                                .captainEmail("email")
+                                .competitionId("123")
+                                .password("password")
+                                .name("sml")
+                                .build()
+                )).accept(MediaType.APPLICATION_JSON)
+                .exchange().expectStatus().isBadRequest()
+                .expectBody(ResponseMessage.class);
     }
 
     @Test
@@ -761,6 +792,8 @@ class CompetitionsControllerTest {
                 .shouldEndRoundBeforeAllAnswered(false)
                 .shouldShowResultTableInEnd(true)
                 .shouldShowStudentPreviousRoundResults(false)
+                .teamLossUpperbound(1000.)
+                .showOtherTeamsMembers(true)
                 .build();
         var comp2 = DbCompetition.builder().pin("23456").owner(user).parameters(params).build();
         comp2 = competitionsRepository.save(comp2).block();
@@ -769,11 +802,11 @@ class CompetitionsControllerTest {
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange().expectStatus().isOk()
                 .expectBody()
-                .jsonPath("$[0].length()").isEqualTo(15)
-                .jsonPath("$[1].length()").isEqualTo(15);
+                .jsonPath("$[0].length()").isEqualTo(19)
+                .jsonPath("$[1].length()").isEqualTo(19);
     }
     @Test
-    @WithMockUser(value = "email", password = "1234", roles = {"TEACHER"})
+    @WithMockUser(value = "email", password = "1234", roles = {"TEACHER", "STUDENT"})
     void testResultsFormatter() {
         var user = userRepository.save(DbUser.builder().password("1234").email("email").roles(rolesRepository.findAll().collectList().block()).build()).block();
         var captain = userRepository.save(DbUser.builder().password("1234").email("anotherEmail").roles(rolesRepository.findAll().collectList().block()).build()).block();
@@ -795,6 +828,7 @@ class CompetitionsControllerTest {
         competition = competitionsRepository.save(competition).block();
 
         gameManagementService.startCompetition(competition).block();
+        gameManagementService.startNewRound(competition).block();
 
         gameManagementService.submitAnswer(competition, team, 10, 1).block();
         gameManagementService.submitAnswer(competition, team2, 30, 1).block();

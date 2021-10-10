@@ -28,6 +28,7 @@ public class CompetitionResultsFormatterImpl implements ICompetitionResultsForma
         Map<Integer, Double> prices = new HashMap<>();
         Map<Integer, HashMap<Integer, Double>> income = new HashMap<>();
         Map<Integer, HashMap<Integer, Integer>> produce = new HashMap<>();
+        Map<Integer, IStrategySubmissionService.StrategyHolder> strategyHolderMap = new HashMap<>();
         List<TeamCreationEventDto> teamMembers = new ArrayList<>();
         List<CompetitionMessageDto> messages;
 
@@ -79,6 +80,7 @@ public class CompetitionResultsFormatterImpl implements ICompetitionResultsForma
                             .teamMembers(el.getAllPlayers().stream().map(DbUser::getEmail).collect(Collectors.toList()))
                             .idInGame(el.getIdInGame())
                             .build());
+            strategyHolderMap.put(el.getIdInGame(), new IStrategySubmissionService.StrategyHolder(el.getStrategy()));
         });
 
         teamMembers.sort(Comparator.comparingInt(TeamCreationEventDto::getIdInGame));
@@ -91,6 +93,8 @@ public class CompetitionResultsFormatterImpl implements ICompetitionResultsForma
                 .setProduced(produce)
                 .setMessage(messages)
                 .setTeams(teamMembers)
+                .instruction(competition.getParameters().getInstruction())
+                .strategyHolders(strategyHolderMap)
                 .build();
     }
 }

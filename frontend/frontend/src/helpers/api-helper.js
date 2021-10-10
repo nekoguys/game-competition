@@ -104,12 +104,20 @@ class ApiSettings {
         return ApiSettings.host() + "/competition_process/" + pin + "/prices_stream";
     }
 
+    static competitionTeamBanStream(pin) {
+        return ApiSettings.host() + "/competition_process/" + pin + "/bans";
+    }
+
     static competitionAllResults(pin) {
         return ApiSettings.host() + "/competitions/competition_results/" + pin;
     }
 
     static studentCompetitionInfo(pin) {
         return ApiSettings.host() + "/competition_process/" + pin + "/student_comp_info";
+    }
+
+    static competitionInfoForTeams(pin) {
+        return ApiSettings.host() + "/competition_process/" + pin + "/comp_info_teams";
     }
 
     static submitAnswerEndPoint(pin) {
@@ -122,6 +130,18 @@ class ApiSettings {
 
     static myResultsEvents(pin) {
         return ApiSettings.host() + "/competition_process/" + pin + "/my_results_stream";
+    }
+
+    static allInOneStudentEvents(pin) {
+        return ApiSettings.host() + "/competition_process/" + pin + "/student_all_in_one";
+    }
+
+    static allInOneTeacherEvents(pin) {
+        return ApiSettings.host() + "/competition_process/" + pin + "/teacher_all_in_one";
+    }
+    
+    static getChangeRoundLengthEndPoint(pin) {
+        return ApiSettings.host() + "/competition_process/" + pin + "/change_round_length";
     }
 
     static verificationEndPoint(token) {
@@ -138,6 +158,26 @@ class ApiSettings {
 
     static getNavBarInfoEndPoint() {
         return ApiSettings.#navBarInfo;
+    }
+
+    static changeRoleEndPoint(email) {
+        return ApiSettings.#host + "/roles/" + email;
+    }
+
+    static adminkaSearchUsersEndPoint() {
+        return ApiSettings.#host + "/admin/search"
+    }
+
+    static adminkaChangePassword() {
+        return ApiSettings.#host + "/users/change_pwd"
+    }
+
+    static submitStrategyEndPoint(pin) {
+        return ApiSettings.#host + "/competition_process/" + pin + "/submit_strategy";
+    }
+
+    static restartGameEndPoint(pin) {
+        return ApiSettings.#host + "/competition_process/" + pin + "/restart_game";
     }
 }
 
@@ -307,6 +347,13 @@ export default class ApiHelper {
         })
     }
 
+    static competitionTeamBanStream(pin) {
+        return new EventSourcePolyfill(ApiSettings.competitionTeamBanStream(pin), {
+            headers: this.authDefaultHeaders(),
+            heartbeatTimeout: 1000*60*60
+        })
+    }
+
     static competitionAllResults(pin) {
         return fetch(ApiSettings.competitionAllResults(pin), {
             method: "GET",
@@ -316,6 +363,13 @@ export default class ApiHelper {
 
     static studentCompetitionInfo(pin) {
         return fetch(ApiSettings.studentCompetitionInfo(pin), {
+            method: "GET",
+            headers: this.authDefaultHeaders()
+        })
+    }
+
+    static competitionInfoForTeams(pin) {
+        return fetch(ApiSettings.competitionInfoForTeams(pin), {
             method: "GET",
             headers: this.authDefaultHeaders()
         })
@@ -338,6 +392,20 @@ export default class ApiHelper {
 
     static myResultsStream(pin) {
         return new EventSourcePolyfill(ApiSettings.myResultsEvents(pin), {
+            headers: this.authDefaultHeaders(),
+            heartbeatTimeout: 1000*60*60
+        })
+    }
+
+    static allInOneStudentStream(pin) {
+        return new EventSourcePolyfill(ApiSettings.allInOneStudentEvents(pin), {
+            headers: this.authDefaultHeaders(),
+            heartbeatTimeout: 1000*60*60
+        })
+    }
+
+    static allInOneTeacherStream(pin) {
+        return new EventSourcePolyfill(ApiSettings.allInOneTeacherEvents(pin), {
             headers: this.authDefaultHeaders(),
             heartbeatTimeout: 1000*60*60
         })
@@ -367,6 +435,53 @@ export default class ApiHelper {
 
     static getNavBarInfo() {
         return fetch(ApiSettings.getNavBarInfoEndPoint(), {
+            method: "GET",
+            headers: this.authDefaultHeaders()
+        })
+    }
+
+    static changeRole(email, role) {
+        return fetch(ApiSettings.changeRoleEndPoint(email), {
+            method: "POST",
+            headers: this.authDefaultHeaders(),
+            body: JSON.stringify({role})
+        })
+    };
+
+    static changeRoundLength(pin, roundLength) {
+        return fetch(ApiSettings.getChangeRoundLengthEndPoint(pin), {
+            method: "POST",
+            headers: this.authDefaultHeaders(),
+            body: JSON.stringify({newRoundLength: roundLength})
+        });
+    }
+
+    static adminkaSearchUsers(params) {
+        return fetch(ApiSettings.adminkaSearchUsersEndPoint(), {
+            method: "POST",
+            headers: this.authDefaultHeaders(),
+            body: JSON.stringify(params)
+        })
+    }
+
+    static adminkaChangePassword(params) {
+        return fetch(ApiSettings.adminkaChangePassword(), {
+            method: "POST",
+            headers: this.authDefaultHeaders(),
+            body: JSON.stringify(params)
+        })
+    }
+
+    static submitStrategy(params, pin) {
+        return fetch(ApiSettings.submitStrategyEndPoint(pin), {
+            method: "POST",
+            headers: this.authDefaultHeaders(),
+            body: JSON.stringify(params)
+        })
+    }
+
+    static restartGame(pin) {
+        return fetch(ApiSettings.restartGameEndPoint(pin), {
             method: "GET",
             headers: this.authDefaultHeaders()
         })

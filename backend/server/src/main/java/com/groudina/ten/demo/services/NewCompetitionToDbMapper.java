@@ -35,6 +35,9 @@ public class NewCompetitionToDbMapper implements IEntitiesMapper<NewCompetition,
                         .shouldEndRoundBeforeAllAnswered(from.getShouldEndRoundBeforeAllAnswered())
                         .shouldShowResultTableInEnd(from.getShouldShowResultTableInEnd())
                         .shouldShowStudentPreviousRoundResults(from.getShouldShowStudentPreviousRoundResults())
+                        .isAutoRoundEnding(from.getIsAutoRoundEnding())
+                        .teamLossUpperbound(from.getTeamLossUpperbound())
+                        .showOtherTeamsMembers(from.getShowOtherTeamsMembers())
                         .build());
         if (additionalFields != null) {
             for (var additionalField : additionalFields) {

@@ -13,6 +13,10 @@ import OneRoundResultsTable from "../one-round-results-table";
 import showNotification from "../../../../helpers/notification-helper";
 import withAuthenticated from "../../../../helpers/with-authenticated";
 
+import * as Constants from "../../../../helpers/constants";
+import StrategySubmissionComponent from "../../strategy-submission";
+import {withTranslation} from "react-i18next";
+
 
 class CompetitionProcessStudentRoot extends React.Component {
     constructor(props) {
@@ -26,12 +30,13 @@ class CompetitionProcessStudentRoot extends React.Component {
             results: {},
             currentRoundNumber: 5,
             timeTillRoundEnd: 55,
-            isCurrentRoundEnded: false,
+            isCurrentRoundEnded: true,
             teamName: "teamName",
             teamIdInGame: 0,
             messages: [],
             description: "",
             shouldShowResultTable: false,
+            shouldShowResultTableInEnd: false,
             unreadMessages: 0,
             isCaptain: false
         }
@@ -39,24 +44,54 @@ class CompetitionProcessStudentRoot extends React.Component {
 
     componentDidMount() {
         this.fetchCompetitionInfo();
-        this.setupMessagesStream();
-        this.setupRoundEventsStream();
-        this.setupResultsEventsStream();
-        this.setupPricesEventsStream();
-        this.setupMyAnswersEventsStream();
+        this.setupAllInOneEvents();
     }
 
     componentDidUpdate(prevProps, prevState, snapshot) {
         if (this.state.isCurrentRoundEnded) {
+            console.log("cleared interval");
             clearInterval(this.timerId);
-        } else {
+        } else if (!this.state.isCurrentRoundEnded && prevState.isCurrentRoundEnded) {
+            console.log("Cleared interval and launch once again");
             clearInterval(this.timerId);
             this.setupTimer();
         }
+
+        if (this.state.roundsCount > 0
+            && this.state.roundsCount === this.state.currentRoundNumber
+            && this.state.isCurrentRoundEnded
+            && this.state.shouldShowResultTableInEnd
+        ) {
+            if (this.state.shouldShowResultTableInEnd) {
+                this.onRedirectToResultsPage();
+            } else if (this.state.isCaptain) {
+                    const {pin} = this.props.match.params;
+                    this.props.history.push("/competitions/strategy_captain/" + pin);
+            }
+        }
     }
+
+    onRedirectToResultsPage = () => {
+        this.setState(prevState => {
+            if (!prevState.didEnd) {
+                showNotification(this).success("Game over", "Game over", 2500);
+
+                setTimeout(() => {
+                    const {pin} = this.props.match.params;
+                    if (prevState.isCaptain) {
+                        this.props.history.push("/competitions/strategy_captain/" + pin);
+                    } else {
+                        this.props.history.push("/competitions/results/" + pin);
+                    }
+                }, 2500);
+                return {didEnd: true};
+            }
+        });
+    };
 
     setupTimer = () => {
         this.timerId = setInterval(() => {
+            console.log("timer event");
             this.setState(prevState => {
                 return {timeTillRoundEnd: Math.max(prevState.timeTillRoundEnd - 1, 0)};
             })
@@ -64,21 +99,10 @@ class CompetitionProcessStudentRoot extends React.Component {
     };
 
     componentWillUnmount() {
-        if (this.messagesEventSource !== undefined) {
-            this.messagesEventSource.close();
+        if (this.eventSource !== undefined) {
+            this.eventSource.close();
         }
-        if (this.roundEventsSource !== undefined) {
-            this.roundEventsSource.close();
-        }
-        if (this.resultsEventsSource !== undefined) {
-            this.resultsEventsSource.close();
-        }
-        if (this.pricesEventSource !== undefined) {
-            this.pricesEventSource.close();
-        }
-        if (this.answersEventSource !== undefined) {
-            this.answersEventSource.close();
-        }
+
         clearInterval(this.timerId);
     }
 
@@ -132,7 +156,9 @@ class CompetitionProcessStudentRoot extends React.Component {
                             description: jsonBody.description,
                             competitionName: jsonBody.name,
                             shouldShowResultTable: jsonBody.shouldShowResultTable,
-                            isCaptain: jsonBody.isCaptain
+                            shouldShowResultTableInEnd: jsonBody.shouldShowResultTableInEnd,
+                            isCaptain: jsonBody.isCaptain,
+                            fetchedStrategy: jsonBody.strategy
                         }
                     })
                 }
@@ -140,35 +166,46 @@ class CompetitionProcessStudentRoot extends React.Component {
         })
     }
 
-    setupMyAnswersEventsStream() {
-        const {pin} = this.props.match.params;
-
-        this.answersEventSource = ApiHelper.myAnswersStream(pin);
-
-        this.answersEventSource.addEventListener("error", (err) => console.log({answersEventSourceErr: err}));
-
-        this.answersEventSource.addEventListener("message", (message) => {
-            const data = JSON.parse(message.data);
-
+    processAnswer = (answer) => {
+        if ((answer.type ?? "") === "cancel") {
+            this.setState({answers: {}})
+        } else {
             this.setState((prevState) => {
                 let answers = {...prevState.answers};
-                answers[data.roundNumber] = data.teamAnswer;
+                answers[answer.roundNumber] = answer.teamAnswer;
 
                 return {answers: answers};
             })
+        }
+    }
+
+    setupAllInOneEvents() {
+        const {pin} = this.props.match.params;
+
+        this.eventSource = ApiHelper.allInOneStudentStream(pin);
+
+        this.eventSource.addEventListener("error", (err) => console.log({eventSource: err}));
+
+        this.eventSource.addEventListener("message", (message) => {
+            console.log({messageDataExt: JSON.parse(message.data)});
+            if (message.lastEventId === Constants.ANSWER_EVENT_ID) {
+                this.processAnswer(JSON.parse(message.data));
+            } else if (message.lastEventId === Constants.MESSAGE_EVENT_ID) {
+                this.processMessage(message);
+            } else if (message.lastEventId === Constants.PRICE_EVENT_ID) {
+                this.processPrice(JSON.parse(message.data));
+            } else if (message.lastEventId === Constants.RESULT_EVENT_ID) {
+                this.processResult(JSON.parse(message.data));
+            } else if (message.lastEventId === Constants.ROUND_EVENT_ID) {
+                this.processRound(message)
+            }
         })
     }
 
-    setupPricesEventsStream() {
-        const {pin} = this.props.match.params;
-
-        this.pricesEventSource = ApiHelper.competitionRoundPricesStream(pin);
-
-        this.pricesEventSource.addEventListener("erorr", err => console.log({pricesEventSourceErr: err}));
-
-        this.pricesEventSource.addEventListener("message", (message) => {
-            const data = JSON.parse(message.data);
-
+    processPrice = (data) => {
+        if ((data.type ?? "") === "cancel") {
+            this.setState({prices: {}});
+        } else {
             this.setState(prevState => {
                 let prices = {...prevState.prices};
 
@@ -176,58 +213,50 @@ class CompetitionProcessStudentRoot extends React.Component {
 
                 return {prices: prices};
             })
-        })
+        }
     }
 
-    setupResultsEventsStream() {
-        const {pin} = this.props.match.params;
-
-        this.resultsEventsSource = ApiHelper.myResultsStream(pin);
-
-        this.resultsEventsSource.addEventListener("error", err => console.log({resultsEventSourceErr: err}));
-
-        this.resultsEventsSource.addEventListener("message", (message) => {
-            const data = JSON.parse(message.data);
+    processResult = (data) => {
+        if ((data.type ?? "") === "cancel") {
+            this.setState({results: {}});
+        } else {
             this.setState((prevState) => {
                 let results = {...prevState.results};
                 results[data.roundNumber] = data.income;
 
                 return {results: results};
             })
-        });
+        }
     }
 
-    setupRoundEventsStream() {
-        const {pin} = this.props.match.params;
-
-        this.roundEventsSource = ApiHelper.competitionRoundEventsStream(pin);
-
-        this.roundEventsSource.addEventListener("error", (err) => {
-            console.log("roundsEventSource error");
-            console.log({err});
-        });
-
-        this.roundEventsSource.addEventListener("message", (message) => {
-            this.setState(prevState => {
-                return processRoundsEvents(message);
-            })
-        });
+    processRound = (message) => {
+        this.setState(prevState => {
+            return processRoundsEvents(message);
+        })
     }
 
-    setupMessagesStream() {
+    processMessage = (message) => {
+        this.setState(prevState => {
+            let newState = processMessagesEvents(message, [...prevState.messages]);
+            return {...newState, unreadMessages: prevState.unreadMessages + newState.messages.length - prevState.messages.length};
+        })
+    }
+
+    submitStrategy = (strategy) => {
         const {pin} = this.props.match.params;
-
-        this.messagesEventSource = ApiHelper.competitionMessagesEventSource(pin);
-
-        this.messagesEventSource.addEventListener("error", (err) => {
-            console.log("messagesEventSource error");
-            console.log({err});
-        });
-
-        this.messagesEventSource.addEventListener("message", (message) => {
-            this.setState(prevState => {
-                let newState = processMessagesEvents(message, [...prevState.messages]);
-                return {...newState, unreadMessages: prevState.unreadMessages + newState.messages.length - prevState.messages.length};
+        ApiHelper.submitStrategy({strategy}, pin).then(resp => {
+            if (resp.status < 300) {
+                return {success: true, json: resp.json()}
+            } else {
+                return {success: false, json: resp.text()}
+            }
+        }).then(el => {
+            el.json.then(jsonBody => {
+                if (el.success) {
+                    showNotification(this).success(jsonBody.message, "Success", 2500);
+                } else {
+                    showNotification(this).error(jsonBody, "Error", 4000);
+                }
             })
         })
     }
@@ -259,6 +288,10 @@ class CompetitionProcessStudentRoot extends React.Component {
                 </div>
             );
         }
+        console.log(this.state)
+        const roundText = currentRoundNumber === 0 ? 
+            this.props.i18n.t("competition_process.student.root.game_not_started_yet") : 
+            (this.props.i18n.t("competition_process.student.root.current_round") + currentRoundNumber + (this.state.isCurrentRoundEnded ? " закончен" : ""));
 
         return (
             <div>
@@ -267,25 +300,25 @@ class CompetitionProcessStudentRoot extends React.Component {
                 </div>
                 <div style={{paddingTop: "80px"}}>
                     <div style={{textAlign: "center", fontSize: "26px"}}>
-                        {"Игра: " + competitionName}
+                        {this.props.i18n.t("competition_process.student.root.game") + competitionName}
                     </div>
                     <div className={"game-state-holder"}>
                         <div className={"row justify-content-between"}>
                             <div className={"col-4"}>
                                 <div>
                                     <div style={{textAlign: "center", fontSize: "23px"}}>
-                                        {"Текущий раунд: " + currentRoundNumber + (this.state.isCurrentRoundEnded ? " закончен" : "")}
+                                        {roundText}
                                     </div>
                                 </div>
                             </div>
                             <div className={"col-4"}>
                                 <div style={{textAlign: "center", fontSize: "23px"}}>
-                                    {"До конца раунда: " + timeTillRoundEnd + "сек"}
+                                    {this.props.i18n.t("competition_process.student.root.until_end") + timeTillRoundEnd + this.props.i18n.t("competition_process.student.root.seconds")}
                                 </div>
                             </div>
                         </div>
                         <div style={{textAlign: "center", fontSize: "26px"}}>
-                            {"Команда " + this.state.teamIdInGame + ": " + this.state.teamName}
+                            {this.props.i18n.t("competition_process.student.root.team") + this.state.teamIdInGame + ": " + this.state.teamName}
                         </div>
                         <div style={{paddingTop: "10px", width: "100%"}}>
                             {table}
@@ -304,6 +337,12 @@ class CompetitionProcessStudentRoot extends React.Component {
                         <div style={{paddingTop: "30px"}}>
                             <DescriptionHolder instruction={instr}/>
                         </div>
+                        <div style={{paddingTop: "30px"}}>
+                            <StrategySubmissionComponent defaultText={this.state.fetchedStrategy}
+                                                         isExpanded={false} onChange={(text) => {
+                                                             this.setState({fetchedStrategy: text});}}
+                                                         onSubmit={this.submitStrategy}/>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -311,4 +350,4 @@ class CompetitionProcessStudentRoot extends React.Component {
     }
 }
 
-export default withAuthenticated(CompetitionProcessStudentRoot);
+export default withTranslation('translation')(withAuthenticated(CompetitionProcessStudentRoot));

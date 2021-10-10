@@ -14,7 +14,10 @@ import Verification from "../auth/verification/verification";
 import EndedCompetitionResultsRoot from "../competition-process/ended-competition-results/root";
 import UserProfileRoot from "../user-profile/root";
 
-import {NotificationManager, NotificationContainer} from "react-notifications";
+import {NotificationContainer, NotificationManager} from "react-notifications";
+import AdminkaComponent from "../adminka";
+import FinalStrategySubmissionComponent
+    from "../competition-process/ended-competition-results/final-strategy-submission";
 
 
 const paths = [
@@ -73,6 +76,14 @@ const paths = [
     {
         path: "/profile",
         component: UserProfileRoot
+    },
+    {
+        path: "/adminka",
+        component: AdminkaComponent
+    },
+    {
+        path: "/competitions/strategy_captain/:pin",
+        component: FinalStrategySubmissionComponent
     }
 ];
 
@@ -85,20 +96,20 @@ export default class App extends React.Component{
     render() {
         return (
             <div>
-            <Router>
-                <Switch>
-                    <Redirect exact from="/" to="/auth/signin" />
-                    {
-                        paths.map(({path, component: C}, index) => {
-                            return (
-                                <Route key={index} path={path}
-                                       render={(props) => <C {...props} showNotification={this.showNotification}/>}
-                                />
-                            )
-                        })
-                    }
-                </Switch>
-            </Router>
+                <Router>
+                    <Switch>
+                        <Redirect exact from="/" to="/auth/signin" />
+                        {
+                            paths.map(({path, component: C}, index) => {
+                                return (
+                                    <Route key={index} path={path}
+                                           render={(props) => <C {...props} showNotification={this.showNotification}/>}
+                                    />
+                                )
+                            })
+                        }
+                    </Switch>
+                </Router>
                 <div>
                     <NotificationContainer/>
                 </div>

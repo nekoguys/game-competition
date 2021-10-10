@@ -1,6 +1,6 @@
 import React from "react";
 import {MessagesListContainer} from "../../competition-process-teacher/messages/messages-container";
-
+import {withTranslation} from "react-i18next";
 
 import "./messages.css";
 import buttonUpImage from "../../../join-competition/join-competition-player-form/team-collection/buttonUp.png";
@@ -49,7 +49,7 @@ class MessagesContainer extends React.Component {
                     <div className={"show-messages"} style={{width: "40%", margin: "0 auto"}} onClick={this.expandOrCollapse}>
                         <div>
                         <div style={{display: "inline"}}>
-                            Сообщения
+                            {this.props.i18n.t("competition_process.student.messages.messages")}
                         </div>
                         <button style={{
                             border: "none",
@@ -67,4 +67,4 @@ class MessagesContainer extends React.Component {
     }
 }
 
-export default MessagesContainer;
+export default withTranslation('translation')(MessagesContainer);

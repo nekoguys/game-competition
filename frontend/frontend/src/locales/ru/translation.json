@@ -1,0 +1,134 @@
+{
+  "auth": {
+    "login": {
+      "enter": "Вход",
+      "register": "Регистрация",
+      "mail": "Почта",
+      "password": "Пароль",
+      "button": "Войти"
+    },
+    "register": {
+      "button": "Зарегистрироваться",
+      "repeat_password": "Повторите пароль"
+    },
+    "verification": {
+      "process": "Идет подтверждение аккаунта",
+      "done": "Аккаунт успешно подтвержден!"
+    }
+  },
+  "navbar": {
+    "header": {
+      "profile": "Профиль",
+      "exit": "Выйти",
+      "history": "История игр",
+      "create": "Создать игру",
+      "join": "Войти в игру"
+    }
+  },
+  "competition_process": {
+    "student": {
+      "description": {
+        "description": "Описание"
+      },
+      "messages": {
+        "messages": "Сообщения"
+      },
+      "results": {
+        "round": "Раунд"
+      },
+      "root": {
+        "game_not_started_yet": "Игра ещё не началась",
+        "current_round": "Текущий раунд: ",
+        "game": "Игра: ",
+        "until_end": "До конца раунда: ",
+        "team": "Команда ",
+        "seconds": " секунд"
+      },
+      "send_answer": {
+        "production_in_new_round": "Выпуск в новом раунде"
+      }
+    },
+    "teacher": {
+      "body": {
+        "start_game": "Начать игру",
+        "start_new_round": "Начать новый раунд",
+        "end_round": "Закончить раунд",
+        "game_not_started_yet": "Игра ещё не началась",
+        "current_round": "Текущий раунд: ",
+        "ended": " закончен",
+        "restart_game": "Начать игру заново",
+        "until_round_end": "До конца раунда: ",
+        "seconds": "сек"
+      },
+      "round_length": {
+        "change_length": "Изменение длины раунда",
+        "current_length": "Длина текущего раунда"
+      },
+      "messages": {
+        "message": "Сообщение студентам"
+      },
+      "table": {
+        "round_team": "Раунд/Команда",
+        "no_strategy": "Стратегии нет",
+        "stats": "Статистика"
+      },
+      "root": {
+        "game": "Игра: "
+      }
+    }
+  },
+  "competition_history": {
+    "last_games": "Последние игры",
+    "name": "Название",
+    "status": "Статус",
+    "more": "Ещё",
+    "clone": "Клонировать",
+    "list": {
+      "registration": "Регистрация",
+      "in_process": "Запущено",
+      "draft": "Черновик",
+      "ended": "Завершено"
+    }
+  },
+  "profile": {
+    "last_name": "Фамилия",
+    "first_name": "Имя",
+    "new_password": "Новый пароль",
+    "profile": "Профиль",
+    "save": "Сохранить"
+  },
+  "join_competition": {
+    "join": {
+      "captain": "Капитан",
+      "member": "Участник"
+    },
+    "captain": {
+      "game": "ID игры",
+      "team_name": "Название команды",
+      "password": "Пароль для входа",
+      "enter": "Войти в игру"
+    },
+    "member": {
+      "find": "Найти команды"
+    }
+  },
+  "waiting_room": {
+    "save": "Сохранить",
+    "create": "Создание игры: ",
+    "registration_opened": "Регистрация открыта",
+    "show_settings": "Показать настройки",
+    "start_game": "Начать игру"
+  },
+  "create_competition": {
+    "create_game": "Создание Игры",
+    "save_draft": "Сохранить черновик",
+    "open_registration": "Открыть регистрацию"
+  },
+  "competition_results": {
+    "game": "Игра: ",
+    "team": "Команда ",
+    "continue": "Продолжить",
+    "ended": "Закончена",
+    "messages": "Сообщения:"
+  }
+}

@@ -68,6 +68,18 @@ public class DbCompetitionUpdater implements IEntityUpdater<DbCompetition, NewCo
             entity.getParameters().setShouldShowStudentPreviousRoundResults(competition.getShouldShowStudentPreviousRoundResults());
         }
 
+        if (Objects.nonNull(competition.getTeamLossUpperbound())) {
+            entity.getParameters().setTeamLossUpperbound(competition.getTeamLossUpperbound());
+        }
+
+        if (Objects.nonNull(competition.getIsAutoRoundEnding())) {
+            entity.getParameters().setAutoRoundEnding(competition.getIsAutoRoundEnding());
+        }
+
+        if (Objects.nonNull(competition.getShowOtherTeamsMembers())) {
+            entity.getParameters().setShowOtherTeamsMembers(competition.getShowOtherTeamsMembers());
+        }
+
         return repository.save(entity);
     }
 }

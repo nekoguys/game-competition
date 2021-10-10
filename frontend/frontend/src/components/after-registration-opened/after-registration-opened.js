@@ -2,6 +2,7 @@ import React from "react";
 import "./after-registration-opened.css";
 import TeamCollection from "../join-competition/join-competition-player-form/team-collection";
 import buttonUpImage from "../join-competition/join-competition-player-form/team-collection/buttonUp.png";
+import buttonDownImage from "../join-competition/join-competition-player-form/team-collection/buttonDown.png";
 import CompetitionParamsForm from "../create-competition/competition-params";
 import ApiHelper from "../../helpers/api-helper";
 import toCamelCase from "../../helpers/camel-case-helper";
@@ -11,6 +12,7 @@ import getValueForJsonObject from "../../helpers/competition-params-helper";
 import withRedirect from "../../helpers/redirect-helper";
 
 import showNotification from "../../helpers/notification-helper";
+import {withTranslation} from "react-i18next";
 
 
 class AfterRegistrationOpenedComponent extends React.Component {
@@ -33,6 +35,8 @@ class AfterRegistrationOpenedComponent extends React.Component {
                 console.log("EventSource failed: ", err)
             });
         this.eventSource.addEventListener("message", (event) => {
+            console.log({eventId: event.lastEventId});
+            console.log({event});
             console.log({data: event.data});
             this.setState((prevState) => {
                 let arr = prevState.items.slice(0);
@@ -129,10 +133,15 @@ class AfterRegistrationOpenedComponent extends React.Component {
     };
 
     render() {
+        
+        const {i18n} = this.props;
+
         const {pin} = this.props.match.params;
         console.log(pin);
 
         let res;
+
+        const image = this.state.isExpanded ? buttonDownImage : buttonUpImage;
 
         if (this.state.isExpanded) {
             res = (
@@ -143,7 +152,7 @@ class AfterRegistrationOpenedComponent extends React.Component {
                     }}/>
                 </div>
                     <DefaultSubmitButton
-                        text={"Сохранить"}
+                        text={i18n.t('waiting_room.save')}
                         onClick={() => this.updateCompetition({}, (resp) => {
                             this.setState({formState: toCamelCase(resp)});
                             showNotification(this).success("Competition updated successfully", "Success", 900);
@@ -163,10 +172,10 @@ class AfterRegistrationOpenedComponent extends React.Component {
             <div>
                 <div style={{fontSize: "31px"}}>
                     <div style={{textAlign: "center"}}>
-                        {"Создание игры: " + pin}
+                        {i18n.t('waiting_room.create') + pin}
                     </div>
                     <div style={{textAlign: "center"}}>
-                        Регистрация открыта
+                        {i18n.t('waiting_room.registration_opened')}
                     </div>
                 </div>
                 <div className={"form-container"}>
@@ -176,14 +185,14 @@ class AfterRegistrationOpenedComponent extends React.Component {
                              return {isExpanded: !prevState.isExpanded};
                          })}>
                             <div style={{display: "inline"}}>
-                        Показать настройки
+                            {i18n.t('waiting_room.show_settings')}
                                 </div>
                         <button style={{
                             border: "none",
                             backgroundColor: "Transparent",
                             marginLeft: "15px",
                             transform: "scale(0.35) translate(-20px, -5px)"
-                        }}><img src={buttonUpImage} alt={"unwind"}/></button>
+                        }}><img src={image} alt={"unwind"}/></button>
                     </div>
                     </div>
                     <div style={{paddingTop: "20px"}}>
@@ -191,10 +200,10 @@ class AfterRegistrationOpenedComponent extends React.Component {
                     </div>
                     <br/>
                     <div style={{paddingTop: "40px", width: "80%", margin: "0 auto"}}>
-                        <TeamCollection items={this.state.items} isReadOnly={true}/>
+                        <TeamCollection i18n={i18n} items={this.state.items} isReadOnly={true}/>
                     </div>
                     <div style={{paddingTop: "40px", width: "25%", margin: "0 auto"}}>
-                        <DefaultSubmitButton text={"Начать игру"} onClick={() => {
+                        <DefaultSubmitButton text={i18n.t('waiting_room.start_game')} onClick={() => {
 
                             this.startCompetition(() => {
                                 showNotification(this).success("Competition Started!", "Success", 1500);
@@ -210,4 +219,4 @@ class AfterRegistrationOpenedComponent extends React.Component {
     }
 }
 
-export default withRedirect(AfterRegistrationOpenedComponent);
+export default withTranslation('translation')(withRedirect(AfterRegistrationOpenedComponent));

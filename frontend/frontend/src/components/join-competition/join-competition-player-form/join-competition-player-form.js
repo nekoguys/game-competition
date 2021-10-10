@@ -9,6 +9,7 @@ import {withRouter} from "react-router-dom";
 import showNotification from "../../../helpers/notification-helper";
 
 import "./join-competition-player-form.css";
+import {withTranslation} from "react-i18next";
 
 
 export class TextInputWithSubmitButton extends React.Component {
@@ -48,6 +49,7 @@ export class TextInputWithSubmitButton extends React.Component {
                     onSubmit(this.state.text);
                     if (clearOnSubmit) {
                         this.input.value = "";
+                        this.setState({text: ""});
                         this.input.focus();
                     }
                 }
@@ -64,6 +66,7 @@ export class TextInputWithSubmitButton extends React.Component {
                     onSubmit(this.state.text);
                     if (clearOnSubmit) {
                         this.input.value = "";
+                        this.setState({text: ""});
                         this.input.focus();
                     }
                 }} type={"submit"}><img src={imagePath} alt={alt} style={imgStyle}/></button>
@@ -82,7 +85,8 @@ class JoinCompetitionPlayerForm extends React.Component {
             currentPage: "gamePinPage",
             items: [],
             searchedTeamName: "",
-            foundedTeams: []
+            foundedTeams: [],
+            showTeamMembers: true
         }
     }
 
@@ -110,6 +114,7 @@ class JoinCompetitionPlayerForm extends React.Component {
                     console.log({val});
                     if (val.exists) {
                         showNotification(this).success("Competition found successfully", "Success", timeout);
+                        this.fetchCompetitionInfo();
                         setTimeout(() => {
                             this.setState(prevState => {
                                 return {currentPage: "enterTeamPage"};
@@ -125,6 +130,28 @@ class JoinCompetitionPlayerForm extends React.Component {
         })
     };
 
+    fetchCompetitionInfo() {
+        const pin = this.gameId;
+        ApiHelper.competitionInfoForTeams(pin).then(resp => {
+            if (resp.status >= 300) {
+                return {success: false, json: resp.text()}
+            } else {
+                return {success: true, json: resp.json()}
+            }
+        }).then(resp => {
+            resp.json.then(jsonBody => {
+                if (resp.success) {
+                    console.log("ShowTeamMembers", jsonBody.showTeamMembers, jsonBody);
+                    this.setState(prevState => {
+                        return {
+                            showTeamMembers: jsonBody.showTeamMembers ?? true
+                        }
+                    })
+                }
+            })
+        })
+    }
+
     setupTeamEventConnections() {
         if (this.eventSource === undefined) {
             this.eventSource = ApiHelper.teamCreationEventSource(this.gameId);
@@ -137,6 +164,9 @@ class JoinCompetitionPlayerForm extends React.Component {
                 this.setState((prevState) => {
                     let arr = prevState.items.slice(0);
                     const elem = JSON.parse(event.data);
+                    if (elem.teamName === null) {
+                        elem.teamName = "";
+                    }
                     const index = arr.findIndex(el => {return el.teamName === elem.teamName});
                     if (index === -1) {
                         arr.push(elem);
@@ -147,7 +177,7 @@ class JoinCompetitionPlayerForm extends React.Component {
                     return {
                         items: arr,
                         foundedTeams: arr.filter(el => {
-                            return el.teamName.toLowerCase().includes(prevState.searchedTeamName)
+                            return el.teamName.toLowerCase().includes(prevState.searchedTeamName.toLowerCase())
                         })
                     }
                 });
@@ -187,12 +217,13 @@ class JoinCompetitionPlayerForm extends React.Component {
             paddingBottom: "5px",
             backgroundColor: "white"
         };
+        const {i18n} = this.props;
 
         return (
             <div style={{marginTop: "40px"}}>
                 <div style={innerContainerStyle}>
                     <TextInputWithSubmitButton imagePath={submitButtonImage} containerStyle={{margin: "0 auto"}}
-                                               placeholder={"ID игры"} onSubmit={this.onGameIdSubmitButton}
+                                               placeholder={i18n.t('join_competition.captain.game')} onSubmit={this.onGameIdSubmitButton}
                                                buttonStyle={buttonStyle} inputStyle={inputStyle}
                                                imgStyle={{width: "35px", height: "35px"}}
                     />
@@ -207,7 +238,7 @@ class JoinCompetitionPlayerForm extends React.Component {
             <div style={{marginTop: "30px"}}>
                 <div style={{marginTop: "10px", width: "50%", margin:"0 auto"}}>
                     <DefaultTextInput
-                        placeholder={"Найти команду"}
+                        placeholder={this.props.i18n.t('join_competition.member.find')}
                         style={{
                             width: "100%",
                             borderRadius: "20px",
@@ -218,7 +249,7 @@ class JoinCompetitionPlayerForm extends React.Component {
                     />
                 </div>
                 <div style={{margin: "70px 15% 20px 15%",}}>
-                <TeamCollection items={items} gamePin={this.gameId} onSubmit={this.onSubmit}
+                <TeamCollection i18n={this.props.i18n} showTeamMembers={this.state.showTeamMembers} items={items} gamePin={this.gameId} onSubmit={this.onSubmit}
                 />
                 </div>
             </div>
@@ -274,4 +305,4 @@ class JoinCompetitionPlayerForm extends React.Component {
     }
 }
 
-export default withRouter(JoinCompetitionPlayerForm);
+export default withTranslation('translation')(withRouter(JoinCompetitionPlayerForm));
