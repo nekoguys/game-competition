@@ -38,10 +38,11 @@
       },
       "root": {
         "game_not_started_yet": "Игра ещё не началась",
-        "current_round": "Текущий раунд",
+        "current_round": "Текущий раунд: ",
         "game": "Игра: ",
         "until_end": "До конца раунда: ",
-        "team": "Команда "
+        "team": "Команда ",
+        "seconds": " секунд"
       },
       "send_answer": {
         "production_in_new_round": "Выпуск в новом раунде"
@@ -81,6 +82,7 @@
     "name": "Название",
     "status": "Статус",
     "more": "Ещё",
+    "clone": "Клонировать",
     "list": {
       "registration": "Регистрация",
       "in_process": "Запущено",

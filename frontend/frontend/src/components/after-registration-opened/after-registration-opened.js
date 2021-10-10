@@ -200,7 +200,7 @@ class AfterRegistrationOpenedComponent extends React.Component {
                     </div>
                     <br/>
                     <div style={{paddingTop: "40px", width: "80%", margin: "0 auto"}}>
-                        <TeamCollection items={this.state.items} isReadOnly={true}/>
+                        <TeamCollection i18n={i18n} items={this.state.items} isReadOnly={true}/>
                     </div>
                     <div style={{paddingTop: "40px", width: "25%", margin: "0 auto"}}>
                         <DefaultSubmitButton text={i18n.t('waiting_room.start_game')} onClick={() => {

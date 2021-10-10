@@ -31,7 +31,7 @@ class TeamCollectionElement extends React.Component {
     }
 
     getName() {
-        return "Команда " + (this.props.idInGame !== undefined ? this.props.idInGame.toString() + " :" : "") + this.props.name;
+        return this.props.i18n.t('competition_process.student.root.team') + (this.props.idInGame !== undefined ? this.props.idInGame.toString() + ": " : "") + this.props.name;
     }
 
     isCurrentUserInTeam() {
@@ -139,6 +139,7 @@ class TeamCollection extends React.Component {
                         isReadOnly={isReadOnly}
                         showStrategy={this.props.showStrategy}
                         strategy={this.props.strategy?.[item.idInGame]?.strategy}
+                        i18n={this.props.i18n}
                     />
                 </div>
             )

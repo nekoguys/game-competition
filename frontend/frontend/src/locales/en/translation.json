@@ -82,6 +82,7 @@
     "name": "Name",
     "status": "Status",
     "more": "More",
+    "clone": "Clone",
     "list": {
       "registration": "registration",
       "in_process": "In process",

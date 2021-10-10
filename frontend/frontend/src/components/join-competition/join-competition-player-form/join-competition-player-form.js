@@ -249,7 +249,7 @@ class JoinCompetitionPlayerForm extends React.Component {
                     />
                 </div>
                 <div style={{margin: "70px 15% 20px 15%",}}>
-                <TeamCollection showTeamMembers={this.state.showTeamMembers} items={items} gamePin={this.gameId} onSubmit={this.onSubmit}
+                <TeamCollection i18n={this.props.i18n} showTeamMembers={this.state.showTeamMembers} items={items} gamePin={this.gameId} onSubmit={this.onSubmit}
                 />
                 </div>
             </div>
