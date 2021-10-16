@@ -1,8 +1,8 @@
 import {EventSourcePolyfill} from 'event-source-polyfill';
 
 class ApiSettings {
-    static #truehost = process.env.REACT_APP_API_HOST;
-    static #host = process.env.REACT_APP_API_HOST + "/api";
+    static #truehost = process.env.REACT_APP_API_HOST || 'http://localhost:8080';
+    static #host = ApiSettings.#truehost + "/api";
     static #signinEndPoint = ApiSettings.#host + "/auth/signin";
     static #signupEndPoint = ApiSettings.#host + "/auth/signup";
     static #createCompetitionEndPoint = ApiSettings.#host + "/competitions/create";
@@ -206,7 +206,8 @@ export default class ApiHelper {
     }
 
     static signup(credentials) {
-        return fetch(ApiSettings.signupEndPoint(), {
+       console.log('endpoint:', ApiSettings.signupEndPoint());
+       return fetch(ApiSettings.signupEndPoint(), {
             method: "POST",
             headers: this.defaultHeaders(),
             body: JSON.stringify(credentials)

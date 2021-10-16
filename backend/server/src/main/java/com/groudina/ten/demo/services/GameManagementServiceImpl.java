@@ -4,11 +4,15 @@ import com.groudina.ten.demo.datasource.*;
 import com.groudina.ten.demo.dto.*;
 import com.groudina.ten.demo.exceptions.*;
 import com.groudina.ten.demo.models.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
+import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.FluxSink;
@@ -24,6 +28,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Component
 @Scope(value = ConfigurableBeanFactory.SCOPE_SINGLETON)
@@ -39,6 +44,9 @@ public class GameManagementServiceImpl implements IGameManagementService {
     private DbRoundResultElementsRepository roundResultElementsRepository;
     private DbTeamsRepository teamsRepository;
     private IEndRoundsScheduler endRoundsScheduler;
+    private GameRoundDataStorage gameRoundDataStorage = new GameRoundDataStorage();
+    @Value("${groudina.app.useLateRoundSaving}")
+    private boolean useLateRoundSaving;
 
     private Map<String, Flux<RoundTeamAnswerDto>> teamAnswersStorage = new ConcurrentHashMap<>();
     private Map<String, FluxSink<RoundTeamAnswerDto>> teamAnswersSinks = new ConcurrentHashMap<>();
@@ -363,9 +371,10 @@ public class GameManagementServiceImpl implements IGameManagementService {
             return Mono.error(new IllegalAnswerSubmissionException("Tried to submit answer in invalid round"));
         }
 
-        var round = competition.getCompetitionProcessInfo().getCurrentRound();
+        var roundInfos = competition.getCompetitionProcessInfo().getRoundInfos();
+        var round = roundInfos.get(roundInfos.size() - 1);
 
-        if (round.isEnded()) {
+        if (round.isEnded() || roundInfos.size() != roundNumber) {
             return Mono.error(new IllegalAnswerSubmissionException("Tried to submit in ended round"));
         }
 
@@ -378,45 +387,51 @@ public class GameManagementServiceImpl implements IGameManagementService {
 //            return Mono.error(new IllegalAnswerSubmissionException("Tried to submit answer in ended round"));
 //        }
 
+        gameRoundDataStorage.addAnswer(
+                competition.getPin(),
+                new GameRoundDataStorage.RoundDataStorageMock.Answer(answer, new GameRoundDataStorage.RoundDataStorageMock.Team(team.getId()))
+        );
+        generateNextAnswer(competition.getPin(), competition, team.getIdInGame(), answer, roundNumber);
 
-        var dbTeamAnswer = DbAnswer.builder().submitter(team).value(answer).build();
-        var prevAnswer = round.getAnswerList().stream()
-                .filter((checkingTeam) ->
-                        checkingTeam.getSubmitter().getId().equals(team.getId())
-                ).findAny();
+        if (!useLateRoundSaving) {
+            var dbTeamAnswer = DbAnswer.builder().submitter(team).value(answer).build();
+            var prevAnswer = round.getAnswerList().stream()
+                    .filter((checkingTeam) ->
+                            checkingTeam.getSubmitter().getId().equals(team.getId())
+                    ).findAny();
 
-        var prevStep = Mono.just(1).then();
+            var prevStep = Mono.just(1).then();
 
-        if (prevAnswer.isPresent()) {
-            prevStep = answersRepository.delete(prevAnswer.get()).then();
+            if (prevAnswer.isPresent()) {
+                prevStep = answersRepository.delete(prevAnswer.get()).then();
+            }
+
+            return prevStep.then(
+                    answersRepository.save(dbTeamAnswer).flatMap((savedAnswer) -> {
+                        var round_ = competition.getCompetitionProcessInfo().getCurrentRound();
+                        round_.addAnswer(savedAnswer);
+                        return roundInfosRepository.save(round_);
+                    })
+            ).then();
         }
+        return Mono.just(1).then();
+    }
 
-        return prevStep.then(
-                answersRepository.save(dbTeamAnswer).map((savedAnswer) -> {
-                    competition.getCompetitionProcessInfo().getCurrentRound().addAnswer(savedAnswer);
-                    return savedAnswer;
-                }).then(roundInfosRepository.save(competition.getCompetitionProcessInfo().getCurrentRound()))
-                        .then(processInfosRepository.save(competition.getCompetitionProcessInfo()))
-                        .then(competitionsRepository.save(competition).map(savedCompetition -> {
-                            String pin = savedCompetition.getPin();
-                            teamAnswersStorage.compute(pin, (__, before) -> {
-                                if (before == null)
-                                    return createTeamAnswersProcessor(savedCompetition);
-                                else {
-                                    teamAnswersSinks.get(pin).next(
-                                            RoundTeamAnswerDto
-                                                    .builder()
-                                                    .teamIdInGame(team.getIdInGame())
-                                                    .teamAnswer(answer)
-                                                    .roundNumber(savedCompetition.getCompetitionProcessInfo().getCurrentRoundNumber())
-                                                    .build()
-                                    );
-                                    return before;
-                                }
-                            });
-                            return savedCompetition;
-                        }))
-        ).then();
+    private void generateNextAnswer(String pin, DbCompetition competition, int teamId, int answer, int roundNumber) {
+        teamAnswersStorage.compute(pin, (__, before) -> {
+            if (before == null)
+                before = createTeamAnswersProcessor(competition);
+
+            teamAnswersSinks.get(pin).next(
+                    RoundTeamAnswerDto
+                            .builder()
+                            .teamIdInGame(teamId)
+                            .teamAnswer(answer)
+                            .roundNumber(roundNumber)
+                            .build()
+            );
+            return before;
+        });
     }
 
     @Override
@@ -466,96 +481,132 @@ public class GameManagementServiceImpl implements IGameManagementService {
         if (competition.getState() != DbCompetition.State.InProcess) {
             return Mono.error(new RoundEndInNotStartedCompetitionException("Attempt to end round but game not started"));
         }
-        int currentRoundNumber = competition.getCompetitionProcessInfo().getCurrentRoundNumber();
-        var lastRound = competition.getCompetitionProcessInfo().getCurrentRound();
-        lastRound.setEnded(true);
+        var savingRoundMono = Mono.just(1).then();
 
-        if (currentRoundNumber == competition.getParameters().getRoundsCount()) {
-            competition.setState(DbCompetition.State.Ended);
+        if (useLateRoundSaving) {
+            var storage = gameRoundDataStorage.getStorageByPin(competition.getPin());
+            savingRoundMono = storage.map(storage1 -> {
+                var answers = storage1.getAnswers();
+                return Pair.of(answers, answers.stream().map(el -> el.getTeam().getId()).collect(Collectors.toList()));
+            }).map(answersAndTeamsIds -> Pair.of(answersAndTeamsIds.getFirst(), teamsRepository.findAllById(answersAndTeamsIds.getSecond()).collectList()))
+              .map(answersAndTeams -> {
+                  var teamsList = answersAndTeams.getSecond();
+                  var answers = answersAndTeams.getFirst();
+                  var dbAnswers = teamsList.map(teams -> {
+                      return answers.stream().flatMap(answer -> {
+                          var team = teams.stream().filter(el -> el.getId().equals(answer.getTeam().getId())).findFirst();
+                          if (team.isEmpty()) {
+                              return Stream.empty();
+                          }
+                          return Stream.of(DbAnswer.builder().value(answer.getValue()).submitter(team.get()).build());
+                      }).collect(Collectors.toList());
+                  });
+                  return dbAnswers.flatMap(list -> answersRepository.saveAll(list).collectList()).map(answers_ -> {
+                      answers_.forEach(el -> {
+                          competition.getCompetitionProcessInfo().getCurrentRound().addAnswer(el);
+                      });
+                      return answers_;
+                  }).then(roundInfosRepository.save(competition.getCompetitionProcessInfo().getCurrentRound()))
+                          .then(processInfosRepository.save(competition.getCompetitionProcessInfo()))
+                          .then(competitionsRepository.save(competition));
+              }).map(Mono::then).orElseGet(() -> Mono.just(1).then());
         }
+        return savingRoundMono.then(Mono.defer(() -> {
+            gameRoundDataStorage.flushRound(competition.getPin());
+            int currentRoundNumber = competition.getCompetitionProcessInfo().getCurrentRoundNumber();
+            var lastRound = competition.getCompetitionProcessInfo().getCurrentRound();
+            lastRound.setEnded(true);
 
-        var results = roundResultsCalculator.calculateResults(lastRound, competition);
+            if (currentRoundNumber == competition.getParameters().getRoundsCount()) {
+                competition.setState(DbCompetition.State.Ended);
+            }
 
-        /// TODO ask teacher about banning and ban only then
-        var bannedTeams = this.banTeams(results.getBannedTeams(), competition).flatMap(team -> {
-            return this.addMessage(competition,
-                    CompetitionMessageRequest.builder()
-                            .message(String.format("Game: Team %d:\"%s\" is banned for exceeding loss limit", team.getIdInGame(), team.getName()))
-                            .build()).thenReturn(team);
-        }).collectList().doOnNext(banTeams -> {
-            teamBanStorage.compute(competition.getPin(), (pin, before) -> {
-                if (Objects.isNull(before)) {
-                    return createTeamBanProcessor(competition);
-                } else {
-                    var sink = teamBanSinks.get(pin);
-                    banTeams.forEach(team -> {
-                        sink.next(TeamBanEventDto.builder().teamName(team.getName())
-                                .round(team.getBanRound())
-                                .teamIdInGame(team.getIdInGame()).build());
-                    });
-                    return before;
-                }
-            });
-        });
-
-        return bannedTeams.then(roundResultElementsRepository.saveAll(
-                results.getResults()
-        ).collectList().doOnNext(savedRoundResults -> {
-            lastRound.addRoundResults(savedRoundResults);
-            lastRound.setPrice(results.getPrice());
-
-            roundPricesStorage.compute(competition.getPin(), (pin, before) -> {
-                if (Objects.isNull(before)) {
-                    return createPricesProcessor(competition);
-                } else {
-                    roundPricesSinks.get(pin)
-                            .next(
-                                    PriceInRoundDto.builder()
-                                    .roundNumber(currentRoundNumber)
-                                    .price(results.getPrice())
-                                    .build()
-                            );
-                    return before;
-                }
+            return Mono.just(new Triplet<>(lastRound, currentRoundNumber, roundResultsCalculator.calculateResults(lastRound, competition)));
+        })).flatMap(roundAndResults -> {
+            var results = roundAndResults.getThird();
+            var lastRound = roundAndResults.getFirst();
+            var currentRoundNumber = roundAndResults.getSecond();
+            var bannedTeams = this.banTeams(results.getBannedTeams(), competition).flatMap(team -> {
+                return this.addMessage(competition,
+                        CompetitionMessageRequest.builder()
+                                .message(String.format("Game: Team %d:\"%s\" is banned for exceeding loss limit", team.getIdInGame(), team.getName()))
+                                .build()).thenReturn(team);
+            }).collectList().doOnNext(banTeams -> {
+                teamBanStorage.compute(competition.getPin(), (pin, before) -> {
+                    if (Objects.isNull(before)) {
+                        return createTeamBanProcessor(competition);
+                    } else {
+                        var sink = teamBanSinks.get(pin);
+                        banTeams.forEach(team -> {
+                            sink.next(TeamBanEventDto.builder().teamName(team.getName())
+                                    .round(team.getBanRound())
+                                    .teamIdInGame(team.getIdInGame()).build());
+                        });
+                        return before;
+                    }
+                });
             });
 
-            teamResultsStorage.compute(competition.getPin(), (pin, before) -> {
-                if (Objects.isNull(before)) {
-                    return createTeamResultsProcessor(competition);
-                } else {
-                    savedRoundResults.forEach(dbRoundResultElement -> {
-                        teamResultsSinks.get(pin).next(
-                                RoundTeamResultDto.builder()
-                                        .income(dbRoundResultElement.getIncome())
-                                        .roundNumber(currentRoundNumber)
-                                        .teamIdInGame(dbRoundResultElement.getTeam().getIdInGame())
-                                        .build()
-                        );
-                    });
+            return bannedTeams.then(
+                    roundResultElementsRepository.saveAll(
+                            results.getResults()
+                    ).collectList().doOnNext(savedRoundResults -> {
+                        lastRound.addRoundResults(savedRoundResults);
+                        lastRound.setPrice(results.getPrice());
 
-                    return before;
-                }
-            });
-        }))
-                .then(roundInfosRepository.save(lastRound).then(competitionsRepository.save(competition)
-                .doOnNext((savedCompetition) -> {
-                    String pin = savedCompetition.getPin();
-                    beginEndRoundEventsStorage.compute(pin, (__, before) -> {
-                        if (Objects.isNull(before)) {
-                            return createBeginEndRoundsProcessor(savedCompetition);
-                        } else {
-                            beginEndRoundEventsSinks.get(pin)
-                                    .next(EndRoundEventDto.builder()
-                                            .roundNumber(currentRoundNumber)
-                                            .roundLength(findRoundLength(currentRoundNumber, savedCompetition.getParameters().getRoundsLengthHistory()))
-                                            .isEndOfGame(currentRoundNumber == savedCompetition.getParameters().getRoundsCount())
-                                            .build()
+                        roundPricesStorage.compute(competition.getPin(), (pin, before) -> {
+                            if (Objects.isNull(before)) {
+                                return createPricesProcessor(competition);
+                            } else {
+                                roundPricesSinks.get(pin)
+                                        .next(
+                                                PriceInRoundDto.builder()
+                                                        .roundNumber(currentRoundNumber)
+                                                        .price(results.getPrice())
+                                                        .build()
+                                        );
+                                return before;
+                            }
+                        });
+
+                        teamResultsStorage.compute(competition.getPin(), (pin, before) -> {
+                            if (Objects.isNull(before)) {
+                                return createTeamResultsProcessor(competition);
+                            } else {
+                                savedRoundResults.forEach(dbRoundResultElement -> {
+                                    teamResultsSinks.get(pin).next(
+                                            RoundTeamResultDto.builder()
+                                                    .income(dbRoundResultElement.getIncome())
+                                                    .roundNumber(currentRoundNumber)
+                                                    .teamIdInGame(dbRoundResultElement.getTeam().getIdInGame())
+                                                    .build()
                                     );
+                                });
 
-                            return before;
-                        }
-                    });
-                }))).then();
+                                return before;
+                            }
+                        });
+                    }))
+                    .then(roundInfosRepository.save(lastRound).then(competitionsRepository.save(competition)
+                            .doOnNext((savedCompetition) -> {
+                                String pin = savedCompetition.getPin();
+                                beginEndRoundEventsStorage.compute(pin, (__, before) -> {
+                                    if (Objects.isNull(before)) {
+                                        return createBeginEndRoundsProcessor(savedCompetition);
+                                    } else {
+                                        beginEndRoundEventsSinks.get(pin)
+                                                .next(EndRoundEventDto.builder()
+                                                        .roundNumber(currentRoundNumber)
+                                                        .roundLength(findRoundLength(currentRoundNumber, savedCompetition.getParameters().getRoundsLengthHistory()))
+                                                        .isEndOfGame(currentRoundNumber == savedCompetition.getParameters().getRoundsCount())
+                                                        .build()
+                                                );
+
+                                        return before;
+                                    }
+                                });
+                            }))).then();
+        });
     }
 
     @Override
@@ -786,4 +837,12 @@ public class GameManagementServiceImpl implements IGameManagementService {
         return teamsRepository.saveAll(teams);
     }
 
+    @AllArgsConstructor
+    @Getter
+    private static class Triplet<V1, V2, V3> {
+        private V1 first;
+        private V2 second;
+        private V3 third;
+    }
 }
+

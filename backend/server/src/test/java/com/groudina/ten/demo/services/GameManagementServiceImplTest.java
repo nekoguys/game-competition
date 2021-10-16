@@ -133,9 +133,6 @@ class GameManagementServiceImplTest {
         var answersVerifier = StepVerifier.create(gameManagementService.teamsAnswersEvents(comp));
 
         gameManagementService.submitAnswer(comp, teams.get(0), 20, 1).block();
-
-        assertEquals(comp.getCompetitionProcessInfo().getCurrentRound().getAnswerList().size(), 1);
-
         gameManagementService.submitAnswer(comp, teams.get(1), 10, 1).block();
 
         answersVerifier.consumeNextWith((roundTeamAnswerDto) -> {
@@ -272,6 +269,7 @@ class GameManagementServiceImplTest {
 
         StepVerifier.create(gameManagementService.submitAnswer(comp, team, 20, 1))
                 .verifyComplete();
+        gameManagementService.endCurrentRound(comp).block();
 
         var allAnswers = answersRepository.findAll().collectList().block();
         assertEquals(allAnswers.size(), 1);

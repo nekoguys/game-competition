@@ -331,6 +331,8 @@ class CompetitionProcessControllerTest {
             assertEquals(roundTeamAnswerDto.getRoundNumber(), 2);
         }).thenCancel().verify();
 
+        gameManagementService.endCurrentRound(competitionsRepository.findByPin("1234").block()).block();
+
         var comp = competitionsRepository.findByPin("1234").block();
         assertEquals(comp.getCompetitionProcessInfo().getCurrentRound().getAnswerList().size(), 1);
         assertEquals(comp.getCompetitionProcessInfo().getRoundInfos().get(0).getAnswerList().size(), 1);
