@@ -1,22 +1,23 @@
-package com.groudina.ten.demo.services;
+package com.groudina.ten.demo.services
 
-import lombok.SneakyThrows;
-import org.junit.jupiter.api.Test;
+import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Test
 
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+internal class CompetitionPinGeneratorImplTest {
 
-class CompetitionPinGeneratorImplTest {
+    private val competitonPinGenerator: ICompetitionPinGenerator = CompetitonPinGeneratorImpl()
 
-    @SneakyThrows
     @Test
-    void generate() {
-        String pin = (new CompetitonPinGeneratorImpl()).generate();
-        for (int i = 0; i < pin.length(); ++i)
-            assertTrue(Character.isDigit(pin.charAt(i)));
-        assertNotEquals("0", pin);
-        Thread.sleep(1);
-        String pin2 = (new CompetitonPinGeneratorImpl()).generate();
-        assertNotEquals(pin, pin2);
+    fun generate() {
+        val firstPin = competitonPinGenerator.generate()
+        assertThat(firstPin)
+            .containsOnlyDigits()
+            .isNotEqualTo("0")
+
+        Thread.sleep(2000)
+
+        val secondPin = competitonPinGenerator.generate()
+        assertThat(secondPin)
+            .isGreaterThan(firstPin)
     }
 }
