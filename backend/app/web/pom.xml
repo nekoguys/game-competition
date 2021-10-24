@@ -15,7 +15,7 @@
     <dependencies>
         <dependency>
             <groupId>ru.selemilka.game</groupId>
-            <artifactId>backend-lib-game-core</artifactId>
+            <artifactId>backend-lib-competition</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
 
@@ -120,5 +120,4 @@
             </plugin>
         </plugins>
     </build>
-
 </project>

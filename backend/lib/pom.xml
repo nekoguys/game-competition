@@ -16,6 +16,9 @@
  
     <modules>
         <module>game-core</module>
+        <module>storage-postgres</module>
+        <module>competition-model</module>
+        <module>competition</module>
     </modules>
 
 </project>
