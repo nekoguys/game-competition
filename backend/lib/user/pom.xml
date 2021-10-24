@@ -7,10 +7,10 @@
 		<artifactId>backend-lib-parent</artifactId>
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
-	<artifactId>backend-lib-competition-model</artifactId>
+	<artifactId>backend-lib-user</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>lib-competition-model</name>
-	<description>The New Backend game-core library</description>
+	<name>lib-user</name>
+	<description>The New Backend library for user management, creation and authentication</description>
 
 	<dependencies>
 		<dependency>
@@ -20,7 +20,7 @@
 		</dependency>
 		<dependency>
 			<groupId>ru.selemilka.game</groupId>
-			<artifactId>backend-lib-storage-postgres</artifactId>
+			<artifactId>backend-lib-competition-model</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
 	</dependencies>

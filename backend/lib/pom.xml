@@ -11,12 +11,13 @@
     </parent>
     <artifactId>backend-lib-parent</artifactId>
     <packaging>pom</packaging>
-    <name>backend-lib-parent</name>
+    <name>lib-parent</name>
     <description>The New Backend Libraries Parent Project</description>
  
     <modules>
-        <module>game-core</module>
         <module>storage-postgres</module>
+        <module>user</module>
+        <module>game-core</module>
         <module>competition-model</module>
         <module>competition</module>
     </modules>

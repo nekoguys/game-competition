@@ -9,7 +9,7 @@
     </parent>
     <artifactId>backend-app-web</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>backend-app-web</name>
+    <name>app-web</name>
     <description>The New Backend Web Application</description>
 
     <dependencies>

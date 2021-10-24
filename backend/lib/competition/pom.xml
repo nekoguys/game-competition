@@ -9,7 +9,7 @@
 	</parent>
 	<artifactId>backend-lib-competition</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>backend-lib-competition</name>
+	<name>lib-competition</name>
 	<description>The New Backend competition library</description>
 
 	<dependencies>

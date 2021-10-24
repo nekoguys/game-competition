@@ -9,6 +9,6 @@
 	</parent>
 	<artifactId>backend-lib-game-core</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>backend-lib-game-core</name>
+	<name>lib-game-core</name>
 	<description>The New Backend game-core library</description>
 </project>

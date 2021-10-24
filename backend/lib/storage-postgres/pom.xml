@@ -9,6 +9,6 @@
 	</parent>
 	<artifactId>backend-lib-storage-postgres</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>backend-lib-storage-postgres</name>
+	<name>lib-storage-postgres</name>
 	<description>The New Backend Storage based on Postgres</description>
 </project>

@@ -9,7 +9,7 @@
     <version>0.0.1-SNAPSHOT</version>
     <packaging>pom</packaging>
     <description>The New Backend Parent Project</description>
-    <name>backend-parent</name>
+    <name>parent</name>
    
     <properties>
         <java-version>17</java-version>

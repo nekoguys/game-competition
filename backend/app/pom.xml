@@ -11,7 +11,7 @@
     </parent>
     <artifactId>backend-app-parent</artifactId>
     <packaging>pom</packaging>
-    <name>backend-app-parent</name>
+    <name>app-parent</name>
     <description>The New Backend Applications Parent Project</description>
 
     <modules>
