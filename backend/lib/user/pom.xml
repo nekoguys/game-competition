@@ -20,7 +20,7 @@
         </dependency>
         <dependency>
             <groupId>ru.selemilka.game</groupId>
-            <artifactId>backend-lib-competition-model</artifactId>
+            <artifactId>backend-lib-competition</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
     </dependencies>
