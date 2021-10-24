@@ -1,4 +1,4 @@
-package ru.selemilka.game.web
+package ru.selemilka.game
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
