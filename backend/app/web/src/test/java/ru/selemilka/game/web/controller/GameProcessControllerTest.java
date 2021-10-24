@@ -28,4 +28,9 @@ public class GameProcessControllerTest {
                 .expectBody(String.class)
                 .isEqualTo("Hello world not not not!");
     }
+
+    @Test
+    void mustFail() {
+        throw new IllegalStateException();
+    }
 }
