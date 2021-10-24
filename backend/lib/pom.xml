@@ -18,8 +18,8 @@
         <module>storage-postgres</module>
         <module>user</module>
         <module>game-core</module>
-        <module>competition-model</module>
         <module>competition</module>
+        <module>competition-process</module>
     </modules>
 
     <dependencies>

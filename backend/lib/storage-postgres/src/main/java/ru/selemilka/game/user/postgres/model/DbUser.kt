@@ -1,4 +1,4 @@
-package ru.selemilka.game.postgres.model
+package ru.selemilka.game.user.postgres.model
 
 data class DbUser(
     var id: Long,

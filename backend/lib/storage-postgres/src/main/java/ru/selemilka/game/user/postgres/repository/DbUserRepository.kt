@@ -1,10 +1,10 @@
-package ru.selemilka.game.postgres.repository
+package ru.selemilka.game.user.postgres.repository
 
-import org.springframework.stereotype.Component
-import ru.selemilka.game.postgres.model.DbUserRole
-import ru.selemilka.game.postgres.model.DbUser
+import org.springframework.stereotype.Repository
+import ru.selemilka.game.user.postgres.model.DbUser
+import ru.selemilka.game.user.postgres.model.DbUserRole
 
-@Component
+@Repository
 class DbUserRepository {
     suspend fun findUserById(id: Long): DbUser? {
         return DbUser(

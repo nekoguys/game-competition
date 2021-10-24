@@ -1,3 +1,3 @@
-package ru.selemilka.game.user
+package ru.selemilka.game
 
 interface GameAction<G: Game>
