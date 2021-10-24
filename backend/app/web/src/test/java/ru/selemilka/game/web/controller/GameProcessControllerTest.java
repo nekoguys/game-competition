@@ -26,6 +26,6 @@ public class GameProcessControllerTest {
         webTestClient.get().uri("/game/hello")
                 .exchange()
                 .expectBody(String.class)
-                .isEqualTo("Hello world!");
+                .isEqualTo("Hello world not not not!");
     }
 }
