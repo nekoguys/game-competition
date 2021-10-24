@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" 
+<project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 
                              http://maven.apache.org/maven-v4_0_0.xsd">
@@ -10,13 +10,13 @@
     <packaging>pom</packaging>
     <description>The New Backend Parent Project</description>
     <name>parent</name>
-   
+
     <properties>
         <java-version>17</java-version>
         <kotlin-version>1.5.31</kotlin-version>
         <spring-boot-version>2.5.5</spring-boot-version>
     </properties>
-  
+
     <modules>
         <module>app</module>
         <module>lib</module>
@@ -94,7 +94,7 @@
                     </args>
                     <compilerPlugins>
                         <plugin>spring</plugin>
-<!--                            <plugin>lombok</plugin>-->
+                        <!--                            <plugin>lombok</plugin>-->
                     </compilerPlugins>
                     <jvmTarget>11</jvmTarget>
                 </configuration>
