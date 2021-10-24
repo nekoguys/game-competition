@@ -7,4 +7,8 @@ internal class GameProcessTest {
     @Test
     fun testGameProcess() {
     }
+
+    fun fail() {
+        error("failing test")
+    }
 }
