@@ -34,9 +34,9 @@ private class GameImpl<in A : AnyAction, out R : AnyReaction>(
  * * [producer] - как о новых реакциях будут узнавать пользователи
  */
 fun <A : AnyAction, R : AnyReaction> createGame(
-    consumerBuilder: (OnActionCall<A>) -> ActionConsumer<A>,
+    consumerBuilder: (OnActionCall<A>) -> ActionConsumer<A> = ::FairActionConsumer,
     processor: Processor<A, R>,
-    producer: SimpleReactionProducer<R>,
+    producer: MutableReactionProducer<R> = SimpleReactionProducer(),
 ): Game<A, R> = GameImpl(
     consumer = consumerBuilder { sessionId, action ->
         // TODO: подумать над ретраями, ведь тут могут быть ошибки, связанные с БД

@@ -101,7 +101,7 @@ class FairActionConsumer<in A : AnyAction>(
     }
 
     private fun CoroutineScope.createChannel(id: SessionId): Channel<ActionRequest<A>> {
-        val requests = Channel<ActionRequest<A>>(capacity = 1)
+        val requests = Channel<ActionRequest<A>>()
         launch {
             for ((action, ack) in requests) {
                 val result = runCatching { onAction(id, action) }

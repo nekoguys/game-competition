@@ -12,21 +12,19 @@ import kotlin.reflect.full.safeCast
  * Реализация [Processor] нужна, чтобы создать свою игру с помощью функции [createGame].
  */
 interface Processor<in A : AnyAction, out R : AnyReaction> {
-    /**
-     *
-     */
+
     suspend fun process(id: SessionId, action: A): List<R>
 
     /**
      * Обрабатывает запрос или возвращает null, если не умеет его обрабатывать
      */
-    suspend fun tryProcess(id: SessionId, action: AnyAction): List<R>?
+    suspend fun processAny(id: SessionId, action: AnyAction): List<R>?
 }
 
 interface TypedProcessor<A : AnyAction, out R : AnyReaction> : Processor<A, R> {
     val actionClass: KClass<A>
 
-    override suspend fun tryProcess(id: SessionId, action: AnyAction): List<R>? =
+    override suspend fun processAny(id: SessionId, action: AnyAction): List<R>? =
         actionClass
             .safeCast(action)
             ?.let { castedAction -> process(id, castedAction) }
@@ -44,7 +42,7 @@ internal class CompositeProcessor<A : AnyAction, out R : AnyReaction>(
 ) : TypedProcessor<A, R> {
     override suspend fun process(id: SessionId, action: A): List<R> =
         processors
-            .mapNotNull { strategy -> strategy.tryProcess(id, action) }
+            .mapNotNull { strategy -> strategy.processAny(id, action) }
             .flatten() // TODO: подумать про обработку ошибок.
 }
 

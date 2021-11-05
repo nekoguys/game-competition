@@ -10,6 +10,10 @@ interface StageStorage {
     suspend fun changeStage(id: SessionId, newStage: Int)
 }
 
+/**
+ * TODO: может быть сделать этот процессор похожим на [ru.selemilka.game.core.base.CompositeProcessor]?
+ *  И принимать как параметр `Map<Stage, Processor>`
+ */
 class CheckingStageProcessor(
     private val actionWhitelist: Map<Int, Collection<KClass<out AnyAction>>>,
     private val stageStorage: StageStorage,

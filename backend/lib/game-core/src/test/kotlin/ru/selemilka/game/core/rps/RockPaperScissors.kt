@@ -13,6 +13,7 @@ sealed interface RpsPlayerReaction : RpsReaction {
         override val scope: RpsPlayerScope,
         val name: String,
     ) : RpsPlayerReaction
+
     data class YouJoinedGame(
         override val scope: RpsPlayerScope,
         val name: String,
