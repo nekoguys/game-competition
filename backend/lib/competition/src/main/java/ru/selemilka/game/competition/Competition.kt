@@ -1,5 +1,5 @@
 package ru.selemilka.game.competition
 
-import ru.selemilka.game.core.Game
+import ru.selemilka.game.core.base.ReactionScope
 
-class Competition : Game
+class CompetitionReactionScope : ReactionScope
