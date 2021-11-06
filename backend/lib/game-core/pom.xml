@@ -11,4 +11,7 @@
     <version>0.0.1-SNAPSHOT</version>
     <name>lib-game-core</name>
     <description>The New Backend game-core library</description>
+    <build>
+        <sourceDirectory>${project.basedir}/src/main/kotlin</sourceDirectory>
+    </build>
 </project>

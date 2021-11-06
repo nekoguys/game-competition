@@ -1,4 +1,4 @@
-package ru.selemilka.game.core.process
+package process
 
 import org.junit.jupiter.api.Test
 
