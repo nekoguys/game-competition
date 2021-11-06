@@ -5,18 +5,18 @@ import ru.selemilka.game.core.base.SessionId
 import ru.selemilka.game.core.base.TypedProcessor
 import kotlin.reflect.KClass
 
-interface StageStorage {
-    suspend fun currentStage(id: SessionId): Int
-    suspend fun changeStage(id: SessionId, newStage: Int)
+interface StageStorage<S : Enum<S>> {
+    suspend fun currentStage(id: SessionId): S
+    suspend fun changeStage(id: SessionId, newStage: S): Result<Unit>
 }
 
 /**
  * TODO: может быть сделать этот процессор похожим на [ru.selemilka.game.core.base.CompositeProcessor]?
  *  И принимать как параметр `Map<Stage, Processor>`
  */
-class CheckingStageProcessor(
-    private val actionWhitelist: Map<Int, Collection<KClass<out AnyAction>>>,
-    private val stageStorage: StageStorage,
+class CheckingStageProcessor<S : Enum<S>>(
+    private val actionWhitelist: Map<S, Collection<KClass<out AnyAction>>>,
+    private val stageStorage: StageStorage<S>,
 ) : TypedProcessor<AnyAction, Nothing> {
     // TODO: Этот процессор поддерживает все типы запросов, тут не нужно что-либо фильтровать
     //       И actionClass тоже указывать не нужно
