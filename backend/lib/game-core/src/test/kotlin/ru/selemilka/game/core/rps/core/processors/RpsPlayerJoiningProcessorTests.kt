@@ -16,7 +16,7 @@ internal class RpsPlayerJoiningProcessorTests {
     private val sessionId = 1L
 
     @Test
-    fun test_WhenTwoPlayerJoinGame_Success() {
+    fun `Two players successfully joined game`() {
         val result = joinGame(sessionId, RpsPlayer("player1"))
         assertEquals(
             expectedReactionOnJoiningGame(RpsPlayer("player1"), sessionId),
@@ -31,7 +31,7 @@ internal class RpsPlayerJoiningProcessorTests {
     }
 
     @Test
-    fun test_WhenPlayerTriesToJoinSecondTime_ExpectPlayerAlreadyExists() {
+    fun `fail when player tries to join second time`() {
         val result = joinGame(sessionId, RpsPlayer("player1"))
         assertEquals(expectedReactionOnJoiningGame(RpsPlayer("player1"), sessionId), result)
 
@@ -45,7 +45,7 @@ internal class RpsPlayerJoiningProcessorTests {
     }
 
     @Test
-    fun test_WhenThereAreAlreadyTwoPlayer_ExpectFailure() {
+    fun `fail when there are already two players`() {
         joinGame(sessionId, RpsPlayer("player1"))
         joinGame(sessionId, RpsPlayer("player2"))
         val result = joinGame(sessionId, RpsPlayer("player3"))
