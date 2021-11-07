@@ -16,7 +16,7 @@ class RpsGameProcessor(
     override val actionClass = RpsPlayerAction.Turn::class
 
     override suspend fun process(id: SessionId, action: RpsPlayerAction.Turn): List<RpsPlayerReaction> {
-        val result = gameStateStorage.makeTurn(id, RpsGameStateStorage.Turn(action.initiator.name, turn = action.turn))
+        val result = gameStateStorage.makeTurn(id, RpsGameStateStorage.Turn(action.initiator.name, decision = action.decision))
         return result.toRpsPlayerReaction(id)
     }
 }
@@ -28,7 +28,7 @@ fun SubmitTurnWithResultResponse.toRpsPlayerReaction(id: SessionId): List<RpsPla
             RpsPlayerReaction.PlayerMadeTurn(
                 turn = RpsPlayerAction.Turn(
                     RpsPlayer(name = turn.turn.player),
-                    turn = turn.turn.turn
+                    decision = turn.turn.decision
                 )
             )
         }

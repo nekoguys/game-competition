@@ -9,7 +9,7 @@ enum class RockPaperScissorsTurn {
 sealed interface RpsPlayerAction : RpsAction {
     data class JoinGame(override val initiator: RpsPlayer) : RpsPlayerAction
 
-    data class Turn(override val initiator: RpsPlayer, val turn: RockPaperScissorsTurn) : RpsPlayerAction
+    data class Turn(override val initiator: RpsPlayer, val decision: RockPaperScissorsTurn) : RpsPlayerAction
 }
 
 sealed interface RpsPlayerReaction : RpsReaction {

@@ -8,7 +8,7 @@ interface RpsGameStateStorage {
     sealed interface SubmitTurnError : SubmitTurnResponse
     data class TurnAlreadySubmittedError(val player: String) : SubmitTurnError
     data class SubmitTurnSuccess(val turn: Turn) : SubmitTurnResponse
-    data class Turn(val player: String, val turn: RockPaperScissorsTurn)
+    data class Turn(val player: String, val decision: RockPaperScissorsTurn)
 
     sealed interface RoundResult
     data class Winner(val winner: String) : RoundResult
@@ -29,9 +29,9 @@ class RpsGameStateInMemoryStorage : RpsGameStateStorage {
             } else {
                 answers.add(answer)
                 val result: RpsGameStateStorage.RoundResult? = if (answers.size == 2) {
-                    if (answers[0].turn.beats(answers[1].turn)) {
+                    if (answers[0].decision.beats(answers[1].decision)) {
                         RpsGameStateStorage.Winner(winner = answers[0].player)
-                    } else if (answers[1].turn.beats(answers[0].turn)) {
+                    } else if (answers[1].decision.beats(answers[0].decision)) {
                         RpsGameStateStorage.Winner(winner = answers[1].player)
                     } else {
                         RpsGameStateStorage.Draw
@@ -57,7 +57,9 @@ class RpsGameStateInMemoryStorage : RpsGameStateStorage {
 }
 
 fun RockPaperScissorsTurn.beats(another: RockPaperScissorsTurn): Boolean {
-    return (this == RockPaperScissorsTurn.Rock && another == RockPaperScissorsTurn.Scissors) ||
-            (this == RockPaperScissorsTurn.Scissors && another == RockPaperScissorsTurn.Paper) ||
-            (this == RockPaperScissorsTurn.Paper && another == RockPaperScissorsTurn.Rock)
+    return when (this) {
+        RockPaperScissorsTurn.Rock -> another == RockPaperScissorsTurn.Scissors
+        RockPaperScissorsTurn.Scissors -> another == RockPaperScissorsTurn.Paper
+        RockPaperScissorsTurn.Paper -> another == RockPaperScissorsTurn.Rock
+    }
 }

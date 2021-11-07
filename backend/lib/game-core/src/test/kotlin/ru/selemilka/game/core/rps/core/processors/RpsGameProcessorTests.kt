@@ -23,7 +23,7 @@ class RpsGameProcessorTests {
         assertTrue(reaction is RpsPlayerReaction.PlayerMadeTurn)
         val playerMadeTurn = reaction as RpsPlayerReaction.PlayerMadeTurn
         assertEquals(playerMadeTurn.turn.initiator.name, "player1")
-        assertEquals(playerMadeTurn.turn.turn, RockPaperScissorsTurn.Rock)
+        assertEquals(playerMadeTurn.turn.decision, RockPaperScissorsTurn.Rock)
     }
 
     @Test
@@ -59,5 +59,5 @@ class RpsGameProcessorTests {
 
 
     private fun submitTurn(id: SessionId, player: String, turn: RockPaperScissorsTurn): List<RpsPlayerReaction> =
-        runBlocking { processor.process(id, RpsPlayerAction.Turn(initiator = RpsPlayer(player), turn = turn)) }
+        runBlocking { processor.process(id, RpsPlayerAction.Turn(initiator = RpsPlayer(player), decision = turn)) }
 }

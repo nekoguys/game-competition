@@ -25,13 +25,15 @@ class RpsInMemoryPlayerStorage : RpsPlayerStorage {
 
     override suspend fun addPlayer(id: SessionId, player: String): RpsPlayerStorage.AddPlayerResult {
         val players = sessionPlayerStorage.computeIfAbsent(id) { SessionPlayers() }.players
-        return if (existsPlayer(id, player)) {
-            RpsPlayerStorage.PlayerAlreadyJoinedGame
-        } else if (players.size >= 2) {
-            RpsPlayerStorage.ThereAreAlreadyTwoPlayers
-        } else {
-            players.add(player)
-            RpsPlayerStorage.AddPlayerSuccess
+        return when (players.size) {
+            in 0..1 -> {
+                when (existsPlayer(id, player)) {
+                    true -> RpsPlayerStorage.PlayerAlreadyJoinedGame
+                    false -> { players.add(player); return RpsPlayerStorage.AddPlayerSuccess }
+                }
+            }
+            else -> RpsPlayerStorage.ThereAreAlreadyTwoPlayers
+
         }
     }
 }
