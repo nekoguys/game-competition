@@ -14,6 +14,7 @@ interface RpsGameStateStorage {
     data class Winner(val winner: String) : RoundResult
     object Draw : RoundResult
 
+    fun isGameEnded(sessionId: SessionId): Boolean
     fun makeTurn(sessionId: SessionId, turn: Turn): SubmitTurnWithResultResponse
 }
 
@@ -22,6 +23,10 @@ typealias SubmitTurnWithResultResponse = Pair<RpsGameStateStorage.SubmitTurnResp
 class RpsGameStateInMemoryStorage : RpsGameStateStorage {
     private class GameState {
         private val answers = mutableListOf<RpsGameStateStorage.Turn>()
+
+        fun isGameEnded(): Boolean {
+            return answers.size == 2
+        }
 
         fun submit(answer: RpsGameStateStorage.Turn): SubmitTurnWithResultResponse {
             return if (answers.size >= 2 || answers.any { it.player == answer.player }) {
@@ -53,6 +58,10 @@ class RpsGameStateInMemoryStorage : RpsGameStateStorage {
     ): SubmitTurnWithResultResponse {
         val gameState = storage.computeIfAbsent(sessionId) { GameState() }
         return gameState.submit(turn)
+    }
+
+    override fun isGameEnded(sessionId: SessionId): Boolean {
+        return storage[sessionId]?.isGameEnded() ?: false
     }
 }
 

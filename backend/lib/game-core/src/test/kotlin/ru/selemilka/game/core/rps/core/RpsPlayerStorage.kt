@@ -9,6 +9,8 @@ interface RpsPlayerStorage {
     object ThereAreAlreadyTwoPlayers : AddPlayerFailure
     object PlayerAlreadyJoinedGame : AddPlayerFailure
 
+    fun getPlayers(id: SessionId): List<String>
+
     suspend fun existsPlayer(id: SessionId, player: String): Boolean
     suspend fun addPlayer(id: SessionId, player: String): AddPlayerResult
 }
@@ -19,6 +21,11 @@ class RpsInMemoryPlayerStorage : RpsPlayerStorage {
     }
 
     private val sessionPlayerStorage = mutableMapOf<SessionId, SessionPlayers>()
+
+    override fun getPlayers(id: SessionId): List<String> {
+        return sessionPlayerStorage[id]?.players ?: emptyList()
+    }
+
     override suspend fun existsPlayer(id: SessionId, player: String): Boolean {
         return sessionPlayerStorage[id]?.players?.contains(player) ?: false
     }
