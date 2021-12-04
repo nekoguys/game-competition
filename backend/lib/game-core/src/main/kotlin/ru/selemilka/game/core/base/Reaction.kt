@@ -8,6 +8,7 @@ import kotlin.reflect.KClass
 
 /**
  * A destination for the announcement.
+ * Тут описаны базовые типы реакций(All, Initiator):
  */
 interface ReactionScope {
     /**
