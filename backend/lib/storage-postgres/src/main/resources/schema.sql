@@ -1,6 +1,6 @@
 
 CREATE TABLE IF NOT EXISTS users (
-    id INTEGER GENERATED ALWAYS AS IDENTITY,
+    id BIGINT GENERATED ALWAYS AS IDENTITY,
     email VARCHAR(255) NOT NULL,
     name VARCHAR(255),
     role VARCHAR(64) CHECK (role in ('STUDENT', 'TEACHER', 'ADMIN')),
@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 CREATE TABLE IF NOT EXISTS game_props (
-    props_id INTEGER GENERATED ALWAYS AS IDENTITY,
+    props_id BIGINT GENERATED ALWAYS AS IDENTITY,
     creator_id INTEGER NOT NULL,
     game_type TEXT NOT NULL,
 
@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS game_props (
 );
 
 CREATE TABLE IF NOT EXISTS game_sessions (
-    id INTEGER GENERATED ALWAYS AS IDENTITY,
+    id BIGINT GENERATED ALWAYS AS IDENTITY,
     props_id INTEGER NOT NULL,
 
     PRIMARY KEY (id),
@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS game_sessions (
 );
 
 CREATE TABLE IF NOT EXISTS game_actions (
-    id INTEGER GENERATED ALWAYS AS IDENTITY,
+    id BIGINT GENERATED ALWAYS AS IDENTITY,
     props_id INTEGER NOT NULL,
     session_id INTEGER NOT NULL,
     logtime TIMESTAMP NOT NULL,
@@ -47,7 +47,7 @@ CREATE TABLE IF NOT EXISTS game_actions (
 CREATE INDEX IF NOT EXISTS idx_game_actions_logtime ON game_actions(logtime);
 
 CREATE TABLE IF NOT EXISTS competition_states (
-    session_id INTEGER NOT NULL,
+    session_id BIGINT NOT NULL,
     PRIMARY KEY (session_id),
     CONSTRAINT fk_game_states_id
                          FOREIGN KEY (session_id)
