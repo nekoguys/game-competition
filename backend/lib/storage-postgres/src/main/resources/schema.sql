@@ -59,7 +59,8 @@ CREATE TABLE IF NOT EXISTS "competition_game_props"
 
 CREATE TABLE IF NOT EXISTS "competition_process_infos"
 (
-    "game_id"  bigint PRIMARY KEY,
+    "id"       BIGSERIAL PRIMARY KEY,
+    "game_id"  bigint,
     "state_id" bigint
 );
 
@@ -123,7 +124,7 @@ ALTER TABLE "competition_process_infos"
     ADD FOREIGN KEY ("state_id") REFERENCES "competition_game_states" ("id");
 
 ALTER TABLE "competition_round_infos"
-    ADD FOREIGN KEY ("process_id") REFERENCES "competition_process_infos" ("game_id");
+    ADD FOREIGN KEY ("process_id") REFERENCES "competition_process_infos" ("id");
 
 ALTER TABLE "competition_round_answers"
     ADD FOREIGN KEY ("round_info_id") REFERENCES "competition_round_infos" ("id");
@@ -138,8 +139,14 @@ ALTER TABLE "competition_round_results"
     ADD FOREIGN KEY ("team_id") REFERENCES "game_teams" ("team_id");
 
 ALTER TABLE "competition_messages"
-    ADD FOREIGN KEY ("process_game_id") REFERENCES "competition_process_infos" ("game_id");
+    ADD FOREIGN KEY ("process_game_id") REFERENCES "competition_process_infos" ("id");
 
 ALTER TABLE "game_sessions"
     ADD FOREIGN KEY ("props_id") REFERENCES "game_props" ("id");
+
+ALTER TABLE "competition_game_states"
+    ADD CONSTRAINT state_name_check
+    CHECK (
+        name in ('DRAFT', 'REGISTRATION', 'IN_PROCESS', 'ENDED')
+    );
 
