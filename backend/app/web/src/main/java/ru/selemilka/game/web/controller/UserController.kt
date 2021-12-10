@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.CrossOrigin
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import ru.selemilka.game.user.postgres.model.DbUser
+import ru.selemilka.game.user.postgres.model.DbUserRole
 import ru.selemilka.game.user.postgres.repository.DbUserRepository
 
 @Controller
@@ -23,7 +24,7 @@ class UserController(
         @PathVariable email: String,
         @PathVariable role: String,
     ) {
-        val user = DbUser(id, email, role)
+        val user = DbUser(id, email, DbUserRole.valueOf(role))
         dbUserRepository.save(user)
     }
 

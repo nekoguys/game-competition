@@ -8,9 +8,10 @@ import org.springframework.data.r2dbc.repository.config.EnableR2dbcRepositories
 import ru.selemilka.game.game_props.competition.postgres.converters.*
 import ru.selemilka.game.user.postgres.converters.UserReadingConverter
 
+
 @Configuration
 @EnableR2dbcRepositories
-class R2dbcRepositoriesConfig {
+class TestingR2dbcRepositoriesConfig {
     @Bean
     fun customConversion() : R2dbcCustomConversions {
         return R2dbcCustomConversions.of(
