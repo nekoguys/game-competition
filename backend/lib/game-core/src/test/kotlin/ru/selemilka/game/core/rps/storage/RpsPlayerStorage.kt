@@ -1,6 +1,6 @@
-package ru.selemilka.game.core.rps.core
+package ru.selemilka.game.core.rps.storage
 
-import ru.selemilka.game.core.base.SessionId
+import ru.selemilka.game.core.rps.Session
 
 interface RpsPlayerStorage {
     sealed interface AddPlayerResult
@@ -9,34 +9,35 @@ interface RpsPlayerStorage {
     object ThereAreAlreadyTwoPlayers : AddPlayerFailure
     object PlayerAlreadyJoinedGame : AddPlayerFailure
 
-    fun getPlayers(id: SessionId): List<String>
+    suspend fun getPlayers(id: Session): List<String>
 
-    suspend fun existsPlayer(id: SessionId, player: String): Boolean
-    suspend fun addPlayer(id: SessionId, player: String): AddPlayerResult
+    suspend fun existsPlayer(id: Session, player: String): Boolean
+    suspend fun addPlayer(id: Session, player: String): AddPlayerResult
 }
 
 class RpsInMemoryPlayerStorage : RpsPlayerStorage {
-    class SessionPlayers() {
+    class SessionPlayers {
         val players = mutableListOf<String>()
     }
 
-    private val sessionPlayerStorage = mutableMapOf<SessionId, SessionPlayers>()
+    private val sessionPlayerStorage = mutableMapOf<Session, SessionPlayers>()
 
-    override fun getPlayers(id: SessionId): List<String> {
+    override suspend fun getPlayers(id: Session): List<String> {
         return sessionPlayerStorage[id]?.players ?: emptyList()
     }
 
-    override suspend fun existsPlayer(id: SessionId, player: String): Boolean {
+    override suspend fun existsPlayer(id: Session, player: String): Boolean {
         return sessionPlayerStorage[id]?.players?.contains(player) ?: false
     }
 
-    override suspend fun addPlayer(id: SessionId, player: String): RpsPlayerStorage.AddPlayerResult {
+    override suspend fun addPlayer(id: Session, player: String): RpsPlayerStorage.AddPlayerResult {
         val players = sessionPlayerStorage.computeIfAbsent(id) { SessionPlayers() }.players
         return when (players.size) {
             in 0..1 -> {
                 when (existsPlayer(id, player)) {
                     true -> RpsPlayerStorage.PlayerAlreadyJoinedGame
-                    false -> { players.add(player); return RpsPlayerStorage.AddPlayerSuccess }
+                    false -> { players.add(player); return RpsPlayerStorage.AddPlayerSuccess
+                    }
                 }
             }
             else -> RpsPlayerStorage.ThereAreAlreadyTwoPlayers

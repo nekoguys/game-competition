@@ -1,47 +1,63 @@
 package ru.selemilka.game.core.base
 
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
+
+/**
+ * Вообще игра состоит из трёх частей:
+ * 1. приём команд от игроков. Валидация, проверки, может ли игрок сделать такое действие
+ * 2. обработка команд в нужном порядке. При обработке команды игрокам отправляются несколько сообщений
+ * 3. каждое сгенерированное сообщение отдаётся получателям
+ *
+ * 1. обработка команд
+ * Игре приходит запрос Cmd
+ * Игра ищет, кто сделал запрос, генерирует объект CommandRequest(cmd, player)
+ * Если игрок не может сделать этот запрос, ему отправляется ошибка.
+ * Если может - запрос передаётся в Executor.
+ *
+ * 2. отправка сообщений
+ * Сообщения отправляются какой-то группе игроков (scope)
+ * MessageSource для каждого сообщения ищет, кому оно отправлено, и раскладывает сообщения в свои топики.
+ *
+ * Итого от игрока
+ */
+
 /**
  * Публичное API игры.
  *
  * Пользователи класса [Game] могут:
- * * отправлять игре сообщения [AnyAction] через метод [ActionConsumer.consume]
- * * получать от игры ответы [AnyReaction] через метод [ReactionProducer.allReactions]
+ * * отправлять игре команды [Command] через метод [CommandConsumer.consume]
+ * * получать от игры сообщения [Message] через метод [AnnouncementSource.getAnnouncements]
  *
- * Что игра делает "за кулисами" - детали реализации.
- * Создать игру, зная детали реализации, можно фабричным методом [createGame]
+ * Создать игру, зная, как обрабатываются запросы, можно фабричным методом [Game]
  */
-interface Game<in A : AnyAction, out R : AnyReaction> :
-    ActionConsumer<A>,
-    ReactionProducer<R>
-
-
-/**
- * Реализация публичных API игры через делегацию.
- */
-private class GameImpl<in A : AnyAction, out R : AnyReaction>(
-    private val consumer: ActionConsumer<A>,
-    private val producer: ReactionProducer<R>,
-) : Game<A, R>,
-    ActionConsumer<A> by consumer,
-    ReactionProducer<R> by producer
+interface Game<P, in Cmd : Command<P>, Msg, out A : Announcement<Msg>> :
+    CommandAccepter<P, Cmd>,
+    AnnouncementSource<Msg, A>
 
 /**
  * Фабричный метод для создания игры
  *
  * Параметры задают поведение будущей игры:
- * * [consumerBuilder] - как должны обрабатываться входящие [AnyAction]
- * * [processor] - как будет обрабатываться конкретный [AnyAction]
- * * [producer] - как о новых реакциях будут узнавать пользователи
+ * * [processing] - как будет обрабатываться конкретный [Command]
  */
-fun <A : AnyAction, R : AnyReaction> createGame(
-    consumerBuilder: (OnActionCall<A>) -> ActionConsumer<A> = ::FairActionConsumer,
-    processor: Processor<A, R>,
-    producer: MutableReactionProducer<R> = SimpleReactionProducer(),
-): Game<A, R> = GameImpl(
-    consumer = consumerBuilder { sessionId, action ->
-        // TODO: подумать над ретраями, ведь тут могут быть ошибки, связанные с БД
-        val reactions = processor.process(sessionId, action)
-        producer.shareReactions(reactions)
-    },
-    producer = producer,
-)
+@Suppress("FunctionName")
+suspend fun <P, Cmd : Command<P>, Msg, A : Announcement<Msg>> Game(
+    processing: suspend (P, Cmd) -> List<A>,
+): Game<P, Cmd, Msg, A> {
+    val announcements = MutableSharedFlow<A>()
+
+    val accepter = SimpleCommandAccepter<P, Cmd> { player, command ->
+        processing(player, command)
+    }
+
+    val announcementSource = object : AnnouncementSource<Msg, A> {
+        override fun getAnnouncements(): Flow<A> = announcements.asSharedFlow()
+    }
+
+    return object :
+        Game<P, Cmd, Msg, A>,
+        CommandAccepter<P, Cmd> by accepter,
+        AnnouncementSource<Msg, A> by announcementSource {}
+}

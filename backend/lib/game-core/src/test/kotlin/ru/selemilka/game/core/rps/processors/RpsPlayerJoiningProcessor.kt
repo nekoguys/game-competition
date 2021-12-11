@@ -1,28 +1,28 @@
-package ru.selemilka.game.core.rps.core.processors
+package ru.selemilka.game.core.rps.processors
 
 import ru.selemilka.game.core.base.ReactionScope
 import ru.selemilka.game.core.base.SessionId
 import ru.selemilka.game.core.base.TypedProcessor
-import ru.selemilka.game.core.rps.RpsPlayerAction
-import ru.selemilka.game.core.rps.RpsPlayerReaction
+import rps.RpsPlayerCommand
+import rps.RpsPlayerMessage
 import ru.selemilka.game.core.rps.RpsPlayerScope
-import ru.selemilka.game.core.rps.core.RpsPlayerStorage
+import ru.selemilka.game.core.rps.storage.RpsPlayerStorage
 
 class RpsPlayerJoiningProcessor(
     private val playerStorage: RpsPlayerStorage,
-) : TypedProcessor<RpsPlayerAction.JoinGame, RpsPlayerReaction> {
-    override val actionClass = RpsPlayerAction.JoinGame::class
+) : TypedProcessor<RpsPlayerCommand.JoinGame, RpsPlayerMessage> {
+    override val actionClass = RpsPlayerCommand.JoinGame::class
 
-    override suspend fun process(id: SessionId, action: RpsPlayerAction.JoinGame): List<RpsPlayerReaction> {
+    override suspend fun process(id: SessionId, action: RpsPlayerCommand.JoinGame): List<RpsPlayerMessage> {
         val player = action.initiator
 
         return when (playerStorage.addPlayer(id, player.name)) {
             RpsPlayerStorage.AddPlayerSuccess -> {
-                val youJoinedGame = RpsPlayerReaction.YouJoinedGame(
+                val youJoinedGame = RpsPlayerMessage.YouJoinedGame(
                     scope = RpsPlayerScope(player),
                     name = player.name,
                 )
-                val somebodyJoinedGame = RpsPlayerReaction.PlayerJoinedGame(
+                val somebodyJoinedGame = RpsPlayerMessage.PlayerJoinedGame(
                     scope = ReactionScope.All(id),
                     name = player.name,
                 )
@@ -30,12 +30,12 @@ class RpsPlayerJoiningProcessor(
             }
 
             RpsPlayerStorage.ThereAreAlreadyTwoPlayers -> {
-                listOf(RpsPlayerReaction.ThereAreTwoPlayersInSession(scope = RpsPlayerScope(player)))
+                listOf(RpsPlayerMessage.ThereAreTwoPlayersInSession(scope = RpsPlayerScope(player)))
             }
 
             RpsPlayerStorage.PlayerAlreadyJoinedGame -> {
                 listOf(
-                    RpsPlayerReaction.PlayerAlreadyExists(
+                    RpsPlayerMessage.PlayerAlreadyExists(
                         scope = RpsPlayerScope(player),
                         name = player.name,
                     )

@@ -1,21 +1,14 @@
 package ru.selemilka.game.core.rps
 
-import ru.selemilka.game.core.base.ReactionScope
-import ru.selemilka.game.core.base.SessionId
 
-enum class RockPaperScissorsTurn {
-    Rock, Paper, Scissors
+
+sealed interface RpsPlayerCommand : RpsCommand {
+    object CreateGame : RpsPlayerCommand
+    object JoinGame : RpsPlayerCommand
+    data class Turn(val decision: RpsTurn) : RpsPlayerCommand
 }
 
-sealed interface RpsPlayerAction : RpsAction {
-    data class CreateGame(override val initiator: RpsPlayer) : RpsPlayerAction
-
-    data class JoinGame(override val initiator: RpsPlayer) : RpsPlayerAction
-
-    data class Turn(override val initiator: RpsPlayer, val decision: RockPaperScissorsTurn) : RpsPlayerAction
-}
-
-sealed interface RpsPlayerReaction : RpsReaction {
+sealed interface RpsPlayerReaction : RpsMessage {
     data class BadGameStage(
         override val scope: RpsPlayerScope
     ) : RpsPlayerReaction
@@ -40,7 +33,7 @@ sealed interface RpsPlayerReaction : RpsReaction {
     ) : RpsPlayerReaction
 
     data class PlayerMadeTurn(
-        val turn: RpsPlayerAction.Turn
+        val turn: RpsPlayerCommand.Turn
     ) : RpsPlayerReaction {
         override val scope: RpsPlayerScope
             get() = RpsPlayerScope(turn.initiator)

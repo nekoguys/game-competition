@@ -13,7 +13,7 @@
 
     <properties>
         <java-version>17</java-version>
-        <kotlin-version>1.5.31</kotlin-version>
+        <kotlin-version>1.6.0</kotlin-version>
         <spring-boot-version>2.5.5</spring-boot-version>
 
         <!-- to fix encoding warnings -->
@@ -95,6 +95,7 @@
                 <configuration>
                     <args>
                         <arg>-Xjsr305=strict</arg>
+                        <arg>-Xenable-builder-inference</arg>
                     </args>
                     <compilerPlugins>
                         <plugin>spring</plugin>

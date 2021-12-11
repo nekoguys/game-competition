@@ -1,24 +1,25 @@
-package ru.selemilka.game.core.rps.core
+package ru.selemilka.game.core.rps.storage
 
-import ru.selemilka.game.core.base.SessionId
-import ru.selemilka.game.core.rps.RockPaperScissorsTurn
+import ru.selemilka.game.core.rps.RpsTurn
+import ru.selemilka.game.core.rps.Session
 
 interface RpsGameStateStorage {
     sealed interface SubmitTurnResponse
     sealed interface SubmitTurnError : SubmitTurnResponse
     data class TurnAlreadySubmittedError(val player: String) : SubmitTurnError
     data class SubmitTurnSuccess(val turn: Turn) : SubmitTurnResponse
-    data class Turn(val player: String, val decision: RockPaperScissorsTurn)
+    data class Turn(val player: String, val decision: RpsTurn)
 
     sealed interface RoundResult
     data class Winner(val winner: String) : RoundResult
     object Draw : RoundResult
 
-    fun isGameEnded(sessionId: SessionId): Boolean
-    fun makeTurn(sessionId: SessionId, turn: Turn): SubmitTurnWithResultResponse
+    fun isGameEnded(sessionId: Session): Boolean
+    fun makeTurn(sessionId: Session, turn: Turn): SubmitTurnWithResultResponse
 }
 
-typealias SubmitTurnWithResultResponse = Pair<RpsGameStateStorage.SubmitTurnResponse, RpsGameStateStorage.RoundResult?>
+typealias SubmitTurnWithResultResponse =
+        Pair<RpsGameStateStorage.SubmitTurnResponse, RpsGameStateStorage.RoundResult?>
 
 class RpsGameStateInMemoryStorage : RpsGameStateStorage {
     private class GameState {
@@ -50,25 +51,25 @@ class RpsGameStateInMemoryStorage : RpsGameStateStorage {
         }
     }
 
-    private val storage = mutableMapOf<SessionId, GameState>()
+    private val storage = mutableMapOf<Session, GameState>()
 
     override fun makeTurn(
-        sessionId: SessionId,
-        turn: RpsGameStateStorage.Turn
+        sessionId: Session,
+        turn: RpsGameStateStorage.Turn,
     ): SubmitTurnWithResultResponse {
         val gameState = storage.computeIfAbsent(sessionId) { GameState() }
         return gameState.submit(turn)
     }
 
-    override fun isGameEnded(sessionId: SessionId): Boolean {
+    override fun isGameEnded(sessionId: Session): Boolean {
         return storage[sessionId]?.isGameEnded() ?: false
     }
 }
 
-fun RockPaperScissorsTurn.beats(another: RockPaperScissorsTurn): Boolean {
+fun RpsTurn.beats(another: RpsTurn): Boolean {
     return when (this) {
-        RockPaperScissorsTurn.Rock -> another == RockPaperScissorsTurn.Scissors
-        RockPaperScissorsTurn.Scissors -> another == RockPaperScissorsTurn.Paper
-        RockPaperScissorsTurn.Paper -> another == RockPaperScissorsTurn.Rock
+        RpsTurn.ROCK -> another == RpsTurn.SCISSORS
+        RpsTurn.SCISSORS -> another == RpsTurn.PAPER
+        RpsTurn.PAPER -> another == RpsTurn.ROCK
     }
 }

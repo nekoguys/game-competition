@@ -1,4 +1,4 @@
-package ru.selemilka.game.core.rps.core
+package ru.selemilka.game.core.rps.storage
 
 import ru.selemilka.game.core.base.SessionId
 
