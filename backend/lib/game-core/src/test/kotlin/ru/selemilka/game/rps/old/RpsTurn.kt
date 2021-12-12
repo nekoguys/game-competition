@@ -1,4 +1,4 @@
-package ru.selemilka.game.rps
+package ru.selemilka.game.rps.old
 //
 //
 //sealed interface RpsPlayerCommand : RpsCommand {

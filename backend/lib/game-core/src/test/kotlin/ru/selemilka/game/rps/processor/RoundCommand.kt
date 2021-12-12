@@ -1,5 +1,6 @@
 package ru.selemilka.game.rps.processor
 
+import org.springframework.stereotype.Service
 import ru.selemilka.game.rps.model.*
 import ru.selemilka.game.rps.storage.RpsRoundStorage
 import ru.selemilka.game.rps.storage.RpsSessionStorage
@@ -20,6 +21,7 @@ enum class RoundResult {
     YOU_LOST,
 }
 
+@Service
 class RpsRoundProcessor(
     sessionStorage: RpsSessionStorage,
     private val roundStorage: RpsRoundStorage,
