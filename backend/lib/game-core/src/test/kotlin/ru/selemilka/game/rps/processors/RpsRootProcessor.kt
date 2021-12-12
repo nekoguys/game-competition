@@ -1,6 +1,6 @@
-package ru.selemilka.game.core.rps.processors
+package ru.selemilka.game.rps.processors
 
-import ru.selemilka.game.core.base.SessionId
+import ru.selemilka.game.core.base.RpsSession.Id
 import ru.selemilka.game.core.base.TypedProcessor
 import rps.RpsPlayerCommand
 import rps.RpsPlayerMessage
@@ -18,7 +18,7 @@ class RpsRootProcessor(
     private val joiningProcessor = RpsPlayerJoiningProcessor(playerStorage)
     private val gameProcessor = RpsGameProcessor(gameStateStorage)
 
-    override suspend fun process(id: SessionId, action: RpsPlayerCommand): List<RpsPlayerMessage> {
+    override suspend fun process(id: RpsSession.Id, action: RpsPlayerCommand): List<RpsPlayerMessage> {
         when (action) {
             is RpsPlayerCommand.CreateGame -> {
                 if (rootStageStorage.stageFor(id) == null) {

@@ -1,14 +1,16 @@
-package ru.selemilka.game.core.rps.processors
+package ru.selemilka.game.rps.test
 
+import jdk.vm.ci.hotspot.HotSpotJVMCIRuntime
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import ru.selemilka.game.core.base.ReactionScope
-import ru.selemilka.game.core.base.SessionId
+import ru.selemilka.game.core.base.RpsSession.Id
 import rps.RpsPlayer
 import rps.RpsPlayerCommand
 import rps.RpsPlayerMessage
 import ru.selemilka.game.core.rps.RpsPlayerScope
+import ru.selemilka.game.core.rps.processors.RpsPlayerJoiningProcessor
 import ru.selemilka.game.core.rps.storage.RpsInMemoryPlayerStorage
 
 internal class RpsPlayerJoiningProcessorTests {
@@ -16,7 +18,7 @@ internal class RpsPlayerJoiningProcessorTests {
     private val sessionId = 1L
 
     @Test
-    fun `Two players successfully joined game`() {
+    fun `Two players successfully joined game`() = HotSpotJVMCIRuntime.runtime(){
         val result = joinGame(sessionId, RpsPlayer("player1"))
         assertEquals(
             expectedReactionOnJoiningGame(RpsPlayer("player1"), sessionId),
@@ -57,10 +59,10 @@ internal class RpsPlayerJoiningProcessorTests {
         )
     }
 
-    private fun joinGame(sessionId: SessionId, initiator: RpsPlayer) =
+    private fun joinGame(sessionId: RpsSession.Id, initiator: RpsPlayer) =
         runBlocking { processor.process(id = sessionId, action = RpsPlayerCommand.JoinGame(initiator)) }
 
-    private fun expectedReactionOnJoiningGame(player: RpsPlayer, sessionId: SessionId): List<RpsPlayerMessage> {
+    private fun expectedReactionOnJoiningGame(player: RpsPlayer, sessionId: RpsSession.Id): List<RpsPlayerMessage> {
         return listOf(
             RpsPlayerMessage.YouJoinedGame(
                 RpsPlayerScope(initiator = player),

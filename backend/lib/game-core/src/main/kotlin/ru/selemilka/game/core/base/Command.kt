@@ -71,14 +71,16 @@ private data class Launch<P, out Cmd : Command<P>>(
  * Реализация [CommandAccepter], которая выполняет обрабатывает команды по очереди
  */
 @Suppress("FunctionName")
-suspend fun <P, Cmd : Command<P>> SimpleCommandAccepter(
+fun <P, Cmd : Command<P>> CoroutineScope.SimpleCommandAccepter(
     handler: suspend (P, Cmd) -> Unit,
-): CommandAccepter<P, Cmd> = coroutineScope {
+): CommandAccepter<P, Cmd> {
     val launches = Channel<Launch<P, Cmd>>()
 
-    launch { channelReader(launches, handler) }
+    launch {
+        channelReader(launches, handler)
+    }
 
-    object : CommandAccepter<P, Cmd> {
+    return object : CommandAccepter<P, Cmd> {
         override suspend fun accept(player: P, command: Cmd) {
             val ack = CompletableDeferred<Unit>()
             launches.send(Launch(player, command, ack))

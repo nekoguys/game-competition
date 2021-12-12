@@ -1,8 +1,10 @@
 package ru.selemilka.game.core.base
 
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.filter
 
 /**
  * Вообще игра состоит из трёх частей:
@@ -32,9 +34,9 @@ import kotlinx.coroutines.flow.asSharedFlow
  *
  * Создать игру, зная, как обрабатываются запросы, можно фабричным методом [Game]
  */
-interface Game<P, in Cmd : Command<P>, Msg, out A : Announcement<Msg>> :
+interface Game<P, in Cmd : Command<P>, out Msg> :
     CommandAccepter<P, Cmd>,
-    AnnouncementSource<Msg, A>
+    AnnouncementSource<P, Msg>
 
 /**
  * Фабричный метод для создания игры
@@ -43,21 +45,26 @@ interface Game<P, in Cmd : Command<P>, Msg, out A : Announcement<Msg>> :
  * * [processing] - как будет обрабатываться конкретный [Command]
  */
 @Suppress("FunctionName")
-suspend fun <P, Cmd : Command<P>, Msg, A : Announcement<Msg>> Game(
-    processing: suspend (P, Cmd) -> List<A>,
-): Game<P, Cmd, Msg, A> {
-    val announcements = MutableSharedFlow<A>()
+fun <P, Cmd : Command<P>, Msg> CoroutineScope.Game(
+    processing: suspend (P, Cmd) -> List<MessageToPlayer<P, Msg>>,
+): Game<P, Cmd, Msg> {
+    val announcements = MutableSharedFlow<MessageToPlayer<P, Msg>>()
 
     val accepter = SimpleCommandAccepter<P, Cmd> { player, command ->
         processing(player, command)
     }
 
-    val announcementSource = object : AnnouncementSource<Msg, A> {
-        override fun getAnnouncements(): Flow<A> = announcements.asSharedFlow()
+    val announcementSource = object : AnnouncementSource<P, Msg> {
+        override fun getAnnouncements(): Flow<MessageToPlayer<P, Msg>> =
+            announcements.asSharedFlow()
+
+        override fun getAnnouncements(player: P): Flow<MessageToPlayer<P, Msg>> =
+            getAnnouncements()
+                .filter { it.player == player }
     }
 
     return object :
-        Game<P, Cmd, Msg, A>,
+        Game<P, Cmd, Msg>,
         CommandAccepter<P, Cmd> by accepter,
-        AnnouncementSource<Msg, A> by announcementSource {}
+        AnnouncementSource<P, Msg> by announcementSource {}
 }

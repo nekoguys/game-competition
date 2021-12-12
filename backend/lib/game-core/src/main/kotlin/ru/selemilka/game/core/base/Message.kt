@@ -29,9 +29,10 @@ import kotlinx.coroutines.flow.Flow
  * |   |   |   |   NewMessage - отправляется остальным игрокам в команде
  * ```
  */
-interface Announcement<out Msg> {
-    val message: Msg
-}
+data class MessageToPlayer<out P, out Msg>(
+    val player: P,
+    val message: Msg,
+)
 
 /**
  * Публичное API для отправки сообщений типа [Msg] игрокам.
@@ -41,6 +42,7 @@ interface Announcement<out Msg> {
  * * какие сообщения хранятся в памяти
  * * и т.д.
  */
-interface AnnouncementSource<out Msg, out A : Announcement<Msg>> {
-    fun getAnnouncements(): Flow<A>
+interface AnnouncementSource<P, out Msg> {
+    fun getAnnouncements(): Flow<MessageToPlayer<P, Msg>>
+    fun getAnnouncements(player: P): Flow<MessageToPlayer<P, Msg>>
 }

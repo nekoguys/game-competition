@@ -1,17 +1,18 @@
-package ru.selemilka.game.core.rps.processors
+package ru.selemilka.game.rps.test
 
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import ru.selemilka.game.core.base.SessionId
+import ru.selemilka.game.core.base.RpsSession.Id
 import rps.RpsTurn
 import rps.RpsPlayer
 import rps.RpsPlayerCommand
 import rps.RpsPlayerMessage
+import ru.selemilka.game.core.rps.processors.RpsGameProcessor
 import ru.selemilka.game.core.rps.storage.RpsGameStateInMemoryStorage
 
-class RpsRoundProcessorTests {
+class RpsRoundCommandProcessorTests {
     private val processor = RpsGameProcessor(RpsGameStateInMemoryStorage())
     private val sessionId = 1L
 
@@ -58,6 +59,6 @@ class RpsRoundProcessorTests {
     }
 
 
-    private fun submitTurn(id: SessionId, player: String, turn: RpsTurn): List<RpsPlayerMessage> =
+    private fun submitTurn(id: RpsSession.Id, player: String, turn: RpsTurn): List<RpsPlayerMessage> =
         runBlocking { processor.process(id, RpsPlayerCommand.Turn(initiator = RpsPlayer(player), decision = turn)) }
 }

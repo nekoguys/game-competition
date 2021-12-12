@@ -1,4 +1,4 @@
-package ru.selemilka.game.core.rps.storage
+package ru.selemilka.game.rps.storage3
 
 import ru.selemilka.game.core.rps.Session
 

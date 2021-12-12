@@ -1,7 +1,7 @@
-package ru.selemilka.game.core.rps.processors
+package ru.selemilka.game.rps.processors
 
 import ru.selemilka.game.core.base.ReactionScope
-import ru.selemilka.game.core.base.SessionId
+import ru.selemilka.game.core.base.RpsSession.Id
 import ru.selemilka.game.core.base.TypedProcessor
 import rps.RpsPlayer
 import rps.RpsPlayerCommand
@@ -15,13 +15,13 @@ class RpsGameProcessor(
 ) : TypedProcessor<RpsPlayerCommand.Turn, RpsPlayerMessage> {
     override val actionClass = RpsPlayerCommand.Turn::class
 
-    override suspend fun process(id: SessionId, action: RpsPlayerCommand.Turn): List<RpsPlayerMessage> {
+    override suspend fun process(id: RpsSession.Id, action: RpsPlayerCommand.Turn): List<RpsPlayerMessage> {
         val result = gameStateStorage.makeTurn(id, RpsGameStateStorage.Turn(action.initiator.name, decision = action.decision))
         return result.toRpsPlayerReaction(id)
     }
 }
 
-fun SubmitTurnWithResultResponse.toRpsPlayerReaction(id: SessionId): List<RpsPlayerMessage> {
+fun SubmitTurnWithResultResponse.toRpsPlayerReaction(id: RpsSession.Id): List<RpsPlayerMessage> {
     val (turn, roundResult) = this
     val submitTurnResponse = when (turn) {
         is RpsGameStateStorage.SubmitTurnSuccess -> {
@@ -43,7 +43,7 @@ fun SubmitTurnWithResultResponse.toRpsPlayerReaction(id: SessionId): List<RpsPla
     return listOfNotNull(submitTurnResponse, roundResultResponse)
 }
 
-private fun RpsGameStateStorage.RoundResult.toRpsPlayerReaction(id: SessionId): RpsPlayerMessage {
+private fun RpsGameStateStorage.RoundResult.toRpsPlayerReaction(id: RpsSession.Id): RpsPlayerMessage {
     return when (this) {
         is RpsGameStateStorage.Draw -> rps.RpsPlayerMessage.RoundResult(
             scope = ReactionScope.All(id),
