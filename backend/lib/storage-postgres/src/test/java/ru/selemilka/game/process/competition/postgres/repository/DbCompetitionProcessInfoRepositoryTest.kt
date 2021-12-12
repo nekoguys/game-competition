@@ -1,4 +1,4 @@
-package ru.selemilka.game.process.competition.repository
+package ru.selemilka.game.process.competition.postgres.repository
 
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -12,10 +12,14 @@ import ru.selemilka.game.game_props.postgres.model.DbGameProperties
 import ru.selemilka.game.game_props.postgres.repository.DbGamePropertiesRepository
 import ru.selemilka.game.game_sessions.postgres.model.DbGameSession
 import ru.selemilka.game.game_sessions.postgres.repository.DbGameSessionsRepository
-import ru.selemilka.game.game_states.competition.model.DbCompetitionState
-import ru.selemilka.game.game_states.competition.repository.DbCompetitionStateRepository
-import ru.selemilka.game.process.competition.model.DbCompetitionProcessInfo
-import ru.selemilka.game.process.competition.model.DbCompetitionRoundInfo
+import ru.selemilka.game.game_states.competition.postgres.model.DbCompetitionState
+import ru.selemilka.game.game_states.competition.postgres.repository.DbCompetitionStateRepository
+import ru.selemilka.game.process.competition.postgres.model.DbCompetitionProcessInfo
+import ru.selemilka.game.process.competition.postgres.model.DbCompetitionRoundAnswer
+import ru.selemilka.game.process.competition.postgres.model.DbCompetitionRoundInfo
+import ru.selemilka.game.process.competition.postgres.model.DbCompetitionRoundResult
+import ru.selemilka.game.teams.competition.postgres.model.DbCompetitionTeam
+import ru.selemilka.game.teams.competition.postgres.repository.DbCompetitionTeamRepository
 import ru.selemilka.game.user.postgres.model.DbUser
 import ru.selemilka.game.user.postgres.model.DbUserRole
 import ru.selemilka.game.user.postgres.repository.DbUserRepository
@@ -38,7 +42,13 @@ internal class DbCompetitionProcessInfoRepositoryTest(
     @Autowired
     val gameStateRepository: DbCompetitionStateRepository,
     @Autowired
-    val transactionalOperator: TransactionalOperator
+    val competitionTeamRepository: DbCompetitionTeamRepository,
+    @Autowired
+    val roundAnswerRepository: DbCompetitionRoundAnswerRepository,
+    @Autowired
+    val teamRoundResultRepository: DbCompetitionRoundResultRepository,
+    @Autowired
+    val transactionalOperator: TransactionalOperator,
 ) {
     @Test
     fun `process info insertion and retrieval`() {
@@ -51,6 +61,28 @@ internal class DbCompetitionProcessInfoRepositoryTest(
         }
         val retrievedRoundInfo = runBlocking { dbCompetitionRoundInfoRepository.findById(roundInfo.id!!) }
         assertEquals(roundInfo, retrievedRoundInfo)
+    }
+
+    @Test
+    fun `check answers submission`() {
+        val processInfo = processInfo("email")
+        val roundInfo = runBlockingWithRollback(transactionalOperator) {
+            dbCompetitionRoundInfoRepository.save(DbCompetitionRoundInfo(null, processInfo.id!!, 1, Instant.now(), null))
+        }
+        val team = runBlockingWithRollback(transactionalOperator) {
+            competitionTeamRepository.save(DbCompetitionTeam(processInfo.gameId, 1))
+        }
+        val answer = runBlockingWithRollback(transactionalOperator) {
+            roundAnswerRepository.save(DbCompetitionRoundAnswer(roundInfo.id!!, team.teamId!!, 10))
+        }
+        val teamRoundResult = runBlockingWithRollback(transactionalOperator) {
+            teamRoundResultRepository.save(DbCompetitionRoundResult(roundInfo.id!!, team.teamId!!, 20.0))
+        }
+
+        val retrievedAnswer = runBlocking { roundAnswerRepository.findById(answer.id!!) }
+        val retrievedTeamRoundResult = runBlocking { teamRoundResultRepository.findById(teamRoundResult.id!!) }
+        assertEquals(retrievedAnswer, answer)
+        assertEquals(retrievedTeamRoundResult, teamRoundResult)
     }
 
     private fun processInfo(userEmail: String) : DbCompetitionProcessInfo {

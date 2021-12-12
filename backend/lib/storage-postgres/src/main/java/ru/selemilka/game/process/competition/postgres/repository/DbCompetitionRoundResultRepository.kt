@@ -1,6 +1,6 @@
-package ru.selemilka.game.process.competition.repository
+package ru.selemilka.game.process.competition.postgres.repository
 
 import org.springframework.data.repository.kotlin.CoroutineCrudRepository
-import ru.selemilka.game.process.competition.model.DbCompetitionRoundResult
+import ru.selemilka.game.process.competition.postgres.model.DbCompetitionRoundResult
 
 interface DbCompetitionRoundResultRepository : CoroutineCrudRepository<DbCompetitionRoundResult, Long>

@@ -1,4 +1,4 @@
-package ru.selemilka.game.game_states.competition.model
+package ru.selemilka.game.game_states.competition.postgres.model
 
 import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Column

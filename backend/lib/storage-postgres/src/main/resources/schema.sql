@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS "users"
     "role"  varchar NOT NULL
 );
 
-CREATE TABLE  IF NOT EXISTS"game_teams"
+CREATE TABLE  IF NOT EXISTS "game_teams"
 (
     "team_id"     BIGSERIAL PRIMARY KEY,
     "team_number" int    NOT NULL,
