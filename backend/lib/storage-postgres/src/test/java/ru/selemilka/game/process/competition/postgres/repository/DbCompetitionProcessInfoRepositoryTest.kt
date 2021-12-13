@@ -85,14 +85,34 @@ internal class DbCompetitionProcessInfoRepositoryTest(
         assertEquals(retrievedTeamRoundResult, teamRoundResult)
     }
 
-    private fun processInfo(userEmail: String) : DbCompetitionProcessInfo {
-        val processInfo = runBlockingWithRollback(transactionalOperator) {
-            val user = userRepository.save(DbUser(null, userEmail, DbUserRole.TEACHER))
-            val props = gamePropertiesRepository.save(DbGameProperties(user.id!!, "competition", null))
-            val session = gameSessionsRepository.save(DbGameSession(props.id!!))
-            val state = gameStateRepository.findFirstByState(DbCompetitionState.State.DRAFT)
-            dbCompetitionProcessInfoRepository.save(DbCompetitionProcessInfo(null, session.id!!, state!!.id!!))
-        }
-        return processInfo
+    private fun processInfo(userEmail: String): DbCompetitionProcessInfo {
+        return createProcessInfo(
+            userEmail,
+            transactionalOperator,
+            userRepository,
+            gamePropertiesRepository,
+            gameSessionsRepository,
+            gameStateRepository,
+            dbCompetitionProcessInfoRepository
+        )
     }
+}
+
+fun createProcessInfo(
+    userEmail: String,
+    transactionalOperator: TransactionalOperator,
+    userRepository: DbUserRepository,
+    gamePropertiesRepository: DbGamePropertiesRepository,
+    gameSessionsRepository: DbGameSessionsRepository,
+    gameStateRepository: DbCompetitionStateRepository,
+    competitionProcessInfoRepository: DbCompetitionProcessInfoRepository
+): DbCompetitionProcessInfo {
+    val processInfo = runBlockingWithRollback(transactionalOperator) {
+        val user = userRepository.save(DbUser(null, userEmail, DbUserRole.TEACHER))
+        val props = gamePropertiesRepository.save(DbGameProperties(user.id!!, "competition", null))
+        val session = gameSessionsRepository.save(DbGameSession(props.id!!))
+        val state = gameStateRepository.findFirstByState(DbCompetitionState.State.DRAFT)
+        competitionProcessInfoRepository.save(DbCompetitionProcessInfo(null, session.id!!, state!!.id!!))
+    }
+    return processInfo
 }

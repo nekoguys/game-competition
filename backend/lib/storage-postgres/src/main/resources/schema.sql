@@ -1,24 +1,57 @@
 CREATE TABLE IF NOT EXISTS "users"
 (
-    "id"    BIGSERIAL PRIMARY KEY,
-    "email" varchar NOT NULL,
-    "role"  varchar NOT NULL
+    "id"
+    BIGSERIAL
+    PRIMARY
+    KEY,
+    "email"
+    varchar
+    NOT
+    NULL,
+    "role"
+    varchar
+    NOT
+    NULL
 );
 
-CREATE TABLE  IF NOT EXISTS "game_teams"
+CREATE TABLE IF NOT EXISTS "game_teams"
 (
-    "team_id"     BIGSERIAL PRIMARY KEY,
-    "team_number" int    NOT NULL,
-    "game_id"     bigint NOT NULL,
-    "ban_round"   integer
+    "team_id"
+    BIGSERIAL
+    PRIMARY
+    KEY,
+    "team_number"
+    int
+    NOT
+    NULL,
+    "game_id"
+    bigint
+    NOT
+    NULL
+);
+
+CREATE TABLE IF NOT EXISTS "banned_competition_teams"
+(
+    "team_id"
+    BIGSERIAL,
+    "ban_round"
+    integer
 );
 
 CREATE TABLE IF NOT EXISTS "team_members"
 (
-    "team_id"   bigint,
-    "member_id" bigint,
-    "captain"   boolean NOT NULL,
-    PRIMARY KEY ("team_id", "member_id")
+    "id"
+    BIGSERIAL
+    PRIMARY
+    KEY,
+    "team_id"
+    bigint,
+    "member_id"
+    bigint,
+    "captain"
+    boolean
+    NOT
+    NULL
 );
 
 ALTER TABLE "team_members"
@@ -93,60 +126,87 @@ CREATE TABLE IF NOT EXISTS "competition_round_results"
 
 CREATE TABLE IF NOT EXISTS "competition_messages"
 (
-    "id"              BIGSERIAL PRIMARY KEY,
-    "process_game_id" bigint,
-    "message"         varchar,
-    "send_time"       timestamp
+    "id"
+    BIGSERIAL
+    PRIMARY
+    KEY,
+    "process_game_id"
+    bigint,
+    "message"
+    varchar,
+    "send_time"
+    timestamp
 );
 
 CREATE TABLE IF NOT EXISTS "game_sessions"
 (
-    "id"       BIGSERIAL PRIMARY KEY,
-    "props_id" bigint
+    "id"
+    BIGSERIAL
+    PRIMARY
+    KEY,
+    "props_id"
+    bigint
 );
 
 ALTER TABLE "game_teams"
-    ADD FOREIGN KEY ("game_id") REFERENCES "game_sessions" ("id");
+    ADD CONSTRAINT fk_game_team_game_id
+        FOREIGN KEY ("game_id") REFERENCES "game_sessions" ("id");
 
 ALTER TABLE "team_members"
-    ADD FOREIGN KEY ("member_id") REFERENCES "users" ("id");
+    ADD CONSTRAINT fk_team_members_user_id
+        FOREIGN KEY ("member_id") REFERENCES "users" ("id");
 
 ALTER TABLE "game_props"
-    ADD FOREIGN KEY ("creator_id") REFERENCES "users" ("id");
+    ADD CONSTRAINT fk_game_props_creator_id
+        FOREIGN KEY ("creator_id") REFERENCES "users" ("id");
 
 ALTER TABLE "game_props"
-    ADD FOREIGN KEY ("competition_props_id") REFERENCES "competition_game_props" ("id");
+    ADD CONSTRAINT fk_game_props_competition_props_id
+        FOREIGN KEY ("competition_props_id") REFERENCES "competition_game_props" ("id");
 
 ALTER TABLE "competition_process_infos"
-    ADD FOREIGN KEY ("game_id") REFERENCES "game_sessions" ("id");
+    ADD CONSTRAINT fk_competition_process_infos_game_id
+        FOREIGN KEY ("game_id") REFERENCES "game_sessions" ("id");
 
 ALTER TABLE "competition_process_infos"
-    ADD FOREIGN KEY ("state_id") REFERENCES "competition_game_states" ("id");
+    ADD CONSTRAINT fk_competition_process_info_state_id
+        FOREIGN KEY ("state_id") REFERENCES "competition_game_states" ("id");
 
 ALTER TABLE "competition_round_infos"
-    ADD FOREIGN KEY ("process_id") REFERENCES "competition_process_infos" ("id");
+    ADD CONSTRAINT fk_competition_round_infos_process_id
+        FOREIGN KEY ("process_id") REFERENCES "competition_process_infos" ("id");
 
 ALTER TABLE "competition_round_answers"
-    ADD FOREIGN KEY ("round_info_id") REFERENCES "competition_round_infos" ("id");
+    ADD CONSTRAINT fk_competition_round_answers_round_info_id
+        FOREIGN KEY ("round_info_id") REFERENCES "competition_round_infos" ("id");
 
 ALTER TABLE "competition_round_answers"
-    ADD FOREIGN KEY ("team_id") REFERENCES "game_teams" ("team_id");
+    ADD CONSTRAINT fk_competition_round_answers_team_id
+        FOREIGN KEY ("team_id") REFERENCES "game_teams" ("team_id");
 
 ALTER TABLE "competition_round_results"
-    ADD FOREIGN KEY ("round_info_id") REFERENCES "competition_round_infos" ("id");
+    ADD CONSTRAINT fk_competition_round_results_round_info_id
+        FOREIGN KEY ("round_info_id") REFERENCES "competition_round_infos" ("id");
 
 ALTER TABLE "competition_round_results"
-    ADD FOREIGN KEY ("team_id") REFERENCES "game_teams" ("team_id");
+    ADD CONSTRAINT fk_competition_round_results_team_id
+        FOREIGN KEY ("team_id") REFERENCES "game_teams" ("team_id");
 
 ALTER TABLE "competition_messages"
-    ADD FOREIGN KEY ("process_game_id") REFERENCES "competition_process_infos" ("id");
+    ADD CONSTRAINT fk_competition_messages_process_game_id
+        FOREIGN KEY ("process_game_id") REFERENCES "competition_process_infos" ("id");
 
 ALTER TABLE "game_sessions"
-    ADD FOREIGN KEY ("props_id") REFERENCES "game_props" ("id");
+    ADD CONSTRAINT fk_game_sessions_props_id
+        FOREIGN KEY ("props_id") REFERENCES "game_props" ("id");
 
 ALTER TABLE "competition_game_states"
     ADD CONSTRAINT state_name_check
-    CHECK (
-        name in ('DRAFT', 'REGISTRATION', 'IN_PROCESS', 'ENDED')
-    );
+        CHECK (
+            name in ('DRAFT', 'REGISTRATION', 'IN_PROCESS', 'ENDED')
+            );
+
+ALTER TABLE "game_teams"
+    ADD CONSTRAINT fk_game_team_id_game_teams
+        FOREIGN KEY ("team_id") REFERENCES "game_teams" ("team_id");
 
