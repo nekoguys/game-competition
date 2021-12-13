@@ -5,5 +5,4 @@ import org.springframework.stereotype.Repository
 import ru.selemilka.game.game_props.postgres.model.DbGameProperties
 
 @Repository
-interface DbGamePropertiesRepository : CoroutineCrudRepository<DbGameProperties, Long> {
-}
+interface DbGamePropertiesRepository : CoroutineCrudRepository<DbGameProperties, Long>

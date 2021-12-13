@@ -5,5 +5,4 @@ import org.springframework.stereotype.Repository
 import ru.selemilka.game.game_sessions.postgres.model.DbGameSession
 
 @Repository
-interface DbGameSessionsRepository : CoroutineCrudRepository<DbGameSession, Long> {
-}
+interface DbGameSessionsRepository : CoroutineCrudRepository<DbGameSession, Long>
