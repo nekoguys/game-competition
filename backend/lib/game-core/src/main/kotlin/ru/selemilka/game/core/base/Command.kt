@@ -52,7 +52,7 @@ interface Command<out P>
  * * какие сообщения обрабатываются последовательно
  * * и т.д.
  */
-interface CommandAccepter<P, in Cmd : Command<P>> {
+interface CommandQueue<P, in Cmd : Command<P>> {
     /**
      * Эта функция приостанавливается до того момента,
      * пока команда не обработается.
@@ -60,46 +60,60 @@ interface CommandAccepter<P, in Cmd : Command<P>> {
      * Если при обработке команда возникло исключение - оно бросается из этого метода
      */
     suspend fun accept(player: P, command: Cmd)
+
+    /**
+     * Завершает приём команд объектом [CommandQueue]
+     *
+     * После вызова этой функции дальнейшие вызовы функции [accept]
+     * бросают исключение [StoppedGameException].
+     *
+     * При вызове [stop] в очередь добавляется команда [StoppedGameException]
+     * и прекращается дальнейший приём команд.
+     */
+    suspend fun stop()
 }
 
-private data class Launch<P, out Cmd : Command<P>>(
-    val player: P,
-    val command: Cmd,
-    val ack: CompletableDeferred<Unit>,
-)
+class StoppedGameException : CancellationException()
+
 /**
- * Реализация [CommandAccepter], которая выполняет обрабатывает команды по очереди
+ * Реализация [CommandQueue], которая выполняет команды по одной в порядке очереди
  */
 @Suppress("FunctionName")
-fun <P, Cmd : Command<P>> CoroutineScope.SimpleCommandAccepter(
-    handler: suspend (P, Cmd) -> Unit,
-): CommandAccepter<P, Cmd> {
-    val launches = Channel<Launch<P, Cmd>>()
+fun <P, Cmd : Command<P>> CoroutineScope.SimpleCommandQueue(
+    onCommand: suspend (P, Cmd) -> Unit,
+    onStop: suspend () -> Unit,
+): CommandQueue<P, Cmd> {
+    val tasks = Channel<Task>()
 
     launch {
-        channelReader(launches, handler)
+        for (task in tasks) {
+            runCatching { task.action() }
+                .onFailure { ex ->
+                    if (ex is CancellationException) {
+                        throw ex
+                    }
+                }
+                .also(task.ack::completeWith)
+        }
     }
 
-    return object : CommandAccepter<P, Cmd> {
+    return object : CommandQueue<P, Cmd> {
         override suspend fun accept(player: P, command: Cmd) {
             val ack = CompletableDeferred<Unit>()
-            launches.send(Launch(player, command, ack))
+            tasks.send(Task(ack, action = { onCommand(player, command) }))
+            ack.await()
+        }
+
+        override suspend fun stop() {
+            val ack = CompletableDeferred<Unit>()
+            tasks.send(Task(ack, action = { onStop() }))
+            tasks.close(cause = StoppedGameException())
             ack.await()
         }
     }
 }
 
-private suspend fun <P, Cmd : Command<P>> channelReader(
-    launches: Channel<Launch<P, Cmd>>,
-    handler: suspend (P, Cmd) -> Unit,
-) {
-    for ((command, player, ack) in launches) {
-        runCatching { handler(command, player) }
-            .onFailure { ex ->
-                if (ex is CancellationException) {
-                    throw ex
-                }
-            }
-            .also(ack::completeWith)
-    }
-}
+class Task(
+    val ack: CompletableDeferred<Unit>,
+    val action: suspend () -> Unit,
+)

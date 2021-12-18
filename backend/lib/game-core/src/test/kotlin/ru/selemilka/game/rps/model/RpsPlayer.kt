@@ -6,12 +6,4 @@ package ru.selemilka.game.rps.model
 data class RpsPlayer(
     val sessionId: RpsSession.Id,
     val name: String,
-    val synthetic: Boolean = false,
 )
-
-fun getSyntheticPlayer(sessionId: RpsSession.Id) =
-    RpsPlayer(
-        sessionId = sessionId,
-        name = "robot",
-        synthetic = true,
-    )

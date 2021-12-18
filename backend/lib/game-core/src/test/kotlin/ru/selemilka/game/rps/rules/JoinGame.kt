@@ -1,12 +1,11 @@
-package ru.selemilka.game.rps.processor
+package ru.selemilka.game.rps.rules
 
-import org.springframework.context.annotation.Lazy
 import org.springframework.stereotype.Service
+import ru.selemilka.game.core.base.TargetedMessage
 import ru.selemilka.game.rps.model.RpsPlayer
 import ru.selemilka.game.rps.model.RpsSessionSettings
 import ru.selemilka.game.rps.model.RpsStage
 import ru.selemilka.game.rps.storage.RpsPlayerStorage
-import ru.selemilka.game.rps.storage.RpsRoundStorage
 import ru.selemilka.game.rps.storage.RpsSessionStorage
 
 sealed interface JoinGameMessage {
@@ -19,12 +18,13 @@ sealed interface JoinGameMessage {
     object SessionIsFull : Error
 }
 
+fun JoinGameMessage.intoRoot(): RpsRootMessage.JoinGame =
+    RpsRootMessage.JoinGame(this)
+
 @Service
-class RpsJoinGameProcessor(
-    private val sessionStorage: RpsSessionStorage,
+class RpsJoinGameRule(
+    sessionStorage: RpsSessionStorage,
     private val playerStorage: RpsPlayerStorage,
-    private val roundStorage: RpsRoundStorage,
-    @Lazy private val roundProcessor: RpsRoundProcessor,
 ) : RpsRootSubProcessor<RpsRootCommand.JoinGame, RpsRootMessage.JoinGame>(sessionStorage) {
 
     override val expectedStages = setOf(RpsStage.PLAYERS_JOINING)
@@ -35,7 +35,7 @@ class RpsJoinGameProcessor(
         settings: RpsSessionSettings,
     ): List<RpsResponse<RpsRootMessage>> =
         joinGame(player, maxPlayers = settings.maxPlayers)
-            .map { (player, message) -> RpsResponse(player, RpsRootMessage.JoinGame(message)) }
+            .map { TargetedMessage(it.player, it.message.intoRoot()) }
 
     private suspend fun joinGame(
         newPlayer: RpsPlayer,
@@ -51,8 +51,7 @@ class RpsJoinGameProcessor(
                 +JoinGameMessage.SessionIsFull
             }
 
-            else ->
-                addPlayerToSession(newPlayer, playersAlreadyInSession)
+            else -> addPlayerToSession(newPlayer, playersAlreadyInSession)
         }
     }
 
@@ -63,6 +62,7 @@ class RpsJoinGameProcessor(
         playerStorage.savePlayer(player)
         return respond {
             player { +JoinGameMessage.YouJoinedGame }
+
             (playersAlreadyInSession - player) {
                 +JoinGameMessage.SomebodyJoinedGame(player.name)
             }
@@ -75,4 +75,3 @@ class RpsJoinGameProcessor(
         }
     }
 }
-

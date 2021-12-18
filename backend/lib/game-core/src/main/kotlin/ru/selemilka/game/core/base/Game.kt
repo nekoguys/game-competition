@@ -1,10 +1,7 @@
 package ru.selemilka.game.core.base
 
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.*
 
 /**
  * Вообще игра состоит из трёх частей:
@@ -29,42 +26,53 @@ import kotlinx.coroutines.flow.filter
  * Публичное API игры.
  *
  * Пользователи класса [Game] могут:
- * * отправлять игре команды [Command] через метод [CommandConsumer.consume]
- * * получать от игры сообщения [Message] через метод [AnnouncementSource.getAnnouncements]
+ * * отправлять игре команды [Cmd] через метод [CommandQueue.accept]
+ * * получать от игры сообщения [Msg] через метод [MessageSource.getAllMessages]
  *
  * Создать игру, зная, как обрабатываются запросы, можно фабричным методом [Game]
  */
 interface Game<P, in Cmd : Command<P>, out Msg> :
-    CommandAccepter<P, Cmd>,
-    AnnouncementSource<P, Msg>
+    CommandQueue<P, Cmd>,
+    MessageSource<P, Msg>
 
 /**
  * Фабричный метод для создания игры
  *
  * Параметры задают поведение будущей игры:
- * * [processing] - как будет обрабатываться конкретный [Command]
+ * * [commandTransform] - как будет обрабатываться конкретный [Command]
  */
 @Suppress("FunctionName")
 fun <P, Cmd : Command<P>, Msg> CoroutineScope.Game(
-    processing: suspend (P, Cmd) -> List<MessageToPlayer<P, Msg>>,
+    commandTransform: suspend (P, Cmd) -> List<TargetedMessage<P, Msg>>,
 ): Game<P, Cmd, Msg> {
-    val announcements = MutableSharedFlow<MessageToPlayer<P, Msg>>()
+    val targetedMessages = MutableSharedFlow<TargetedMessage<P, Msg>>()
 
-    val accepter = SimpleCommandAccepter<P, Cmd> { player, command ->
-        processing(player, command)
-    }
+    val commandQueue = SimpleCommandQueue(
+        onCommand = { player: P, command: Cmd ->
+            for (message in commandTransform(player, command)) {
+                targetedMessages.emit(message)
+            }
+        },
+        onStop = {
+            targetedMessages.emit(TerminalTargetedMessage)
+        },
+    )
 
-    val announcementSource = object : AnnouncementSource<P, Msg> {
-        override fun getAnnouncements(): Flow<MessageToPlayer<P, Msg>> =
-            announcements.asSharedFlow()
+    val messageSource = object : MessageSource<P, Msg> {
+        override fun getAllMessages(): Flow<TargetedMessage<P, Msg>> =
+            targetedMessages
+                .asSharedFlow()
+                .takeWhile { it !is TerminalTargetedMessage }
 
-        override fun getAnnouncements(player: P): Flow<MessageToPlayer<P, Msg>> =
-            getAnnouncements()
+        override fun getMessages(player: P): Flow<Msg> =
+            getAllMessages()
                 .filter { it.player == player }
+                .map { it.message }
     }
 
     return object :
         Game<P, Cmd, Msg>,
-        CommandAccepter<P, Cmd> by accepter,
-        AnnouncementSource<P, Msg> by announcementSource {}
+        CommandQueue<P, Cmd> by commandQueue,
+        MessageSource<P, Msg> by messageSource {}
 }
+

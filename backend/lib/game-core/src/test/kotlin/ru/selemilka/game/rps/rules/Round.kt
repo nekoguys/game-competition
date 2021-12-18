@@ -1,6 +1,7 @@
-package ru.selemilka.game.rps.processor
+package ru.selemilka.game.rps.rules
 
 import org.springframework.stereotype.Service
+import ru.selemilka.game.core.base.TargetedMessage
 import ru.selemilka.game.rps.model.*
 import ru.selemilka.game.rps.storage.RpsRoundStorage
 import ru.selemilka.game.rps.storage.RpsSessionStorage
@@ -22,7 +23,7 @@ enum class RoundResult {
 }
 
 @Service
-class RpsRoundProcessor(
+class RpsRoundRule(
     sessionStorage: RpsSessionStorage,
     private val roundStorage: RpsRoundStorage,
 ) : RpsRootSubProcessor<RpsRootCommand.SubmitAnswer, RpsRootMessage.SubmitAnswer>(sessionStorage) {
@@ -35,7 +36,7 @@ class RpsRoundProcessor(
         settings: RpsSessionSettings,
     ): List<RpsResponse<RpsRootMessage>> =
         submitBet(player, command.turn, settings.maxPlayers)
-            .map { (player, message) -> RpsResponse(player, RpsRootMessage.SubmitAnswer(message)) }
+            .map { TargetedMessage(it.player, RpsRootMessage.SubmitAnswer(it.message)) }
 
     private suspend fun submitBet(
         player: RpsPlayer,

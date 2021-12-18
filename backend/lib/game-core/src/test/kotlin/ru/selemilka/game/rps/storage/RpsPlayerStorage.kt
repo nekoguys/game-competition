@@ -22,6 +22,6 @@ class RpsPlayerInMemoryStorage : RpsPlayerStorage {
 
     override suspend fun savePlayer(player: RpsPlayer) {
         val isAdded = players.add(player)
-        check(isAdded) { "Players cannot be rewritten" }
+        check(isAdded) { "Players cannot be added twice" }
     }
 }

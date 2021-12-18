@@ -7,7 +7,7 @@ import ru.selemilka.game.rps.model.RpsStage
 import java.util.concurrent.atomic.AtomicLong
 
 interface RpsSessionStorage {
-    suspend fun createSession(settings: RpsSessionSettings): RpsSession
+    suspend fun createSession(settings: RpsSessionSettings): RpsSession.Id
     suspend fun sessionExists(id: RpsSession.Id): Boolean
     suspend fun loadStage(id: RpsSession.Id): RpsStage?
     suspend fun saveStage(id: RpsSession.Id, stage: RpsStage)
@@ -20,7 +20,7 @@ class RpsSessionInMemoryStorage : RpsSessionStorage {
     private val sessions = mutableMapOf<RpsSession.Id, RpsSession>()
     private var sessionIdInc = AtomicLong(0)
 
-    override suspend fun createSession(settings: RpsSessionSettings): RpsSession {
+    override suspend fun createSession(settings: RpsSessionSettings): RpsSession.Id {
         val newId = RpsSession.Id(sessionIdInc.incrementAndGet())
         val newSession = RpsSession(
             id = newId,
@@ -28,7 +28,7 @@ class RpsSessionInMemoryStorage : RpsSessionStorage {
             settings = settings,
         )
         sessions[newId] = newSession
-        return newSession
+        return newSession.id
     }
 
     override suspend fun sessionExists(id: RpsSession.Id): Boolean =

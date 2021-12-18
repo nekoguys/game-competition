@@ -1,21 +1,21 @@
-package ru.selemilka.game.rps.processor
+package ru.selemilka.game.rps.rules
 
+import ru.selemilka.game.core.base.TargetedMessage
 import ru.selemilka.game.rps.model.RpsPlayer
 
 @DslMarker
 annotation class ResponseDsl
-
 
 @ResponseDsl
 class ResponseBuilder<Msg> {
     val responses = mutableListOf<RpsResponse<Msg>>()
 
     infix fun Msg.sendTo(player: RpsPlayer) {
-        responses += RpsResponse(player, this)
+        responses += TargetedMessage(player, this)
     }
 
     infix fun Msg.sendTo(players: Collection<RpsPlayer>) {
-        players.forEach { player -> responses += RpsResponse(player, this) }
+        players.forEach { player -> responses += TargetedMessage(player, this) }
     }
 
     inline operator fun RpsPlayer.invoke(
@@ -44,7 +44,7 @@ class ResponseToPlayerBuilder<Msg>(
     val responses = mutableListOf<RpsResponse<Msg>>()
 
     operator fun Msg.unaryPlus() {
-        responses += RpsResponse(player, this)
+        responses += TargetedMessage(player, this)
     }
 }
 
@@ -55,7 +55,7 @@ class ResponseToPlayersBuilder<Msg>(
     val responses = mutableListOf<RpsResponse<Msg>>()
 
     operator fun Msg.unaryPlus() {
-        responses += players.map { player -> RpsResponse(player, this) }
+        responses += players.map { player -> TargetedMessage(player, this) }
     }
 }
 

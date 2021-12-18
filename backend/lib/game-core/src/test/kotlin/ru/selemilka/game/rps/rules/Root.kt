@@ -1,8 +1,8 @@
-package ru.selemilka.game.rps.processor
+package ru.selemilka.game.rps.rules
 
 import org.springframework.stereotype.Service
 import ru.selemilka.game.core.base.Command
-import ru.selemilka.game.core.base.MessageToPlayer
+import ru.selemilka.game.core.base.TargetedMessage
 import ru.selemilka.game.rps.model.RpsPlayer
 import ru.selemilka.game.rps.model.RpsSessionSettings
 import ru.selemilka.game.rps.model.RpsStage
@@ -30,9 +30,11 @@ sealed interface RpsRootCommand : Command<RpsPlayer> {
  * Это неудобно и плохо масштабируется
  */
 sealed interface RpsRootMessage {
-    data class JoinGame(val inner: JoinGameMessage) : RpsRootMessage
+    @JvmInline
+    value class JoinGame(val inner: JoinGameMessage) : RpsRootMessage
 
-    data class SubmitAnswer(val inner: RoundMessage) : RpsRootMessage
+    @JvmInline
+    value class SubmitAnswer(val inner: RoundMessage) : RpsRootMessage
 
     data class IncorrectStage(
         val current: RpsStage,
@@ -42,20 +44,20 @@ sealed interface RpsRootMessage {
     object SessionDoesNotExists : RpsRootMessage
 }
 
-typealias RpsResponse<Msg> = MessageToPlayer<RpsPlayer, Msg>
+typealias RpsResponse<Msg> = TargetedMessage<RpsPlayer, Msg>
 
 @Service
-class RpsRootProcessor(
-    private val joinGameProcessor: RpsJoinGameProcessor,
-    private val roundProcessor: RpsRoundProcessor,
+class RpsRootRule(
+    private val joinGameRule: RpsJoinGameRule,
+    private val roundRule: RpsRoundRule,
 ) {
     suspend fun process(
         player: RpsPlayer,
         command: RpsRootCommand,
     ): List<RpsResponse<RpsRootMessage>> {
         return when (command) {
-            is RpsRootCommand.JoinGame -> joinGameProcessor.validateAndProcess(player, command)
-            is RpsRootCommand.SubmitAnswer -> roundProcessor.validateAndProcess(player, command)
+            is RpsRootCommand.JoinGame -> joinGameRule.validateAndProcess(player, command)
+            is RpsRootCommand.SubmitAnswer -> roundRule.validateAndProcess(player, command)
         }
     }
 }
@@ -74,7 +76,7 @@ abstract class RpsRootSubProcessor<in Cmd : RpsRootCommand, out Msg : RpsRootMes
                 player { +RpsRootMessage.SessionDoesNotExists }
             }
 
-            session.stage in expectedStages -> respond {
+            session.stage !in expectedStages -> respond {
                 player { +RpsRootMessage.IncorrectStage(session.stage, expectedStages) }
             }
 
