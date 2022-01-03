@@ -1,5 +1,5 @@
 import React from "react";
-import {BrowserRouter as Router, Route, Routes} from "react-router-dom";
+import {BrowserRouter as Router, Navigate, Route, Routes} from "react-router-dom";
 import Login from "../auth/login";
 import Register from "../auth/register/register";
 import CompetitionHistory from "../competition-history/competition-history";
@@ -101,7 +101,7 @@ export default class App extends React.Component{
             <div>
                 <Router>
                     <Routes>
-                        {/*<Navigate exact from="/" to="/auth/signin" />*/}
+                        <Route path={"/"} element={<Navigate to="/auth/signin"/>} />
                         {
                             paths.map(({path, component: C, props = {}}, index) => {
                                 return (
