@@ -1,5 +1,5 @@
 import React from "react";
-import {BrowserRouter as Router, Redirect, Route, Switch,} from "react-router-dom";
+import {BrowserRouter as Router, Route, Routes} from "react-router-dom";
 import Login from "../auth/login";
 import Register from "../auth/register/register";
 import CompetitionHistory from "../competition-history/competition-history";
@@ -18,6 +18,8 @@ import {NotificationContainer, NotificationManager} from "react-notifications";
 import AdminkaComponent from "../adminka";
 import FinalStrategySubmissionComponent
     from "../competition-process/ended-competition-results/final-strategy-submission";
+import apiFetcher from "../../helpers/api-fetcher";
+import ApiHelper from "../../helpers/api-helper";
 
 
 const paths = [
@@ -27,7 +29,12 @@ const paths = [
     },
     {
         path: "/auth/signup",
-        component: Register
+        component: Register,
+        props: {
+            fetchers: {
+                submit: (params) => { return apiFetcher(params, (credentials) => { return ApiHelper.signup(credentials) }) }
+            }
+        }
     },
     {
         path: "/competitions/history",
@@ -89,26 +96,22 @@ const paths = [
 
 export default class App extends React.Component{
 
-    showNotification = () => {
-        return NotificationManager;
-    };
-
     render() {
         return (
             <div>
                 <Router>
-                    <Switch>
-                        <Redirect exact from="/" to="/auth/signin" />
+                    <Routes>
+                        {/*<Navigate exact from="/" to="/auth/signin" />*/}
                         {
-                            paths.map(({path, component: C}, index) => {
+                            paths.map(({path, component: C, props = {}}, index) => {
                                 return (
                                     <Route key={index} path={path}
-                                           render={(props) => <C {...props} showNotification={this.showNotification}/>}
+                                           element={<C {...props} showNotification={() => NotificationManager}/>}
                                     />
                                 )
                             })
                         }
-                    </Switch>
+                    </Routes>
                 </Router>
                 <div>
                     <NotificationContainer/>

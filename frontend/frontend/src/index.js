@@ -19,7 +19,7 @@ const resources = {
 
 i18next.init({
     interpolation: { escapeValue: false },  // React already does escaping
-    lng: window.localStorage.getItem("language") ?? "en",                              // language to use
+    fallbackLng: "en",                          // language to use
     resources: resources
 });
 

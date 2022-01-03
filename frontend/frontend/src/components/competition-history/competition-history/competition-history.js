@@ -52,23 +52,23 @@ class CompetitionHistory extends React.Component {
         console.log({isTeacher});
         if (item.state.toLowerCase() === "registration") {
             if (isTeacher) {
-                this.props.history.push('/competitions/after_registration_opened/' + item.pin);
+                this.props.history('/competitions/after_registration_opened/' + item.pin);
             } else {
-                this.props.history.push('/competitions/waiting_room/' + item.pin);
+                this.props.history('/competitions/waiting_room/' + item.pin);
             }
         } else if (item.state.toLowerCase() === "inprocess") {
             if (isTeacher) {
-                this.props.history.push('/competitions/process_teacher/' + item.pin);
+                this.props.history('/competitions/process_teacher/' + item.pin);
             } else {
-                this.props.history.push('/competitions/process_captain/' + item.pin);
+                this.props.history('/competitions/process_captain/' + item.pin);
             }
         } else if (item.state.toLowerCase() === "ended") {
             if (isTeacher || item.shouldShowResultTableInEnd) {
-                this.props.history.push('/competitions/results/' + item.pin);
+                this.props.history('/competitions/results/' + item.pin);
             }
         } else if (item.state.toLowerCase() === "draft") {
             if (isTeacher) {
-                this.props.history.push('/competitions/draft_competition/' + item.pin, {initialState: item})
+                this.props.history('/competitions/draft_competition/' + item.pin, {initialState: item})
             }
         }
     };

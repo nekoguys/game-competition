@@ -1,29 +1,23 @@
 import React from "react";
-import {withTranslation} from "react-i18next";
+import {useTranslation} from "react-i18next";
 import "./language-change.css";
 
-class LanguageChangeComponent extends React.Component {
-
-    onChangeLanguage = (lang) => {
+const LanguageChangeComponent = () => {
+    const {i18n} = useTranslation('translation');
+    const onChangeLanguage = (lang) => {
         window.localStorage.setItem("language", lang);
-        this.props.i18n.changeLanguage(lang);
+        i18n.changeLanguage(lang);
     };
 
-    componentDidMount() {
-        this.onChangeLanguage("en");
-    }
-
-    render() {
-        return (
-            <div>
+    return (
+        <div>
             <div className={"language-change-container"}>
-                <a href={"#"} onClick={() => this.onChangeLanguage("ru")}>ru</a>
+                <a href={"#"} onClick={() => onChangeLanguage("ru")}>ru</a>
                 |
-                <a href={"#"} onClick={() => this.onChangeLanguage("en")}>en</a>
+                <a href={"#"} onClick={() => onChangeLanguage("en")}>en</a>
             </div>
-            </div>
-        )
-    }
+        </div>
+    )
 }
 
-export default withTranslation('translation')(LanguageChangeComponent)
+export default LanguageChangeComponent;

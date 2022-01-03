@@ -1,104 +1,59 @@
-import React from "react";
-import ApiHelper from "../../../helpers/api-helper";
+import React, {useState} from "react";
 import Header from "../header";
-import {withRouter} from "react-router-dom";
+import {useTranslation} from "react-i18next";
 
 import "../login/login.css";
 import RegisterForm from "../register-form/register-form";
-import showNotification from "../../../helpers/notification-helper";
-import {withTranslation} from "react-i18next";
 import LanguageChangeComponent from "../language-change/language-change";
+import {useNavigate} from "react-router";
 
-class Register extends React.Component {
-    constructor(props) {
-        super(props);
+const Register = ({fetchers, showNotification}) => {
+    const { t } = useTranslation('translation');
+    const navigate = useNavigate();
 
-        this.state = {
-            email: '',
-            password: '',
-            passwordConf: '',
-            isRegButtonDisabled: true
-        }
+    const [form, setForm] = useState({
+        password: "",
+        email: "",
+        passwordConf: ""
+    });
+
+    const isButtonEnabled = () => {
+        return form.password === form.passwordConf &&
+            form.email.length > 0 && form.password.length > 0
     }
 
-    onEmailChanged = (newEmail) => {
-        this.setState({email: newEmail});
-    };
+    const onFormChanged = (name, newEmail) => {
+        setForm({...form, [name]: newEmail});
+    }
 
-    onPasswordChanged = (newPassword) => {
-        this.setState(prevState => {
-            return {
-                password: newPassword,
-                isRegButtonDisabled: !(newPassword === prevState.passwordConf
-                    && newPassword !== ''
-                )
-            }
-        });
-    };
-
-    onPasswordConfChanged = (newConf) => {
-        this.setState(prevState => {
-            return {
-                passwordConf: newConf,
-                isRegButtonDisabled: !(newConf === prevState.password
-                    && newConf !== ''
-                )
-            }
-        });
-    };
-
-    onSubmitClick = () => {
-        ApiHelper.signup({password: this.state.password, email: this.state.email}).then(res => {
-            if (res.status >= 300) {
-                console.log("error in signin request");
-                return {success: false, json: res.json()}
-            }
-            return {success: true, json: res.json()};
-        }).then(parsedResponse => {
-            console.log(parsedResponse);
-            parsedResponse.json.then((value) => {
-                console.log({value});
-                if (parsedResponse.success) {
-                    showNotification(this).success(`Registered Successfully!`, 'Success', 1200);
-                } else {
-                    if (value.message) {
-                        showNotification(this).error(value.message, 'Error', 1200);
-                    } else {
-                        showNotification(this).error('Error occurred', 'Error', 1200, () => {
-                        });
-                    }
-                }
+    const onSubmit = () => {
+        fetchers.submit({password: form.password, email: form.email})
+            .then(() => {
+                showNotification().success(`Registered Successfully!`, 'Success', 1200);
             })
-        })
-    };
+            .catch((error) => {
+                showNotification().error(error.message, 'Error', 1200);
+            })
+    }
 
-    onLoginHeaderClick = () => {
-        this.props.history.push('/auth/signin')
-    };
-
-    render() {
-        const headerStyle = {
-            marginRight: "20px"
-        };
-
-        return (
-            <div>
+    return (
+        <div>
             <div className={"container login-group"}>
                 <div className={"d-flex headers"}>
-                    <Header text={this.props.t("auth.login.enter")} style={headerStyle} isSelected={false} onClick={this.onLoginHeaderClick}/>
-                    <Header text={this.props.t("auth.login.register")} isSelected={true}/>
+                    <Header style={{marginRight: "20px"}} text={t("auth.login.enter")} isSelected={false} onClick={() => { navigate("/auth/signin") }}/>
+                    <Header text={t("auth.login.register")} isSelected={true}/>
                 </div>
-                <RegisterForm onEmailChanged={this.onEmailChanged}
-                           onPasswordChanged={this.onPasswordChanged}
-                           onConfPasswordChanged={this.onPasswordConfChanged}
-                           onSubmit={this.onSubmitClick}
-                           isRegButtonDisabled={this.state.isRegButtonDisabled}
+                <RegisterForm
+                    onEmailChanged={(email) => { onFormChanged("email", email) }}
+                    onPasswordChanged={(password) => { onFormChanged("password", password) }}
+                    onConfPasswordChanged={(passwordConf) => { onFormChanged("passwordConf", passwordConf) }}
+                    onSubmit={onSubmit}
+                    isRegButtonDisabled={isButtonEnabled()}
                 />
             </div>
-                <div><LanguageChangeComponent/></div>
-            </div>
-        )
-    }
+            <div><LanguageChangeComponent/></div>
+        </div>
+    )
 }
 
-export default withTranslation('translation')(withRouter(Register));
+export default Register;

@@ -208,7 +208,7 @@ class AfterRegistrationOpenedComponent extends React.Component {
                             this.startCompetition(() => {
                                 showNotification(this).success("Competition Started!", "Success", 1500);
                                 setTimeout(() => {
-                                    this.props.history.push("/competitions/process_teacher/" + pin)
+                                    this.props.history("/competitions/process_teacher/" + pin)
                                 }, 1500);
                             });
                         }} style={{padding: "10px 20px"}}/>

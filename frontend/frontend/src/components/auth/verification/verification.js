@@ -1,8 +1,9 @@
 import React from "react";
-import {withRouter} from "react-router-dom";
+import {withRouter} from "../../../helpers/with-router";
 import {withTranslation} from "react-i18next";
 import ApiHelper from "../../../helpers/api-helper";
 import showNotification from "../../../helpers/notification-helper";
+
 
 class Verification extends React.Component {
     constructor(props) {
@@ -26,7 +27,7 @@ class Verification extends React.Component {
                     showNotification(this).success(jsonBody.message, "Success", 2500);
 
                     setTimeout(() => {
-                        this.props.history.push("/auth/signin");
+                        this.props.history("/auth/signin");
                     }, 2500);
                 })
             } else {

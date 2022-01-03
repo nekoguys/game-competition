@@ -4,7 +4,7 @@ import ApiHelper from "../../../helpers/api-helper";
 
 import TeamCollection from "./team-collection";
 import DefaultTextInput from "../../common/default-text-input";
-import {withRouter} from "react-router-dom";
+import {withRouter} from "../../../helpers/with-router";
 
 import showNotification from "../../../helpers/notification-helper";
 
@@ -279,7 +279,7 @@ class JoinCompetitionPlayerForm extends React.Component {
                     const teamName = obj.currentTeamName;
                     window.localStorage.setItem("currentTeamName", teamName);
                     showNotification(this).success("You joined team " + teamName, "Success", timeout);
-                    this.props.history.push("/competitions/waiting_room/" + this.gameId);
+                    this.props.history("/competitions/waiting_room/" + this.gameId);
 
                 } else {
                     showNotification(this).error(obj.message, "Error", timeout);

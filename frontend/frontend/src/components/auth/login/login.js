@@ -1,7 +1,7 @@
 import React from "react";
 import Header from "../header";
 import LoginForm from "../login-form";
-import {withRouter} from "react-router-dom";
+import {withRouter} from "../../../helpers/with-router";
 import ApiHelper from "../../../helpers/api-helper";
 import 'react-notifications/lib/notifications.css';
 import {withTranslation} from "react-i18next";
@@ -51,7 +51,7 @@ class Login extends React.Component {
                     
                     showNotification(this).success(`Welcome, ${value.email}!`, 'Success', timeout);
                     setTimeout(() => {
-                        this.props.history.push('/competitions/history');
+                        this.props.history('/competitions/history');
                         console.log("expect redirect to competitions history");
                     }, timeout);
 
@@ -69,12 +69,12 @@ class Login extends React.Component {
 
     componentDidMount() {
         if (isAuthenticated()) {
-            this.props.history.push('/competitions/history');
+            this.props.history('/competitions/history');
         }
     }
 
     onHeaderRegisterClick = () => {
-        this.props.history.push('/auth/signup');
+        this.props.history('/auth/signup');
     };
 
     render() {

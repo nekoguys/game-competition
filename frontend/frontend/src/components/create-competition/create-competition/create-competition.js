@@ -3,7 +3,7 @@ import NavbarHeader from "../../competition-history/navbar-header";
 import CompetitionParamsForm from "../competition-params";
 import "../competition-params/competition-params.css";
 import ApiHelper from "../../../helpers/api-helper";
-import {NotificationContainer, NotificationManager} from "react-notifications";
+import {NotificationContainer} from "react-notifications";
 import DefaultSubmitButton from "../../common/default-submit-button";
 import withRedirect from "../../../helpers/redirect-helper";
 import showNotification from "../../../helpers/notification-helper";
@@ -32,11 +32,11 @@ class CreateCompetition extends React.Component {
 
         if (!this.isUpdateMode()) {
             this.onCreateCompetition(obj, () => {
-                this.props.history.push('/competitions/history')
+                this.props.history('/competitions/history')
             });
         } else {
             this.onUpdateDraftCompetition(obj, () => {
-                this.props.history.push('/competitions/history');
+                this.props.history('/competitions/history');
             })
         }
     };
@@ -48,11 +48,11 @@ class CreateCompetition extends React.Component {
 
             this.onCreateCompetition(obj, () => {
                 console.log({pin: this.pin});
-                this.props.history.push("/competitions/after_registration_opened/" + this.pin);
+                this.props.history("/competitions/after_registration_opened/" + this.pin);
             })
         } else {
             this.onUpdateDraftCompetition(obj, () => {
-                this.props.history.push("/competitions/after_registration_opened/" + this.props.match.params.pin);
+                this.props.history("/competitions/after_registration_opened/" + this.props.match.params.pin);
             })
         }
     };

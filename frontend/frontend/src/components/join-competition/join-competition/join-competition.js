@@ -5,7 +5,6 @@ import NavbarHeader from "../../competition-history/navbar-header/navbar-header"
 import toSnakeCase from "../../../helpers/snake-case-helper";
 import JoinCompetitionPlayerForm from "../join-competition-player-form";
 import ApiHelper from "../../../helpers/api-helper";
-import {withRouter} from "react-router-dom";
 
 import showNotification from "../../../helpers/notification-helper";
 import withAuthenticated from "../../../helpers/with-authenticated";
@@ -55,7 +54,7 @@ class JoinCompetition extends React.Component {
                 console.log(respMessage);
                 if (obj.success) {
                     showNotification(this).success("Team created successfully", "Success", timeout);
-                    this.props.history.push("/competitions/waiting_room/" + formState.gameId);
+                    this.props.history("/competitions/waiting_room/" + formState.gameId);
                 } else {
                     showNotification(this).error(respMessage.message, "Error", timeout);
                 }

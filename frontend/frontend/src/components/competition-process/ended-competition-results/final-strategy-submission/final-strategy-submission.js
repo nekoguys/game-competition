@@ -69,7 +69,7 @@ class FinalStrategySubmissionComponent extends React.Component {
 
     onSubmitButtonClicked = () => {
         const {pin} = this.props.match.params;
-        this.props.history.push("/competitions/results/" + pin);
+        this.props.history("/competitions/results/" + pin);
     };
 
     render() {
