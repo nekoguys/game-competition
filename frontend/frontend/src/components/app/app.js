@@ -20,12 +20,29 @@ import FinalStrategySubmissionComponent
     from "../competition-process/ended-competition-results/final-strategy-submission";
 import apiFetcher from "../../helpers/api-fetcher";
 import ApiHelper from "../../helpers/api-helper";
+import isAuthenticated from "../../helpers/is-authenticated";
 
 
 const paths = [
     {
         path: "/auth/signin",
-        component: Login
+        component: Login,
+        props: {
+            fetchers: {
+                submit: (params) => { return apiFetcher(params, (credentials) => ApiHelper.signin(credentials)) }
+                // submit: (params) => { return new Promise(resolve => resolve({accessToken: "1", email: "someEmail", authorities: ['Student'], expirationTimestamp: 1644421942}))}
+            },
+            authProvider: {
+                isAuthenticated: () => isAuthenticated()
+            },
+            onSuccessfulLogin: (resp) => {
+                const storage = window.localStorage;
+                storage.setItem("accessToken", resp.accessToken);
+                storage.setItem("user_email", resp.email);
+                storage.setItem("roles", resp.authorities.map(el => el.authority));
+                storage.setItem("expirationTimestamp", resp.expirationTimestamp);
+            }
+        }
     },
     {
         path: "/auth/signup",
@@ -74,7 +91,15 @@ const paths = [
     },
     {
         path: "/auth/verification/:token",
-        component: Verification
+        component: Verification,
+        props: {
+            fetchers: {
+                verify: (token) => { return apiFetcher(token, (token) => ApiHelper.accountVerification(token)) }
+                // verify: (token) => { return new Promise(resolve => setTimeout(() => {
+                //     resolve({message: "Подтвержден"})
+                // }, 2500) )}
+            }
+        }
     },
     {
         path: "/competitions/results/:pin",
@@ -94,29 +119,26 @@ const paths = [
     }
 ];
 
-export default class App extends React.Component{
-
-    render() {
-        return (
+export default function App() {
+    return (
+        <div>
+            <Router>
+                <Routes>
+                    <Route path={"/"} element={<Navigate to="/auth/signin"/>} />
+                    {
+                        paths.map(({path, component: C, props = {}}, index) => {
+                            return (
+                                <Route key={index} path={path}
+                                       element={<C {...props} showNotification={() => NotificationManager}/>}
+                                />
+                            )
+                        })
+                    }
+                </Routes>
+            </Router>
             <div>
-                <Router>
-                    <Routes>
-                        <Route path={"/"} element={<Navigate to="/auth/signin"/>} />
-                        {
-                            paths.map(({path, component: C, props = {}}, index) => {
-                                return (
-                                    <Route key={index} path={path}
-                                           element={<C {...props} showNotification={() => NotificationManager}/>}
-                                    />
-                                )
-                            })
-                        }
-                    </Routes>
-                </Router>
-                <div>
-                    <NotificationContainer/>
-                </div>
+                <NotificationContainer/>
             </div>
-        )
-    }
+        </div>
+    )
 }

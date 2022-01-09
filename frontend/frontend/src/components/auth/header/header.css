@@ -1,11 +1,18 @@
 .header {
     border-radius: 30px 30px 0 0;
-    background-color: #E7E7E7;
     font-size: 1rem;
     flex-grow: 1;
     overflow: hidden;
     text-align: center;
     position: relative;
+}
+
+.header_selected {
+    background-color: #E7E7E7;
+}
+
+.header_unselected {
+    background-color: #D7D7D7;
 }
 
 .header-text {
@@ -17,8 +24,4 @@
     left: 50%;
     font-size: 1.4rem;
     transform: translate(-50%, -30%)
-}
-
-.header.unselected {
-    background-color: #D7D7D7;
 }
