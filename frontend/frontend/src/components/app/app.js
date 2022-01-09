@@ -20,8 +20,34 @@ import FinalStrategySubmissionComponent
     from "../competition-process/ended-competition-results/final-strategy-submission";
 import apiFetcher from "../../helpers/api-fetcher";
 import ApiHelper from "../../helpers/api-helper";
-import isAuthenticated from "../../helpers/is-authenticated";
+import isAuthenticated, {getUTCSeconds} from "../../helpers/is-authenticated";
 
+const signinFetcher = {
+    mock: (_) => {
+        return new Promise(resolve =>
+            resolve({accessToken: "1", email: "someEmail", authorities: ['Student'], expirationTimestamp: getUTCSeconds(new Date(Date.now() + 24*60*60*1000))})
+        )
+    },
+    real: (params) => { return apiFetcher(params, (credentials) => ApiHelper.signin(credentials)) }
+}["real"];
+
+const signupFetcher = {
+    mock: (_) => {
+        return new Promise(resolve =>
+            resolve({})
+        )
+    },
+    real: (params) => { return apiFetcher(params, (credentials) => { return ApiHelper.signup(credentials) }) }
+}["real"];
+
+const verificationFetcher = {
+    mock: (_) => {
+        return new Promise(resolve => setTimeout(() => {
+            resolve({message: "Подтвержден"})
+        }, 2500) )
+    },
+    real: (token) => { return apiFetcher(token, (token) => ApiHelper.accountVerification(token)) }
+}["real"];
 
 const paths = [
     {
@@ -29,8 +55,7 @@ const paths = [
         component: Login,
         props: {
             fetchers: {
-                submit: (params) => { return apiFetcher(params, (credentials) => ApiHelper.signin(credentials)) }
-                // submit: (params) => { return new Promise(resolve => resolve({accessToken: "1", email: "someEmail", authorities: ['Student'], expirationTimestamp: 1644421942}))}
+                submit: signinFetcher
             },
             authProvider: {
                 isAuthenticated: () => isAuthenticated()
@@ -49,7 +74,7 @@ const paths = [
         component: Register,
         props: {
             fetchers: {
-                submit: (params) => { return apiFetcher(params, (credentials) => { return ApiHelper.signup(credentials) }) }
+                submit: signupFetcher
             }
         }
     },
@@ -94,10 +119,7 @@ const paths = [
         component: Verification,
         props: {
             fetchers: {
-                verify: (token) => { return apiFetcher(token, (token) => ApiHelper.accountVerification(token)) }
-                // verify: (token) => { return new Promise(resolve => setTimeout(() => {
-                //     resolve({message: "Подтвержден"})
-                // }, 2500) )}
+                verify: verificationFetcher
             }
         }
     },
