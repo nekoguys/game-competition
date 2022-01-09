@@ -3,7 +3,7 @@ package ru.selemilka.game.rps.model
 data class RpsRound(
     val id: Id,
     val answers: List<RpsRoundAnswer> = emptyList(),
-    val winner: RpsPlayer? = null,
+    val winner: RpsPlayer.Human? = null,
 ) {
     data class Id(
         val sessionId: RpsSession.Id,
@@ -12,19 +12,20 @@ data class RpsRound(
 }
 
 data class RpsRoundAnswer(
-    val player: RpsPlayer,
+    val player: RpsPlayer.Human,
     val bet: Turn,
 )
 
 enum class Turn {
     ROCK,
     PAPER,
-    SCISSORS,
+    SCISSORS;
+
+    infix fun beats(other: Turn): Boolean =
+        when (this) {
+            ROCK -> other == SCISSORS
+            PAPER -> other == ROCK
+            SCISSORS -> other == PAPER
+        }
 }
 
-infix fun Turn.beats(other: Turn): Boolean =
-    when (this) {
-        Turn.ROCK -> other == Turn.SCISSORS
-        Turn.PAPER -> other == Turn.ROCK
-        Turn.SCISSORS -> other == Turn.SCISSORS
-    }

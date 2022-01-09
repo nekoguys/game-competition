@@ -6,7 +6,7 @@ data class RpsSession(
     val settings: RpsSessionSettings = RpsSessionSettings(),
 ) {
     @JvmInline
-    value class Id(val number: Long)
+    value class Id(val value: Long)
 }
 
 enum class RpsStage {
@@ -17,4 +17,5 @@ enum class RpsStage {
 
 data class RpsSessionSettings(
     val maxPlayers: Int = 2,
+    val rounds: Int = 3,
 )

@@ -13,6 +13,8 @@ interface RpsSessionStorage {
     suspend fun saveStage(id: RpsSession.Id, stage: RpsStage)
     suspend fun loadSettings(id: RpsSession.Id): RpsSessionSettings?
     suspend fun loadSession(id: RpsSession.Id): RpsSession?
+
+    companion object ResourceKey
 }
 
 @Repository
@@ -40,6 +42,7 @@ class RpsSessionInMemoryStorage : RpsSessionStorage {
     override suspend fun saveStage(id: RpsSession.Id, stage: RpsStage) {
         val session = sessions[id]
         checkNotNull(session) { "Non-existent session cannot be updated" }
+
         sessions[id] = session.copy(stage = stage)
     }
 

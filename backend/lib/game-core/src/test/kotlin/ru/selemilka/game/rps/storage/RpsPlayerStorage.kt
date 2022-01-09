@@ -5,22 +5,24 @@ import ru.selemilka.game.rps.model.RpsPlayer
 import ru.selemilka.game.rps.model.RpsSession
 
 interface RpsPlayerStorage {
-    suspend fun loadPlayers(sessionId: RpsSession.Id): List<RpsPlayer>
-    suspend fun existsPlayer(player: RpsPlayer): Boolean
-    suspend fun savePlayer(player: RpsPlayer)
+    suspend fun loadPlayers(sessionId: RpsSession.Id): List<RpsPlayer.Human>
+    suspend fun existsPlayer(player: RpsPlayer.Human): Boolean
+    suspend fun savePlayer(player: RpsPlayer.Human)
+
+    companion object ResourceKey
 }
 
 @Repository
 class RpsPlayerInMemoryStorage : RpsPlayerStorage {
-    private val players = mutableSetOf<RpsPlayer>()
+    private val players = mutableSetOf<RpsPlayer.Human>()
 
-    override suspend fun loadPlayers(sessionId: RpsSession.Id): List<RpsPlayer> =
+    override suspend fun loadPlayers(sessionId: RpsSession.Id): List<RpsPlayer.Human> =
         players.filter { it.sessionId == sessionId }
 
-    override suspend fun existsPlayer(player: RpsPlayer): Boolean =
+    override suspend fun existsPlayer(player: RpsPlayer.Human): Boolean =
         player in players
 
-    override suspend fun savePlayer(player: RpsPlayer) {
+    override suspend fun savePlayer(player: RpsPlayer.Human) {
         val isAdded = players.add(player)
         check(isAdded) { "Players cannot be added twice" }
     }

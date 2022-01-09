@@ -8,6 +8,8 @@ interface RpsRoundStorage {
     suspend fun loadCurrentRound(sessionId: RpsSession.Id): RpsRound?
     suspend fun loadRound(roundId: RpsRound.Id): RpsRound?
     suspend fun saveRound(round: RpsRound)
+
+    companion object ResourceKey
 }
 
 @Repository
@@ -26,8 +28,8 @@ class RpsRoundInMemoryStorage : RpsRoundStorage {
 
     override suspend fun saveRound(round: RpsRound) {
         val currentRoundNumber = currentRoundIds[round.id.sessionId]?.number
-        require(currentRoundNumber == null || round.id.number > currentRoundNumber) {
-            "The past cannot be changed, kiddo"
+        require(currentRoundNumber == null || round.id.number >= currentRoundNumber) {
+            "The past cannot be changed"
         }
         rounds[round.id] = round
         currentRoundIds[round.id.sessionId] = round.id
