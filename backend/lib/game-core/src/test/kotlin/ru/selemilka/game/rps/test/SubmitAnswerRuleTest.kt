@@ -40,15 +40,11 @@ class SubmitAnswerRuleTest {
         session = rpsGameSession.session
         sessionId = rpsGameSession.id
 
-        runCatching {
-            firstPlayer = RpsPlayer.Human(sessionId, "Amogus")
-            session.accept(firstPlayer, RpsCommand.JoinGame)
+        firstPlayer = RpsPlayer.Human(sessionId, "Amogus")
+        session.accept(firstPlayer, RpsCommand.JoinGame)
 
-            secondPlayer = RpsPlayer.Human(sessionId, "Biba")
-            session.accept(secondPlayer, RpsCommand.JoinGame)
-        }.onFailure {
-            session.close()
-        }
+        secondPlayer = RpsPlayer.Human(sessionId, "Biba")
+        session.accept(secondPlayer, RpsCommand.JoinGame)
     }
 
     @Test
@@ -56,10 +52,11 @@ class SubmitAnswerRuleTest {
         session.accept(firstPlayer, RpsCommand.SubmitAnswer(turn = Turn.PAPER))
         session.close()
 
-        val responses = session.getMessages(firstPlayer)
+        val messages = session.getMessages(firstPlayer)
             .dropUntilFound(ChangeStageMessage.GameStarted.toRoot())
             .toList()
-        assertThat(responses)
+
+        assertThat(messages)
             .containsExactly(
                 SubmitAnswerMessage.Submitted.toRoot()
             )
@@ -71,10 +68,11 @@ class SubmitAnswerRuleTest {
         session.accept(firstPlayer, RpsCommand.SubmitAnswer(turn = Turn.SCISSORS))
         session.close()
 
-        val responses = session.getMessages(firstPlayer)
+        val messages = session.getMessages(firstPlayer)
             .dropUntilFound(ChangeStageMessage.GameStarted.toRoot())
             .toList()
-        assertThat(responses)
+
+        assertThat(messages)
             .containsExactly(
                 SubmitAnswerMessage.Submitted.toRoot(),
                 SubmitAnswerMessage.AnswerAlreadySubmittedError.toRoot(),
@@ -89,16 +87,16 @@ class SubmitAnswerRuleTest {
         val firstPlayerMessages = session.getMessages(firstPlayer)
             .dropUntilFound(ChangeStageMessage.GameStarted.toRoot())
             .toList()
+        val secondPlayerMessages = session.getMessages(secondPlayer)
+            .dropUntilFound(ChangeStageMessage.GameStarted.toRoot())
+            .toList()
+
         assertThat(firstPlayerMessages)
             .containsExactly(
                 SubmitAnswerMessage.Submitted.toRoot(),
                 SubmitAnswerMessage.RoundEnded(RoundResult.YOU_LOST).toRoot(),
                 ChangeStageMessage.GameFinished.toRoot(),
             )
-
-        val secondPlayerMessages = session.getMessages(secondPlayer)
-            .dropUntilFound(ChangeStageMessage.GameStarted.toRoot())
-            .toList()
         assertThat(secondPlayerMessages)
             .containsExactly(
                 SubmitAnswerMessage.Submitted.toRoot(),
@@ -116,15 +114,15 @@ class SubmitAnswerRuleTest {
         val firstPlayerMessages = session.getMessages(firstPlayer)
             .dropUntilFound(ChangeStageMessage.GameStarted.toRoot())
             .toList()
+        val secondPlayerMessages = session.getMessages(secondPlayer)
+            .dropUntilFound(ChangeStageMessage.GameStarted.toRoot())
+            .toList()
+
         assertThat(firstPlayerMessages)
             .containsExactly(
                 SubmitAnswerMessage.Submitted.toRoot(),
                 SubmitAnswerMessage.RoundEnded(RoundResult.DRAW).toRoot(),
             )
-
-        val secondPlayerMessages = session.getMessages(secondPlayer)
-            .dropUntilFound(ChangeStageMessage.GameStarted.toRoot())
-            .toList()
         assertThat(secondPlayerMessages)
             .containsExactly(
                 SubmitAnswerMessage.Submitted.toRoot(),

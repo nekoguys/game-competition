@@ -8,11 +8,13 @@ import java.util.concurrent.atomic.AtomicLong
 
 interface RpsSessionStorage {
     suspend fun createSession(settings: RpsSessionSettings): RpsSession.Id
-    suspend fun sessionExists(id: RpsSession.Id): Boolean
-    suspend fun loadStage(id: RpsSession.Id): RpsStage?
-    suspend fun saveStage(id: RpsSession.Id, stage: RpsStage)
-    suspend fun loadSettings(id: RpsSession.Id): RpsSessionSettings?
     suspend fun loadSession(id: RpsSession.Id): RpsSession?
+    suspend fun sessionExists(id: RpsSession.Id): Boolean
+
+    suspend fun saveStage(id: RpsSession.Id, stage: RpsStage)
+    suspend fun loadStage(id: RpsSession.Id): RpsStage?
+
+    suspend fun loadSettings(id: RpsSession.Id): RpsSessionSettings?
 
     companion object ResourceKey
 }
@@ -33,11 +35,11 @@ class RpsSessionInMemoryStorage : RpsSessionStorage {
         return newSession.id
     }
 
+    override suspend fun loadSession(id: RpsSession.Id): RpsSession? =
+        sessions[id]
+
     override suspend fun sessionExists(id: RpsSession.Id): Boolean =
         id in sessions
-
-    override suspend fun loadStage(id: RpsSession.Id): RpsStage? =
-        sessions[id]?.stage
 
     override suspend fun saveStage(id: RpsSession.Id, stage: RpsStage) {
         val session = sessions[id]
@@ -46,9 +48,9 @@ class RpsSessionInMemoryStorage : RpsSessionStorage {
         sessions[id] = session.copy(stage = stage)
     }
 
+    override suspend fun loadStage(id: RpsSession.Id): RpsStage? =
+        sessions[id]?.stage
+
     override suspend fun loadSettings(id: RpsSession.Id): RpsSessionSettings? =
         sessions[id]?.settings
-
-    override suspend fun loadSession(id: RpsSession.Id): RpsSession? =
-        sessions[id]
 }

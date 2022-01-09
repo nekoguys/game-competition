@@ -39,9 +39,10 @@ class RpsGameServiceTest {
         session.accept(player, RpsCommand.JoinGame)
         session.close()
 
-        val responses = session.getAllMessages().toList()
-        assertThat(responses)
-            .containsExactly(GameMessage(player, JoinGameMessage.YouJoinedGame.toRoot()))
+        assertThat(session.getAllMessages().toList())
+            .containsExactly(
+                GameMessage(player, JoinGameMessage.YouJoinedGame.toRoot()),
+            )
     }
 
     @Test
@@ -54,9 +55,10 @@ class RpsGameServiceTest {
             session.close()
         }
 
-        val responses = session.getAllMessages().toList()
-        assertThat(responses)
-            .containsExactly(GameMessage(player, JoinGameMessage.YouJoinedGame.toRoot()))
+        assertThat(session.getAllMessages().toList())
+            .containsExactly(
+                GameMessage(player, JoinGameMessage.YouJoinedGame.toRoot()),
+            )
     }
 
     @Test
@@ -82,8 +84,7 @@ class RpsGameServiceTest {
             }
         }
 
-        val responses = session.getAllMessages().toList()
-        assertThat(responses)
+        assertThat(session.getAllMessages().toList())
             .contains(
                 GameMessage(players[0], JoinGameMessage.YouJoinedGame.toRoot()),
                 GameMessage(players[1], JoinGameMessage.YouJoinedGame.toRoot()),

@@ -54,8 +54,7 @@ class JoinGameRuleTest {
             session.close()
         }
 
-        val messages = session.getMessages(extraPlayer).toList()
-        assertThat(messages)
+        assertThat(session.getMessages(extraPlayer).toList())
             .containsExactly(
                 JoinGameMessage.SessionIsFull.toRoot(),
             )
