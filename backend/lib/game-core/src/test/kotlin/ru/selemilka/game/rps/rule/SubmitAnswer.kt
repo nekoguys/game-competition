@@ -1,13 +1,14 @@
 package ru.selemilka.game.rps.rule
 
 import org.springframework.stereotype.Service
-import ru.selemilka.game.core.base.GameMessage
-import ru.selemilka.game.core.base.GameRule
-import ru.selemilka.game.core.base.LockedResources
+import ru.selemilka.game.core.base.ResourceLocks
+import ru.selemilka.game.rps.RpsGameMessage
+import ru.selemilka.game.rps.RpsGameRule
 import ru.selemilka.game.rps.model.*
 import ru.selemilka.game.rps.storage.RpsRoundStorage
 import ru.selemilka.game.rps.storage.RpsSessionStorage
 import ru.selemilka.game.rps.util.buildResponse
+import ru.selemilka.game.rps.util.deferCommand
 
 sealed interface SubmitAnswerMessage {
     object Submitted : SubmitAnswerMessage
@@ -23,31 +24,28 @@ enum class RoundResult {
     YOU_LOST,
 }
 
-fun SubmitAnswerMessage.toRoot(): RpsMessage.SubmitAnswer =
-    RpsMessage.SubmitAnswer(this)
+fun SubmitAnswerMessage.toRoot(): RpsMessage.AnswerSubmitted =
+    RpsMessage.AnswerSubmitted(this)
 
 @Service
 class RpsSubmitAnswerRule(
     private val sessionStorage: RpsSessionStorage,
     private val roundStorage: RpsRoundStorage,
-) : GameRule<RpsPlayer, RpsCommand.SubmitAnswer, RpsMessage> {
+) : RpsGameRule<RpsPlayer.Human, RpsCommand.SubmitAnswer, RpsMessage.AnswerSubmitted> {
 
-    override suspend fun getLocksFor(command: RpsCommand.SubmitAnswer): LockedResources =
-        LockedResources(
-            shared = setOf(RpsSessionStorage),
-            unique = setOf(RpsRoundStorage),
+    private val resourceLocks: ResourceLocks =
+        ResourceLocks(
+            shared = sortedSetOf(RpsSessionStorage),
+            unique = sortedSetOf(RpsRoundStorage),
         )
 
-    override suspend fun process(
-        player: RpsPlayer,
-        command: RpsCommand.SubmitAnswer,
-    ): List<GameMessage<RpsPlayer, RpsMessage>> {
-        if (player !is RpsPlayer.Human) {
-            return buildResponse(player) {
-                +RpsMessage.UnableRequestCommand(player, expectedClass = RpsPlayer.Human::class)
-            }
-        }
+    override suspend fun getLocksFor(command: RpsCommand.SubmitAnswer): ResourceLocks =
+        resourceLocks
 
+    override suspend fun process(
+        player: RpsPlayer.Human,
+        command: RpsCommand.SubmitAnswer,
+    ): List<RpsGameMessage<RpsMessage.AnswerSubmitted>> {
         val settings = sessionStorage.loadSettings(player.sessionId)
         checkNotNull(settings) { "Session must be created at this point" }
 
@@ -58,7 +56,7 @@ class RpsSubmitAnswerRule(
         player: RpsPlayer.Human,
         bet: Turn,
         maxPlayers: Int,
-    ): List<GameMessage<RpsPlayer, RpsMessage.SubmitAnswer>> {
+    ): List<RpsGameMessage<RpsMessage.AnswerSubmitted>> {
         val round = getCurrentRound(player, maxPlayers)
         if (round.answers.any { it.player == player }) {
             return buildResponse {
@@ -100,7 +98,7 @@ class RpsSubmitAnswerRule(
         player: RpsPlayer.Human,
         updatedRound: RpsRound,
         maxPlayers: Int,
-    ): List<GameMessage<RpsPlayer, RpsMessage.SubmitAnswer>> {
+    ): List<RpsGameMessage<RpsMessage.AnswerSubmitted>> {
         val winner = updatedRound.winner
         val answers = updatedRound.answers
         val roundPlayers = answers.map { it.player }

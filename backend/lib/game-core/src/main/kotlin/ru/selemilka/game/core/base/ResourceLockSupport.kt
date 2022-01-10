@@ -9,7 +9,7 @@ internal class ResourceLockSupport {
     private val locks = ConcurrentHashMap<Any, ReadWriteLock>()
 
     suspend fun <T> useLocks(
-        lockedResources: LockedResources,
+        lockedResources: ResourceLocks,
         action: suspend () -> T,
     ): T {
         val readLocks = lockedResources.shared.map { key -> locks.getOrPut(key, ::ReadWriteLock) }

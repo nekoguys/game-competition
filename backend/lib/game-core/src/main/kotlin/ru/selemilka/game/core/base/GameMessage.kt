@@ -3,15 +3,13 @@ package ru.selemilka.game.core.base
 /**
  * Сообщение, возвращаемое методом [GameRule.process] для взаимодействия с сессией
  *
- * Существуют два вида таких сообщений:
- * *
+ * Единственный способ создать свой объект GameMessage -
+ * использовать фабричную функцию [GameMessage]
  */
-sealed interface GameMessage<out P, out Msg> {
+sealed interface GameMessage<out P, out T> {
     val player: P
-    val message: Msg
+    val body: T
 }
-
-internal interface InternalGameMessage<out P, out Msg> : GameMessage<P, Msg>
 
 /**
  * Сообщение, отправляемое игроку в игровой сессии
@@ -42,11 +40,6 @@ internal interface InternalGameMessage<out P, out Msg> : GameMessage<P, Msg>
 fun <P, Msg> GameMessage(player: P, message: Msg): GameMessage<P, Msg> =
     GameMessageImpl(player, message)
 
-internal data class GameMessageImpl<out P, out Msg>(
-    override val player: P,
-    override val message: Msg,
-) : GameMessage<P, Msg>
-
 /**
  * Сообщение, отправив которое можно выполнить запрос [request] в игровой сессии.
  */
@@ -57,6 +50,18 @@ data class DeferredCommandRequest<out R : GameCommandRequest<*, *>>(
     override val player: Nothing
         get() = error("This message is internal")
 
-    override val message: Nothing
+    override val body: Nothing
         get() = error("This message is internal")
 }
+
+/**
+ * Тип всех внутренних игровых сообщений
+ *
+ * Игроки никогда не увидят эти сообщения, они нужны для функционирования игры.
+ */
+internal interface InternalGameMessage<out P, out Msg> : GameMessage<P, Msg>
+
+internal data class GameMessageImpl<out P, out Msg>(
+    override val player: P,
+    override val body: Msg,
+) : GameMessage<P, Msg>

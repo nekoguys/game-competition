@@ -5,16 +5,16 @@ import kotlinx.coroutines.flow.*
 import org.slf4j.LoggerFactory
 import kotlin.coroutines.coroutineContext
 
-internal class GameSessionImpl<P, Cmd, Msg>(
+class GameSessionImpl<P, in Cmd, out Msg : GameMessage<P, *>>(
     parentScope: CoroutineScope,
     private val rule: GameRule<P, Cmd, Msg>,
     private val afterClose: () -> Unit,
-) : GameSession<P, Cmd, Msg> {
+) : GameSession<GameCommandRequest<P, Cmd>, Msg> {
 
     private val job = SupervisorJob(parentScope.coroutineContext[Job])
     private val coroutineScope = parentScope + job
     private val resourceLockSupport = ResourceLockSupport()
-    private val gameMessages = MutableSharedFlow<GameMessage<P, Msg>>(replay = Int.MAX_VALUE)
+    private val gameMessages = MutableSharedFlow<Msg>(replay = Int.MAX_VALUE)
 
     override suspend fun accept(request: GameCommandRequest<P, Cmd>) {
         if (request == CloseGameSessionRequest) {
@@ -78,24 +78,23 @@ internal class GameSessionImpl<P, Cmd, Msg>(
     }
 
     private suspend fun closeSession() {
-        val childrenJobs = job.children.toList()
         // Проверяем, что случайно не заблокируем свою собственную джобу
-        require(coroutineContext[Job] !in childrenJobs) {
+        require(coroutineContext[Job] !in job.children) {
             "Cannot close a session, because current coroutine is launched inside this game session"
         }
 
-        job.children.toList().joinAll()
         job.complete()
         job.join()
-        gameMessages.emit(TerminalGameMessage)
+        @Suppress("UNCHECKED_CAST")
+        gameMessages.emit(TerminalGameMessage as Msg)
         afterClose()
     }
 
-    override fun getAllMessages(): Flow<GameMessage<P, Msg>> =
+    override fun getAllMessages(): Flow<Msg> =
         gameMessages
             .asSharedFlow()
             .takeWhile { it !is TerminalGameMessage }
-            .filterIsInstance<GameMessageImpl<P, Msg>>()
+            .filter { it is GameMessageImpl<*, *> }
 
     companion object {
         private val logger = LoggerFactory.getLogger(GameSessionImpl::class.java)
@@ -106,6 +105,6 @@ private object TerminalGameMessage : InternalGameMessage<Nothing, Nothing> {
     override val player: Nothing
         get() = error("This GameMessage was created artificially and doesn't have a receiver")
 
-    override val message: Nothing
+    override val body: Nothing
         get() = error("This GameMessage was created artificially and doesn't have a message")
 }

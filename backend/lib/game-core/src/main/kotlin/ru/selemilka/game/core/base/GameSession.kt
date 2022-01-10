@@ -15,7 +15,7 @@ import kotlinx.coroutines.flow.map
  *
  * Создать игру можно фабричным методом [CoroutineScope.launchGameSession]
  */
-interface GameSession<P, in Cmd, out Msg> {
+interface GameSession<in CmdReq : GameCommandRequest<*, *>, out Msg : GameMessage<*, *>> {
     /**
      * Обработка запроса [request] от пользователя.
      *
@@ -25,30 +25,30 @@ interface GameSession<P, in Cmd, out Msg> {
      *
      * Если при обработке команды возникло исключение - оно бросается из этого метода
      */
-    suspend fun accept(request: GameCommandRequest<P, Cmd>)
+    suspend fun accept(request: CmdReq)
 
     /**
      * Возвращает все сообщения от этой игровой сессии
      */
-    fun getAllMessages(): Flow<GameMessage<P, Msg>>
+    fun getAllMessages(): Flow<Msg>
 }
 
-suspend fun <P, Cmd> GameSession<P, Cmd, *>.accept(
+suspend fun <P, Cmd> GameSession<GameCommandRequest<P, Cmd>, *>.accept(
     player: P,
     command: Cmd,
 ) = accept(GameCommandRequest(player, command))
 
-suspend fun GameSession<*, *, *>.close() = accept(CloseGameSessionRequest)
+suspend fun GameSession<GameCommandRequest<Nothing, Nothing>, *>.close() = accept(CloseGameSessionRequest)
 
-fun <P, Msg> GameSession<P, *, Msg>.getMessages(player: P): Flow<Msg> =
+fun <P, Msg> GameSession<*, GameMessage<P, Msg>>.getMessages(player: P): Flow<Msg> =
     getAllMessages()
-        .filter { it !is InternalGameMessage<*, *> && it.player == player }
-        .map { it.message }
+        .filter { it.player == player }
+        .map { it.body }
 
 @Suppress("FunctionName")
-fun <P, Cmd, Msg> CoroutineScope.launchGameSession(
+fun <P, Cmd, Msg : GameMessage<P, *>> CoroutineScope.launchGameSession(
     rule: GameRule<P, Cmd, Msg>,
     onClose: () -> Unit = {},
-): GameSession<P, Cmd, Msg> =
+): GameSession<GameCommandRequest<P, Cmd>, Msg> =
     GameSessionImpl(this, rule, onClose)
 

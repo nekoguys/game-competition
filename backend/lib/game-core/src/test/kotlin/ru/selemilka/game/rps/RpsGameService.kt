@@ -6,8 +6,7 @@ import kotlinx.coroutines.SupervisorJob
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 import org.springframework.stereotype.Service
-import ru.selemilka.game.core.base.GameSession
-import ru.selemilka.game.core.base.launchGameSession
+import ru.selemilka.game.core.base.*
 import ru.selemilka.game.rps.model.RpsPlayer
 import ru.selemilka.game.rps.model.RpsSession
 import ru.selemilka.game.rps.model.RpsSessionSettings
@@ -21,9 +20,25 @@ import java.util.concurrent.ConcurrentHashMap
 @ComponentScan
 class RpsGameConfiguration
 
+/**
+ * Сообщение [Msg], отправленное игроку типа [RpsPlayer.Human]
+ */
+typealias RpsGameMessage<Msg> = GameMessage<RpsPlayer.Human, Msg>
+
+/**
+ * Игровое правило, которое для команды [Cmd] игрока [P]
+ * возвращает сообщений [Msg] игрокам RpsPlayer.Human
+ */
+typealias RpsGameRule<P, Cmd, Msg> = GameRule<P, Cmd, RpsGameMessage<Msg>>
+
+/**
+ * Тип игровой сессии в этой игрушечной "Камень-ножницы-бумаге"
+ */
+typealias RpsGameSession = GameSession<GameCommandRequest<RpsPlayer, RpsCommand>, GameMessage<RpsPlayer, RpsMessage>>
+
 data class RpsLaunchedSession(
     val id: RpsSession.Id,
-    val session: GameSession<RpsPlayer, RpsCommand, RpsMessage>,
+    val session: RpsGameSession,
 )
 
 /**

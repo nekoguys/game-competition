@@ -1,6 +1,7 @@
 package ru.selemilka.game.rps.storage
 
 import org.springframework.stereotype.Repository
+import ru.selemilka.game.core.base.LockableResource
 import ru.selemilka.game.rps.model.RpsRound
 import ru.selemilka.game.rps.model.RpsSession
 
@@ -9,7 +10,7 @@ interface RpsRoundStorage {
     suspend fun loadRound(roundId: RpsRound.Id): RpsRound?
     suspend fun saveRound(round: RpsRound)
 
-    companion object ResourceKey
+    companion object ResourceKey : LockableResource()
 }
 
 @Repository

@@ -10,12 +10,12 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import ru.selemilka.game.core.base.GameSession
 import ru.selemilka.game.core.base.accept
 import ru.selemilka.game.core.base.close
 import ru.selemilka.game.core.base.getMessages
 import ru.selemilka.game.rps.RpsGameConfiguration
 import ru.selemilka.game.rps.RpsGameService
+import ru.selemilka.game.rps.RpsGameSession
 import ru.selemilka.game.rps.model.RpsPlayer
 import ru.selemilka.game.rps.model.RpsSession
 import ru.selemilka.game.rps.model.RpsSessionSettings
@@ -28,7 +28,7 @@ class SubmitAnswerRuleTest {
     @Autowired
     lateinit var gameService: RpsGameService
 
-    lateinit var session: GameSession<RpsPlayer, RpsCommand, RpsMessage>
+    lateinit var session: RpsGameSession
     var sessionId: RpsSession.Id = RpsSession.Id(-1) // inline-классы не могут быть lateinit
     lateinit var firstPlayer: RpsPlayer
     lateinit var secondPlayer: RpsPlayer

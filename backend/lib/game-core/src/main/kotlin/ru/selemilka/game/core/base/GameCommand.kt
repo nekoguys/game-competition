@@ -52,13 +52,8 @@ sealed interface GameCommandRequest<out P, out Cmd> {
 @Suppress("FunctionName")
 fun <P, Cmd> GameCommandRequest(
     player: P,
-    command: Cmd
+    command: Cmd,
 ): GameCommandRequest<P, Cmd> = GameCommandRequestImpl(player, command)
-
-private data class GameCommandRequestImpl<P, Cmd>(
-    override val player: P,
-    override val command: Cmd,
-) : GameCommandRequest<P, Cmd>
 
 /**
  * Запрос, отправляемый в игровую сессию для её закрытия.
@@ -74,3 +69,9 @@ object CloseGameSessionRequest : GameCommandRequest<Nothing, Nothing> {
     override val command: Nothing
         get() = error("${javaClass.name} doesn't have a command, because this request is internal and can be used only with closeable game sessions.")
 }
+
+private data class GameCommandRequestImpl<P, Cmd>(
+    override val player: P,
+    override val command: Cmd,
+) : GameCommandRequest<P, Cmd>
+

@@ -1,14 +1,15 @@
 package ru.selemilka.game.rps.rule
 
 import org.springframework.stereotype.Service
-import ru.selemilka.game.core.base.GameMessage
-import ru.selemilka.game.core.base.GameRule
-import ru.selemilka.game.core.base.LockedResources
+import ru.selemilka.game.core.base.ResourceLocks
+import ru.selemilka.game.rps.RpsGameMessage
+import ru.selemilka.game.rps.RpsGameRule
 import ru.selemilka.game.rps.model.RpsPlayer
 import ru.selemilka.game.rps.model.RpsStage
 import ru.selemilka.game.rps.storage.RpsPlayerStorage
 import ru.selemilka.game.rps.storage.RpsSessionStorage
 import ru.selemilka.game.rps.util.buildResponse
+import ru.selemilka.game.rps.util.deferCommand
 
 sealed interface JoinGameMessage {
     object YouJoinedGame : JoinGameMessage
@@ -29,24 +30,20 @@ fun JoinGameMessage.toRoot(): RpsMessage.JoinGame =
 class RpsJoinGameRule(
     private val sessionStorage: RpsSessionStorage,
     private val playerStorage: RpsPlayerStorage,
-) : GameRule<RpsPlayer, RpsCommand.JoinGame, RpsMessage> {
+) : RpsGameRule<RpsPlayer.Human, RpsCommand.JoinGame, RpsMessage.JoinGame> {
 
-    override suspend fun getLocksFor(command: RpsCommand.JoinGame): LockedResources =
-        LockedResources(
-            shared = setOf(RpsSessionStorage),
-            unique = setOf(RpsPlayerStorage),
-        )
+    private val resourceLocks = ResourceLocks(
+        shared = sortedSetOf(RpsSessionStorage),
+        unique = sortedSetOf(RpsPlayerStorage),
+    )
+
+    override suspend fun getLocksFor(command: RpsCommand.JoinGame): ResourceLocks =
+        resourceLocks
 
     override suspend fun process(
-        player: RpsPlayer,
+        player: RpsPlayer.Human,
         command: RpsCommand.JoinGame,
-    ): List<GameMessage<RpsPlayer, RpsMessage>> {
-        if (player !is RpsPlayer.Human) {
-            return buildResponse(player) {
-                +RpsMessage.UnableRequestCommand(player, expectedClass = RpsPlayer.Human::class)
-            }
-        }
-
+    ): List<RpsGameMessage<RpsMessage.JoinGame>> {
         val settings = sessionStorage.loadSettings(player.sessionId)
         checkNotNull(settings) { "Session must be created at this point" }
 
@@ -56,7 +53,7 @@ class RpsJoinGameRule(
     private suspend fun joinGame(
         newPlayer: RpsPlayer.Human,
         maxPlayers: Int,
-    ): List<GameMessage<RpsPlayer, RpsMessage>> {
+    ): List<RpsGameMessage<RpsMessage.JoinGame>> {
         val playersAlreadyInSession = playerStorage.loadPlayers(newPlayer.sessionId)
         return when {
             newPlayer in playersAlreadyInSession -> buildResponse(newPlayer) {
@@ -75,7 +72,7 @@ class RpsJoinGameRule(
         player: RpsPlayer.Human,
         playersAlreadyInSession: List<RpsPlayer.Human>,
         maxPlayers: Int,
-    ): List<GameMessage<RpsPlayer, RpsMessage>> {
+    ): List<RpsGameMessage<RpsMessage.JoinGame>> {
         playerStorage.savePlayer(player)
 
         return buildResponse {

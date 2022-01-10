@@ -1,10 +1,13 @@
 package ru.selemilka.game.rps.rule
 
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import ru.selemilka.game.core.base.CloseGameSessionRequest
 import ru.selemilka.game.core.base.GameMessage
 import ru.selemilka.game.core.base.GameRule
-import ru.selemilka.game.core.base.LockedResources
+import ru.selemilka.game.core.base.ResourceLocks
+import ru.selemilka.game.rps.RpsGameMessage
 import ru.selemilka.game.rps.model.RpsPlayer
 import ru.selemilka.game.rps.model.RpsStage
 import ru.selemilka.game.rps.model.Turn
@@ -46,7 +49,7 @@ sealed interface RpsMessage {
     value class JoinGame(val inner: JoinGameMessage) : RpsMessage
 
     @JvmInline
-    value class SubmitAnswer(val inner: SubmitAnswerMessage) : RpsMessage
+    value class AnswerSubmitted(val inner: SubmitAnswerMessage) : RpsMessage
 
     @JvmInline
     value class StageChanged(val inner: ChangeStageMessage) : RpsMessage
@@ -66,9 +69,11 @@ class RpsRootRule(
     private val joinGameRule: RpsJoinGameRule,
     private val submitAnswerRule: RpsSubmitAnswerRule,
     private val changeStageRule: ChangeStageRule,
-) : GameRule<RpsPlayer, RpsCommand, RpsMessage> {
+) : GameRule<RpsPlayer, RpsCommand, GameMessage<RpsPlayer, RpsMessage>> {
 
-    override suspend fun getLocksFor(command: RpsCommand): LockedResources =
+    override suspend fun getLocksFor(
+        command: RpsCommand,
+    ): ResourceLocks =
         when (command) {
             is RpsCommand.JoinGame -> joinGameRule.getLocksFor(command)
             is RpsCommand.SubmitAnswer -> submitAnswerRule.getLocksFor(command)
@@ -78,10 +83,31 @@ class RpsRootRule(
     override suspend fun process(
         player: RpsPlayer,
         command: RpsCommand,
-    ): List<GameMessage<RpsPlayer, RpsMessage>> =
+    ): List<RpsGameMessage<RpsMessage>> =
         when (command) {
-            is RpsCommand.JoinGame -> joinGameRule.process(player, command)
-            is RpsCommand.SubmitAnswer -> submitAnswerRule.process(player, command)
-            is RpsCommand.ChangeStage -> changeStageRule.process(player, command)
+            is RpsCommand.JoinGame -> {
+                require(player is RpsPlayer.Human) {
+                    "Expected player of type ${RpsPlayer.Human::class}, but got $player"
+                }
+                joinGameRule.process(player, command)
+            }
+
+            is RpsCommand.SubmitAnswer -> {
+                require(player is RpsPlayer.Human) {
+                    "Expected player of type ${RpsPlayer.Human::class}, but got $player"
+                }
+                submitAnswerRule.process(player, command)
+            }
+
+            is RpsCommand.ChangeStage -> {
+                require(player is RpsPlayer.Internal) {
+                    "Expected player of type ${RpsPlayer.Human::class}, but got $player"
+                }
+                changeStageRule.process(player, command)
+            }
         }
+
+    companion object {
+        private val logger: Logger = LoggerFactory.getLogger(RpsRootRule::class.java)
+    }
 }

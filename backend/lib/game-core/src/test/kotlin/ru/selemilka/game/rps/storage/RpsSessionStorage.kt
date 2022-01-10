@@ -1,6 +1,7 @@
 package ru.selemilka.game.rps.storage
 
 import org.springframework.stereotype.Repository
+import ru.selemilka.game.core.base.LockableResource
 import ru.selemilka.game.rps.model.RpsSession
 import ru.selemilka.game.rps.model.RpsSessionSettings
 import ru.selemilka.game.rps.model.RpsStage
@@ -16,7 +17,7 @@ interface RpsSessionStorage {
 
     suspend fun loadSettings(id: RpsSession.Id): RpsSessionSettings?
 
-    companion object ResourceKey
+    companion object ResourceKey : LockableResource()
 }
 
 @Repository

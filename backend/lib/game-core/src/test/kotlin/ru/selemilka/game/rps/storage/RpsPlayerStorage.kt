@@ -1,6 +1,7 @@
 package ru.selemilka.game.rps.storage
 
 import org.springframework.stereotype.Repository
+import ru.selemilka.game.core.base.LockableResource
 import ru.selemilka.game.rps.model.RpsPlayer
 import ru.selemilka.game.rps.model.RpsSession
 
@@ -9,7 +10,7 @@ interface RpsPlayerStorage {
     suspend fun existsPlayer(player: RpsPlayer.Human): Boolean
     suspend fun savePlayer(player: RpsPlayer.Human)
 
-    companion object ResourceKey
+    companion object ResourceKey : LockableResource()
 }
 
 @Repository
