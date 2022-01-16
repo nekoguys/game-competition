@@ -1,5 +1,6 @@
 package ru.selemilka.game.rps.rule
 
+import kotlinx.serialization.Serializable
 import org.springframework.stereotype.Service
 import ru.selemilka.game.core.base.ResourceLocks
 import ru.selemilka.game.rps.RpsGameMessage
@@ -10,12 +11,19 @@ import ru.selemilka.game.rps.storage.RpsSessionStorage
 import ru.selemilka.game.rps.util.buildResponse
 import ru.selemilka.game.rps.util.deferCommand
 
-sealed interface SubmitAnswerMessage {
-    object Submitted : SubmitAnswerMessage
-    data class RoundEnded(val result: RoundResult) : SubmitAnswerMessage
+@Serializable
+sealed class RpsSubmitAnswerMessage : RpsMessage() {
+    @Serializable
+    object Submitted : RpsSubmitAnswerMessage()
 
-    sealed interface Error : SubmitAnswerMessage
-    object AnswerAlreadySubmittedError : Error
+    @Serializable
+    data class RoundEnded(val result: RoundResult) : RpsSubmitAnswerMessage()
+}
+
+@Serializable
+sealed class SubmitAnswerMessageError : RpsSubmitAnswerMessage() {
+    @Serializable
+    object AnswerAlreadySubmitted : SubmitAnswerMessageError()
 }
 
 enum class RoundResult {
@@ -24,14 +32,11 @@ enum class RoundResult {
     YOU_LOST,
 }
 
-fun SubmitAnswerMessage.toRoot(): RpsMessage.AnswerSubmitted =
-    RpsMessage.AnswerSubmitted(this)
-
 @Service
 class RpsSubmitAnswerRule(
     private val sessionStorage: RpsSessionStorage,
     private val roundStorage: RpsRoundStorage,
-) : RpsGameRule<RpsPlayer.Human, RpsCommand.SubmitAnswer, RpsMessage.AnswerSubmitted> {
+) : RpsGameRule<RpsPlayer.Human, RpsCommand.SubmitAnswer, RpsSubmitAnswerMessage> {
 
     private val resourceLocks: ResourceLocks =
         ResourceLocks(
@@ -45,7 +50,7 @@ class RpsSubmitAnswerRule(
     override suspend fun process(
         player: RpsPlayer.Human,
         command: RpsCommand.SubmitAnswer,
-    ): List<RpsGameMessage<RpsMessage.AnswerSubmitted>> {
+    ): List<RpsGameMessage<RpsSubmitAnswerMessage>> {
         val settings = sessionStorage.loadSettings(player.sessionId)
         checkNotNull(settings) { "Session must be created at this point" }
 
@@ -56,11 +61,11 @@ class RpsSubmitAnswerRule(
         player: RpsPlayer.Human,
         bet: Turn,
         maxPlayers: Int,
-    ): List<RpsGameMessage<RpsMessage.AnswerSubmitted>> {
+    ): List<RpsGameMessage<RpsSubmitAnswerMessage>> {
         val round = getCurrentRound(player, maxPlayers)
         if (round.answers.any { it.player == player }) {
             return buildResponse {
-                player { +SubmitAnswerMessage.AnswerAlreadySubmittedError.toRoot() }
+                player { +SubmitAnswerMessageError.AnswerAlreadySubmitted }
             }
         }
 
@@ -98,25 +103,25 @@ class RpsSubmitAnswerRule(
         player: RpsPlayer.Human,
         updatedRound: RpsRound,
         maxPlayers: Int,
-    ): List<RpsGameMessage<RpsMessage.AnswerSubmitted>> {
+    ): List<RpsGameMessage<RpsSubmitAnswerMessage>> {
         val winner = updatedRound.winner
         val answers = updatedRound.answers
         val roundPlayers = answers.map { it.player }
         return buildResponse {
-            player { +SubmitAnswerMessage.Submitted.toRoot() }
+            player { +RpsSubmitAnswerMessage.Submitted }
 
             if (answers.size == maxPlayers && winner == null) {
                 roundPlayers {
-                    +SubmitAnswerMessage.RoundEnded(result = RoundResult.DRAW).toRoot()
+                    +RpsSubmitAnswerMessage.RoundEnded(result = RoundResult.DRAW)
                 }
             }
 
             if (winner != null) {
                 winner {
-                    +SubmitAnswerMessage.RoundEnded(result = RoundResult.YOU_WON).toRoot()
+                    +RpsSubmitAnswerMessage.RoundEnded(result = RoundResult.YOU_WON)
                 }
                 (roundPlayers - winner) {
-                    +SubmitAnswerMessage.RoundEnded(result = RoundResult.YOU_LOST).toRoot()
+                    +RpsSubmitAnswerMessage.RoundEnded(result = RoundResult.YOU_LOST)
                 }
 
                 deferCommand(

@@ -3,18 +3,21 @@ package ru.selemilka.game.core.base
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import org.slf4j.LoggerFactory
+import java.util.concurrent.atomic.AtomicInteger
 import kotlin.coroutines.coroutineContext
 
-class GameSessionImpl<P, in Cmd, out Msg : GameMessage<P, *>>(
+class GameSessionImpl<P, in Cmd, out Msg : GameMessage<*, *>>(
     parentScope: CoroutineScope,
     private val rule: GameRule<P, Cmd, Msg>,
-    private val afterClose: () -> Unit,
+    private val afterClose: suspend () -> Unit,
+    replay: Int,
 ) : GameSession<GameCommandRequest<P, Cmd>, Msg> {
 
     private val job = SupervisorJob(parentScope.coroutineContext[Job])
     private val coroutineScope = parentScope + job
     private val resourceLockSupport = ResourceLockSupport()
-    private val gameMessages = MutableSharedFlow<Msg>(replay = Int.MAX_VALUE)
+    private val gameMessages = MutableSharedFlow<IndexedValue<Msg>>(replay = replay)
+    private val lastMessageIndex = AtomicInteger()
 
     override suspend fun accept(request: GameCommandRequest<P, Cmd>) {
         if (request == CloseGameSessionRequest) {
@@ -73,7 +76,11 @@ class GameSessionImpl<P, in Cmd, out Msg : GameMessage<P, *>>(
                 logger.info("Ended processing command $command by player $player")
                 res
             }
-            .onEach { gameMessages.emit(it) }
+            .onEach {
+                if (it is GameMessageImpl<*, *>) {
+                    gameMessages.emit(it.withNextIndex())
+                }
+            }
             .filterIsInstance<DeferredCommandRequest<GameCommandRequest<P, Cmd>>>()
     }
 
@@ -86,22 +93,25 @@ class GameSessionImpl<P, in Cmd, out Msg : GameMessage<P, *>>(
         job.complete()
         job.join()
         @Suppress("UNCHECKED_CAST")
-        gameMessages.emit(TerminalGameMessage as Msg)
+        gameMessages.emit((TerminalGameMessage as Msg).withNextIndex())
         afterClose()
     }
 
-    override fun getAllMessages(): Flow<Msg> =
+    private fun Msg.withNextIndex(): IndexedValue<Msg> =
+        IndexedValue(lastMessageIndex.getAndIncrement(), this)
+
+    override fun getAllMessagesIndexed(): Flow<IndexedValue<Msg>> =
         gameMessages
             .asSharedFlow()
-            .takeWhile { it !is TerminalGameMessage }
-            .filter { it is GameMessageImpl<*, *> }
+            .takeWhile { it.value !is TerminalGameMessage }
+            .filter { it.value is GameMessageImpl<*, *> }
 
     companion object {
         private val logger = LoggerFactory.getLogger(GameSessionImpl::class.java)
     }
 }
 
-private object TerminalGameMessage : InternalGameMessage<Nothing, Nothing> {
+private object TerminalGameMessage : GameMessage<Nothing, Nothing>() {
     override val player: Nothing
         get() = error("This GameMessage was created artificially and doesn't have a receiver")
 

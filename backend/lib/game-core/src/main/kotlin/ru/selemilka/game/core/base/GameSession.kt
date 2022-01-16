@@ -9,9 +9,9 @@ import kotlinx.coroutines.flow.map
  * Публичное API игры.
  *
  * Пользователи объекта [GameSession] могут:
- * * отправлять игре команды [Cmd] с помощью функции [accept]
+ * * отправлять игре команды [CmdReq] с помощью функции [accept]
  * * получать от игры сообщения [Msg] с помощью функций [getAllMessages], [getMessages]
- * * заканчивать игру с помощью функции [GameSession.close]
+ * * заканчивать игру с помощью функции [close]
  *
  * Создать игру можно фабричным методом [CoroutineScope.launchGameSession]
  */
@@ -30,7 +30,7 @@ interface GameSession<in CmdReq : GameCommandRequest<*, *>, out Msg : GameMessag
     /**
      * Возвращает все сообщения от этой игровой сессии
      */
-    fun getAllMessages(): Flow<Msg>
+    fun getAllMessagesIndexed(): Flow<IndexedValue<Msg>>
 }
 
 suspend fun <P, Cmd> GameSession<GameCommandRequest<P, Cmd>, *>.accept(
@@ -40,15 +40,24 @@ suspend fun <P, Cmd> GameSession<GameCommandRequest<P, Cmd>, *>.accept(
 
 suspend fun GameSession<GameCommandRequest<Nothing, Nothing>, *>.close() = accept(CloseGameSessionRequest)
 
-fun <P, Msg> GameSession<*, GameMessage<P, Msg>>.getMessages(player: P): Flow<Msg> =
+fun <Msg : GameMessage<*, *>> GameSession<*, Msg>.getAllMessages(): Flow<Msg> =
+    getAllMessagesIndexed()
+        .map { (_, value) -> value }
+
+fun <P, T> GameSession<*, GameMessage<P, T>>.getMessages(player: P): Flow<T> =
     getAllMessages()
         .filter { it.player == player }
         .map { it.body }
 
 @Suppress("FunctionName")
-fun <P, Cmd, Msg : GameMessage<P, *>> CoroutineScope.launchGameSession(
+fun <P, Cmd, Msg : GameMessage<*, *>> CoroutineScope.launchGameSession(
     rule: GameRule<P, Cmd, Msg>,
-    onClose: () -> Unit = {},
+    onClose: suspend () -> Unit = {},
+    replay: Int = Int.MAX_VALUE,
 ): GameSession<GameCommandRequest<P, Cmd>, Msg> =
-    GameSessionImpl(this, rule, onClose)
-
+    GameSessionImpl(
+        this,
+        rule,
+        onClose,
+        replay,
+    )

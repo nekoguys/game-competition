@@ -1,14 +1,19 @@
 package ru.selemilka.game.rps.model
 
-sealed interface RpsPlayer {
+import kotlinx.serialization.Serializable
+
+@Serializable
+sealed class RpsPlayer {
+    @Serializable
     data class Human(
         val sessionId: RpsSession.Id,
         val name: String,
-    ) : RpsPlayer
+    ) : RpsPlayer()
 
+    @Serializable
     data class Internal(
         val sessionId: RpsSession.Id,
-    ) : RpsPlayer
+    ) : RpsPlayer()
 }
 
 

@@ -14,10 +14,10 @@ import ru.selemilka.game.rps.RpsGameConfiguration
 import ru.selemilka.game.rps.RpsGameService
 import ru.selemilka.game.rps.model.RpsPlayer
 import ru.selemilka.game.rps.model.RpsSessionSettings
-import ru.selemilka.game.rps.rule.ChangeStageMessage
-import ru.selemilka.game.rps.rule.JoinGameMessage
+import ru.selemilka.game.rps.rule.JoinGameMessageError
+import ru.selemilka.game.rps.rule.RpsChangeStageMessage
 import ru.selemilka.game.rps.rule.RpsCommand
-import ru.selemilka.game.rps.rule.toRoot
+import ru.selemilka.game.rps.rule.RpsJoinGameMessage
 
 @SpringBootTest(classes = [RpsGameConfiguration::class])
 class JoinGameRuleTest {
@@ -38,7 +38,7 @@ class JoinGameRuleTest {
         val responses = session.getMessages(firstPlayer).toList()
         assertThat(responses)
             .containsExactly(
-                JoinGameMessage.YouJoinedGame.toRoot(),
+                RpsJoinGameMessage.YouJoinedGame,
             )
     }
 
@@ -56,7 +56,7 @@ class JoinGameRuleTest {
 
         assertThat(session.getMessages(extraPlayer).toList())
             .containsExactly(
-                JoinGameMessage.SessionIsFull.toRoot(),
+                JoinGameMessageError.SessionIsFull,
             )
     }
 
@@ -75,13 +75,13 @@ class JoinGameRuleTest {
         assertThat(session.getMessages(firstPlayer).toList())
             .describedAs("first player responses")
             .contains(
-                ChangeStageMessage.GameStarted.toRoot()
+                RpsChangeStageMessage.GameStarted
             )
 
         assertThat(session.getMessages(secondPlayer).toList())
             .describedAs("second player responses")
             .contains(
-                ChangeStageMessage.GameStarted.toRoot()
+                RpsChangeStageMessage.GameStarted
             )
     }
 }

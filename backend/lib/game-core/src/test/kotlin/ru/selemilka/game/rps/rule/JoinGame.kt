@@ -1,5 +1,6 @@
 package ru.selemilka.game.rps.rule
 
+import kotlinx.serialization.Serializable
 import org.springframework.stereotype.Service
 import ru.selemilka.game.core.base.ResourceLocks
 import ru.selemilka.game.rps.RpsGameMessage
@@ -11,26 +12,27 @@ import ru.selemilka.game.rps.storage.RpsSessionStorage
 import ru.selemilka.game.rps.util.buildResponse
 import ru.selemilka.game.rps.util.deferCommand
 
-sealed interface JoinGameMessage {
-    object YouJoinedGame : JoinGameMessage
+sealed class RpsJoinGameMessage : RpsMessage() {
+    @Serializable
+    object YouJoinedGame : RpsJoinGameMessage()
 
-    data class SomebodyJoinedGame(val name: String) : JoinGameMessage
-
-    sealed interface Error : JoinGameMessage
-
-    object YouAlreadyJoined : Error
-
-    object SessionIsFull : Error
+    @Serializable
+    data class SomebodyJoinedGame(val name: String) : RpsJoinGameMessage()
 }
 
-fun JoinGameMessage.toRoot(): RpsMessage.JoinGame =
-    RpsMessage.JoinGame(this)
+sealed class JoinGameMessageError : RpsJoinGameMessage() {
+    @Serializable
+    object YouAlreadyJoined : JoinGameMessageError()
+
+    @Serializable
+    object SessionIsFull : JoinGameMessageError()
+}
 
 @Service
 class RpsJoinGameRule(
     private val sessionStorage: RpsSessionStorage,
     private val playerStorage: RpsPlayerStorage,
-) : RpsGameRule<RpsPlayer.Human, RpsCommand.JoinGame, RpsMessage.JoinGame> {
+) : RpsGameRule<RpsPlayer.Human, RpsCommand.JoinGame, RpsJoinGameMessage> {
 
     private val resourceLocks = ResourceLocks(
         shared = sortedSetOf(RpsSessionStorage),
@@ -43,7 +45,7 @@ class RpsJoinGameRule(
     override suspend fun process(
         player: RpsPlayer.Human,
         command: RpsCommand.JoinGame,
-    ): List<RpsGameMessage<RpsMessage.JoinGame>> {
+    ): List<RpsGameMessage<RpsJoinGameMessage>> {
         val settings = sessionStorage.loadSettings(player.sessionId)
         checkNotNull(settings) { "Session must be created at this point" }
 
@@ -53,15 +55,15 @@ class RpsJoinGameRule(
     private suspend fun joinGame(
         newPlayer: RpsPlayer.Human,
         maxPlayers: Int,
-    ): List<RpsGameMessage<RpsMessage.JoinGame>> {
+    ): List<RpsGameMessage<RpsJoinGameMessage>> {
         val playersAlreadyInSession = playerStorage.loadPlayers(newPlayer.sessionId)
         return when {
             newPlayer in playersAlreadyInSession -> buildResponse(newPlayer) {
-                +JoinGameMessage.YouAlreadyJoined.toRoot()
+                +JoinGameMessageError.YouAlreadyJoined
             }
 
             playersAlreadyInSession.size == maxPlayers -> buildResponse(newPlayer) {
-                +JoinGameMessage.SessionIsFull.toRoot()
+                +JoinGameMessageError.SessionIsFull
             }
 
             else -> addPlayerToSession(newPlayer, playersAlreadyInSession, maxPlayers)
@@ -72,14 +74,14 @@ class RpsJoinGameRule(
         player: RpsPlayer.Human,
         playersAlreadyInSession: List<RpsPlayer.Human>,
         maxPlayers: Int,
-    ): List<RpsGameMessage<RpsMessage.JoinGame>> {
+    ): List<RpsGameMessage<RpsJoinGameMessage>> {
         playerStorage.savePlayer(player)
 
         return buildResponse {
-            player { +JoinGameMessage.YouJoinedGame.toRoot() }
+            player { +RpsJoinGameMessage.YouJoinedGame }
 
             (playersAlreadyInSession - player) {
-                +JoinGameMessage.SomebodyJoinedGame(player.name).toRoot()
+                +RpsJoinGameMessage.SomebodyJoinedGame(player.name)
             }
 
             // Последний игрок подключился к игре

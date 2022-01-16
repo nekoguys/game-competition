@@ -1,17 +1,16 @@
 package ru.selemilka.game.rps.rule
 
+import kotlinx.serialization.Serializable
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import ru.selemilka.game.core.base.CloseGameSessionRequest
-import ru.selemilka.game.core.base.GameMessage
 import ru.selemilka.game.core.base.GameRule
 import ru.selemilka.game.core.base.ResourceLocks
 import ru.selemilka.game.rps.RpsGameMessage
 import ru.selemilka.game.rps.model.RpsPlayer
 import ru.selemilka.game.rps.model.RpsStage
 import ru.selemilka.game.rps.model.Turn
-import kotlin.reflect.KClass
 
 
 /**
@@ -21,16 +20,19 @@ import kotlin.reflect.KClass
  * Все наследники [RpsCommand] перечислены здесь,
  * потому что нам нужно заранее знать типы всех команд, чтобы их обрабатывать
  */
-sealed interface RpsCommand {
+@Serializable
+sealed class RpsCommand {
     /**
      * Команда, отправляемая игроком для присоединения к игре.
      */
-    object JoinGame : RpsCommand
+    @Serializable
+    object JoinGame : RpsCommand()
 
     /**
      * Команда, отправляемая игроком для того, чтобы сходить в этом раунде
      */
-    data class SubmitAnswer(val turn: Turn) : RpsCommand
+    @Serializable
+    data class SubmitAnswer(val turn: Turn) : RpsCommand()
 
     /**
      * Команда, отправляемая правилами [ru.selemilka.game.rps.rule.RpsJoinGameRule]
@@ -38,27 +40,15 @@ sealed interface RpsCommand {
      *
      * Обрати внимание на тип игрока [RpsPlayer.Internal] - эту команду не могут отправлять люди
      */
-    data class ChangeStage(val newStage: RpsStage) : RpsCommand
+    @Serializable
+    data class ChangeStage(val newStage: RpsStage) : RpsCommand()
 }
 
 /**
  * Все сообщения в камень-ножницы-бумаге - подтипы [RpsMessage].
  */
-sealed interface RpsMessage {
-    @JvmInline
-    value class JoinGame(val inner: JoinGameMessage) : RpsMessage
-
-    @JvmInline
-    value class AnswerSubmitted(val inner: SubmitAnswerMessage) : RpsMessage
-
-    @JvmInline
-    value class StageChanged(val inner: ChangeStageMessage) : RpsMessage
-
-    data class UnableRequestCommand(
-        val player: RpsPlayer,
-        val expectedClass: KClass<out RpsPlayer>,
-    ) : RpsMessage
-}
+@Serializable
+sealed class RpsMessage
 
 /**
  * В процессе обработки команды нам может быть нужно выполнить ещё команды.
@@ -69,7 +59,7 @@ class RpsRootRule(
     private val joinGameRule: RpsJoinGameRule,
     private val submitAnswerRule: RpsSubmitAnswerRule,
     private val changeStageRule: ChangeStageRule,
-) : GameRule<RpsPlayer, RpsCommand, GameMessage<RpsPlayer, RpsMessage>> {
+) : GameRule<RpsPlayer, RpsCommand, RpsGameMessage<RpsMessage>> {
 
     override suspend fun getLocksFor(
         command: RpsCommand,

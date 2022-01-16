@@ -11,13 +11,13 @@ import org.springframework.boot.test.context.SpringBootTest
 import ru.selemilka.game.core.base.GameMessage
 import ru.selemilka.game.core.base.accept
 import ru.selemilka.game.core.base.close
+import ru.selemilka.game.core.base.getAllMessages
 import ru.selemilka.game.rps.RpsGameConfiguration
 import ru.selemilka.game.rps.RpsGameService
 import ru.selemilka.game.rps.model.RpsPlayer
 import ru.selemilka.game.rps.model.RpsSessionSettings
-import ru.selemilka.game.rps.rule.JoinGameMessage
 import ru.selemilka.game.rps.rule.RpsCommand
-import ru.selemilka.game.rps.rule.toRoot
+import ru.selemilka.game.rps.rule.RpsJoinGameMessage
 
 /**
  * Тесты на [RpsGameService]
@@ -41,7 +41,7 @@ class RpsGameServiceTest {
 
         assertThat(session.getAllMessages().toList())
             .containsExactly(
-                GameMessage(player, JoinGameMessage.YouJoinedGame.toRoot()),
+                GameMessage(player, RpsJoinGameMessage.YouJoinedGame),
             )
     }
 
@@ -57,7 +57,7 @@ class RpsGameServiceTest {
 
         assertThat(session.getAllMessages().toList())
             .containsExactly(
-                GameMessage(player, JoinGameMessage.YouJoinedGame.toRoot()),
+                GameMessage(player, RpsJoinGameMessage.YouJoinedGame),
             )
     }
 
@@ -86,9 +86,9 @@ class RpsGameServiceTest {
 
         assertThat(session.getAllMessages().toList())
             .contains(
-                GameMessage(players[0], JoinGameMessage.YouJoinedGame.toRoot()),
-                GameMessage(players[1], JoinGameMessage.YouJoinedGame.toRoot()),
-                GameMessage(players[2], JoinGameMessage.YouJoinedGame.toRoot()),
+                GameMessage(players[0], RpsJoinGameMessage.YouJoinedGame),
+                GameMessage(players[1], RpsJoinGameMessage.YouJoinedGame),
+                GameMessage(players[2], RpsJoinGameMessage.YouJoinedGame),
             )
     }
 }

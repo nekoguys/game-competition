@@ -1,10 +1,13 @@
 package ru.selemilka.game.rps.model
 
+import kotlinx.serialization.Serializable
+
 data class RpsSession(
     val id: Id,
     val stage: RpsStage,
     val settings: RpsSessionSettings = RpsSessionSettings(),
 ) {
+    @Serializable
     @JvmInline
     value class Id(val value: Long)
 }

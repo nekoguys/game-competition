@@ -1,5 +1,6 @@
 package ru.selemilka.game.rps.rule
 
+import kotlinx.serialization.Serializable
 import org.springframework.stereotype.Component
 import ru.selemilka.game.core.base.CloseGameSessionRequest
 import ru.selemilka.game.core.base.ResourceLocks
@@ -12,25 +13,20 @@ import ru.selemilka.game.rps.storage.RpsSessionStorage
 import ru.selemilka.game.rps.util.buildResponse
 import ru.selemilka.game.rps.util.deferCommand
 
-sealed interface ChangeStageMessage {
-    object GameStarted : ChangeStageMessage
+@Serializable
+sealed class RpsChangeStageMessage : RpsMessage() {
+    @Serializable
+    object GameStarted : RpsChangeStageMessage()
 
-    object GameFinished : ChangeStageMessage
-
-    data class StageChangeIsImpossible(
-        val previous: RpsStage?,
-        val requested: RpsStage,
-    ) : ChangeStageMessage
+    @Serializable
+    object GameFinished : RpsChangeStageMessage()
 }
-
-fun ChangeStageMessage.toRoot(): RpsMessage.StageChanged =
-    RpsMessage.StageChanged(this)
 
 @Component
 class ChangeStageRule(
     private val sessionStorage: RpsSessionStorage,
     private val playerStorage: RpsPlayerStorage,
-) : RpsGameRule<RpsPlayer.Internal, RpsCommand.ChangeStage, RpsMessage.StageChanged> {
+) : RpsGameRule<RpsPlayer.Internal, RpsCommand.ChangeStage, RpsChangeStageMessage> {
 
     private val resourceLocks: ResourceLocks =
         ResourceLocks(
@@ -44,14 +40,14 @@ class ChangeStageRule(
     override suspend fun process(
         player: RpsPlayer.Internal,
         command: RpsCommand.ChangeStage,
-    ): List<RpsGameMessage<RpsMessage.StageChanged>> {
+    ): List<RpsGameMessage<RpsChangeStageMessage>> {
         return changeStage(player, command)
     }
 
     private suspend fun changeStage(
         player: RpsPlayer.Internal,
         command: RpsCommand.ChangeStage,
-    ): List<RpsGameMessage<RpsMessage.StageChanged>> {
+    ): List<RpsGameMessage<RpsChangeStageMessage>> {
         val new = command.newStage
         val old = sessionStorage.loadStage(player.sessionId)
         val allPlayers = playerStorage.loadPlayers(player.sessionId)
@@ -60,13 +56,13 @@ class ChangeStageRule(
             old == RpsStage.PLAYERS_JOINING && new == RpsStage.GAME_STARTED -> {
                 sessionStorage.saveStage(player.sessionId, new)
                 buildResponse(allPlayers) {
-                    +ChangeStageMessage.GameStarted.toRoot()
+                    +RpsChangeStageMessage.GameStarted
                 }
             }
             old == RpsStage.GAME_STARTED && new == RpsStage.GAME_FINISHED -> {
                 sessionStorage.saveStage(player.sessionId, new)
                 buildResponse {
-                    allPlayers { +ChangeStageMessage.GameFinished.toRoot() }
+                    allPlayers { +RpsChangeStageMessage.GameFinished }
                     deferCommand(CloseGameSessionRequest)
                 }
             }
