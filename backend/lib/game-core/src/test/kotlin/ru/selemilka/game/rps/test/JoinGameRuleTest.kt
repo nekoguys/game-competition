@@ -7,9 +7,9 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import ru.selemilka.game.core.base.accept
-import ru.selemilka.game.core.base.close
-import ru.selemilka.game.core.base.getMessages
+import ru.selemilka.game.core.session.accept
+import ru.selemilka.game.core.session.close
+import ru.selemilka.game.core.session.getMessages
 import ru.selemilka.game.rps.RpsGameConfiguration
 import ru.selemilka.game.rps.RpsGameService
 import ru.selemilka.game.rps.model.RpsPlayer
@@ -27,8 +27,8 @@ class JoinGameRuleTest {
 
     @Test
     fun `can join when session is empty`(): Unit = runBlocking {
-        val (sessionId, session) = gameService.startSession(RpsSessionSettings(maxPlayers = 2))
-        val firstPlayer = RpsPlayer.Human(sessionId, "Max")
+        val session = gameService.startSession(RpsSessionSettings(maxPlayers = 2))
+        val firstPlayer = RpsPlayer.Human(session.id, "Max")
 
         launch {
             session.accept(firstPlayer, RpsCommand.JoinGame)
@@ -44,12 +44,12 @@ class JoinGameRuleTest {
 
     @Test
     fun `cannot join when session is full`(): Unit = runBlocking {
-        val (sessionId, session) = gameService.startSession(RpsSessionSettings(maxPlayers = 2))
-        val extraPlayer = RpsPlayer.Human(sessionId, "I am late, guys")
+        val session = gameService.startSession(RpsSessionSettings(maxPlayers = 2))
+        val extraPlayer = RpsPlayer.Human(session.id, "I am late, guys")
 
         launch {
-            session.accept(RpsPlayer.Human(sessionId, "Max"), RpsCommand.JoinGame)
-            session.accept(RpsPlayer.Human(sessionId, "Serega"), RpsCommand.JoinGame)
+            session.accept(RpsPlayer.Human(session.id, "Max"), RpsCommand.JoinGame)
+            session.accept(RpsPlayer.Human(session.id, "Serega"), RpsCommand.JoinGame)
             session.accept(extraPlayer, RpsCommand.JoinGame)
             session.close()
         }
@@ -62,9 +62,9 @@ class JoinGameRuleTest {
 
     @Test
     fun `game is started when all players joined`(): Unit = runBlocking {
-        val (sessionId, session) = gameService.startSession(RpsSessionSettings(maxPlayers = 2))
-        val firstPlayer = RpsPlayer.Human(sessionId, "Max")
-        val secondPlayer = RpsPlayer.Human(sessionId, "Christian")
+        val session = gameService.startSession(RpsSessionSettings(maxPlayers = 2))
+        val firstPlayer = RpsPlayer.Human(session.id, "Max")
+        val secondPlayer = RpsPlayer.Human(session.id, "Christian")
 
         launch {
             session.accept(firstPlayer, RpsCommand.JoinGame)

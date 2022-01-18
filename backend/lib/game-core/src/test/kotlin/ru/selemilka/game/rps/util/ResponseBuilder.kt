@@ -89,7 +89,9 @@ class ResponseToPlayersBuilder<Msg : RpsMessage>(
     val responses = mutableListOf<GameMessage<RpsPlayer.Human, Msg>>()
 
     operator fun Msg.unaryPlus() {
-        responses += players.map { player -> GameMessage(player, this) }
+        if (players.isNotEmpty()) {
+            responses += GameMessage(players.toSet(), this)
+        }
     }
 }
 

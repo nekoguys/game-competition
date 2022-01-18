@@ -7,10 +7,9 @@ package ru.selemilka.game.core.base
  * * созданные через фабричную функцию [GameCommandRequest] - обычный запрос
  * * [CloseGameSessionRequest] - специальный запрос, при обработке которого сессия завершается
  */
-
-sealed class GameCommandRequest<out P, out Cmd> {
-    abstract val player: P
-    abstract val command: Cmd
+sealed interface GameCommandRequest<out P, out Cmd> {
+    val player: P
+    val command: Cmd
 }
 
 /**
@@ -63,7 +62,7 @@ fun <P, Cmd> GameCommandRequest(
  * [CloseGameSessionRequest] можно отправлять в любой игре,
  * так как он реализует интерфейс `GameCommandRequest<Nothing, Nothing>`
  */
-object CloseGameSessionRequest : GameCommandRequest<Nothing, Nothing>() {
+object CloseGameSessionRequest : GameCommandRequest<Nothing, Nothing> {
     override val player: Nothing
         get() = error("${javaClass.name} doesn't have a message, because this request is internal and can be used only with closeable game sessions.")
 
@@ -74,4 +73,4 @@ object CloseGameSessionRequest : GameCommandRequest<Nothing, Nothing>() {
 private data class GameCommandRequestImpl<P, Cmd>(
     override val player: P,
     override val command: Cmd,
-) : GameCommandRequest<P, Cmd>()
+) : GameCommandRequest<P, Cmd>

@@ -1,8 +1,9 @@
-package ru.selemilka.game.core.base
+package ru.selemilka.game.core.session
 
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withContext
+import ru.selemilka.game.core.base.ResourceLocks
 import java.util.concurrent.ConcurrentHashMap
 
 internal class ResourceLockSupport {

@@ -9,9 +9,9 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import ru.selemilka.game.core.base.GameMessage
-import ru.selemilka.game.core.base.accept
-import ru.selemilka.game.core.base.close
-import ru.selemilka.game.core.base.getAllMessages
+import ru.selemilka.game.core.session.accept
+import ru.selemilka.game.core.session.close
+import ru.selemilka.game.core.session.getAllMessages
 import ru.selemilka.game.rps.RpsGameConfiguration
 import ru.selemilka.game.rps.RpsGameService
 import ru.selemilka.game.rps.model.RpsPlayer
@@ -33,8 +33,8 @@ class RpsGameServiceTest {
 
     @Test
     fun `can send commands and then receive messages`(): Unit = runBlocking {
-        val (sessionId, session) = gameService.startSession(RpsSessionSettings())
-        val player = RpsPlayer.Human(sessionId, "Max")
+        val session = gameService.startSession(RpsSessionSettings())
+        val player = RpsPlayer.Human(session.id, "Max")
 
         session.accept(player, RpsCommand.JoinGame)
         session.close()
@@ -47,8 +47,8 @@ class RpsGameServiceTest {
 
     @Test
     fun `can send commands in different coroutine`(): Unit = runBlocking {
-        val (sessionId, session) = gameService.startSession(RpsSessionSettings())
-        val player = RpsPlayer.Human(sessionId, "Max")
+        val session = gameService.startSession(RpsSessionSettings())
+        val player = RpsPlayer.Human(session.id, "Max")
 
         launch {
             session.accept(player, RpsCommand.JoinGame)
@@ -63,9 +63,9 @@ class RpsGameServiceTest {
 
     @Test
     fun `can send commands in parallel`(): Unit = runBlocking {
-        val (sessionId, session) = gameService.startSession(RpsSessionSettings(maxPlayers = 3))
+        val session = gameService.startSession(RpsSessionSettings(maxPlayers = 3))
         val players = List(3) {
-            RpsPlayer.Human(sessionId, "Player #$it")
+            RpsPlayer.Human(session.id, "Player #$it")
         }
 
         launch {

@@ -1,18 +1,14 @@
 package ru.selemilka.game.core.base
 
-import kotlinx.serialization.Polymorphic
-import kotlinx.serialization.Serializable
-
 /**
  * Сообщение, возвращаемое методом [GameRule.process] для взаимодействия с сессией
  *
  * Единственный способ создать свой объект GameMessage -
  * использовать фабричную функцию [GameMessage]
  */
-@Serializable
-sealed class GameMessage<out P, out T> {
-    abstract val player: P
-    abstract val body: T
+sealed interface GameMessage<out P, out T> {
+    val players: Set<P>
+    val body: T
 }
 
 /**
@@ -41,8 +37,12 @@ sealed class GameMessage<out P, out T> {
  * ```
  */
 @Suppress("FunctionName")
+fun <P, Msg> GameMessage(players: Set<P>, message: Msg): GameMessage<P, Msg> =
+    GameMessageImpl(players, message)
+
+@Suppress("FunctionName")
 fun <P, Msg> GameMessage(player: P, message: Msg): GameMessage<P, Msg> =
-    GameMessageImpl(player, message)
+    GameMessageImpl(setOf(player), message)
 
 /**
  * Сообщение, отправив которое можно выполнить запрос [request] в игровой сессии.
@@ -50,17 +50,18 @@ fun <P, Msg> GameMessage(player: P, message: Msg): GameMessage<P, Msg> =
 data class DeferredCommandRequest<out R : GameCommandRequest<*, *>>(
     val request: R,
     val timeoutMillis: Long = 0,
-) : GameMessage<Nothing, Nothing>() {
+) : GameMessage<Nothing, Nothing> {
 
-    override val player: Nothing
+    override val players: Nothing
         get() = error("This message is internal")
 
     override val body: Nothing
         get() = error("This message is internal")
 }
 
-@Serializable
 internal data class GameMessageImpl<out P, out Msg>(
-    @Polymorphic override val player: P,
-    @Polymorphic override val body: Msg,
-) : GameMessage<P, Msg>()
+    override val players: Set<P>,
+    override val body: Msg,
+) : GameMessage<P, Msg>
+
+internal interface InternalGameMessage<out P, out Msg> : GameMessage<P, Msg>

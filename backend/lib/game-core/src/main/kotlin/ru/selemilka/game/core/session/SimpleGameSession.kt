@@ -1,15 +1,17 @@
-package ru.selemilka.game.core.base
+package ru.selemilka.game.core.session
 
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import ru.selemilka.game.core.base.*
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.coroutines.coroutineContext
 
-class GameSessionImpl<P, in Cmd, out Msg : GameMessage<*, *>>(
+internal class SimpleGameSession<P, in Cmd, out Msg : GameMessage<*, *>>(
     parentScope: CoroutineScope,
     private val rule: GameRule<P, Cmd, Msg>,
-    private val afterClose: suspend () -> Unit,
+    private val onClose: suspend () -> Unit,
     replay: Int,
 ) : GameSession<GameCommandRequest<P, Cmd>, Msg> {
 
@@ -94,7 +96,7 @@ class GameSessionImpl<P, in Cmd, out Msg : GameMessage<*, *>>(
         job.join()
         @Suppress("UNCHECKED_CAST")
         gameMessages.emit((TerminalGameMessage as Msg).withNextIndex())
-        afterClose()
+        onClose()
     }
 
     private fun Msg.withNextIndex(): IndexedValue<Msg> =
@@ -106,13 +108,13 @@ class GameSessionImpl<P, in Cmd, out Msg : GameMessage<*, *>>(
             .takeWhile { it.value !is TerminalGameMessage }
             .filter { it.value is GameMessageImpl<*, *> }
 
-    companion object {
-        private val logger = LoggerFactory.getLogger(GameSessionImpl::class.java)
+    private companion object {
+        val logger: Logger = LoggerFactory.getLogger(SimpleGameSession::class.java)
     }
 }
 
-private object TerminalGameMessage : GameMessage<Nothing, Nothing>() {
-    override val player: Nothing
+private object TerminalGameMessage : InternalGameMessage<Nothing, Nothing> {
+    override val players: Nothing
         get() = error("This GameMessage was created artificially and doesn't have a receiver")
 
     override val body: Nothing
