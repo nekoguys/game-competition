@@ -6,7 +6,7 @@ import kotlinx.coroutines.withContext
 import ru.selemilka.game.core.base.ResourceLocks
 import java.util.concurrent.ConcurrentHashMap
 
-internal class ResourceLockSupport {
+internal class ResourceLockProvider {
     private val locks = ConcurrentHashMap<Any, ReadWriteLock>()
 
     suspend fun <T> useLocks(

@@ -1,7 +1,6 @@
 package ru.selemilka.game.rps.test
 
 import kotlinx.coroutines.flow.toList
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -30,10 +29,8 @@ class JoinGameRuleTest {
         val session = gameService.startSession(RpsSessionSettings(maxPlayers = 2))
         val firstPlayer = RpsPlayer.Human(session.id, "Max")
 
-        launch {
-            session.accept(firstPlayer, RpsCommand.JoinGame)
-            session.close()
-        }
+        session.accept(firstPlayer, RpsCommand.JoinGame)
+        session.close()
 
         val responses = session.getMessages(firstPlayer).toList()
         assertThat(responses)
@@ -47,12 +44,10 @@ class JoinGameRuleTest {
         val session = gameService.startSession(RpsSessionSettings(maxPlayers = 2))
         val extraPlayer = RpsPlayer.Human(session.id, "I am late, guys")
 
-        launch {
-            session.accept(RpsPlayer.Human(session.id, "Max"), RpsCommand.JoinGame)
-            session.accept(RpsPlayer.Human(session.id, "Serega"), RpsCommand.JoinGame)
-            session.accept(extraPlayer, RpsCommand.JoinGame)
-            session.close()
-        }
+        session.accept(RpsPlayer.Human(session.id, "Max"), RpsCommand.JoinGame)
+        session.accept(RpsPlayer.Human(session.id, "Serega"), RpsCommand.JoinGame)
+        session.accept(extraPlayer, RpsCommand.JoinGame)
+        session.close()
 
         assertThat(session.getMessages(extraPlayer).toList())
             .containsExactly(
@@ -66,11 +61,9 @@ class JoinGameRuleTest {
         val firstPlayer = RpsPlayer.Human(session.id, "Max")
         val secondPlayer = RpsPlayer.Human(session.id, "Christian")
 
-        launch {
-            session.accept(firstPlayer, RpsCommand.JoinGame)
-            session.accept(secondPlayer, RpsCommand.JoinGame)
-            session.close()
-        }
+        session.accept(firstPlayer, RpsCommand.JoinGame)
+        session.accept(secondPlayer, RpsCommand.JoinGame)
+        session.close()
 
         assertThat(session.getMessages(firstPlayer).toList())
             .describedAs("first player responses")

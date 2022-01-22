@@ -4,14 +4,11 @@ import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Polymorphic
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.descriptors.PrimitiveKind
-import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import ru.selemilka.game.core.session.LoggedGameCommand
 import ru.selemilka.game.core.session.LoggedGameMessage
-import ru.selemilka.game.core.session.TraceId
 import ru.selemilka.game.rps.model.RpsPlayer
 import ru.selemilka.game.rps.rule.RpsCommand
 import ru.selemilka.game.rps.rule.RpsMessage
@@ -24,7 +21,6 @@ object RpsLoggedGameMessageSerializer : KSerializer<LoggedGameMessage<RpsPlayer.
         val surrogate = Surrogate(
             players = value.players,
             messageBody = value.messageBody,
-            traceId = value.traceId,
         )
         encoder.encodeSerializableValue(
             serializer = Surrogate.serializer(),
@@ -37,7 +33,6 @@ object RpsLoggedGameMessageSerializer : KSerializer<LoggedGameMessage<RpsPlayer.
         return LoggedGameMessage(
             players = surrogate.players,
             messageBody = surrogate.messageBody,
-            traceId = surrogate.traceId,
         )
     }
 
@@ -46,7 +41,6 @@ object RpsLoggedGameMessageSerializer : KSerializer<LoggedGameMessage<RpsPlayer.
     private class Surrogate(
         val players: Set<RpsPlayer.Human>,
         val messageBody: @Polymorphic RpsMessage,
-        @Serializable(with = TraceIdSerializer::class) val traceId: TraceId?,
     )
 }
 
@@ -58,7 +52,6 @@ object RpsLoggedGameCommandSerializer : KSerializer<LoggedGameCommand<RpsPlayer,
         val surrogate = Surrogate(
             player = value.player,
             command = value.command,
-            traceId = value.traceId,
         )
         encoder.encodeSerializableValue(
             serializer = Surrogate.serializer(),
@@ -71,7 +64,6 @@ object RpsLoggedGameCommandSerializer : KSerializer<LoggedGameCommand<RpsPlayer,
         return LoggedGameCommand(
             player = surrogate.player,
             command = surrogate.command,
-            traceId = surrogate.traceId,
         )
     }
 
@@ -80,17 +72,5 @@ object RpsLoggedGameCommandSerializer : KSerializer<LoggedGameCommand<RpsPlayer,
     private class Surrogate(
         val player: RpsPlayer,
         val command: RpsCommand,
-        @Serializable(with = TraceIdSerializer::class) val traceId: TraceId?,
     )
-}
-
-object TraceIdSerializer : KSerializer<TraceId> {
-    override val descriptor: SerialDescriptor =
-        PrimitiveSerialDescriptor("TraceId", PrimitiveKind.STRING)
-
-    override fun serialize(encoder: Encoder, value: TraceId) =
-        encoder.encodeString(value.value)
-
-    override fun deserialize(decoder: Decoder): TraceId =
-        TraceId(decoder.decodeString())
 }

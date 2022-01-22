@@ -70,7 +70,7 @@ object CloseGameSessionRequest : GameCommandRequest<Nothing, Nothing> {
         get() = error("${javaClass.name} doesn't have a command, because this request is internal and can be used only with closeable game sessions.")
 }
 
-private data class GameCommandRequestImpl<P, Cmd>(
+internal data class GameCommandRequestImpl<P, Cmd>(
     override val player: P,
     override val command: Cmd,
 ) : GameCommandRequest<P, Cmd>

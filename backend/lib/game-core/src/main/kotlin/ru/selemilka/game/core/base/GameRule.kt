@@ -8,8 +8,8 @@ import java.util.concurrent.atomic.AtomicLong
  *
  * Команды обрабатываются параллельно в соответствии с результатом функции [getLocksFor]
  */
-interface GameRule<in P, in Cmd, out Msg : GameMessage<*, *>> {
-    suspend fun process(player: P, command: Cmd): List<Msg>
+interface GameRule<in P, in Cmd, out P2, out Msg> {
+    suspend fun process(player: P, command: Cmd): List<GameMessage<P2, Msg>>
 
     /**
      * Блокировки, которые нужно взять для обработки [command]

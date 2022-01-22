@@ -1,25 +1,26 @@
 package ru.selemilka.game.core.session
 
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import ru.selemilka.game.core.base.CloseGameSessionRequest
 import ru.selemilka.game.core.base.GameCommandRequest
 import ru.selemilka.game.core.base.GameMessage
 import ru.selemilka.game.core.base.GameRule
+import kotlin.coroutines.CoroutineContext
 
 /**
  * Публичное API игры.
  *
  * Пользователи объекта [GameSession] могут:
- * * отправлять игре команды [CmdReq] с помощью функции [accept]
+ * * отправлять игре команды [Cmd] с помощью функции [accept]
  * * получать от игры сообщения [Msg] с помощью функций [getAllMessages], [getMessages]
  * * заканчивать игру с помощью функции [close]
  *
- * Создать игру можно фабричным методом [CoroutineScope.launchGameSession]
+ * Создать игру можно фабричным методом [createGameSession]
  */
-interface GameSession<in CmdReq : GameCommandRequest<*, *>, out Msg : GameMessage<*, *>> {
+interface GameSession<in P, in Cmd, out P2, out Msg> {
     /**
      * Обработка запроса [request] от пользователя.
      *
@@ -29,91 +30,82 @@ interface GameSession<in CmdReq : GameCommandRequest<*, *>, out Msg : GameMessag
      *
      * Если при обработке команды возникло исключение - оно бросается из этого метода
      */
-    suspend fun accept(request: CmdReq)
+    suspend fun accept(request: GameCommandRequest<P, Cmd>)
 
     /**
      * Возвращает все сообщения от этой игровой сессии
      */
-    fun getAllMessagesIndexed(): Flow<IndexedValue<Msg>>
+    fun getAllMessagesIndexed(): Flow<IndexedValue<GameMessage<P2, Msg>>>
 }
 
-suspend fun <P, Cmd> GameSession<GameCommandRequest<P, Cmd>, *>.accept(
+suspend fun <P, Cmd> GameSession<P, Cmd, *, *>.accept(
     player: P,
     command: Cmd,
 ) = accept(GameCommandRequest(player, command))
 
-suspend fun GameSession<GameCommandRequest<Nothing, Nothing>, *>.close() = accept(CloseGameSessionRequest)
+suspend fun GameSession<*, *, *, *>.close() =
+    accept(CloseGameSessionRequest)
 
-fun <Msg : GameMessage<*, *>> GameSession<*, Msg>.getAllMessages(): Flow<Msg> =
+fun <P2, Msg> GameSession<*, *, P2, Msg>.getAllMessages(): Flow<GameMessage<P2, Msg>> =
     getAllMessagesIndexed()
         .map { (_, value) -> value }
 
-fun <P, T> GameSession<*, GameMessage<P, T>>.getMessages(player: P): Flow<T> =
+fun <P2, Msg> GameSession<*, *, P2, Msg>.getMessages(player: P2): Flow<Msg> =
     getAllMessages()
+        .onEach {
+            println(it)
+        }
         .filter { player in it.players }
         .map { it.body }
 
+
 @Suppress("FunctionName")
-fun <P, Cmd, P2, T> CoroutineScope.launchGameSession(
-    rule: GameRule<P, Cmd, GameMessage<P2, T>>,
-    onClose: suspend () -> Unit = {},
-    messageLog: GameMessageLog<P2, T>? = null,
+fun <P, Cmd, P2, Msg> createGameSession(
+    rule: GameRule<P, Cmd, P2, Msg>,
+    parentContext: CoroutineContext,
+    replay: Int? = null,
+    messageLog: GameMessageLog<P2, Msg>? = null,
     commandLog: GameCommandRequestLog<P, Cmd>? = null,
-    traceIdProvider: TraceIdProvider? = null,
-): GameSession<GameCommandRequest<P, Cmd>, GameMessage<P2, T>> {
-    val sessionWithoutTracing = launchGameSession(rule, onClose, messageLog, commandLog)
-    return if (traceIdProvider != null) {
-        GameSessionWithTracing(sessionWithoutTracing, traceIdProvider)
-    } else {
-        sessionWithoutTracing
-    }
-}
-
-@Suppress("FunctionName")
-private fun <P, Cmd, P2, T> CoroutineScope.launchGameSession(
-    rule: GameRule<P, Cmd, GameMessage<P2, T>>,
     onClose: suspend () -> Unit = {},
-    messageLog: GameMessageLog<P2, T>? = null,
-    commandLog: GameCommandRequestLog<P, Cmd>? = null,
-): GameSession<GameCommandRequest<P, Cmd>, GameMessage<P2, T>> {
-    val sessionWithoutCommandLogging = launchGameSession(rule, onClose, messageLog)
-    return if (commandLog != null) {
-        GameSessionWithCommandLogging(sessionWithoutCommandLogging, commandLog)
-    } else {
-        sessionWithoutCommandLogging
+): GameSession<P, Cmd, P2, Msg> {
+    val interceptors: List<InternalGameSessionInterceptor<P, Cmd, P2, Msg>> = buildList {
+        if (messageLog != null) {
+            add { GameSessionWithMessageLogging(it, messageLog) }
+        }
+        if (commandLog != null) {
+            add { GameSessionWithCommandLogging(it, commandLog) }
+        }
+        add(::GameSessionWithDeferredCommands)
+        add { CloseableGameSession(it, parentContext, onClose) }
+        if (messageLog != null) {
+            add { GameSessionWithMessagesFromLog(it, messageLog) }
+        }
     }
-}
 
-@Suppress("FunctionName")
-private fun <P, Cmd, P2, T> CoroutineScope.launchGameSession(
-    rule: GameRule<P, Cmd, GameMessage<P2, T>>,
-    onClose: suspend () -> Unit = {},
-    messageLog: GameMessageLog<P2, T>? = null,
-): GameSession<GameCommandRequest<P, Cmd>, GameMessage<P2, T>> {
-    return if (messageLog != null) {
-        GameSessionWithMessageLogging(
-            interceptedSession = launchGameSession(
-                rule = GameRuleWithMessageLogging(rule, messageLog),
-                onClose = onClose,
-                replay = 1,
-            ),
-            messageLog = messageLog,
-        )
-    } else {
-        launchGameSession(rule, onClose, replay = Int.MAX_VALUE)
-    }
-}
-
-@Suppress("FunctionName")
-private fun <P, Cmd, P2, T> CoroutineScope.launchGameSession(
-    rule: GameRule<P, Cmd, GameMessage<P2, T>>,
-    onClose: suspend () -> Unit = {},
-    replay: Int,
-): GameSession<GameCommandRequest<P, Cmd>, GameMessage<P2, T>> {
-    return SimpleGameSession(
-        parentScope = this,
+    val baseSession: InternalGameSession<P, Cmd, P2, Msg> = BaseGameSession(
         rule = rule,
-        onClose = onClose,
-        replay = replay,
+        replay = replay ?: if (messageLog == null) Int.MAX_VALUE else 1,
     )
+
+    return interceptors.fold(baseSession) { s, interceptor -> interceptor(s) }
 }
+
+internal interface InternalGameSession<in P, in Cmd, P2, Msg>
+    : GameSession<P, Cmd, P2, Msg> {
+
+    override suspend fun accept(request: GameCommandRequest<P, Cmd>) {
+        acceptAndReturnMessages(request)
+    }
+
+    /**
+     * Обрабатывает команду и возвращает результат обработки - сообщения игрокам
+     */
+    suspend fun acceptAndReturnMessages(
+        request: GameCommandRequest<P, Cmd>,
+    ): List<GameMessage<P2, Msg>>
+
+    suspend fun shareMessages(messages: Collection<GameMessage<P2, Msg>>)
+}
+
+internal typealias InternalGameSessionInterceptor<P, Cmd, P2, Msg> =
+            (InternalGameSession<P, Cmd, P2, Msg>) -> InternalGameSession<P, Cmd, P2, Msg>

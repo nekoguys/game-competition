@@ -47,8 +47,8 @@ fun <P, Msg> GameMessage(player: P, message: Msg): GameMessage<P, Msg> =
 /**
  * Сообщение, отправив которое можно выполнить запрос [request] в игровой сессии.
  */
-data class DeferredCommandRequest<out R : GameCommandRequest<*, *>>(
-    val request: R,
+data class DeferredCommandRequest<out CmdReq : GameCommandRequest<*, *>>(
+    val request: CmdReq,
     val timeoutMillis: Long = 0,
 ) : GameMessage<Nothing, Nothing> {
 

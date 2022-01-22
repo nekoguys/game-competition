@@ -2,15 +2,17 @@
 
 Тут находятся базовые классы, интерфейсы для реализации своих игр
 
-## Что тут происходит
+## Как создать свою игру
 
 Можешь посмотреть файлы в этом порядке и почитать комментарии:
 
-1. [GameSession.kt](src/main/kotlin/ru/selemilka/game/core/base/GameSession.kt) - что такое игровая сессия, как с ней
-   взаимодействовать
-2. [GameCommand.kt](src/main/kotlin/ru/selemilka/game/core/base/GameCommand.kt) - команды в сессии
-3. [GameMessage.kt](src/main/kotlin/ru/selemilka/game/core/base/GameMessage.kt) - сообщения игрокам в сессии
-4. [GameRule.kt](src/main/kotlin/ru/selemilka/game/core/base/GameRule.kt) - как описать логику своей игры
+1. [GameCommand.kt](src/main/kotlin/ru/selemilka/game/core/base/GameCommand.kt) - команды в сессии
+2. [GameMessage.kt](src/main/kotlin/ru/selemilka/game/core/base/GameMessage.kt) - сообщения игрокам в сессии
+3. [GameRule.kt](src/main/kotlin/ru/selemilka/game/core/base/GameRule.kt) - как описать логику своей игры
+
+## Как играть в свою игру
+
+Посмотри на интерфейс [GameSession](src/main/kotlin/ru/selemilka/game/core/session/GameSession.kt)
 
 ## Тестовый проект с использованием `game-core`
 

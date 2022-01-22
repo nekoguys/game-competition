@@ -5,9 +5,9 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import ru.selemilka.game.core.base.CloseGameSessionRequest
-import ru.selemilka.game.core.base.GameRule
 import ru.selemilka.game.core.base.ResourceLocks
 import ru.selemilka.game.rps.RpsGameMessage
+import ru.selemilka.game.rps.RpsGameRule
 import ru.selemilka.game.rps.model.RpsPlayer
 import ru.selemilka.game.rps.model.RpsStage
 import ru.selemilka.game.rps.model.Turn
@@ -59,7 +59,7 @@ class RpsRootRule(
     private val joinGameRule: RpsJoinGameRule,
     private val submitAnswerRule: RpsSubmitAnswerRule,
     private val changeStageRule: ChangeStageRule,
-) : GameRule<RpsPlayer, RpsCommand, RpsGameMessage<RpsMessage>> {
+) : RpsGameRule<RpsPlayer, RpsCommand, RpsMessage> {
 
     override suspend fun getLocksFor(
         command: RpsCommand,
