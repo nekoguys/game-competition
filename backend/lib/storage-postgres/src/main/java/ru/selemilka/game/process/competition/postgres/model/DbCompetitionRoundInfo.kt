@@ -2,7 +2,7 @@ package ru.selemilka.game.process.competition.postgres.model
 
 import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Table
-import java.time.Instant
+import java.time.LocalDateTime
 
 @Table("competition_round_infos")
 data class DbCompetitionRoundInfo(
@@ -10,8 +10,8 @@ data class DbCompetitionRoundInfo(
     var id: Long? = null,
     var processId: Long,
     var roundNumber: Long,
-    var startTime: Instant,
-    var endTime: Instant?,
+    var startTime: LocalDateTime,
+    var endTime: LocalDateTime?,
 ) {
     val isEnded: Boolean
         get() = endTime != null

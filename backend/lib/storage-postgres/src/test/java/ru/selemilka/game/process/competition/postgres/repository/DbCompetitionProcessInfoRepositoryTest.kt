@@ -24,7 +24,7 @@ import ru.selemilka.game.user.postgres.model.DbUser
 import ru.selemilka.game.user.postgres.model.DbUserRole
 import ru.selemilka.game.user.postgres.repository.DbUserRepository
 import ru.selemilka.game.user.postgres.repository.runBlockingWithRollback
-import java.time.Instant
+import java.time.LocalDateTime
 
 @DataR2dbcTest
 @ContextConfiguration(classes = [TestingR2dbcRepositoriesConfig::class])
@@ -57,7 +57,7 @@ internal class DbCompetitionProcessInfoRepositoryTest(
         val retrievedProcessInfo = runBlocking { dbCompetitionProcessInfoRepository.findById(processInfo.id!!) }
         assertEquals(processInfo, retrievedProcessInfo)
         val roundInfo = runBlockingWithRollback(transactionalOperator) {
-            dbCompetitionRoundInfoRepository.save(DbCompetitionRoundInfo(null, processInfo.id!!, 1, Instant.now(), null))
+            dbCompetitionRoundInfoRepository.save(DbCompetitionRoundInfo(null, processInfo.id!!, 1, LocalDateTime.now(), null))
         }
         val retrievedRoundInfo = runBlocking { dbCompetitionRoundInfoRepository.findById(roundInfo.id!!) }
         assertEquals(roundInfo, retrievedRoundInfo)
@@ -67,7 +67,7 @@ internal class DbCompetitionProcessInfoRepositoryTest(
     fun `check answers submission`() {
         val processInfo = processInfo("email")
         val roundInfo = runBlockingWithRollback(transactionalOperator) {
-            dbCompetitionRoundInfoRepository.save(DbCompetitionRoundInfo(null, processInfo.id!!, 1, Instant.now(), null))
+            dbCompetitionRoundInfoRepository.save(DbCompetitionRoundInfo(null, processInfo.id!!, 1, LocalDateTime.now(), null))
         }
         val team = runBlockingWithRollback(transactionalOperator) {
             competitionTeamRepository.save(DbCompetitionTeam(processInfo.gameId, 1))
