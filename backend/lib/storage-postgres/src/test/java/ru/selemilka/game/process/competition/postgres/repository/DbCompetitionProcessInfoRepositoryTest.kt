@@ -25,6 +25,7 @@ import ru.selemilka.game.user.postgres.model.DbUserRole
 import ru.selemilka.game.user.postgres.repository.DbUserRepository
 import ru.selemilka.game.user.postgres.repository.runBlockingWithRollback
 import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit
 
 @DataR2dbcTest
 @ContextConfiguration(classes = [TestingR2dbcRepositoriesConfig::class])
@@ -56,9 +57,13 @@ internal class DbCompetitionProcessInfoRepositoryTest(
 
         val retrievedProcessInfo = runBlocking { dbCompetitionProcessInfoRepository.findById(processInfo.id!!) }
         assertEquals(processInfo, retrievedProcessInfo)
-        val roundInfo = runBlockingWithRollback(transactionalOperator) {
-            dbCompetitionRoundInfoRepository.save(DbCompetitionRoundInfo(null, processInfo.id!!, 1, LocalDateTime.now(), null))
-        }
+        val currentDateTime = LocalDateTime.now().truncatedTo(ChronoUnit.MILLIS)
+        val roundInfo = DbCompetitionRoundInfo(null, processInfo.id!!, 1, currentDateTime, null)
+            .also { roundInfo ->
+                runBlockingWithRollback(transactionalOperator) {
+                    dbCompetitionRoundInfoRepository.save(roundInfo)
+                }
+            }
         val retrievedRoundInfo = runBlocking { dbCompetitionRoundInfoRepository.findById(roundInfo.id!!) }
         assertEquals(roundInfo, retrievedRoundInfo)
     }
