@@ -1,5 +1,5 @@
 import React from "react";
-import {BrowserRouter as Router, Redirect, Route, Switch,} from "react-router-dom";
+import {BrowserRouter as Router, Navigate, Route, Routes} from "react-router-dom";
 import Login from "../auth/login";
 import Register from "../auth/register/register";
 import CompetitionHistory from "../competition-history/competition-history";
@@ -18,16 +18,65 @@ import {NotificationContainer, NotificationManager} from "react-notifications";
 import AdminkaComponent from "../adminka";
 import FinalStrategySubmissionComponent
     from "../competition-process/ended-competition-results/final-strategy-submission";
+import apiFetcher from "../../helpers/api-fetcher";
+import ApiHelper from "../../helpers/api-helper";
+import isAuthenticated, {getUTCSeconds} from "../../helpers/is-authenticated";
 
+const signinFetcher = {
+    mock: (_) => {
+        return new Promise(resolve =>
+            resolve({accessToken: "1", email: "someEmail", authorities: ['Student'], expirationTimestamp: getUTCSeconds(new Date(Date.now() + 24*60*60*1000))})
+        )
+    },
+    real: (params) => { return apiFetcher(params, (credentials) => ApiHelper.signin(credentials)) }
+}["real"];
+
+const signupFetcher = {
+    mock: (_) => {
+        return new Promise(resolve =>
+            resolve({})
+        )
+    },
+    real: (params) => { return apiFetcher(params, (credentials) => { return ApiHelper.signup(credentials) }) }
+}["real"];
+
+const verificationFetcher = {
+    mock: (_) => {
+        return new Promise(resolve => setTimeout(() => {
+            resolve({message: "Подтвержден"})
+        }, 2500) )
+    },
+    real: (token) => { return apiFetcher(token, (token) => ApiHelper.accountVerification(token)) }
+}["real"];
 
 const paths = [
     {
         path: "/auth/signin",
-        component: Login
+        component: Login,
+        props: {
+            fetchers: {
+                submit: signinFetcher
+            },
+            authProvider: {
+                isAuthenticated: () => isAuthenticated()
+            },
+            onSuccessfulLogin: (resp) => {
+                const storage = window.localStorage;
+                storage.setItem("accessToken", resp.accessToken);
+                storage.setItem("user_email", resp.email);
+                storage.setItem("roles", resp.authorities.map(el => el.authority));
+                storage.setItem("expirationTimestamp", resp.expirationTimestamp);
+            }
+        }
     },
     {
         path: "/auth/signup",
-        component: Register
+        component: Register,
+        props: {
+            fetchers: {
+                submit: signupFetcher
+            }
+        }
     },
     {
         path: "/competitions/history",
@@ -67,7 +116,12 @@ const paths = [
     },
     {
         path: "/auth/verification/:token",
-        component: Verification
+        component: Verification,
+        props: {
+            fetchers: {
+                verify: verificationFetcher
+            }
+        }
     },
     {
         path: "/competitions/results/:pin",
@@ -87,33 +141,26 @@ const paths = [
     }
 ];
 
-export default class App extends React.Component{
-
-    showNotification = () => {
-        return NotificationManager;
-    };
-
-    render() {
-        return (
+export default function App() {
+    return (
+        <div>
+            <Router>
+                <Routes>
+                    <Route path={"/"} element={<Navigate to="/auth/signin"/>} />
+                    {
+                        paths.map(({path, component: C, props = {}}, index) => {
+                            return (
+                                <Route key={index} path={path}
+                                       element={<C {...props} showNotification={() => NotificationManager}/>}
+                                />
+                            )
+                        })
+                    }
+                </Routes>
+            </Router>
             <div>
-                <Router>
-                    <Switch>
-                        <Redirect exact from="/" to="/auth/signin" />
-                        {
-                            paths.map(({path, component: C}, index) => {
-                                return (
-                                    <Route key={index} path={path}
-                                           render={(props) => <C {...props} showNotification={this.showNotification}/>}
-                                    />
-                                )
-                            })
-                        }
-                    </Switch>
-                </Router>
-                <div>
-                    <NotificationContainer/>
-                </div>
+                <NotificationContainer/>
             </div>
-        )
-    }
+        </div>
+    )
 }

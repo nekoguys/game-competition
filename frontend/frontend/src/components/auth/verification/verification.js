@@ -1,57 +1,47 @@
-import React from "react";
-import {withRouter} from "react-router-dom";
-import {withTranslation} from "react-i18next";
-import ApiHelper from "../../../helpers/api-helper";
-import showNotification from "../../../helpers/notification-helper";
+import React, {useEffect, useRef, useState} from "react";
+import {useTranslation} from "react-i18next";
+import {useNavigate, useParams} from "react-router";
 
-class Verification extends React.Component {
-    constructor(props) {
-        super(props);
+const Verification = ({fetchers, showNotification}) => {
+    const [isVerified, setVerified] = useState(false);
+    const params = useParams();
+    const navigate = useNavigate();
+    const didStartVerification = useRef([]);
+    const { t } = useTranslation("translation");
 
-        this.state = {
-            isVerified: false
+    useEffect(() => {
+        console.log({token: params.token});
+        verifyAccount(params.token);
+    });
+
+    const verifyAccount = (token) => {
+        if (didStartVerification.current.includes(token)) {
+            return;
         }
+        didStartVerification.current.push(token);
+        fetchers.verify(token)
+            .then(resp => {
+                setVerified(true);
+                showNotification().success(resp.message, "Success", 2500);
+
+                setTimeout(() => {
+                    navigate("/auth/signin");
+                }, 2500);
+            })
+            .catch(err => {
+                showNotification().error(err.message || "Error Occurred", "Error", 2500);
+            });
     }
 
-    componentDidMount() {
-        this.verifyAccount();
-    }
+    const res = isVerified ? t('auth.verification.done') : t('auth.verification.process');
 
-    verifyAccount() {
-        const {token} = this.props.match.params;
-        ApiHelper.accountVerification(token).then(resp => {
-            if (resp.status < 300) {
-                resp.json().then(jsonBody => {
-                    this.setState({isVerified: true});
-                    showNotification(this).success(jsonBody.message, "Success", 2500);
-
-                    setTimeout(() => {
-                        this.props.history.push("/auth/signin");
-                    }, 2500);
-                })
-            } else {
-                resp.text().then(text => {
-                    showNotification(this).error(text, "Error", 2500);
-                })
-            }
-        })
-    }
-
-    render() {
-
-        let res = this.props.i18n.t('auth.verification.process');
-        if (this.state.isVerified) {
-            res = this.props.i18n.t('auth.verification.done');
-        }
-
-        return (
-            <div>
-                <div style={{fontSize: "30px"}}>
-                    {res}
-                </div>
+    return (
+        <div>
+            <div style={{fontSize: "30px"}}>
+                {res}
             </div>
-        )
-    }
+        </div>
+    )
 }
 
-export default withTranslation('translation')(withRouter(Verification));
+export default Verification;

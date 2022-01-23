@@ -1,4 +1,4 @@
-import {withRouter} from "react-router-dom";
+import {withRouter} from "./with-router";
 import React from "react";
 import isAuthenticated from "./is-authenticated";
 
@@ -6,7 +6,7 @@ function withAuthenticated(Component, to) {
     return withRouter(class extends React.Component {
         componentDidMount() {
             if (!isAuthenticated()) {
-                this.props.history.push(this.getPath());
+                this.props.history(this.getPath());
             }
         }
 

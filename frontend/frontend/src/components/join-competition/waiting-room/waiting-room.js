@@ -75,7 +75,7 @@ class WaitingRoom extends React.Component {
             showNotification(this).warning("Game started!", "Attention", timeout);
 
             setTimeout(() => {
-                this.props.history.push("/competitions/process_captain/" + pin);
+                this.props.history("/competitions/process_captain/" + pin);
             }, timeout + 100);
         });
     }

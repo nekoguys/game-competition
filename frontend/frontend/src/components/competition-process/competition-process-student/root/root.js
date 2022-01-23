@@ -66,7 +66,7 @@ class CompetitionProcessStudentRoot extends React.Component {
                 this.onRedirectToResultsPage();
             } else if (this.state.isCaptain) {
                     const {pin} = this.props.match.params;
-                    this.props.history.push("/competitions/strategy_captain/" + pin);
+                    this.props.history("/competitions/strategy_captain/" + pin);
             }
         }
     }
@@ -79,9 +79,9 @@ class CompetitionProcessStudentRoot extends React.Component {
                 setTimeout(() => {
                     const {pin} = this.props.match.params;
                     if (prevState.isCaptain) {
-                        this.props.history.push("/competitions/strategy_captain/" + pin);
+                        this.props.history("/competitions/strategy_captain/" + pin);
                     } else {
-                        this.props.history.push("/competitions/results/" + pin);
+                        this.props.history("/competitions/results/" + pin);
                     }
                 }, 2500);
                 return {didEnd: true};

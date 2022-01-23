@@ -5,12 +5,13 @@ import DefaultSubmitButton from "../../common/default-submit-button";
 import "../login-form/login-form.css";
 import {useTranslation} from "react-i18next";
 
-const RegisterForm = ({isRegButtonDisabled = false,
-                          onEmailChanged = () => {},
-                          onPasswordChanged = () => {},
-                          onConfPasswordChanged = () => {},
-                          onSubmit = () => {}}
-                      ) => {
+const RegisterForm = ({
+        isRegButtonDisabled = false,
+        onEmailChanged = () => {},
+        onPasswordChanged = () => {},
+        onConfPasswordChanged = () => {},
+        onSubmit = () => {}
+    }) => {
 
     const formInputStyle = {
         width: "75%",

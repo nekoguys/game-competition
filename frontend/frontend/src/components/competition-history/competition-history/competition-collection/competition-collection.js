@@ -2,7 +2,7 @@ import React from "react";
 import "./competition-collection.css";
 
 import DefaultSubmitButton from "../../../common/default-submit-button";
-import {withRouter} from "react-router-dom";
+import {withRouter} from "../../../../helpers/with-router";
 import {withTranslation} from "react-i18next";
 
 class CompetitionCollectionElement extends React.Component {
@@ -39,7 +39,7 @@ class CompetitionCollectionElement extends React.Component {
         if (owned)
             button = <DefaultSubmitButton text={this.props.i18n.t('competition_history.clone')} onClick={(ev) => {
                 console.log(this);
-                this.props.history.push('/competitions/create/', {initialState: this.props.item});
+                this.props.history('/competitions/create/', {initialState: this.props.item});
                 ev.stopPropagation();
             }}/>
 

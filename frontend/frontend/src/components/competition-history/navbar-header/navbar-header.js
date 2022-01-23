@@ -1,6 +1,6 @@
 import React from "react";
 import DefaultSubmitButton from "../../common/default-submit-button";
-import {withRouter} from "react-router-dom";
+import {withRouter} from "../../../helpers/with-router";
 import {withTranslation} from "react-i18next";
 import './navbar-header.css';
 import ApiHelper from "../../../helpers/api-helper";
@@ -14,18 +14,18 @@ import makeCancelable from "../../../helpers/cancellable-promise";
 class NavbarHeader extends React.Component {
 
     onCreateGameClick = () => {
-        this.props.history.push('/competitions/create');
+        this.props.history('/competitions/create');
     };
 
     onGameHistoryClick = () => {
-        this.props.history.push('/competitions/history');
+        this.props.history('/competitions/history');
     };
 
     onRedirect = (path) => {
-        this.props.history.push(path);
+        this.props.history(path);
     };
     onEnterGameClick = () => {
-        this.props.history.push('/competitions/join')
+        this.props.history('/competitions/join')
     };
 
     render() {

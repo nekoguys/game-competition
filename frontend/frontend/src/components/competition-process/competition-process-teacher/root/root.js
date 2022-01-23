@@ -28,7 +28,7 @@ class CompetitionProcessTeacherRootComponent extends React.Component {
 
                setTimeout(() => {
                    const {pin} = this.props.match.params;
-                   this.props.history.push("/competitions/results/" + pin);
+                   this.props.history("/competitions/results/" + pin);
                }, 2500);
                return {didEnd: true};
            }
