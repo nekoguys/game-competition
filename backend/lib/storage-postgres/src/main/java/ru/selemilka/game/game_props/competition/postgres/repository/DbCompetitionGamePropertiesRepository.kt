@@ -1,0 +1,6 @@
+package ru.selemilka.game.game_props.competition.postgres.repository
+
+import org.springframework.data.repository.kotlin.CoroutineCrudRepository
+import ru.selemilka.game.game_props.competition.postgres.model.DbCompetitionGameProperties
+
+interface DbCompetitionGamePropertiesRepository : CoroutineCrudRepository<DbCompetitionGameProperties, Long>

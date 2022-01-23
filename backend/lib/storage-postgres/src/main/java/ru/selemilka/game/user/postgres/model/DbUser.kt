@@ -1,8 +1,14 @@
 package ru.selemilka.game.user.postgres.model
 
+import org.springframework.data.annotation.Id
+import org.springframework.data.relational.core.mapping.Table
+
+@Table("USERS")
 data class DbUser(
-    var id: Long,
+    @Id
+    var id: Long? = null,
+
     var email: String,
-    var name: String? = null,
-    var role: DbUserRole = DbUserRole.UNKNOWN,
+
+    var role: DbUserRole,
 )
