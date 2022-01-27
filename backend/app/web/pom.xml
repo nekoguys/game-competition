@@ -3,7 +3,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>ru.selemilka.game</groupId>
+        <groupId>ru.nekoguys.game</groupId>
         <artifactId>backend-app-parent</artifactId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
@@ -14,13 +14,13 @@
 
     <dependencies>
         <dependency>
-            <groupId>ru.selemilka.game</groupId>
-            <artifactId>backend-lib-competition-process</artifactId>
+            <groupId>ru.nekoguys.game</groupId>
+            <artifactId>backend-lib-game</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
         <dependency>
-            <groupId>ru.selemilka.game</groupId>
-            <artifactId>backend-lib-user</artifactId>
+            <groupId>ru.nekoguys.game</groupId>
+            <artifactId>backend-lib-game-persistence</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
 
