@@ -1,7 +1,6 @@
 package ru.nekoguys.game.persistence
 
 import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.convert.converter.Converter
 import org.springframework.data.convert.ReadingConverter
@@ -11,7 +10,6 @@ import org.springframework.data.r2dbc.dialect.PostgresDialect
 import org.springframework.data.r2dbc.repository.config.EnableR2dbcRepositories
 import ru.nekoguys.game.persistence.competition.model.*
 
-@ComponentScan
 @Configuration
 @EnableR2dbcRepositories
 class GamePersistenceConfig {
