@@ -5,7 +5,7 @@
                              http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>ru.selemilka.game</groupId>
+        <groupId>ru.nekoguys.game</groupId>
         <artifactId>backend-parent</artifactId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
@@ -15,11 +15,9 @@
     <description>The New Backend Libraries Parent Project</description>
 
     <modules>
-        <module>storage-postgres</module>
-        <module>user</module>
+        <module>game</module>
         <module>game-core</module>
-        <module>competition</module>
-        <module>competition-process</module>
+        <module>game-persistence</module>
     </modules>
 
     <dependencies>
