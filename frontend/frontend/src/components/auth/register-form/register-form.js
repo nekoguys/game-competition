@@ -31,7 +31,9 @@ const RegisterForm = ({
             <DefaultTextInput style={formInputStyle} placeholder={t('auth.login.mail')} onChange={onEmailChanged} />
             <DefaultTextInput style={formInputStyle} placeholder={t('auth.login.password')} type={"password"} onChange={onPasswordChanged} />
             <DefaultTextInput style={formInputStyle} placeholder={t('auth.register.repeat_password')} type={"password"} onChange={onConfPasswordChanged} />
-            <DefaultSubmitButton text={t('auth.register.button')} style={buttonStyle} onClick={onSubmit} isDisabled={isRegButtonDisabled} />
+            <div className="register-button-container">
+                <DefaultSubmitButton text={t('auth.register.button')} style={buttonStyle} additionalClasses={['register-button']} onClick={onSubmit} isDisabled={isRegButtonDisabled} />
+            </div>
         </div>
     )
 };

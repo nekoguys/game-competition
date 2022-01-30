@@ -5,3 +5,14 @@
     justify-content: center;
     border-radius: 0 0 20px 20px;
 }
+
+.register-button-container {
+    display: flex;
+    justify-content: center;
+    flex-direction: row;
+    width: 100%;
+}
+
+.register-button {
+    width: 60%;
+}

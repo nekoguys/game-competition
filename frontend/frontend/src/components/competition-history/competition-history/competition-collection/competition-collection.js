@@ -32,39 +32,34 @@ class CompetitionCollectionElement extends React.Component {
                 </div>
             )
         } else {
-            res = <div style={{margin: "auto 0", display: "inline-block"}}>{this.stateMapper(state)}</div>
+            res = <div>{this.stateMapper(state)}</div>
         }
 
         let button;
-        if (owned)
-            button = <DefaultSubmitButton text={this.props.i18n.t('competition_history.clone')} onClick={(ev) => {
-                console.log(this);
-                this.props.history('/competitions/create/', {initialState: this.props.item});
-                ev.stopPropagation();
-            }}/>
-
+        let stateCloneSpacer;
+        if (this.props.isAnyCloneable) {
+            button = <div className={"clone-button"}>
+                <DefaultSubmitButton text={this.props.i18n.t('competition_history.clone')} onClick={(ev) => {
+                    console.log(this);
+                    this.props.history('/competitions/create/', {initialState: this.props.item});
+                    ev.stopPropagation();
+                }}/>
+            </div>
+            stateCloneSpacer = <div className={"spacer-state-clone"}/>
+        }
+        const stateAdditionalClasses = owned ? "  state-text-with-clone-button" : "";
         return <div className={"item-element-container"} onClick={() => {
             console.log("outer div click");
             onItemClickCallback(this.props.item);
         }}>
-            <div className={"row"}>
-                <div className={"col-7 center-text"} style={{textAlign: "center"}}>{name}</div>
-                <div className={"col-3 center-text"} style={{textAlign: "center"}}>
-                    <div style={{padding: "10px", minHeight: "68px"}} className={"center-text"}>
+            <div style={{display: "flex", height: "100%"}}>
+                <div className={"game-name-text"}>{name}</div>
+                <div className={"spacer-name-state"}/>
+                <div className={"state-text state-text-table" + stateAdditionalClasses}>
                     {res}
-
-                    </div>
                 </div>
-                {
-                    !this.props.isAnyCloneable ? undefined : // и так пойдёт
-                    <div className={"col-2 flex-center-vertically"}>
-                        <div style={{margin: "auto 0"}} className={""}>
-                            <div style={{marginBottom: "-10px"}}>
-                                {button}
-                            </div>
-                        </div>
-                    </div>
-                }
+                {stateCloneSpacer}
+                {button}
             </div>
         </div>
     }
@@ -79,14 +74,8 @@ class CompetitionCollection extends React.Component {
             return <CompetitionCollectionElement i18n={i18n} onItemClickCallback={this.props.onHistoryItemClickCallback}
                     key={item.pin} item={item} history={this.props.history} isAnyCloneable={this.props.isAnyCloneable}/>
         });
-
         return (
             <div className={"collection-container"}>
-                <div className={"row"} style={{textAlign: "center"}}>
-                    <div className={"col-7"}>{i18n.t('competition_history.name')}</div>
-                    <div className={"col-3"}>{i18n.t('competition_history.status')}</div>
-                    {this.props.isAnyCloneable ? <div className={"col-2"}/> : undefined}
-                </div>
                 {elements}
             </div>
         )

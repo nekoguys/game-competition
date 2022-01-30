@@ -1,7 +1,7 @@
 import React from "react";
 import DefaultSubmitButton from "../../common/default-submit-button";
 import {withRouter} from "../../../helpers/with-router";
-import {withTranslation} from "react-i18next";
+import {useTranslation, withTranslation} from "react-i18next";
 import './navbar-header.css';
 import ApiHelper from "../../../helpers/api-helper";
 import buttonUpImage from "../../join-competition/join-competition-player-form/team-collection/buttonUp.png";
@@ -10,57 +10,49 @@ import profileImage from "./profile-image.png";
 import exitImage from "./exit-image.png";
 import {isTeacher} from "../../../helpers/role-helper";
 import makeCancelable from "../../../helpers/cancellable-promise";
+import {useNavigate} from "react-router";
 
-class NavbarHeader extends React.Component {
+const NavbarHeader = ({userHasTeacherRole = isTeacher, onNoNeedUpdateNavbar, needUpdate}) => {
+    const { t, i18n } = useTranslation('translation');
+    const navigate = useNavigate()
 
-    onCreateGameClick = () => {
-        this.props.history('/competitions/create');
-    };
+    let secondNavBarButton;
+    if (userHasTeacherRole()) {
+        secondNavBarButton = <DefaultSubmitButton
+        text={t('navbar.header.create')}
+        additionalClasses={['navbar-button']}
+        onClick={ () => navigate('/competitions/create') }
+        />
+    } else {
+        secondNavBarButton = <DefaultSubmitButton
+        text={t('navbar.header.join')}
+        additionalClasses={['navbar-button']}
+        onClick={ () => navigate('/competitions/join') }
+        />
+    }
 
-    onGameHistoryClick = () => {
-        this.props.history('/competitions/history');
-    };
+    return (
+        <div className='navbar-header-fixed-top'>
+            <div className='d-flex navbar-content-container'>
+                <div>
+                <DefaultSubmitButton
+                    text={t('navbar.header.history')}
+                    additionalClasses={['navbar-button']}
+                    onClick={ () => navigate('/competitions/history') }
+                />
+                </div>
+                <div>
+                {secondNavBarButton}
+                </div>
 
-    onRedirect = (path) => {
-        this.props.history(path);
-    };
-    onEnterGameClick = () => {
-        this.props.history('/competitions/join')
-    };
-
-    render() {
-        const buttonsStyle = {
-            marginBottom: "0.7rem",
-            height: "80%",
-            borderRadius: "15px",
-            flexGrow: "1",
-            paddingLeft: "20px",
-            paddingRight: "20px"
-        };
-        const { i18n } = this.props;
-        let navbarButton;
-        if (isTeacher())
-            navbarButton = <DefaultSubmitButton text={i18n.t('navbar.header.create')} style={buttonsStyle} onClick={this.onCreateGameClick}/>;
-        else
-            navbarButton = <DefaultSubmitButton text={i18n.t('navbar.header.join')} style={buttonsStyle} onClick={this.onEnterGameClick}/>;
-
-        return (
-            <div className="navbar-header-fixed-top">
-                <div className={"d-flex"} style={{marginTop: "20px", marginLeft: "40px"}}>
-                    <DefaultSubmitButton text={i18n.t('navbar.header.history')} style={{...buttonsStyle, marginRight: "50px"}} onClick={this.onGameHistoryClick}/>
-                    {navbarButton}
-
-
-                    <div style={{marginLeft: "auto"}}>
-                        <div style={{paddingRight: "50px"}}>
-                        <UserInfo i18n={i18n} onRedirect={this.onRedirect} onNoNeedUpdateNavbar={this.props.onNoNeedUpdateNavbar} needUpdate={this.props.needUpdate}/>
-                        </div>
-                    </div>
+                <div className={'navbar-userinfo-container'}>
+                    <UserInfo i18n={i18n} onRedirect={navigate} onNoNeedUpdateNavbar={onNoNeedUpdateNavbar} needUpdate={needUpdate}/>
                 </div>
             </div>
-        )
-    }
+        </div>
+    )
 }
+
 
 class UserInfo extends React.Component {
 
@@ -126,18 +118,8 @@ class UserInfo extends React.Component {
             console.log(err);
         })
     }
-    closeMenu = (event) => {
-        console.log({closeMenuState: this.state});
-        if (this.state.isMenuOpened && !this.dropdownMenu.contains(event.target)) {
-
-            this.setState({isMenuOpened: false}, () => {
-                document.removeEventListener('click', this.closeMenu);
-            });
-        }
-    };
 
     componentWillUnmount() {
-        document.removeEventListener('click', this.closeMenu);
         if (this.infoPromise) {
             this.infoPromise.cancel();
         }
@@ -146,13 +128,11 @@ class UserInfo extends React.Component {
     showMenu = (event) => {
         event.preventDefault();
 
-        this.setState(prevState =>{ return {isMenuOpened: !prevState.isMenuOpened};}, () => {
-            console.log(this.state);
-            if (this.state.isMenuOpened) {
-                document.addEventListener('click', this.closeMenu);
-            } else {
-                document.removeEventListener('click', this.closeMenu);
-            }
+        this.setState(prevState => {
+            return {isMenuOpened: !prevState.isMenuOpened};
+            },
+            () => {
+                console.log(this.state);
         });
     };
 
@@ -203,24 +183,18 @@ class UserInfo extends React.Component {
         }
 
         return (
-            <div className={"row"}>
+            <div style={{"display": "flex"}}>
                 <div style={{fontSize: "20px"}}>
                     {this.translateRole(this.state.userDesc)}
                 </div>
-                <div>
+                <div className={"d-flex"}>
                     <div className={"menu-button"} onClick={this.showMenu}>
                         <div className={"menu-button-content"}>
-                            <button style={{
-                                border: "none",
-                                backgroundColor: "Transparent",
-                                transform: "scale(0.35) translate(-5px, 0)",
-                                width: "50px",
-                                height: "50px"
-                            }}><img src={image} alt={"unwind"}/></button>
+                            <button className={"profile-button"}><img src={image} alt={"unwind"} className={"profile-dropdown-img"}/></button>
                         </div>
-                    </div>
-                    <div style={{position: "relative", display: "inline-block"}}>
-                    {res}
+                        <div style={{position: "relative", height: "0", width: "0"}}>
+                            {res}
+                        </div>
                     </div>
                 </div>
             </div>
