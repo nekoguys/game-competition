@@ -1,57 +1,49 @@
 CREATE TABLE IF NOT EXISTS "users"
 (
-    "id"
-    BIGSERIAL
-    PRIMARY
-    KEY,
-    "email"
-    varchar
-    NOT
-    NULL,
-    "role"
-    varchar
-    NOT
-    NULL
+    "id"       BIGSERIAL PRIMARY KEY,
+    "email"    varchar NOT NULL,
+    "role"     varchar NOT NULL,
+    "password" varchar NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS "game_teams"
 (
     "team_id"
-    BIGSERIAL
-    PRIMARY
-    KEY,
+        BIGSERIAL
+        PRIMARY
+            KEY,
     "team_number"
-    int
-    NOT
-    NULL,
+        int
+        NOT
+            NULL,
     "game_id"
-    bigint
-    NOT
-    NULL
+        bigint
+        NOT
+            NULL
 );
 
 CREATE TABLE IF NOT EXISTS "banned_competition_teams"
 (
     "team_id"
-    BIGSERIAL,
+        BIGSERIAL,
     "ban_round"
-    integer
+        integer
 );
 
 CREATE TABLE IF NOT EXISTS "team_members"
 (
     "id"
-    BIGSERIAL
-    PRIMARY
-    KEY,
+        BIGSERIAL
+        PRIMARY
+            KEY,
     "team_id"
-    bigint,
+        bigint,
     "member_id"
-    bigint,
+        bigint,
     "captain"
-    boolean
-    NOT
-    NULL
+        boolean
+        NOT
+            NULL
 );
 
 ALTER TABLE "team_members"
@@ -61,177 +53,177 @@ ALTER TABLE "team_members"
 CREATE TABLE IF NOT EXISTS "competition_game_states"
 (
     "id"
-    BIGSERIAL
-    PRIMARY
-    KEY,
+        BIGSERIAL
+        PRIMARY
+            KEY,
     "name"
-    varchar
-    NOT
-    NULL
+        varchar
+        NOT
+            NULL
 );
 
 CREATE TABLE IF NOT EXISTS "game_props"
 (
     "id"
-    BIGSERIAL
-    PRIMARY
-    KEY,
+        BIGSERIAL
+        PRIMARY
+            KEY,
     "creator_id"
-    bigint
-    NOT
-    NULL,
+        bigint
+        NOT
+            NULL,
     "game_type"
-    varchar
-    NOT
-    NULL,
+        varchar
+        NOT
+            NULL,
     "competition_props_id"
-    bigint
+        bigint
 );
 
 CREATE TABLE IF NOT EXISTS "competition_game_props"
 (
     "id"
-    BIGSERIAL
-    PRIMARY
-    KEY,
+        BIGSERIAL
+        PRIMARY
+            KEY,
     "name"
-    varchar
-    not
-    null,
+        varchar
+        not
+            null,
     "expenses_formula"
-    varchar
-    not
-    null,
+        varchar
+        not
+            null,
     "demand_formula"
-    varchar
-    not
-    null,
+        varchar
+        not
+            null,
     "max_teams_amount"
-    integer
-    not
-    null,
+        integer
+        not
+            null,
     "max_team_size"
-    integer
-    not
-    null,
+        integer
+        not
+            null,
     "rounds_count"
-    integer
-    not
-    null,
+        integer
+        not
+            null,
     "round_length_in_seconds"
-    integer
-    not
-    null,
+        integer
+        not
+            null,
     "team_loss_upperbound"
-    integer
-    not
-    null,
+        integer
+        not
+            null,
     "instruction"
-    varchar
-    not
-    null,
+        varchar
+        not
+            null,
     "show_prev_round_results"
-    boolean
-    not
-    null,
+        boolean
+        not
+            null,
     "show_students_results_table"
-    boolean
-    not
-    null,
+        boolean
+        not
+            null,
     "auto_round_ending"
-    boolean
-    not
-    null,
+        boolean
+        not
+            null,
     "show_other_teams_members"
-    boolean
-    not
-    null
+        boolean
+        not
+            null
 );
 
 CREATE TABLE IF NOT EXISTS "competition_process_infos"
 (
     "id"
-    BIGSERIAL
-    PRIMARY
-    KEY,
+        BIGSERIAL
+        PRIMARY
+            KEY,
     "game_id"
-    bigint,
+        bigint,
     "state_id"
-    bigint
+        bigint
 );
 
 CREATE TABLE IF NOT EXISTS "competition_round_infos"
 (
     "id"
-    BIGSERIAL,
+        BIGSERIAL,
     "process_id"
-    bigint,
+        bigint,
     "round_number"
-    integer,
+        integer,
     "start_time"
-    timestamp,
+        timestamp,
     "end_time"
-    timestamp,
+        timestamp,
     "is_ended"
-    boolean,
+        boolean,
     PRIMARY
-    KEY
-(
-    "id",
-    "round_number"
-)
-    );
+        KEY
+        (
+         "id",
+         "round_number"
+            )
+);
 
 CREATE TABLE IF NOT EXISTS "competition_round_answers"
 (
     "id"
-    BIGSERIAL
-    PRIMARY
-    KEY,
+        BIGSERIAL
+        PRIMARY
+            KEY,
     "round_info_id"
-    bigint,
+        bigint,
     "value"
-    integer,
+        integer,
     "team_id"
-    bigint
+        bigint
 );
 
 CREATE TABLE IF NOT EXISTS "competition_round_results"
 (
     "id"
-    BIGSERIAL
-    PRIMARY
-    KEY,
+        BIGSERIAL
+        PRIMARY
+            KEY,
     "round_info_id"
-    bigint,
+        bigint,
     "income"
-    decimal,
+        decimal,
     "team_id"
-    bigint
+        bigint
 );
 
 CREATE TABLE IF NOT EXISTS "competition_messages"
 (
     "id"
-    BIGSERIAL
-    PRIMARY
-    KEY,
+        BIGSERIAL
+        PRIMARY
+            KEY,
     "process_game_id"
-    bigint,
+        bigint,
     "message"
-    varchar,
+        varchar,
     "send_time"
-    timestamp
+        timestamp
 );
 
 CREATE TABLE IF NOT EXISTS "game_sessions"
 (
     "id"
-    BIGSERIAL
-    PRIMARY
-    KEY,
+        BIGSERIAL
+        PRIMARY
+            KEY,
     "props_id"
-    bigint
+        bigint
 );
 
 ALTER TABLE "game_teams"

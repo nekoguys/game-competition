@@ -8,4 +8,5 @@ import ru.nekoguys.game.persistence.user.model.DbUser
 @Repository
 interface DbUserRepository : CoroutineCrudRepository<DbUser, Long> {
     fun findAllByEmail(email: String): Flow<DbUser>
+    suspend fun findByEmail(email: String): DbUser?
 }

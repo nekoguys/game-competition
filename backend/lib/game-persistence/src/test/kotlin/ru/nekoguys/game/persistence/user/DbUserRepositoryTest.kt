@@ -18,6 +18,7 @@ internal class DbUserRepositoryTest @Autowired constructor(
     fun `simple insertion and retrieval`(): Unit = runBlocking {
         val expectedUser = DbUser(
             email = "kpbenua@edu.hse.ru",
+            password = "qwerty",
             role = DbUserRole.ADMIN,
         ).let { userRepository.save(it) }
 

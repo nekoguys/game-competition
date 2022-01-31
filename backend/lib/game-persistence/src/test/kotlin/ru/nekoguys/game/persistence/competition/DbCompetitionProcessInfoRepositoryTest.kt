@@ -117,6 +117,7 @@ suspend fun createProcessInfo(
     val user = DbUser(
         id = null,
         email = userEmail,
+        password = "qwerty",
         role = DbUserRole.TEACHER,
     ).let { userRepository.save(it) }
 
@@ -124,7 +125,7 @@ suspend fun createProcessInfo(
         creatorId = user.id!!,
         gameType = "competition",
         competitionPropsId = null,
-    ).let{gamePropertiesRepository.save(it)}
+    ).let { gamePropertiesRepository.save(it) }
 
     val session = DbGameSession(propertiesId = props.id!!)
         .let { gameSessionsRepository.save(it) }
