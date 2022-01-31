@@ -26,7 +26,9 @@ class SignUpHandler(
                 email.endsWith("@edu.hse.ru") -> UserRole.Student
                 email.endsWith("@admin.hse.ru") -> UserRole.Admin
                 email.endsWith("@hse.ru") -> UserRole.Teacher
-                else -> return ResponseEntity.badRequest().body(SignUpResponse.UnsupportedEmail)
+                else -> return ResponseEntity
+                    .badRequest()
+                    .body("email $email has unknown suffix".toErrorMessage())
             },
         )
 
@@ -47,5 +49,9 @@ sealed interface SignUpResponse {
         val id: Long,
     ) : SignUpResponse
 
-    object UnsupportedEmail : SignUpResponse
+    data class Error(
+        val message: String,
+    ) : SignUpResponse
 }
+
+fun String.toErrorMessage() = SignUpResponse.Error(this)
