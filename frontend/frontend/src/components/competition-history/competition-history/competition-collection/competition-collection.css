@@ -3,6 +3,7 @@
     border-radius: 20px;
     margin-top: 12px;
     max-height: 5%;
+    min-height: 70px;
 }
 
 .item-element-container:hover {
@@ -11,14 +12,70 @@
     background-color: #c5c5c5;
 }
 
-.center-text {
+.state-text {
+    display: flex;
+    justify-content: right;
+    align-items: center;
+    alignment: right;
+    padding: 0 46px 0 0;
+}
+
+.state-text-table {
+    min-height: 70px;
+}
+
+.spacer-name-state {
+    display: flex;
+    flex-grow: 1.4;
+}
+
+.spacer-state-clone {
+    display: flex;
+    flex-grow: 1;
+}
+
+.state-text-with-clone-button {
+    justify-content: center;
+    max-width: 15%;
+    min-width: 100px;
+    padding: 0;
+}
+
+.headers-container {
+    display: flex;
+}
+
+.clone-button {
     display: flex;
     justify-content: center;
     align-items: center;
+    padding-right: 46px;
 }
 
-.flex-center-vertically {
+.game-name-text {
     display: flex;
-    justify-content: center;
-    flex-direction: column;
+    justify-content: left;
+    align-items: center;
+    text-align: left;
+    padding: 0 0 0 46px;
+    width: 50%;
+}
+
+@media (max-width: 500px) {
+    .item-element-container {
+        border-radius: 8px;
+    }
+
+    .game-name-text {
+        padding: 0 0 0 8px;
+    }
+
+    .clone-button {
+        padding-right: 8px;
+    }
+
+    .state-text {
+        padding-right: 8px;
+    }
+
 }

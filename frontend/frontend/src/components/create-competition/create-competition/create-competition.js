@@ -19,8 +19,8 @@ class CreateCompetition extends React.Component {
     }
 
     componentDidMount() {
-        if (this.props.history.location.state)
-            this.initialState = this.props.history.location.state.initialState;
+        if (this.props.location.state)
+            this.initialState = this.props.location.state.initialState;
     }
 
     isUpdateMode() {
@@ -136,7 +136,7 @@ class CreateCompetition extends React.Component {
                     </div>
                     <div className={"competition-form-holder"}>
                         <CompetitionParamsForm onFormStateUpdated={(formState) => this.onFormStateUpdated(formState)}
-                                               initialState={this.props.history.location.state ? this.props.history.location.state.initialState : {}}/>
+                                               initialState={this.props.location.state ? this.props.location.state.initialState : {}}/>
                         <div className={"form-group row"} style={{marginTop: "30px", marginLeft: "7.5%", marginRight: "7.5%"}}>
                             <div className={"mr-auto p-2"}>
                                 <DefaultSubmitButton text={i18n.t('create_competition.save_draft')} style={{height: "100%", fontSize: "26px",

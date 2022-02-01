@@ -24,7 +24,9 @@ const LoginForm = ({onEmailChanged = () => {}, onPasswordChanged = () => {}, onS
         <div className={"login-form form-group "}>
             <DefaultTextInput style={formInputStyle} placeholder={t('auth.login.mail')} onChange={onEmailChanged} />
             <DefaultTextInput style={formInputStyle} placeholder={t('auth.login.password')} type={"password"} onChange={onPasswordChanged} />
-            <DefaultSubmitButton text={t('auth.login.button')} style={buttonStyle} onClick={onSubmit} />
+            <div className={'register-button-container'}>
+                <DefaultSubmitButton text={t('auth.login.button')} style={buttonStyle} additionalClasses={['register-button']} onClick={onSubmit} />
+            </div>
         </div>
     )
 };

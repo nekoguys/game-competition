@@ -49,6 +49,28 @@ const verificationFetcher = {
     real: (token) => { return apiFetcher(token, (token) => ApiHelper.accountVerification(token)) }
 }["real"];
 
+const historyFetcher = {
+    mock: (_) => {
+        return new Promise(resolve => setTimeout(() => {
+            resolve([
+                {
+                    name: "Конкуренция на рынке пшеницы",
+                    state: "Registration",
+                    pin: "1234",
+                    owned: false
+                },
+                {
+                    name: "Ко",
+                    state: "Registration",
+                    pin: "1234",
+                    owned: false
+                }
+            ])
+        }))
+    },
+    real: (start, count) => { return apiFetcher([start, count], (params) => ApiHelper.competitionsHistory(params[0], params[1])) }
+}["real"]
+
 const paths = [
     {
         path: "/auth/signin",
@@ -80,7 +102,12 @@ const paths = [
     },
     {
         path: "/competitions/history",
-        component: CompetitionHistory
+        component: CompetitionHistory,
+        props: {
+            fetchers: {
+                history: historyFetcher
+            }
+        }
     },
     {
         path: "/competitions/create",

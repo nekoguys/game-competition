@@ -1,5 +1,45 @@
 .collection-holder {
     background-color: #E7E7E7;
     border-radius: 30px;
-    padding: 20px 40px 5px 40px;
+    padding: 20px 40px 0 40px;
+}
+
+.root-container {
+    padding-left: 40px;
+    padding-right: 40px;
+}
+
+.title {
+    padding: 40px 0;
+    text-align: center;
+}
+
+.more-button-container {
+    padding-top: 12px;
+    padding-bottom: 12px;
+    text-align: center;
+}
+
+.more-button {
+    width: 230px;
+}
+
+@media (max-width: 500px) {
+    .root-container {
+        padding-right: 15px;
+        padding-left: 15px;
+    }
+
+    .title {
+        padding: 15px;
+    }
+
+    .collection-holder {
+        padding: 8px 15px 0 15px;
+        border-radius: 10px;
+    }
+
+    .more-button {
+        width: 100px;
+    }
 }

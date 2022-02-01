@@ -2,10 +2,10 @@ import React from "react";
 import NavbarHeader from "../navbar-header";
 import {NotificationContainer} from "react-notifications";
 import CompetitionCollection from './competition-collection';
-import ApiHelper from "../../../helpers/api-helper";
 import DefaultSubmitButton from "../../common/default-submit-button";
 
 import "./competition-history.css";
+import "../../../helpers/common.css";
 import withAuthenticated from "../../../helpers/with-authenticated";
 import {withTranslation} from "react-i18next";
 
@@ -27,20 +27,14 @@ class CompetitionHistory extends React.Component {
     }
 
     updateHistory(delta) {
-        ApiHelper.competitionsHistory(this.state.itemsLoaded, delta).then(resp => {
-            if (resp.status < 300)
-                resp.json().then(json => {
-                    console.log(json);
-                    this.setState(prevState => {
-                        return {
-                            items: prevState.items.concat(json),
-                            itemsLoaded: prevState.itemsLoaded + delta,
-                            isAnyCloneable: prevState.isAnyCloneable || json.some((x) => x.owned)
-                        }
-                    }, () => {
-                        this.scrollToBottom();
-                    });
-                })
+        this.props.fetchers.history(this.state.itemsLoaded, delta).then(resp => {
+            this.setState(prevState => {
+                return {
+                    items: prevState.items.concat(resp),
+                    itemsLoaded: prevState.itemsLoaded + delta,
+                    isAnyCloneable: prevState.items.concat(resp).some((x) => x.owned)
+                }
+            }, () => this.scrollToBottom())
         })
     }
 
@@ -84,23 +78,16 @@ class CompetitionHistory extends React.Component {
                 <div>
                 <NavbarHeader/>
                 </div>
-                <div style={{padding: "80px 40px 0px 40px"}}>
-                    <div style={{fontSize: "28px", padding: "40px 0", textAlign: "center"}}>
+                <div className={"below-navbar root-container"}>
+                    <div className={"page-title title"}>
                         {i18n.t('competition_history.last_games')}
                     </div>
                     <div className={"collection-holder"} style={{margin: "0 auto"}}>
                         <CompetitionCollection items={this.state.items} onHistoryItemClickCallback={this.onHistoryItemClickCallback} isAnyCloneable={this.state.isAnyCloneable}/>
-
-                        <div style={{paddingTop: "30px"}}>
-                            <div className={"row justify-content-center"}>
-
-                                <div style={{flex: "0 0 12.5%", paddingRight: "15px"}}>
-                                    <DefaultSubmitButton text={i18n.t('competition_history.more')} onClick={() => {
-                                        this.updateHistory(CompetitionHistory.itemsPerPage);
-                                    }} style={{padding: "10px 20px", width: "100%"}}/>
-                                </div>
-
-                            </div>
+                        <div className={"more-button-container"}>
+                            <DefaultSubmitButton additionalClasses={["more-button"]} text={i18n.t('competition_history.more')} onClick={() => {
+                                this.updateHistory(CompetitionHistory.itemsPerPage);
+                            }}/>
                         </div>
                     </div>
                 </div>

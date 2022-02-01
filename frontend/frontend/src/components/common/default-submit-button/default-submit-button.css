@@ -1,17 +1,11 @@
 .default-submit-button {
-    flex-grow: 0.33;
     border-radius: 20px;
-    height: 10%;
-    line-height: 20px;
-    /*margin: 0 auto;*/
     background-color: #5B87F6;
     color: black;
-    margin-right: 20px;
 }
 
-.button-container {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 10px;
+@media (max-width: 500px) {
+    .default-submit-button {
+        border-radius: 8px;
+    }
 }
