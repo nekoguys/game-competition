@@ -7,12 +7,18 @@ data class SignInRequest(
     val password: String,
 )
 
-data class SignInResponse(
-    val accessToken: String,
-    val email: String,
-    val authorities: Collection<GrantedAuthority>,
-    val expirationTimestamp: Long,
-)
+sealed interface SignInResponse {
+    data class Success(
+        val accessToken: String,
+        val email: String,
+        val authorities: Collection<GrantedAuthority>,
+        val expirationTimestamp: Long,
+    ) : SignInResponse
+
+    object InvalidCredentials : SignInResponse {
+        val message = "Invalid credentials"
+    }
+}
 
 data class SignUpRequest(
     val email: String,
@@ -20,9 +26,9 @@ data class SignUpRequest(
 )
 
 sealed interface SignUpResponse {
-    data class Success(
-        val id: Long,
-    ) : SignUpResponse
+    object Success : SignUpResponse {
+        val message = "User registered successfully!"
+    }
 
     data class Error(
         val message: String,

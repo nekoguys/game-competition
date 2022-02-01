@@ -12,6 +12,9 @@ import reactor.core.publisher.Mono
 import ru.nekoguys.game.web.util.REQUEST_ID_CONTEXT_KEY
 import ru.nekoguys.game.web.util.extractRequestId
 
+/**
+ * Запись в лог каждого запроса и ответа
+ */
 @Component
 @Order(1)
 class LogRequestAndResponseFilter : WebFilter {
@@ -52,7 +55,6 @@ class LogRequestAndResponseFilter : WebFilter {
         val statusCode = exchange.response.statusCode
         val time = System.currentTimeMillis()
         val timeElapsedSeconds = ((time - startTime) / 1000.0)
-
         logger.info("Got response {} in {} seconds", statusCode, timeElapsedSeconds)
     }
 }

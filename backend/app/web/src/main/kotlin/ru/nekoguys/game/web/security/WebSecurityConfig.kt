@@ -39,8 +39,7 @@ class WebSecurityConfig(
         }
 
         authorizeExchange {
-            authorize("/api/auth/signin", permitAll)
-            authorize("/api/auth/signup", permitAll)
+            authorize("/api/auth/**", permitAll)
             authorize(anyExchange, authenticated)
         }
 
@@ -65,6 +64,10 @@ class WebSecurityConfig(
         BCryptPasswordEncoder()
 
     private fun jwtAuthenticationFilter(): AuthenticationWebFilter {
+        // Так как вся логика по проверке аутентификации
+        // находится в jwtAuthenticationConverter,
+        // эта реализация ReactiveAuthenticationManager просто принимает любую
+        // попытку аутентификации
         val dummyAuthManager = ReactiveAuthenticationManager { Mono.just(it) }
 
         return AuthenticationWebFilter(dummyAuthManager)

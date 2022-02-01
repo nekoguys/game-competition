@@ -13,8 +13,17 @@ import javax.crypto.SecretKey
 class JwtProvider(
     private val properties: JwtProperties,
 ) {
+    private val logger = LoggerFactory.getLogger(JwtProvider::class.java)
+
     private val jwtSecretKey: SecretKey =
-        Keys.hmacShaKeyFor(properties.secret.toByteArray())
+        calculateSecretKey(properties.secret)
+
+    private fun calculateSecretKey(secret: String?): SecretKey =
+        if (secret.isNullOrBlank()) {
+            Keys.secretKeyFor(SignatureAlgorithm.HS256)
+        } else {
+            Keys.hmacShaKeyFor(secret.toByteArray())
+        }
 
     private val jwtParser: JwtParser =
         Jwts.parserBuilder().setSigningKey(jwtSecretKey).build()
@@ -31,7 +40,7 @@ class JwtProvider(
             .claim("roles", roles)
             .setIssuedAt(Date())
             .setExpiration(Date(Date().time + properties.expirationSeconds * 1000))
-            .signWith(jwtSecretKey, SignatureAlgorithm.HS512)
+            .signWith(jwtSecretKey)
             .compact()
     }
 
@@ -50,9 +59,5 @@ class JwtProvider(
             logger.debug("JWT claims string $token is empty", e)
         }
         return null
-    }
-
-    private companion object {
-        private val logger = LoggerFactory.getLogger(JwtProvider::class.java)
     }
 }

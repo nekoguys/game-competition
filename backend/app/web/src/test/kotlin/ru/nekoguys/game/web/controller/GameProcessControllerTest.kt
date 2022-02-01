@@ -6,7 +6,7 @@ import org.springframework.context.ApplicationContext
 import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
-import ru.nekoguys.game.web.ru.nekoguys.game.web.GameWebApplicationTest
+import ru.nekoguys.game.web.GameWebApplicationTest
 
 @GameWebApplicationTest
 class GameProcessControllerTest @Autowired constructor(

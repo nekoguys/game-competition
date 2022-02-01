@@ -24,16 +24,12 @@ class AuthController(
     suspend fun signIn(
         @RequestBody request: SignInRequest,
     ): ResponseEntity<SignInResponse> =
-        withMDCContext {
-            authService.signIn(request)
-        }
+        withMDCContext { authService.signIn(request) }
 
     @PostMapping("/signup")
     suspend fun signUp(
         @RequestBody
         request: SignUpRequest,
     ): ResponseEntity<SignUpResponse> =
-        withMDCContext {
-            authService.signUp(request)
-        }
+        withMDCContext { authService.signUp(request) }
 }

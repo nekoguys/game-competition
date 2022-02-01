@@ -3,16 +3,21 @@ spring:
     url: r2dbc:postgresql://localhost:55000/groudina
     username: postgres
     password: postgres
+  reactor:
+    debug-agent:
+      enabled: true
 
 logging:
   pattern:
     console: "%clr(%d{${LOG_DATEFORMAT_PATTERN:yyyy-MM-dd HH:mm:ss.SSS}}){faint} %clr(${LOG_LEVEL_PATTERN:%5p}) %clr(${PID:- }){magenta} %clr([%13.13X{requestId}]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n%wEx"
-
+  level:
+    ru.nekoguys.game: trace
+    org.hibernate.type: trace
 
 game:
   app:
     web:
       jwt:
-        secret: ababaeowenfowiefnwoeifnwe27358923745892735d1892372jc571023571d8923j5d192351234ffn1kj3fn13f2304fx293f20x3fj234f
+        secret: ~ # при запуске в проде это свойство нужно переопределить
         expiration-seconds: 86400
         fast-authentication-enabled: true

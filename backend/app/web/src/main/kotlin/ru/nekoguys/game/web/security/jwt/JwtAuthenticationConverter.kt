@@ -30,10 +30,12 @@ class JwtAuthenticationConverter(
         return convertInternal(exchange)
             .doOnEach { signal ->
                 val authentication = signal.get()
-                if (authentication != null) {
+                if (authentication != null && logger.isInfoEnabled) {
                     val requestId = signal.contextView.extractRequestId()
                     MDC.putCloseable(REQUEST_ID_CONTEXT_KEY, requestId).use {
-                        logger.info("Authenticated as ${authentication.principal}")
+                        val username = authentication.principal
+                        val authorities = authentication.authorities.joinToString { it.toString() }
+                        logger.info("Authenticated as $username with authorities $authorities")
                     }
                 }
             }

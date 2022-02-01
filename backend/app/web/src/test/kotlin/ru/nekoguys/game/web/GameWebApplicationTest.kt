@@ -1,4 +1,4 @@
-package ru.nekoguys.game.web.ru.nekoguys.game.web
+package ru.nekoguys.game.web
 
 import org.junit.jupiter.api.TestInstance
 import org.springframework.boot.test.context.SpringBootTest

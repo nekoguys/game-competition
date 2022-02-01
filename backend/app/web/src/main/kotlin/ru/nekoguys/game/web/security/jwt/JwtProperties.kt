@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Configuration
 @Configuration
 @ConfigurationProperties(prefix = "game.app.web.jwt")
 class JwtProperties {
-    var secret: String = "default-secret"
+    var secret: String? = null
     var expirationSeconds: Long = 0
     var fastAuthenticationEnabled: Boolean = true
 }

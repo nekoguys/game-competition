@@ -2,7 +2,6 @@ package ru.nekoguys.game.web.service
 
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.slf4j.LoggerFactory
-import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.authentication.ReactiveAuthenticationManager
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
@@ -17,6 +16,7 @@ import ru.nekoguys.game.web.dto.SignUpRequest
 import ru.nekoguys.game.web.dto.SignUpResponse
 import ru.nekoguys.game.web.security.jwt.JwtProvider
 import ru.nekoguys.game.web.util.toBadRequestResponse
+import ru.nekoguys.game.web.util.toOkResponse
 
 @Service
 class AuthService(
@@ -31,15 +31,13 @@ class AuthService(
     suspend fun signIn(request: SignInRequest): ResponseEntity<SignInResponse> {
         val authentication = authenticationManager.authenticate(
             UsernamePasswordAuthenticationToken(request.email, request.password)
-        ).awaitFirstOrNull() ?: return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
+        ).awaitFirstOrNull() ?: return SignInResponse.InvalidCredentials.toBadRequestResponse()
 
         val userDetails = authentication.principal as UserDetails
         val expirationTimestamp = jwtProvider.currentExpirationTimestamp()
         val jwt = jwtProvider.generateJwtToken(authentication, expirationTimestamp)
 
-        logger.info("here!")
-
-        val response = SignInResponse(
+        val response = SignInResponse.Success(
             accessToken = jwt,
             email = userDetails.username,
             authorities = userDetails.authorities,
@@ -56,28 +54,24 @@ class AuthService(
             return userAlreadyExists(email)
         }
 
-        val createdUser = userRepository.create(
+        userRepository.create(
             email = email,
             password = passwordEncoder.encode(request.password),
             role = when {
                 email.endsWith("@edu.hse.ru") -> UserRole.Student
-                email.endsWith("@admin.hse.ru") -> UserRole.Admin
                 email.endsWith("@hse.ru") -> UserRole.Teacher
                 else -> return createIncorrectEmailFormatResponse(email)
             },
         )
 
-        val response = SignUpResponse.Success(
-            id = createdUser.id.number,
-        )
-        return ResponseEntity.ok(response)
+        return SignUpResponse.Success.toOkResponse()
     }
 
     private fun createIncorrectEmailFormatResponse(email: String): ResponseEntity<SignUpResponse> =
-        SignUpResponse.Error("Email $email has unknown suffix")
+        SignUpResponse.Error("Invalid email $email. Email should end with @edu.hse.ru or @hse.ru")
             .toBadRequestResponse()
 
     private fun userAlreadyExists(email: String): ResponseEntity<SignUpResponse> =
-        SignUpResponse.Error("User with email $email is already registered")
+        SignUpResponse.Error("User with email $email already exists!")
             .toBadRequestResponse()
 }
