@@ -8,4 +8,5 @@ import org.springframework.context.annotation.Configuration
 class JwtProperties {
     var secret: String = "default-secret"
     var expirationSeconds: Long = 0
+    var fastAuthenticationEnabled: Boolean = true
 }

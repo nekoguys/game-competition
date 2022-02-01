@@ -14,15 +14,21 @@ class JwtProvider(
     private val properties: JwtProperties,
 ) {
     private val jwtSecretKey: SecretKey =
-        Keys.hmacShaKeyFor(properties.secret.toByteArray());
+        Keys.hmacShaKeyFor(properties.secret.toByteArray())
 
     private val jwtParser: JwtParser =
         Jwts.parserBuilder().setSigningKey(jwtSecretKey).build()
 
-    fun generateJwtToken(authentication: Authentication): String {
+    fun currentExpirationTimestamp(): Long =
+        Date().time + properties.expirationSeconds * 1000
+
+    fun generateJwtToken(authentication: Authentication, expirationTimestamp: Long): String {
+        val roles = authentication
+            .authorities
+            .joinToString(";") { it.toString().removePrefix("ROLE_") }
         return Jwts.builder()
             .setSubject(authentication.name)
-//            .claim("roles", authentication.authorities.joinToString(", "))
+            .claim("roles", roles)
             .setIssuedAt(Date())
             .setExpiration(Date(Date().time + properties.expirationSeconds * 1000))
             .signWith(jwtSecretKey, SignatureAlgorithm.HS512)
@@ -33,15 +39,15 @@ class JwtProvider(
         try {
             return jwtParser.parseClaimsJws(token)
         } catch (e: SecurityException) {
-            logger.error("Invalid JwtSignature", e.stackTraceToString())
+            logger.debug("Invalid JwtSignature", e)
         } catch (e: MalformedJwtException) {
-            logger.error("Invalid JwtToken", e)
+            logger.debug("Invalid JwtToken", e)
         } catch (e: ExpiredJwtException) {
-            logger.error("Expired JWT token", e)
+            logger.debug("Expired JWT token", e)
         } catch (e: UnsupportedJwtException) {
-            logger.error("Unsupported JWT token", e)
+            logger.debug("Unsupported JWT token", e)
         } catch (e: IllegalArgumentException) {
-            logger.error("JWT claims string $token is empty", e)
+            logger.debug("JWT claims string $token is empty", e)
         }
         return null
     }

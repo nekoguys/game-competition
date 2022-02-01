@@ -2,24 +2,44 @@ package ru.nekoguys.game.web.security.jwt
 
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.Jws
+import org.slf4j.LoggerFactory
+import org.slf4j.MDC
 import org.springframework.http.HttpHeaders
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.Authentication
-import org.springframework.security.core.context.ReactiveSecurityContextHolder
+import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.web.server.authentication.ServerAuthenticationConverter
 import org.springframework.stereotype.Component
 import org.springframework.web.server.ServerWebExchange
 import reactor.core.publisher.Mono
 import ru.nekoguys.game.web.security.GameUserDetailsService
+import ru.nekoguys.game.web.util.REQUEST_ID_CONTEXT_KEY
+import ru.nekoguys.game.web.util.extractRequestId
 
 @Component
 class JwtAuthenticationConverter(
+    private val jwtProperties: JwtProperties,
     private val jwtProvider: JwtProvider,
     private val userDetailsService: GameUserDetailsService,
 ) : ServerAuthenticationConverter {
 
+    private val logger = LoggerFactory.getLogger(JwtAuthenticationConverter::class.java)
+
     override fun convert(exchange: ServerWebExchange): Mono<Authentication> {
+        return convertInternal(exchange)
+            .doOnEach { signal ->
+                val authentication = signal.get()
+                if (authentication != null) {
+                    val requestId = signal.contextView.extractRequestId()
+                    MDC.putCloseable(REQUEST_ID_CONTEXT_KEY, requestId).use {
+                        logger.info("Authenticated as ${authentication.principal}")
+                    }
+                }
+            }
+    }
+
+    private fun convertInternal(exchange: ServerWebExchange): Mono<Authentication> {
         val serializedJwt: String =
             exchange
                 .extractAuthHeader()
@@ -31,7 +51,11 @@ class JwtAuthenticationConverter(
                 .parseJwt(serializedJwt)
                 ?: return Mono.empty()
 
-        return authenticateByEmail(jwt.body.subject)
+        return if (jwtProperties.fastAuthenticationEnabled) {
+            authenticateByJwtClaims(jwt.body)
+        } else {
+            authenticateByEmail(jwt.body.subject)
+        }
     }
 
     private fun ServerWebExchange.extractAuthHeader(): String? =
@@ -39,11 +63,21 @@ class JwtAuthenticationConverter(
             .headers
             .getFirst(HttpHeaders.AUTHORIZATION)
 
+    private fun authenticateByJwtClaims(claims: Claims): Mono<Authentication> {
+        val authorities = claims.get("roles", String::class.java)
+            .split(';')
+            .map { SimpleGrantedAuthority("ROLE_$it") }
+
+        val authentication =
+            UsernamePasswordAuthenticationToken(claims.subject, null, authorities)
+
+        return Mono.just(authentication)
+    }
+
     private fun authenticateByEmail(email: String): Mono<Authentication> =
         userDetailsService
             .findByUsername(email)
             .map(UserDetails::toAuthentication)
-//            .flatMap(Authentication::saveInContextHolder)
 
     companion object {
         private const val TOKEN_PREFIX = "Bearer "
@@ -52,9 +86,3 @@ class JwtAuthenticationConverter(
 
 private fun UserDetails.toAuthentication(): Authentication =
     UsernamePasswordAuthenticationToken(this, null, this.authorities)
-
-private fun Authentication.saveInContextHolder(): Mono<Authentication> =
-    ReactiveSecurityContextHolder
-        .getContext()
-        .map { it.authentication = this }
-        .then(Mono.just(this))

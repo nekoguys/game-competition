@@ -1,4 +1,4 @@
-package ru.nekoguys.game.web.entity.gameprocess
+package ru.nekoguys.game.web.controller
 
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -14,4 +14,8 @@ class GameProcessController {
     @PreAuthorize("hasRole('ADMIN')")
     @RequestMapping("/hello")
     suspend fun helloWorld() = ResponseEntity.ok("Hello world!")
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @RequestMapping("/error")
+    suspend fun error(): ResponseEntity<*> = TODO()
 }
