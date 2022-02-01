@@ -23,6 +23,7 @@ internal class DbGameSessionRepositoryTest @Autowired constructor(
     fun `insert and retrieval`(): Unit = runBlocking {
         val user = DbUser(
             email = "email",
+            password = "qwerty",
             role = DbUserRole.TEACHER,
         ).let { userRepository.save(it) }
 
