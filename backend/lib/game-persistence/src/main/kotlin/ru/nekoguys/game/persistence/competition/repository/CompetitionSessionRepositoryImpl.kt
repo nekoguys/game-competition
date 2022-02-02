@@ -67,7 +67,7 @@ class CompetitionSessionRepositoryImpl(
             id = CommonSession.Id(dbGameSession.id!!),
             properties = properties,
             stage = dbCompetitionSession.extractCompetitionStage(),
-            lastModified = dbGameSession.lastModifiedDate!!
+            lastModified = dbGameSession.lastModifiedDate!!.truncatedTo(ChronoUnit.MILLIS)
         )
     }
 
@@ -92,7 +92,7 @@ class CompetitionSessionRepositoryImpl(
             id = CommonSession.Id(dbGameSession.id!!),
             properties = properties,
             stage = dbCompetitionSession.extractCompetitionStage(),
-            lastModified = dbGameSession.lastModifiedDate!!
+            lastModified = dbGameSession.lastModifiedDate!!.truncatedTo(ChronoUnit.MILLIS)
         )
     }
 }
