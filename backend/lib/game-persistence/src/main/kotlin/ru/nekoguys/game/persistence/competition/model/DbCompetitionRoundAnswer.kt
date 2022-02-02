@@ -7,9 +7,12 @@ import org.springframework.data.relational.core.mapping.Table
 data class DbCompetitionRoundAnswer(
     @Id
     var id: Long? = null,
-    var roundInfoId: Long,
+
+    var roundId: Long,
+
     var teamId: Long,
-    var value: Int
+
+    var value: Int,
 ) {
     constructor(roundInfoId: Long, teamId: Long, value: Int) : this(null, roundInfoId, teamId, value)
 }

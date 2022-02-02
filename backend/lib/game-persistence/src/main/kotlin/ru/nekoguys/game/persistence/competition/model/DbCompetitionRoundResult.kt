@@ -7,7 +7,7 @@ import org.springframework.data.relational.core.mapping.Table
 data class DbCompetitionRoundResult(
     @Id
     var id: Long? = null,
-    var roundInfoId: Long,
+    var roundId: Long,
     var teamId: Long,
     var income: Double,
 ) {

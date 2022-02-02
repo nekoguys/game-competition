@@ -8,7 +8,7 @@ import java.time.LocalDateTime
 data class DbCompetitionRoundInfo(
     @Id
     var id: Long? = null,
-    var processId: Long,
+    var sessionId: Long,
     var roundNumber: Long,
     var startTime: LocalDateTime,
     var endTime: LocalDateTime? = null,

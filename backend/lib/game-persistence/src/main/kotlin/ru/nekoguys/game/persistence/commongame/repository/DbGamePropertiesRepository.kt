@@ -1,8 +1,7 @@
-package ru.nekoguys.game.persistence.session.repository
+package ru.nekoguys.game.persistence.commongame.repository
 
 import org.springframework.data.repository.kotlin.CoroutineCrudRepository
 import org.springframework.stereotype.Repository
-import ru.nekoguys.game.persistence.session.model.DbGameProperties
+import ru.nekoguys.game.persistence.commongame.model.DbGameProperties
 
-@Repository
 interface DbGamePropertiesRepository : CoroutineCrudRepository<DbGameProperties, Long>

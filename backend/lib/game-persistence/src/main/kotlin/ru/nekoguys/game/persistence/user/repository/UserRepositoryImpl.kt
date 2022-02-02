@@ -38,11 +38,7 @@ class UserRepositoryImpl(
         dbUserRepository.deleteById(userId.number)
     }
 
-    override suspend fun load(userId: User.Id): User {
-        return load(userId.number) ?: error("User with ID $userId doesn't exist")
-    }
-
-    override suspend fun load(userId: Long): User? =
+    override suspend fun find(userId: Long): User? =
         dbUserRepository
             .findById(userId)
             ?.let { it.toUserOrNull() ?: error("Can't parse role for user: $it") }

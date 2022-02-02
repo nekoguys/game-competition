@@ -1,0 +1,3 @@
+spring:
+  r2dbc:
+    generate-unique-name: true

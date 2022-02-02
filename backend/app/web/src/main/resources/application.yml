@@ -18,6 +18,6 @@ game:
   app:
     web:
       jwt:
-        secret: ~ # при запуске в проде это свойство нужно переопределить
+        secret: "f2cfjcfmjo48fh3o48fhc3m48fsyor8y2o348ru5283fcjh3m4hfcs8hif7qh34f834hfslcf382oc3f820hcm89hwfselfi82h043cf892mh4rmcf2ld2jk4872d50k3475k2d345" # при запуске в проде это свойство нужно переопределить
         expiration-seconds: 86400
         fast-authentication-enabled: true

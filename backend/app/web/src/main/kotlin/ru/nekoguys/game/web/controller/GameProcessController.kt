@@ -5,17 +5,20 @@ import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.CrossOrigin
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
+import java.security.Principal
 
 @Controller
-@CrossOrigin(origins = ["*"], maxAge = 3600)
 @RequestMapping(path = ["/game"], produces = [MediaType.APPLICATION_JSON_VALUE])
 class GameProcessController {
     @PreAuthorize("hasRole('ADMIN')")
-    @RequestMapping("/hello")
-    suspend fun helloWorld() = ResponseEntity.ok("Hello world!")
+    @GetMapping("/hello")
+    suspend fun helloWorld(
+        principal: Principal,
+    ) = ResponseEntity.ok("Hello world!")
 
     @PreAuthorize("hasRole('ADMIN')")
-    @RequestMapping("/error")
+    @GetMapping("/error")
     suspend fun error(): ResponseEntity<*> = TODO()
 }
