@@ -72,11 +72,11 @@ private fun CreateCompetitionRequest.extractCompetitionSettings() =
         maxTeamSize = maxTeamSize!!,
         roundsCount = roundsCount!!,
         roundLength = roundLength!!,
-        teamLossUpperbound = teamLossUpperbound!!,
+        teamLossLimit = teamLossUpperbound!!,
         instruction = instruction!!,
-        shouldShowStudentPreviousRoundResults = shouldShowStudentPreviousRoundResults!!,
-        shouldEndRoundBeforeAllAnswered = shouldEndRoundBeforeAllAnswered!!,
-        shouldShowResultTableInEnd = shouldShowResultTableInEnd!!,
+        showPreviousRoundResults = shouldShowStudentPreviousRoundResults!!,
+        endRoundBeforeAllAnswered = shouldEndRoundBeforeAllAnswered!!,
+        showStudentsResultsTable = shouldShowResultTableInEnd!!,
         isAutoRoundEnding = isAutoRoundEnding!!,
         showOtherTeamsMembers = showOtherTeamsMembers!!,
     )
@@ -88,16 +88,16 @@ private fun String?.toCompetitionStage(): CompetitionStage =
         else -> error("Unknown or unsupported stage $processedStage")
     }
 
-private fun List<String>.toCompetitionExpensesFormula() =
+private fun List<Double>.toCompetitionExpensesFormula() =
     CompetitionExpensesFormula(
-        xSquareCoefficient = get(0).toDouble(),
-        xCoefficient = get(1).toDouble(),
-        freeCoefficient = get(2).toDouble(),
+        xSquareCoefficient = get(0),
+        xCoefficient = get(1),
+        freeCoefficient = get(2),
     )
 
-private fun List<String>.toCompetitionDemandFormula() =
+private fun List<Double>.toCompetitionDemandFormula() =
     CompetitionDemandFormula(
-        xCoefficient = get(0).toDouble(),
-        freeCoefficient = get(1).toDouble(),
+        freeCoefficient = get(0),
+        xCoefficient = get(1),
     )
 

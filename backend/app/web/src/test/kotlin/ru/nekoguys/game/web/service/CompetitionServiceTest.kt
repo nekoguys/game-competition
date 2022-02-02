@@ -37,8 +37,8 @@ class CompetitionServiceTest @Autowired constructor(
 }
 
 val DEFAULT_CREATE_DRAFT_COMPETITION_REQUEST = CreateCompetitionRequest(
-    demandFormula = listOf("-2.0", "4.0"),
-    expensesFormula = listOf("1.0", "-3.0", "-2.0"),
+    demandFormula = listOf(-2.0, 4.0),
+    expensesFormula = listOf(1.0, -3.0, -2.0),
     instruction = "Test instruction",
     isAutoRoundEnding = true,
     maxTeamSize = 5,

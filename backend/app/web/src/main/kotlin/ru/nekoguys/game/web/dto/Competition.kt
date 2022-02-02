@@ -2,16 +2,22 @@ package ru.nekoguys.game.web.dto
 
 import com.fasterxml.jackson.databind.PropertyNamingStrategies
 import com.fasterxml.jackson.databind.annotation.JsonNaming
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
+import com.fasterxml.jackson.databind.ser.impl.IndexedStringListSerializer
 import javax.validation.constraints.NotNull
 import javax.validation.constraints.Size
 
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
 data class CreateCompetitionRequest(
+    @NotNull
     @Size(min = 2, max = 2, message = "Demand formula should contain 2 values separated by ;")
-    val demandFormula: List<String>,
+    @JsonSerialize(using = IndexedStringListSerializer::class)
+    val demandFormula: List<Double>,
 
-    @NotNull @Size(min = 3, max = 3, message = "Expenses formula should contain 3 values separated by ;")
-    val expensesFormula: List<String>,
+    @NotNull
+    @Size(min = 3, max = 3, message = "Expenses formula should contain 3 values separated by ;")
+    @JsonSerialize(using = IndexedStringListSerializer::class)
+    val expensesFormula: List<Double>,
 
     val instruction: String? = null,
     val isAutoRoundEnding: Boolean? = null,

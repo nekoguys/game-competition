@@ -52,6 +52,7 @@ class CompetitionPropertiesRepositoryTest @Autowired constructor(
 
 val DEFAULT_COMPETITION_SETTINGS = CompetitionSettings(
     demandFormula = CompetitionDemandFormula(-1.0, 2.0),
+    endRoundBeforeAllAnswered = true,
     expensesFormula = CompetitionExpensesFormula(-2.0, 4.0, -1.0),
     instruction = "There is no instruction",
     isAutoRoundEnding = true,
@@ -60,9 +61,8 @@ val DEFAULT_COMPETITION_SETTINGS = CompetitionSettings(
     name = "Default competition",
     roundLength = 15,
     roundsCount = 10,
-    shouldEndRoundBeforeAllAnswered = true,
-    shouldShowResultTableInEnd = true,
-    shouldShowStudentPreviousRoundResults = true,
     showOtherTeamsMembers = true,
-    teamLossUpperbound = 999,
+    showPreviousRoundResults = true,
+    showStudentsResultsTable = true,
+    teamLossLimit = 999,
 )

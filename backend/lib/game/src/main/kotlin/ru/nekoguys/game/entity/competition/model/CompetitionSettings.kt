@@ -2,6 +2,7 @@ package ru.nekoguys.game.entity.competition.model
 
 data class CompetitionSettings(
     val demandFormula: CompetitionDemandFormula,
+    val endRoundBeforeAllAnswered: Boolean,
     val expensesFormula: CompetitionExpensesFormula,
     val instruction: String,
     val isAutoRoundEnding: Boolean,
@@ -10,11 +11,10 @@ data class CompetitionSettings(
     val name: String,
     val roundLength: Int,
     val roundsCount: Int,
-    val shouldEndRoundBeforeAllAnswered: Boolean,
-    val shouldShowResultTableInEnd: Boolean,
-    val shouldShowStudentPreviousRoundResults: Boolean,
     val showOtherTeamsMembers: Boolean,
-    val teamLossUpperbound: Int,
+    val showPreviousRoundResults: Boolean,
+    val showStudentsResultsTable: Boolean,
+    val teamLossLimit: Int,
 )
 
 data class CompetitionExpensesFormula(
@@ -24,6 +24,6 @@ data class CompetitionExpensesFormula(
 )
 
 data class CompetitionDemandFormula(
-    val xCoefficient: Double,
     val freeCoefficient: Double,
+    val xCoefficient: Double,
 )

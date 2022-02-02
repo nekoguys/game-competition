@@ -65,7 +65,7 @@ fun CompetitionSettings.toDbCompetitionProperties(
         parentId = parentId,
         autoRoundEnding = isAutoRoundEnding,
         demandFormula = demandFormula.toDbString(),
-        endRoundBeforeAllAnswered = shouldEndRoundBeforeAllAnswered,
+        endRoundBeforeAllAnswered = endRoundBeforeAllAnswered,
         expensesFormula = expensesFormula.toDbString(),
         instruction = instruction,
         maxTeamSize = maxTeamSize,
@@ -74,9 +74,9 @@ fun CompetitionSettings.toDbCompetitionProperties(
         roundLengthInSeconds = roundLength,
         roundsCount = roundsCount,
         showOtherTeamsMembers = showOtherTeamsMembers,
-        showPreviousRoundResults = shouldShowStudentPreviousRoundResults,
-        showStudentsResultsTable = shouldShowResultTableInEnd,
-        teamLossLimit = teamLossUpperbound,
+        showPreviousRoundResults = showPreviousRoundResults,
+        showStudentsResultsTable = showStudentsResultsTable,
+        teamLossLimit = teamLossLimit,
     )
 
 fun DbCompetitionProperties.toCompetitionSettings() =
@@ -90,11 +90,11 @@ fun DbCompetitionProperties.toCompetitionSettings() =
         name = name,
         roundLength = roundLengthInSeconds,
         roundsCount = roundsCount,
-        shouldEndRoundBeforeAllAnswered = endRoundBeforeAllAnswered,
-        shouldShowResultTableInEnd = showStudentsResultsTable,
-        shouldShowStudentPreviousRoundResults = showPreviousRoundResults,
+        endRoundBeforeAllAnswered = endRoundBeforeAllAnswered,
+        showStudentsResultsTable = showStudentsResultsTable,
+        showPreviousRoundResults = showPreviousRoundResults,
         showOtherTeamsMembers = showOtherTeamsMembers,
-        teamLossUpperbound = teamLossLimit,
+        teamLossLimit = teamLossLimit,
     )
 
 fun CompetitionExpensesFormula.toDbString(): String =
@@ -107,7 +107,7 @@ fun String.toCompetitionExpensesFormulaOrNull(): CompetitionExpensesFormula? =
         ?.let { (a, b, c) -> CompetitionExpensesFormula(a, b, c) }
 
 fun CompetitionDemandFormula.toDbString(): String =
-    "${xCoefficient};${freeCoefficient}"
+    "${freeCoefficient};${xCoefficient}"
 
 fun String.toCompetitionDemandFormulaOrNull(): CompetitionDemandFormula? =
     split(";")
