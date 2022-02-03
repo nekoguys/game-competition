@@ -14,9 +14,8 @@ import ru.nekoguys.game.web.dto.SignUpResponse
 import ru.nekoguys.game.web.service.AuthService
 import ru.nekoguys.game.web.util.withMDCContext
 
-@CrossOrigin(origins = ["*"], maxAge = 3600)
-@RequestMapping(path = ["/api/auth"], produces = [MediaType.APPLICATION_JSON_VALUE])
 @Controller
+@RequestMapping(path = ["/api/auth"], produces = [MediaType.APPLICATION_JSON_VALUE])
 class AuthController(
     private val authService: AuthService,
 ) {
@@ -28,8 +27,7 @@ class AuthController(
 
     @PostMapping("/signup")
     suspend fun signUp(
-        @RequestBody
-        request: SignUpRequest,
+        @RequestBody request: SignUpRequest,
     ): ResponseEntity<SignUpResponse> =
         withMDCContext { authService.signUp(request) }
 }

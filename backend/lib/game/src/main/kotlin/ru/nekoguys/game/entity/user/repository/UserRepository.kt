@@ -10,13 +10,14 @@ interface UserRepository {
         role: UserRole,
     ): User
 
-    suspend fun load(userId: Long): User?
+    suspend fun find(userId: Long): User?
 
     suspend fun findByEmail(email: String): User?
-
-    suspend fun load(userId: User.Id): User
 
     suspend fun updateUser(user: User)
 
     suspend fun deleteUser(userId: User.Id)
 }
+
+suspend fun UserRepository.load(userId: User.Id): User =
+    find(userId.number) ?: error("User with ID $userId doesn't exist")

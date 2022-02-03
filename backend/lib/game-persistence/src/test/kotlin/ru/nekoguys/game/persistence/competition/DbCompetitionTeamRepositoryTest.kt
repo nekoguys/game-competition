@@ -8,38 +8,39 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import ru.nekoguys.game.persistence.GamePersistenceTest
-import ru.nekoguys.game.persistence.competition.model.DbCompetitionProcessInfo
+import ru.nekoguys.game.persistence.commongame.repository.DbGamePropertiesRepository
+import ru.nekoguys.game.persistence.commongame.repository.DbGameSessionRepository
+import ru.nekoguys.game.persistence.competition.model.DbCompetitionSession
 import ru.nekoguys.game.persistence.competition.model.DbCompetitionTeam
 import ru.nekoguys.game.persistence.competition.model.DbCompetitionTeamBan
 import ru.nekoguys.game.persistence.competition.model.DbCompetitionTeamMember
-import ru.nekoguys.game.persistence.competition.repository.*
-import ru.nekoguys.game.persistence.session.repository.DbGamePropertiesRepository
-import ru.nekoguys.game.persistence.session.repository.DbGameSessionsRepository
+import ru.nekoguys.game.persistence.competition.repository.DbCompetitionSessionRepository
+import ru.nekoguys.game.persistence.competition.repository.DbCompetitionTeamBanRepository
+import ru.nekoguys.game.persistence.competition.repository.DbCompetitionTeamMemberRepository
+import ru.nekoguys.game.persistence.competition.repository.DbCompetitionTeamRepository
 import ru.nekoguys.game.persistence.user.repository.DbUserRepository
 
 @GamePersistenceTest
 internal class DbCompetitionTeamRepositoryTest @Autowired constructor(
-    private val dbCompetitionProcessInfoRepository: DbCompetitionProcessInfoRepository,
-    private val userRepository: DbUserRepository,
-    private val gameSessionsRepository: DbGameSessionsRepository,
-    private val gamePropertiesRepository: DbGamePropertiesRepository,
-    private val gameStateRepository: DbCompetitionStateRepository,
-    private val competitionTeamRepository: DbCompetitionTeamRepository,
-    private val competitionTeamBanRepository: DbCompetitionTeamBanRepository,
-    private val competitionTeamMemberRepository: DbCompetitionTeamMemberRepository,
+    private val dbCompetitionSessionRepository: DbCompetitionSessionRepository,
+    private val dbCompetitionTeamBanRepository: DbCompetitionTeamBanRepository,
+    private val dbCompetitionTeamMemberRepository: DbCompetitionTeamMemberRepository,
+    private val dbCompetitionTeamRepository: DbCompetitionTeamRepository,
+    private val dbGamePropertiesRepository: DbGamePropertiesRepository,
+    private val dbGameSessionRepository: DbGameSessionRepository,
+    private val dbUserRepository: DbUserRepository,
 ) {
-
     @Test
     fun `team, team members and bans insertion and retrieval`(): Unit = runBlocking {
-        val processInfo = processInfo("sample_email")
+        val processInfo = competitionSession("sample_email")
 
         val team = DbCompetitionTeam(
-            gameId = processInfo.gameId,
+            gameId = processInfo.parentId!!,
             teamNumber = 0,
-        ).let { competitionTeamRepository.save(it) }
+        ).let { dbCompetitionTeamRepository.save(it) }
 
         val teamMembers: List<DbCompetitionTeamMember> =
-            userRepository
+            dbUserRepository
                 .findAll()
                 .withIndex()
                 .map {
@@ -49,35 +50,31 @@ internal class DbCompetitionTeamRepositoryTest @Autowired constructor(
                         captain = it.index == 0,
                     )
                 }
-                .let { competitionTeamMemberRepository.saveAll(it) }
+                .let { dbCompetitionTeamMemberRepository.saveAll(it) }
                 .toList()
 
-        val bannedTeam = DbCompetitionTeamBan.newTeamBan(
+        val bannedTeam = DbCompetitionTeamBan(
             teamId = team.teamId!!,
             banRound = 2,
-        ).let { competitionTeamBanRepository.save(it) }
-
-        assertThat(bannedTeam.isNewTeam).isTrue
-        bannedTeam.isNewTeam = false
+        ).let { dbCompetitionTeamBanRepository.save(it) }
 
         val retrievedTeamMembers =
-            competitionTeamMemberRepository
+            dbCompetitionTeamMemberRepository
                 .findAllByTeamId(team.teamId!!)
                 .toList()
-        assertThat(competitionTeamBanRepository.findById(bannedTeam.teamId))
+        assertThat(dbCompetitionTeamBanRepository.findById(bannedTeam.teamId))
             .isEqualTo(bannedTeam)
         assertThat(retrievedTeamMembers)
             .containsExactlyInAnyOrderElementsOf(teamMembers)
     }
 
-    private suspend fun processInfo(userEmail: String): DbCompetitionProcessInfo {
-        return createProcessInfo(
+    private suspend fun competitionSession(userEmail: String): DbCompetitionSession {
+        return createCompetitionSession(
             userEmail,
-            userRepository,
-            gamePropertiesRepository,
-            gameSessionsRepository,
-            gameStateRepository,
-            dbCompetitionProcessInfoRepository
+            dbUserRepository,
+            dbGamePropertiesRepository,
+            dbGameSessionRepository,
+            dbCompetitionSessionRepository,
         )
     }
 }
