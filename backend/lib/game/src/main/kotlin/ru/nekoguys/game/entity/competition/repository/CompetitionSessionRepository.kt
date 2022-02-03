@@ -20,4 +20,10 @@ interface CompetitionSessionRepository {
     ): CompetitionSession
 
     suspend fun load(id: CommonSession.Id): CompetitionSession
+
+    suspend fun findByCreatorId(
+        creatorId: Long,
+        limit: Int,
+        offset: Int,
+    ): List<CompetitionSession>
 }

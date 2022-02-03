@@ -1,4 +1,4 @@
-package ru.nekoguys.game.entity.commongame.service
+package ru.nekoguys.game.entity.commongame.repository
 
 import ru.nekoguys.game.entity.commongame.model.CommonSession
 

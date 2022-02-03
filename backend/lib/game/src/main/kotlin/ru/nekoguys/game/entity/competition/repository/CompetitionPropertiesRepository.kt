@@ -1,5 +1,6 @@
 package ru.nekoguys.game.entity.competition.repository
 
+import org.springframework.data.domain.Pageable
 import ru.nekoguys.game.entity.commongame.model.CommonProperties
 import ru.nekoguys.game.entity.competition.model.CompetitionProperties
 import ru.nekoguys.game.entity.competition.model.CompetitionSettings
@@ -18,4 +19,13 @@ interface CompetitionPropertiesRepository {
     suspend fun find(
         propertiesId: Long,
     ): CompetitionProperties?
+
+    suspend fun findAllByIds(
+        propertiesIds: Collection<Long>,
+    ): List<CompetitionProperties>
+
+    suspend fun findByCreatorId(
+        creatorId: Long,
+        page: Pageable,
+    ): List<CompetitionProperties>
 }

@@ -1,6 +1,5 @@
 package ru.nekoguys.game.web.controller
 
-import org.springframework.data.domain.PageRequest
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
@@ -8,8 +7,9 @@ import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.*
 import ru.nekoguys.game.web.dto.CreateCompetitionRequest
 import ru.nekoguys.game.web.dto.CreateCompetitionResponse
-import ru.nekoguys.game.web.dto.GetCompetitionHistoryResponse
+import ru.nekoguys.game.web.dto.GetCompetitionResponse
 import ru.nekoguys.game.web.service.CompetitionService
+import ru.nekoguys.game.web.util.toOkResponse
 import ru.nekoguys.game.web.util.withMDCContext
 import java.security.Principal
 import javax.validation.Valid
@@ -47,11 +47,12 @@ class CompetitionController(
         principal: Principal,
         @PathVariable start: Int,
         @PathVariable amount: Int,
-    ): ResponseEntity<GetCompetitionHistoryResponse> =
+    ): ResponseEntity<List<GetCompetitionResponse>> =
         withMDCContext {
             competitionService.getCompetitionHistory(
                 userEmail = principal.name,
-                page = PageRequest.of(start / amount, amount),
-            )
+                limit = amount,
+                offset = start,
+            ).toOkResponse()
         }
 }

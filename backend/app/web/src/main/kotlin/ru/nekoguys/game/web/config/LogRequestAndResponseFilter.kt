@@ -35,7 +35,7 @@ class LogRequestAndResponseFilter : WebFilter {
         val logResponseMono: Mono<Void> = Mono.deferContextual { context ->
             val requestId = context.extractRequestId()
             MDC.putCloseable(REQUEST_ID_CONTEXT_KEY, requestId).use {
-                logOnResponse(startTime, exchange)
+                logResponse(startTime, exchange)
             }
             Mono.empty()
         }
@@ -51,7 +51,7 @@ class LogRequestAndResponseFilter : WebFilter {
         logger.info("Got {} request {}", method, uri)
     }
 
-    private fun logOnResponse(startTime: Long, exchange: ServerWebExchange) {
+    private fun logResponse(startTime: Long, exchange: ServerWebExchange) {
         val statusCode = exchange.response.statusCode
         val time = System.currentTimeMillis()
         val timeElapsedSeconds = ((time - startTime) / 1000.0)

@@ -60,7 +60,7 @@ CREATE TABLE IF NOT EXISTS competition_game_props
 CREATE TABLE IF NOT EXISTS game_sessions
 (
     id                 BIGSERIAL PRIMARY KEY,
-    props_id           bigint    NOT NULL,
+    props_id           bigint NOT NULL,
     last_modified_date timestamp
 );
 

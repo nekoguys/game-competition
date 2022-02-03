@@ -1,9 +1,11 @@
 package ru.nekoguys.game.web.dto
 
+import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.databind.PropertyNamingStrategies
 import com.fasterxml.jackson.databind.annotation.JsonNaming
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer
+import java.time.LocalDateTime
 import javax.validation.constraints.NotNull
 import javax.validation.constraints.Size
 
@@ -46,24 +48,25 @@ sealed interface CreateCompetitionResponse {
 }
 
 
-data class CompetitionInfo(
-    val name: String,
-    val state: String? = null,
-    val expensesFormula: List<String>,
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
+data class GetCompetitionResponse(
     val demandFormula: List<String>,
-    val maxTeamsAmount: Int? = null,
-    val maxTeamSize: Int? = null,
-    val roundsCount: Int? = null,
-    val roundLength: Int? = null,
-    val teamLossUpperbound: Double? = null,
-    val instruction: String? = null,
-    val shouldShowStudentPreviousRoundResults: Boolean? = null,
-    val shouldEndRoundBeforeAllAnswered: Boolean? = null,
-    val shouldShowResultTableInEnd: Boolean? = null,
-    val isAutoRoundEnding: Boolean? = null,
-    val showOtherTeamsMembers: Boolean? = null,
+    val expensesFormula: List<String>,
+    val instruction: String,
+    val isAutoRoundEnding: Boolean,
+    val isOwned: Boolean,
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy")
+    val lastUpdateTime: LocalDateTime,
+    val maxTeamSize: Int,
+    val maxTeamsAmount: Int,
+    val name: String,
+    val pin: String,
+    val roundLength: Int,
+    val roundsCount: Int,
+    val shouldEndRoundBeforeAllAnswered: Boolean,
+    val shouldShowResultTableInEnd: Boolean,
+    val shouldShowStudentPreviousRoundResults: Boolean,
+    val showOtherTeamsMembers: Boolean,
+    val state: String,
+    val teamLossUpperbound: Double,
 )
-
-class GetCompetitionHistoryResponse(
-    sessions: List<CompetitionInfo>,
-) : List<CompetitionInfo> by sessions

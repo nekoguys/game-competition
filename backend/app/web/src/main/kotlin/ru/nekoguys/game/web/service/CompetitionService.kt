@@ -1,23 +1,19 @@
 package ru.nekoguys.game.web.service
 
-import org.springframework.data.domain.Pageable
-import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
-import ru.nekoguys.game.entity.competition.model.CompetitionDemandFormula
-import ru.nekoguys.game.entity.competition.model.CompetitionExpensesFormula
-import ru.nekoguys.game.entity.competition.model.CompetitionSettings
-import ru.nekoguys.game.entity.competition.model.CompetitionStage
+import ru.nekoguys.game.entity.commongame.service.SessionPinGenerator
+import ru.nekoguys.game.entity.competition.model.*
 import ru.nekoguys.game.entity.competition.repository.CompetitionSessionRepository
 import ru.nekoguys.game.entity.user.repository.UserRepository
 import ru.nekoguys.game.web.dto.CreateCompetitionRequest
 import ru.nekoguys.game.web.dto.CreateCompetitionResponse
-import ru.nekoguys.game.web.dto.GetCompetitionHistoryResponse
-import ru.nekoguys.game.web.util.toOkResponse
+import ru.nekoguys.game.web.dto.GetCompetitionResponse
 
 @Service
 class CompetitionService(
     private val userRepository: UserRepository,
     private val sessionRepository: CompetitionSessionRepository,
+    private val sessionPinGenerator: SessionPinGenerator,
 ) {
     suspend fun create(
         userEmail: String,
@@ -33,8 +29,8 @@ class CompetitionService(
         )
 
         return if (session.stage == CompetitionStage.Registration) {
-            val pin = session.id.number.toString()
-            CreateCompetitionResponse.CreatedRegistered(pin)
+            val pin = sessionPinGenerator.convertSessionIdToPin(session.id)
+            CreateCompetitionResponse.CreatedRegistered(pin.toString())
         } else {
             CreateCompetitionResponse.Created
         }
@@ -42,9 +38,22 @@ class CompetitionService(
 
     suspend fun getCompetitionHistory(
         userEmail: String,
-        page: Pageable,
-    ): ResponseEntity<GetCompetitionHistoryResponse> {
-        return GetCompetitionHistoryResponse(emptyList()).toOkResponse()
+        limit: Int,
+        offset: Int,
+    ): List<GetCompetitionResponse> {
+        val user = userRepository.findByEmail(userEmail)
+        checkNotNull(user)
+
+        return sessionRepository
+            .findByCreatorId(user.id.number, limit, offset)
+            .map {
+                it.toCompetitionHistoryResponseItem(
+                    isOwned = true,
+                    pin = sessionPinGenerator
+                        .convertSessionIdToPin(it.id)
+                        .toString(),
+                )
+            }
     }
 
     /*
@@ -101,3 +110,34 @@ private fun List<Double>.toCompetitionDemandFormula() =
         xCoefficient = get(1),
     )
 
+private fun CompetitionSession.toCompetitionHistoryResponseItem(
+    isOwned: Boolean,
+    pin: String,
+) =
+    GetCompetitionResponse(
+        demandFormula = listOf(
+            properties.settings.demandFormula.freeCoefficient.toString(),
+            properties.settings.demandFormula.xCoefficient.toString(),
+        ),
+        expensesFormula = listOf(
+            properties.settings.expensesFormula.xSquareCoefficient.toString(),
+            properties.settings.expensesFormula.xCoefficient.toString(),
+            properties.settings.expensesFormula.freeCoefficient.toString(),
+        ),
+        instruction = properties.settings.instruction,
+        isAutoRoundEnding = properties.settings.isAutoRoundEnding,
+        isOwned = isOwned,
+        lastUpdateTime = lastModified,
+        maxTeamSize = properties.settings.maxTeamSize,
+        maxTeamsAmount = properties.settings.maxTeamsAmount,
+        name = properties.settings.name,
+        pin = pin,
+        roundLength = properties.settings.roundLength,
+        roundsCount = properties.settings.roundsCount,
+        shouldEndRoundBeforeAllAnswered = properties.settings.endRoundBeforeAllAnswered,
+        shouldShowResultTableInEnd = properties.settings.showStudentsResultsTable,
+        shouldShowStudentPreviousRoundResults = properties.settings.showPreviousRoundResults,
+        showOtherTeamsMembers = properties.settings.showOtherTeamsMembers,
+        state = stage.name.lowercase().replaceFirstChar(Char::uppercase),
+        teamLossUpperbound = properties.settings.teamLossLimit.toDouble(),
+    )
