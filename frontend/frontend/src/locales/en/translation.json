@@ -25,7 +25,8 @@
       "exit": "Exit",
       "history": "Games history",
       "create": "Create Game",
-      "join": "Join Game"
+      "join": "Join Game",
+      "back_to_main_page": "Main page"
     }
   },
   "competition_process": {

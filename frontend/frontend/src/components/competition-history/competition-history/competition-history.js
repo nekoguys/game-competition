@@ -1,5 +1,5 @@
 import React from "react";
-import NavbarHeader from "../navbar-header";
+import {NavbarHeaderWithFetcher as NavbarHeader} from "../../app/app";
 import {NotificationContainer} from "react-notifications";
 import CompetitionCollection from './competition-collection';
 import DefaultSubmitButton from "../../common/default-submit-button";

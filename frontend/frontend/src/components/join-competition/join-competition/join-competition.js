@@ -1,7 +1,7 @@
 import React from "react";
 import JoinCompetitionForm from "../join-competition-captain-form";
 import DefaultCheckboxButtonGroup from "../../common/default-checkbox-button-group";
-import NavbarHeader from "../../competition-history/navbar-header/navbar-header";
+import {NavbarHeaderWithFetcher as NavbarHeader} from "../../app/app";
 import toSnakeCase from "../../../helpers/snake-case-helper";
 import JoinCompetitionPlayerForm from "../join-competition-player-form";
 import ApiHelper from "../../../helpers/api-helper";

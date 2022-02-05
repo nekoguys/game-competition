@@ -1,0 +1,42 @@
+.menu-button:hover {
+    background-color: #8d92a4;
+}
+
+.dropdown-content {
+    position: absolute;
+    z-index: 1;
+    display: block;
+    background-color: white;
+    padding: 8px;
+    border-radius: 10px;
+    left: -30px;
+    top: -10px;
+}
+
+.dropdown-element {
+    padding: 2px;
+    border-radius: 4px;
+    background-color: white;
+}
+
+.dropdown-element:hover {
+    background-color: #f1f1f1;
+}
+
+.user-info {
+    font-size: 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding-right: 10px;
+}
+
+@media (max-width: 500px) {
+    .dropdown-content {
+        left: -60px;
+    }
+
+    .user-info {
+        font-size: 16px;
+    }
+}

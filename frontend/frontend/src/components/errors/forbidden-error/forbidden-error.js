@@ -1,5 +1,5 @@
 import React from "react";
-import NavbarHeader from "../../competition-history/navbar-header";
+import {NavbarHeaderWithFetcher as NavbarHeader} from "../../app/app";
 import DefaultSubmitButton from "../../common/default-submit-button";
 import {withRouter} from "../../../helpers/with-router";
 import isAuthenticated from "../../../helpers/is-authenticated";

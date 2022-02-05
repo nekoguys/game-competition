@@ -25,7 +25,8 @@
       "exit": "Выйти",
       "history": "История игр",
       "create": "Создать игру",
-      "join": "Войти в игру"
+      "join": "Войти в игру",
+      "back_to_main_page": "На главную"
     }
   },
   "competition_process": {

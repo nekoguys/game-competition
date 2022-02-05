@@ -2,7 +2,7 @@ import React from "react";
 
 import "./root.css";
 import CompetitionResultsTable from "../../competition-process-teacher/results-table";
-import NavbarHeader from "../../../competition-history/navbar-header/navbar-header";
+import {NavbarHeaderWithFetcher as NavbarHeader} from "../../../app/app";
 import ReadonlyMessagesContainer from "../messages";
 import ApiHelper from "../../../../helpers/api-helper";
 import TeamCollection from "../../../join-competition/join-competition-player-form/team-collection";

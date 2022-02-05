@@ -23,6 +23,7 @@ import ApiHelper from "../../helpers/api-helper";
 import isAuthenticated, {getUTCSeconds} from "../../helpers/is-authenticated";
 import OAuthLogin from "../auth/oauth-login";
 import {LocalizationHelper} from "../../helpers/localization-helper";
+import NavbarHeader from "../competition-history/navbar-header";
 
 const signinFetcher = {
     mock: (_) => {
@@ -51,6 +52,19 @@ const verificationFetcher = {
     real: (token) => { return apiFetcher(token, (token) => ApiHelper.accountVerification(token)) }
 }["real"];
 
+const userInfoFetcher = {
+    mock: (_) => {
+        return new Promise(resolve => setTimeout(() => {
+            resolve({userDescription: "Иванов И.И."})
+        }))
+    },
+    real: () => { return apiFetcher({}, (_) => ApiHelper.getNavBarInfo()) }
+}["mock"]
+
+export const NavbarHeaderWithFetcher = (props) => {
+    return <NavbarHeader userInfoFetcher={userInfoFetcher} {...props}/>
+}
+
 const historyFetcher = {
     mock: (_) => {
         return new Promise(resolve => setTimeout(() => {
@@ -64,7 +78,7 @@ const historyFetcher = {
                 {
                     name: "Ко",
                     state: "Registration",
-                    pin: "1234",
+                    pin: "12345",
                     owned: false
                 }
             ])

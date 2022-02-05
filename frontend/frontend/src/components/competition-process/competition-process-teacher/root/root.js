@@ -1,7 +1,7 @@
 import React from "react";
 
 import "./root.css";
-import NavbarHeader from "../../../competition-history/navbar-header/navbar-header";
+import {NavbarHeaderWithFetcher as NavbarHeader} from "../../../app/app";
 import CompetitionProcessTeacherBody from "../body";
 import withRedirect from "../../../../helpers/redirect-helper";
 import showNotification from "../../../../helpers/notification-helper";
