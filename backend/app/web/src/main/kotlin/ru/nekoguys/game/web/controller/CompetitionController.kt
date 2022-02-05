@@ -5,17 +5,20 @@ import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.*
-import ru.nekoguys.game.web.dto.CreateCompetitionRequest
-import ru.nekoguys.game.web.dto.CreateCompetitionResponse
-import ru.nekoguys.game.web.dto.GetCompetitionResponse
+import ru.nekoguys.game.web.dto.*
 import ru.nekoguys.game.web.service.CompetitionService
+import ru.nekoguys.game.web.util.toBadRequestResponse
 import ru.nekoguys.game.web.util.toOkResponse
 import ru.nekoguys.game.web.util.withMDCContext
 import java.security.Principal
 import javax.validation.Valid
 
 @Controller
-@RequestMapping(path = ["/api/competitions"], produces = [MediaType.APPLICATION_JSON_VALUE])
+@RequestMapping(
+    path = ["/api/competitions"],
+    consumes = [MediaType.APPLICATION_JSON_VALUE],
+    produces = [MediaType.APPLICATION_JSON_VALUE],
+)
 class CompetitionController(
     private val competitionService: CompetitionService,
 ) {
@@ -34,14 +37,11 @@ class CompetitionController(
 
     private fun CreateCompetitionResponse.toResponseEntity(): ResponseEntity<out CreateCompetitionResponse> =
         when (this) {
-            is CreateCompetitionResponse.Created -> ResponseEntity.ok(this)
-            is CreateCompetitionResponse.CreatedRegistered -> ResponseEntity.ok(this)
+            is CreateCompetitionResponse.Created -> toOkResponse()
+            is CreateCompetitionResponse.CreatedRegistered -> toOkResponse()
         }
 
-    @GetMapping(
-        "/competitions_history/{start}/{amount}",
-        produces = [MediaType.APPLICATION_JSON_VALUE],
-    )
+    @GetMapping("/competitions_history/{start}/{amount}")
     @PreAuthorize("hasRole('STUDENT')")
     suspend fun competitionsHistory(
         principal: Principal,
@@ -54,5 +54,43 @@ class CompetitionController(
                 limit = amount,
                 offset = start,
             ).toOkResponse()
+        }
+
+    @PostMapping("/create_team")
+    @PreAuthorize("hasRole('STUDENT')")
+    suspend fun createTeam(
+        principal: Principal,
+        @RequestBody request: CreateTeamRequest,
+    ): ResponseEntity<out CreateTeamResponse> =
+        withMDCContext {
+            competitionService.createTeam(
+                studentEmail = principal.name,
+                request = request,
+            ).toResponseEntity()
+        }
+
+    private fun CreateTeamResponse.toResponseEntity(): ResponseEntity<out CreateTeamResponse> =
+        when (this) {
+            is CreateTeamResponse.Success -> toOkResponse()
+            is CreateTeamResponse.GameNotFound -> toBadRequestResponse()
+        }
+
+    @PostMapping("/join_team")
+    @PreAuthorize("hasRole('STUDENT')")
+    suspend fun joinTeam(
+        principal: Principal,
+        @RequestBody request: JoinTeamRequest,
+    ): ResponseEntity<out JoinTeamResponse> =
+        withMDCContext {
+            competitionService.joinTeam(
+                studentEmail = principal.name,
+                request = request,
+            ).toResponseEntity()
+        }
+
+    private fun JoinTeamResponse.toResponseEntity(): ResponseEntity<out JoinTeamResponse> =
+        when (this) {
+            is JoinTeamResponse.Success -> toOkResponse()
+            else -> error("")
         }
 }

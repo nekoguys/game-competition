@@ -12,10 +12,8 @@ import ru.nekoguys.game.persistence.commongame.repository.DbGamePropertiesReposi
 import ru.nekoguys.game.persistence.commongame.repository.DbGameSessionRepository
 import ru.nekoguys.game.persistence.competition.model.DbCompetitionSession
 import ru.nekoguys.game.persistence.competition.model.DbCompetitionTeam
-import ru.nekoguys.game.persistence.competition.model.DbCompetitionTeamBan
 import ru.nekoguys.game.persistence.competition.model.DbCompetitionTeamMember
 import ru.nekoguys.game.persistence.competition.repository.DbCompetitionSessionRepository
-import ru.nekoguys.game.persistence.competition.repository.DbCompetitionTeamBanRepository
 import ru.nekoguys.game.persistence.competition.repository.DbCompetitionTeamMemberRepository
 import ru.nekoguys.game.persistence.competition.repository.DbCompetitionTeamRepository
 import ru.nekoguys.game.persistence.user.repository.DbUserRepository
@@ -23,7 +21,6 @@ import ru.nekoguys.game.persistence.user.repository.DbUserRepository
 @GamePersistenceTest
 internal class DbCompetitionTeamRepositoryTest @Autowired constructor(
     private val dbCompetitionSessionRepository: DbCompetitionSessionRepository,
-    private val dbCompetitionTeamBanRepository: DbCompetitionTeamBanRepository,
     private val dbCompetitionTeamMemberRepository: DbCompetitionTeamMemberRepository,
     private val dbCompetitionTeamRepository: DbCompetitionTeamRepository,
     private val dbGamePropertiesRepository: DbGamePropertiesRepository,
@@ -35,8 +32,11 @@ internal class DbCompetitionTeamRepositoryTest @Autowired constructor(
         val processInfo = competitionSession("sample_email")
 
         val team = DbCompetitionTeam(
-            gameId = processInfo.parentId!!,
+            id = null,
+            sessionId = processInfo.parentId!!,
             teamNumber = 0,
+            name = "Test Team",
+            banRound = null
         ).let { dbCompetitionTeamRepository.save(it) }
 
         val teamMembers: List<DbCompetitionTeamMember> =
@@ -45,25 +45,19 @@ internal class DbCompetitionTeamRepositoryTest @Autowired constructor(
                 .withIndex()
                 .map {
                     DbCompetitionTeamMember(
-                        teamId = team.teamId!!,
-                        memberId = it.value.id!!,
+                        id = null,
+                        teamId = team.id!!,
+                        userId = it.value.id!!,
                         captain = it.index == 0,
                     )
                 }
                 .let { dbCompetitionTeamMemberRepository.saveAll(it) }
                 .toList()
 
-        val bannedTeam = DbCompetitionTeamBan(
-            teamId = team.teamId!!,
-            banRound = 2,
-        ).let { dbCompetitionTeamBanRepository.save(it) }
-
         val retrievedTeamMembers =
             dbCompetitionTeamMemberRepository
-                .findAllByTeamId(team.teamId!!)
+                .findAllByTeamId(team.id!!)
                 .toList()
-        assertThat(dbCompetitionTeamBanRepository.findById(bannedTeam.teamId))
-            .isEqualTo(bannedTeam)
         assertThat(retrievedTeamMembers)
             .containsExactlyInAnyOrderElementsOf(teamMembers)
     }

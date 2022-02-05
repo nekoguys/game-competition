@@ -55,6 +55,11 @@ fun <P, Cmd> GameCommandRequest(
     command: Cmd,
 ): GameCommandRequest<P, Cmd> = GameCommandRequestImpl(player, command)
 
+fun <T : GameCommandRequest<*, *>> T.toDeferred(
+    timeoutMillis: Long = 0,
+): DeferredCommandRequest<T> =
+    DeferredCommandRequest(this, timeoutMillis)
+
 /**
  * Запрос, отправляемый в игровую сессию для её закрытия.
  *

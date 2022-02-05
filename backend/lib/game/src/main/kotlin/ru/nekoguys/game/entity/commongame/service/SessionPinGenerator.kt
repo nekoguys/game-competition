@@ -2,21 +2,28 @@ package ru.nekoguys.game.entity.commongame.service
 
 import org.springframework.stereotype.Component
 import ru.nekoguys.game.entity.commongame.model.CommonSession
+import ru.nekoguys.game.entity.competition.repository.CompetitionSessionRepository
 
 /**
  * Генерация пин-кода игры по ID сессии c использованием модульной арифметики
  */
 @Component
-class SessionPinGenerator {
-    fun convertSessionIdToPin(sessionId: CommonSession.Id): Long {
+class SessionPinGenerator(
+    private val sessionRepository: CompetitionSessionRepository,
+) {
+    fun convertSessionIdToPin(sessionId: CommonSession.Id): String {
         val id = sessionId.number.toBigInteger()
         val idModulo = id % MODULO
         val pinModulo = idModulo * MULTIPLIER % MODULO
-        return (id - idModulo + pinModulo).toLong()
+        return (id - idModulo + pinModulo).toString()
     }
 
-    fun decodeIdFromPin(sessionPin: Long): Long {
-        val pin = sessionPin.toBigInteger()
+    suspend fun decodeIdFromPinSafely(sessionPin: String): CommonSession.Id? =
+        decodeIdFromPin(sessionPin)
+            ?.let { sessionRepository.findSessionId(it) }
+
+    fun decodeIdFromPin(sessionPin: String): Long? {
+        val pin = sessionPin.toBigIntegerOrNull() ?: return null
         val pinModulo = pin % MODULO
         val idModulo = pinModulo * MULTIPLIER_INVERT % MODULO
         return (pin - pinModulo + idModulo).toLong()

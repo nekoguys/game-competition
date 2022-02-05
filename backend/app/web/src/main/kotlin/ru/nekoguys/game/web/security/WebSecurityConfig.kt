@@ -10,7 +10,7 @@ import org.springframework.security.config.annotation.web.reactive.EnableWebFlux
 import org.springframework.security.config.web.server.SecurityWebFiltersOrder
 import org.springframework.security.config.web.server.ServerHttpSecurity
 import org.springframework.security.config.web.server.invoke
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
+import org.springframework.security.crypto.factory.PasswordEncoderFactories
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.server.SecurityWebFilterChain
 import org.springframework.security.web.server.authentication.AuthenticationWebFilter
@@ -69,7 +69,7 @@ class WebSecurityConfig(
 
     @Bean
     fun passwordEncoder(): PasswordEncoder =
-        BCryptPasswordEncoder()
+        PasswordEncoderFactories.createDelegatingPasswordEncoder()
 
     private fun jwtAuthenticationFilter(): AuthenticationWebFilter {
         // Так как вся логика по проверке аутентификации

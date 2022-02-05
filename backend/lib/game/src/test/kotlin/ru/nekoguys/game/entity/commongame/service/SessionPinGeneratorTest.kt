@@ -1,18 +1,38 @@
 package ru.nekoguys.game.entity.commongame.service
 
+import io.mockk.coEvery
+import io.mockk.impl.annotations.MockK
+import io.mockk.junit5.MockKExtension
+import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
-import org.springframework.beans.factory.annotation.Autowired
-import ru.nekoguys.game.entity.GameEntityTest
+import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.extension.ExtendWith
 import ru.nekoguys.game.entity.commongame.model.CommonSession
+import ru.nekoguys.game.entity.competition.repository.CompetitionSessionRepository
 
-@GameEntityTest
-class SessionPinGeneratorTest @Autowired constructor(
-    private val sessionPinGenerator: SessionPinGenerator,
-) {
+@ExtendWith(MockKExtension::class)
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+class SessionPinGeneratorTest {
+
+    @MockK
+    private lateinit var competitionSessionRepository: CompetitionSessionRepository
+
+    private lateinit var sessionPinGenerator: SessionPinGenerator
+
+    @BeforeAll
+    fun before() {
+        coEvery {
+            competitionSessionRepository.findSessionId(any())
+        } answers { CommonSession.Id(firstArg()) }
+
+        sessionPinGenerator = SessionPinGenerator(competitionSessionRepository)
+    }
+
     @Test
     fun `session id have unique pin`() {
-        val sessionIds = (0..100_000L).map { CommonSession.Id(it) }
+        val sessionIds = (0..20_000L).map { CommonSession.Id(it) }
 
         val pins = sessionIds
             .map { sessionPinGenerator.convertSessionIdToPin(it) }
@@ -23,15 +43,15 @@ class SessionPinGeneratorTest @Autowired constructor(
     }
 
     @Test
-    fun `id can be encoded and decoded back`() {
-        val sessionIds = (0..100_000L).map { CommonSession.Id(it) }
+    fun `id can be encoded and decoded back`(): Unit = runBlocking {
+        val sessionIds = (0..20_000L).map { CommonSession.Id(it) }
 
         val encodedSessionIds = sessionIds
             .associateWith { sessionPinGenerator.convertSessionIdToPin(it) }
-            .mapValues { (_, pin) -> sessionPinGenerator.decodeIdFromPin(pin) }
+            .mapValues { (_, pin) -> sessionPinGenerator.decodeIdFromPinSafely(pin) }
 
         val isAllEquals = encodedSessionIds
-            .all { (id, encodedIds) -> id.number == encodedIds }
+            .all { (id, encodedIds) -> id == encodedIds!! }
 
         assertThat(isAllEquals)
             .describedAs("All sessionIds are encoded and decoded correctly")

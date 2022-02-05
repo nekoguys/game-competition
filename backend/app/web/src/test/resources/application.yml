@@ -1,4 +1,0 @@
-spring:
-  r2dbc:
-    generate-unique-name: true
-    url: "r2dbc:h2:mem://testdb;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1;"

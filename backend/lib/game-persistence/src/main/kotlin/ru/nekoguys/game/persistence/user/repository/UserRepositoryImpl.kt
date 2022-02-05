@@ -1,5 +1,7 @@
 package ru.nekoguys.game.persistence.user.repository
 
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import org.springframework.stereotype.Repository
 import ru.nekoguys.game.entity.user.model.User
 import ru.nekoguys.game.entity.user.model.UserRole
@@ -13,6 +15,7 @@ import ru.nekoguys.game.persistence.user.model.toUserOrNull
 class UserRepositoryImpl(
     private val dbUserRepository: DbUserRepository,
 ) : UserRepository {
+
     override suspend fun create(
         email: String,
         password: String,
@@ -30,13 +33,12 @@ class UserRepositoryImpl(
             ?: error("User created successfully, but it can't be parsed into core model: $dbUser")
     }
 
-    override suspend fun updateUser(user: User) {
-        dbUserRepository.save(user.toDbUser())
-    }
-
-    override suspend fun deleteUser(userId: User.Id) {
-        dbUserRepository.deleteById(userId.number)
-    }
+    override fun findAll(userIds: Iterable<Long>): Flow<User> =
+        dbUserRepository
+            .findAllById(userIds)
+            .map {
+                it.toUserOrNull() ?: error("Can't parse role for user: $it")
+            }
 
     override suspend fun find(userId: Long): User? =
         dbUserRepository
@@ -47,5 +49,13 @@ class UserRepositoryImpl(
         dbUserRepository
             .findByEmail(email)
             ?.let { it.toUserOrNull() ?: error("Can't parse role for user: $it") }
+
+    override suspend fun updateUser(user: User) {
+        dbUserRepository.save(user.toDbUser())
+    }
+
+    override suspend fun deleteUser(userId: User.Id) {
+        dbUserRepository.deleteById(userId.number)
+    }
 }
 

@@ -6,8 +6,11 @@ data class User(
     val password: String,
     val role: UserRole,
 ) {
-    @JvmInline
-    value class Id(val number: Long)
+    data class Id(val number: Long)
+
+    override fun toString(): String {
+        return "User(id=$id, email='$email', password='HIDDEN', role=$role)"
+    }
 }
 
 sealed interface UserRole {

@@ -9,6 +9,7 @@ import ru.nekoguys.game.core.GameCommandRequest
 import ru.nekoguys.game.core.GameMessage
 import ru.nekoguys.game.core.GameRule
 import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 
 /**
  * Публичное API игры.
@@ -62,7 +63,7 @@ fun <P2, Msg> GameSession<*, *, P2, Msg>.getMessages(player: P2): Flow<Msg> =
 @Suppress("FunctionName")
 fun <P, Cmd, P2, Msg> createGameSession(
     rule: GameRule<P, Cmd, P2, Msg>,
-    parentContext: CoroutineContext,
+    parentContext: CoroutineContext = EmptyCoroutineContext,
     replay: Int? = null,
     messageLog: GameMessageLog<P2, Msg>? = null,
     commandLog: GameCommandRequestLog<P, Cmd>? = null,

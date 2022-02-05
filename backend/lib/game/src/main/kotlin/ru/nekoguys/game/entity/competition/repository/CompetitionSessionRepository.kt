@@ -19,6 +19,8 @@ interface CompetitionSessionRepository {
         stage: CompetitionStage,
     ): CompetitionSession
 
+    suspend fun findSessionId(id: Long): CommonSession.Id?
+
     suspend fun load(id: CommonSession.Id): CompetitionSession
 
     suspend fun findByCreatorId(

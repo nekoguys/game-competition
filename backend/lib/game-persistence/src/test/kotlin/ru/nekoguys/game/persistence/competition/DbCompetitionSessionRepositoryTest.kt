@@ -70,19 +70,22 @@ internal class DbCompetitionSessionRepositoryTest @Autowired constructor(
         ).let { dbCompetitionRoundInfoRepository.save(it) }
 
         val team = DbCompetitionTeam(
-            gameId = competitionSession.parentId!!,
+            id = null,
+            sessionId = competitionSession.parentId!!,
             teamNumber = 1,
+            name = "Test Team",
+            banRound = null,
         ).let { dbCompetitionTeamRepository.save(it) }
 
         val answer = DbCompetitionRoundAnswer(
             roundInfoId = roundInfo.id!!,
-            teamId = team.teamId!!,
+            teamId = team.id!!,
             value = 10,
         ).let { dbCompetitionRoundAnswerRepository.save(it) }
 
         val teamRoundResult = DbCompetitionRoundResult(
             roundInfoId = roundInfo.id!!,
-            teamId = team.teamId!!,
+            teamId = team.id!!,
             income = 20.0,
         ).let { dbCompetitionRoundResultRepository.save(it) }
 

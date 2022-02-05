@@ -42,7 +42,8 @@ class CompetitionSessionRepositoryTest @Autowired constructor(
                 creatorId = user.id,
             ),
             stage = CompetitionStage.InProgress(round = 4),
-            lastModified = createdSession.lastModified
+            lastModified = createdSession.lastModified,
+            teams = emptyList(),
         )
 
         val actualSession = competitionSessionRepository.load(createdSession.id)

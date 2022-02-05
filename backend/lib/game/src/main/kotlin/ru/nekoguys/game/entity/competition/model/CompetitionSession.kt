@@ -8,6 +8,7 @@ data class CompetitionSession(
     override val properties: CompetitionProperties,
     override val lastModified: LocalDateTime,
     val stage: CompetitionStage,
+    val teams: List<CompetitionTeam>,
 ) : CommonSession<CompetitionProperties>
 
 sealed class CompetitionStage(val name: String) {

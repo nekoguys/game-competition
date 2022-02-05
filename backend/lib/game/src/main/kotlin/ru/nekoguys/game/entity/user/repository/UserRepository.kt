@@ -1,5 +1,6 @@
 package ru.nekoguys.game.entity.user.repository
 
+import kotlinx.coroutines.flow.Flow
 import ru.nekoguys.game.entity.user.model.User
 import ru.nekoguys.game.entity.user.model.UserRole
 
@@ -9,6 +10,8 @@ interface UserRepository {
         password: String,
         role: UserRole,
     ): User
+
+    fun findAll(userIds: Iterable<Long>): Flow<User>
 
     suspend fun find(userId: Long): User?
 
