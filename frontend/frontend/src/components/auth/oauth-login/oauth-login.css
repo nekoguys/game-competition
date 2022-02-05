@@ -1,0 +1,60 @@
+.greeting-title {
+    font-size: 28px;
+    white-space: pre-line;
+    text-align: center;
+    font-weight: 500;
+    line-height: 35px;
+}
+
+.greeting-title-container {
+    padding-top: 52px;
+}
+
+.sign-button-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding-top: 52px;
+}
+
+.language-switch-container {
+    padding-top: 31px;
+    justify-content: center;
+    align-items: center;
+    display: flex;
+}
+
+.microsoft-signin-button {
+    background-color: #ffffff;
+    color: #5e5e5e;
+    border-width: 1px;
+    border-color: #8c8c8c;
+    margin: 0 auto;
+}
+
+.logo-container {
+    margin: 20% auto 0 auto;
+    height: 223px;
+}
+
+img {
+    height: 100%;
+    max-height: 100%;
+    display: block;
+    margin: 0 auto;
+}
+
+@media (max-width: 500px) {
+    .greeting-title {
+        font-size: 24px;
+        line-height: 29px;
+    }
+
+    .greeting-title-container {
+        padding-top: 34px;
+    }
+
+    .logo-container {
+        margin-top: 25%;
+    }
+}

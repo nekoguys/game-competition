@@ -7,6 +7,9 @@
       "password": "Password",
       "button": "Enter"
     },
+    "oauth": {
+      "greeting": "Welcome\nto the platform “Competition”"
+    },
     "register": {
       "button": "Register",
       "repeat_password": "Confirm password"

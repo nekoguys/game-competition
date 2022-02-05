@@ -21,6 +21,8 @@ import FinalStrategySubmissionComponent
 import apiFetcher from "../../helpers/api-fetcher";
 import ApiHelper from "../../helpers/api-helper";
 import isAuthenticated, {getUTCSeconds} from "../../helpers/is-authenticated";
+import OAuthLogin from "../auth/oauth-login";
+import {LocalizationHelper} from "../../helpers/localization-helper";
 
 const signinFetcher = {
     mock: (_) => {
@@ -29,7 +31,7 @@ const signinFetcher = {
         )
     },
     real: (params) => { return apiFetcher(params, (credentials) => ApiHelper.signin(credentials)) }
-}["real"];
+}["mock"];
 
 const signupFetcher = {
     mock: (_) => {
@@ -69,7 +71,7 @@ const historyFetcher = {
         }))
     },
     real: (start, count) => { return apiFetcher([start, count], (params) => ApiHelper.competitionsHistory(params[0], params[1])) }
-}["real"]
+}["mock"]
 
 const paths = [
     {
@@ -89,6 +91,13 @@ const paths = [
                 storage.setItem("roles", resp.authorities.map(el => el.authority));
                 storage.setItem("expirationTimestamp", resp.expirationTimestamp);
             }
+        }
+    },
+    {
+        path: "/auth/oauth",
+        component: OAuthLogin,
+        props: {
+            localizationHelper: new LocalizationHelper()
         }
     },
     {
