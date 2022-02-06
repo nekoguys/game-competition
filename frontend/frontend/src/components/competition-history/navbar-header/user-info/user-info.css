@@ -1,5 +1,16 @@
+.menu-button {
+    border-radius: 50%;
+    background-color: #959BAF;
+    margin: auto;
+    transition: color .15s ease-in-out,background-color .15s ease-in-out,border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+}
+
 .menu-button:hover {
     background-color: #8d92a4;
+}
+
+.menu-button-content > .profile-button {
+    outline: 0;
 }
 
 .dropdown-content {

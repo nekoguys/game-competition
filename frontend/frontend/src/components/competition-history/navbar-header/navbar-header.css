@@ -7,13 +7,6 @@
     background: #BBC2D3;
 }
 
-.menu-button {
-    border-radius: 50%;
-    background-color: #959BAF;
-    margin: auto;
-    transition: color .15s ease-in-out,background-color .15s ease-in-out,border-color .15s ease-in-out,box-shadow .15s ease-in-out;
-}
-
 .navbar-button {
     height: 44px;
     margin: auto;
