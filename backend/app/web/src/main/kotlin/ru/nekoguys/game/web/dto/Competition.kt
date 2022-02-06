@@ -92,6 +92,13 @@ sealed interface CreateTeamResponse {
     ) : CreateTeamResponse {
         val message = "Game with pin $sessionPin not found"
     }
+
+    object IncorrectName : CreateTeamResponse {
+        @Suppress("MayBeConstant")
+        val message = "Team name is empty or too small"
+    }
+
+    class ProcessError(val message: String) : CreateTeamResponse
 }
 
 data class JoinTeamRequest(
@@ -110,27 +117,33 @@ sealed interface JoinTeamResponse {
     ) : JoinTeamResponse {
         val message = "No competition with pin: $sessionPin"
     }
+
+    data class ProcessError(val message: String) : JoinTeamResponse
 }
 
+data class CheckGamePinRequest(
+    val pin: String,
+)
+
+data class CheckGamePinResponse(
+    val exists: Boolean,
+)
+
+data class TeamUpdateNotification(
+    val teamName: String,
+    val idInGame: Int,
+    val teamMembers: List<String>,
+)
+
 /*
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-@Getter
-@ToString
-public class NewTeam implements Serializable {
-    private static final long serialVersionUID = 909136386277440685L;
+public class TeamCreationEventDto implements Serializable {
+    private static final long serialVersionUID = -4502650950386932982L;
 
-    @JsonProperty("game_id")
-    private String competitionId;
+    private String teamName;
 
-    @JsonProperty("team_name")
-    private String name;
+    private int idInGame;
 
-    @JsonProperty("captain_email")
-    private String captainEmail;
-
-    private String password;
+    private List<String> teamMembers;
 }
 
  */

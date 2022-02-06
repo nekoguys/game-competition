@@ -1,16 +1,16 @@
 package ru.nekoguys.game.entity.competition.rule
 
 import org.springframework.stereotype.Component
+import ru.nekoguys.game.core.util.buildResponse
 import ru.nekoguys.game.entity.competition.model.CompetitionPlayer
 import ru.nekoguys.game.entity.competition.repository.CompetitionPropertiesRepository
 import ru.nekoguys.game.entity.competition.repository.CompetitionTeamRepository
 
-sealed class CompetitionCreateTeamMessage : CompetitionMessage() {
-    data class TeamCreated(
-        val id: Long,
-        val name: String,
-    ) : CompetitionCreateTeamMessage()
-}
+data class CompetitionCreateTeamMessage(
+    val teamName: String,
+    val idInGame: Int,
+    val captainEmail: String,
+) : CompetitionMessage()
 
 @Component
 class CompetitionCreateTeamRule(
@@ -25,12 +25,20 @@ class CompetitionCreateTeamRule(
         val properties =
             competitionPropertiesRepository.loadBySessionId(player.sessionId)
 
-        competitionTeamRepository.create(
+        val team = competitionTeamRepository.create(
             creator = player,
             name = command.teamName,
             maxTeams = properties.settings.maxTeamsAmount,
         )
 
-        return emptyList()
+        return buildResponse {
+            team.id {
+                +CompetitionCreateTeamMessage(
+                    teamName = team.name,
+                    idInGame = team.numberInGame,
+                    captainEmail = team.captain.user.email,
+                )
+            }
+        }
     }
 }

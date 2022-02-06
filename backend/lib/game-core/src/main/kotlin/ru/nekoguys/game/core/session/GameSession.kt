@@ -3,7 +3,6 @@ package ru.nekoguys.game.core.session
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
 import ru.nekoguys.game.core.CloseGameSessionRequest
 import ru.nekoguys.game.core.GameCommandRequest
 import ru.nekoguys.game.core.GameMessage
@@ -53,9 +52,6 @@ fun <P2, Msg> GameSession<*, *, P2, Msg>.getAllMessages(): Flow<GameMessage<P2, 
 
 fun <P2, Msg> GameSession<*, *, P2, Msg>.getMessages(player: P2): Flow<Msg> =
     getAllMessages()
-        .onEach {
-            println(it)
-        }
         .filter { player in it.players }
         .map { it.body }
 
@@ -69,7 +65,7 @@ fun <P, Cmd, P2, Msg> createGameSession(
     commandLog: GameCommandRequestLog<P, Cmd>? = null,
     onClose: suspend () -> Unit = {},
 ): GameSession<P, Cmd, P2, Msg> {
-    val interceptors: List<InternalGameSessionInterceptor<P, Cmd, P2, Msg>> = buildList {
+    val wrappers: List<InternalGameSessionWrapper<P, Cmd, P2, Msg>> = buildList {
         if (messageLog != null) {
             add { GameSessionWithMessageLogging(it, messageLog) }
         }
@@ -88,7 +84,7 @@ fun <P, Cmd, P2, Msg> createGameSession(
         replay = replay ?: if (messageLog == null) Int.MAX_VALUE else 1,
     )
 
-    return interceptors.fold(baseSession) { s, interceptor -> interceptor(s) }
+    return wrappers.fold(baseSession) { s, wrapper -> wrapper(s) }
 }
 
 internal interface InternalGameSession<in P, in Cmd, P2, Msg>
@@ -108,5 +104,5 @@ internal interface InternalGameSession<in P, in Cmd, P2, Msg>
     suspend fun shareMessages(messages: Collection<GameMessage<P2, Msg>>)
 }
 
-internal typealias InternalGameSessionInterceptor<P, Cmd, P2, Msg> =
+internal typealias InternalGameSessionWrapper<P, Cmd, P2, Msg> =
             (InternalGameSession<P, Cmd, P2, Msg>) -> InternalGameSession<P, Cmd, P2, Msg>

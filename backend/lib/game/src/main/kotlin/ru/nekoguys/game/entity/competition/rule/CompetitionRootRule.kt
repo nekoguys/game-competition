@@ -3,6 +3,7 @@ package ru.nekoguys.game.entity.competition.rule
 import org.springframework.stereotype.Service
 import ru.nekoguys.game.core.GameMessage
 import ru.nekoguys.game.core.GameRule
+import ru.nekoguys.game.entity.competition.CompetitionProcessException
 import ru.nekoguys.game.entity.competition.model.*
 
 sealed class CompetitionCommand {
@@ -39,16 +40,32 @@ class CompetitionRootRule(
     ): List<CompGameMessage<CompetitionMessage>> =
         when (command) {
             is CompetitionCommand.CreateTeam -> {
-                require(player is CompetitionPlayer.Unknown) { "Player $player must be unknown" }
+                if (player !is CompetitionPlayer.Unknown) {
+                    val msg = if (player is CompetitionPlayer.TeamCaptain) {
+                        "${player.user.email} is Captain and is in another team already"
+                    } else {
+                        "Player $player must not be a member of any team"
+                    }
+                    throw CompetitionProcessException(msg)
+                }
                 createTeamRule.process(player, command)
             }
+
+            is CompetitionCommand.JoinTeam -> {
+                if (player !is CompetitionPlayer.Unknown) {
+                    val msg = if (player is CompetitionPlayer) {
+                        "This user is in another team already"
+                    } else {
+                        "Player $player must not be a member of any team"
+                    }
+                    throw CompetitionProcessException(msg)
+                }
+                joinTeamRule.process(player, command)
+            }
+
             is CompetitionCommand.ChangeStageCommand -> {
                 require(player is InternalPlayer) { "Player $player must be internal" }
                 changeStageRule.process(player, command)
-            }
-            is CompetitionCommand.JoinTeam -> {
-                require(player is CompetitionPlayer.Unknown) { "Player $player must be unknown" }
-                joinTeamRule.process(player, command)
             }
         }
 }

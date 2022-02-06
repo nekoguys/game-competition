@@ -21,7 +21,10 @@ interface CompetitionSessionRepository {
 
     suspend fun findSessionId(id: Long): CommonSession.Id?
 
-    suspend fun load(id: CommonSession.Id): CompetitionSession
+    suspend fun load(id: CommonSession.Id): CompetitionSession =
+        find(id.number) ?: error("Session with id $id must exist")
+
+    suspend fun find(id: Long): CompetitionSession?
 
     suspend fun findByCreatorId(
         creatorId: Long,

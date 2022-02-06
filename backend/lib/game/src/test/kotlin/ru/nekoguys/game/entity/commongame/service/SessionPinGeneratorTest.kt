@@ -48,7 +48,7 @@ class SessionPinGeneratorTest {
 
         val encodedSessionIds = sessionIds
             .associateWith { sessionPinGenerator.convertSessionIdToPin(it) }
-            .mapValues { (_, pin) -> sessionPinGenerator.decodeIdFromPinSafely(pin) }
+            .mapValues { (_, pin) -> sessionPinGenerator.decodeIdFromPin(pin) }
 
         val isAllEquals = encodedSessionIds
             .all { (id, encodedIds) -> id == encodedIds!! }

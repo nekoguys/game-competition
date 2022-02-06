@@ -6,7 +6,7 @@ CREATE TABLE users
     password VARCHAR NOT NULL
 );
 
-CREATE INDEX users_email_index
+CREATE UNIQUE INDEX users_email_unique_index
     ON users (email);
 
 CREATE TABLE game_props
@@ -60,6 +60,9 @@ CREATE TABLE competition_teams
     name        VARCHAR NOT NULL,
     ban_round   INT     NULL
 );
+
+CREATE UNIQUE INDEX competition_teams_session_id_name_unique_index
+    ON competition_teams (session_id, name);
 
 CREATE TABLE competition_team_members
 (

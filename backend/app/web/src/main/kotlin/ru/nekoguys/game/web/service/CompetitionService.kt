@@ -1,11 +1,15 @@
 package ru.nekoguys.game.web.service
 
+import kotlinx.coroutines.flow.*
 import org.springframework.stereotype.Service
 import ru.nekoguys.game.entity.commongame.service.SessionPinGenerator
+import ru.nekoguys.game.entity.competition.CompetitionProcessException
 import ru.nekoguys.game.entity.competition.CompetitionProcessService
 import ru.nekoguys.game.entity.competition.model.*
 import ru.nekoguys.game.entity.competition.repository.CompetitionSessionRepository
 import ru.nekoguys.game.entity.competition.rule.CompetitionCommand
+import ru.nekoguys.game.entity.competition.rule.CompetitionCreateTeamMessage
+import ru.nekoguys.game.entity.competition.rule.CompetitionJoinTeamMessage
 import ru.nekoguys.game.entity.user.repository.UserRepository
 import ru.nekoguys.game.web.dto.*
 
@@ -13,7 +17,7 @@ import ru.nekoguys.game.web.dto.*
 class CompetitionService(
     private val competitionProcessService: CompetitionProcessService,
     private val sessionPinGenerator: SessionPinGenerator,
-    private val sessionRepository: CompetitionSessionRepository,
+    private val competitionSessionRepository: CompetitionSessionRepository,
     private val userRepository: UserRepository,
 ) {
     suspend fun create(
@@ -23,7 +27,7 @@ class CompetitionService(
         val user = userRepository.findByEmail(userEmail)
         checkNotNull(user)
 
-        val session = sessionRepository.create(
+        val session = competitionSessionRepository.create(
             userId = user.id,
             settings = request.extractCompetitionSettings(),
             stage = request.state.toCompetitionStage(),
@@ -45,7 +49,7 @@ class CompetitionService(
         val user = userRepository.findByEmail(userEmail)
         checkNotNull(user)
 
-        return sessionRepository
+        return competitionSessionRepository
             .findByCreatorId(user.id.number, limit, offset)
             .map {
                 it.toCompetitionHistoryResponseItem(
@@ -59,23 +63,30 @@ class CompetitionService(
         studentEmail: String,
         request: CreateTeamRequest,
     ): CreateTeamResponse {
+        if (request.teamName.length < 4) {
+            return CreateTeamResponse.IncorrectName
+        }
+
         val captain = userRepository
             .findByEmail(studentEmail)
-            ?: error("No such user: studentEmail")
+            ?: error("No such user: $studentEmail")
 
         val sessionId = sessionPinGenerator
-            .decodeIdFromPinSafely(request.pin)
+            .decodeIdFromPin(request.pin)
             ?: return CreateTeamResponse.GameNotFound(request.pin)
 
-        competitionProcessService.acceptCommand(
-            sessionId = sessionId,
-            user = captain,
-            command = CompetitionCommand.CreateTeam(
-                teamName = request.teamName,
-            ),
-        )
-
-        return CreateTeamResponse.Success
+        return try {
+            competitionProcessService.acceptCommand(
+                sessionId = sessionId,
+                user = captain,
+                command = CompetitionCommand.CreateTeam(
+                    teamName = request.teamName,
+                ),
+            )
+            CreateTeamResponse.Success
+        } catch (ex: CompetitionProcessException) {
+            CreateTeamResponse.ProcessError(ex.message)
+        }
     }
 
     suspend fun joinTeam(
@@ -87,20 +98,57 @@ class CompetitionService(
             ?: error("No such user: studentEmail")
 
         val sessionId = sessionPinGenerator
-            .decodeIdFromPinSafely(request.competitionPin)
+            .decodeIdFromPin(request.competitionPin)
             ?: return JoinTeamResponse.GameNotFound(request.competitionPin)
 
-        competitionProcessService.acceptCommand(
-            sessionId = sessionId,
-            user = captain,
-            command = CompetitionCommand.JoinTeam(
-                teamName = request.teamName,
-            ),
-        )
+        return try {
+            competitionProcessService.acceptCommand(
+                sessionId = sessionId,
+                user = captain,
+                command = CompetitionCommand.JoinTeam(
+                    teamName = request.teamName,
+                ),
+            )
+            JoinTeamResponse.Success(request.teamName)
+        } catch (ex: CompetitionProcessException) {
+            JoinTeamResponse.ProcessError(ex.message)
+        }
+    }
 
-        return JoinTeamResponse.Success(
-            currentTeamName = request.teamName,
-        )
+    fun teamJoinMessageFlow(
+        userEmail: String,
+        sessionPin: String,
+    ): Flow<TeamUpdateNotification> = flow {
+        val sessionId = sessionPinGenerator
+            .decodeIdFromPin(sessionPin)
+            ?: error("Incorrect pin")
+
+        competitionProcessService
+            .getAllMessagesForSession(sessionId)
+            .map { it.body } // не смотрим, каким командам отправлено сообщение
+            .transform { msg ->
+                val notification = when (msg) {
+                    is CompetitionCreateTeamMessage -> msg.toUpdateNotification()
+                    is CompetitionJoinTeamMessage -> msg.toUpdateNotification()
+                    else -> return@transform
+                }
+                emit(notification)
+            }
+            .collect(::emit)
+    }
+
+    suspend fun ifSessionCanBeJoined(
+        sessionPin: String,
+    ): Boolean {
+        val sessionId = sessionPinGenerator
+            .decodeIdFromPinUnsafe(sessionPin)
+            ?: return false
+
+        val session = competitionSessionRepository
+            .find(sessionId)
+            ?: return false
+
+        return session.stage == CompetitionStage.Registration
     }
 
     /*
@@ -205,4 +253,18 @@ private fun CompetitionSession.toCompetitionHistoryResponseItem(
         showOtherTeamsMembers = properties.settings.showOtherTeamsMembers,
         state = stage.name.lowercase().replaceFirstChar(Char::uppercase),
         teamLossUpperbound = properties.settings.teamLossLimit.toDouble(),
+    )
+
+private fun CompetitionCreateTeamMessage.toUpdateNotification(): TeamUpdateNotification =
+    TeamUpdateNotification(
+        teamName = teamName,
+        idInGame = idInGame,
+        teamMembers = listOf(captainEmail)
+    )
+
+private fun CompetitionJoinTeamMessage.toUpdateNotification(): TeamUpdateNotification =
+    TeamUpdateNotification(
+        teamName = teamName,
+        idInGame = idInGame,
+        teamMembers = membersEmails,
     )

@@ -3,6 +3,7 @@ package ru.nekoguys.game.entity.competition.rule
 import org.springframework.stereotype.Component
 import ru.nekoguys.game.core.util.buildResponse
 import ru.nekoguys.game.entity.competition.model.CompetitionPlayer
+import ru.nekoguys.game.entity.competition.model.teamMembers
 import ru.nekoguys.game.entity.competition.repository.CompetitionPlayerRepository
 import ru.nekoguys.game.entity.competition.repository.CompetitionPropertiesRepository
 import ru.nekoguys.game.entity.competition.repository.CompetitionTeamRepository
@@ -10,7 +11,7 @@ import ru.nekoguys.game.entity.competition.repository.CompetitionTeamRepository
 data class CompetitionJoinTeamMessage(
     val teamName: String,
     val idInGame: Int,
-    val teamMembers: List<String>,
+    val membersEmails: List<String>,
 ) : CompetitionMessage()
 
 @Component
@@ -39,14 +40,24 @@ class CompetitionJoinTeamRule(
             user = player.user,
             teamId = team.id,
         )
-        competitionPlayerRepository.save(newMember, maxPlayers = properties.settings.maxTeamSize)
+
+        try {
+            competitionPlayerRepository.save(
+                newMember,
+                maxPlayers = properties.settings.maxTeamSize,
+            )
+        } catch (ex: Throwable) {
+            val x = 1 + 2
+            println(x)
+        }
 
         return buildResponse {
             team.id {
                 +CompetitionJoinTeamMessage(
                     teamName = command.teamName,
-                    idInGame = 0,
-                    teamMembers = team.teamMates.map { it.user.email },
+                    idInGame = team.numberInGame,
+                    membersEmails = (team.teamMembers + newMember)
+                        .map { it.user.email }
                 )
             }
         }

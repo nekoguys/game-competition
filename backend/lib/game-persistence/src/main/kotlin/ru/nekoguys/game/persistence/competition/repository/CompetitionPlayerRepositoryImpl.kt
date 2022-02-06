@@ -52,6 +52,7 @@ class CompetitionPlayerRepositoryImpl(
                 sessionId = sessionId.number,
                 userId = user.id.number,
             )
+
         if (dbCompetitionTeamMember != null) {
             return createTeamMember(
                 dbCompetitionTeamMember,

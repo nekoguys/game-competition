@@ -18,19 +18,19 @@ interface GameMessageLog<P, T> {
 }
 
 internal class GameSessionWithMessageLogging<in P, in Cmd, P2, Msg>(
-    private val interceptedSession: InternalGameSession<P, Cmd, P2, Msg>,
+    private val innerSession: InternalGameSession<P, Cmd, P2, Msg>,
     private val messageLog: GameMessageLog<P2, Msg>,
 ) : InternalGameSession<P, Cmd, P2, Msg> {
 
     override suspend fun acceptAndReturnMessages(
         request: GameCommandRequest<P, Cmd>,
     ): List<GameMessage<P2, Msg>> =
-        interceptedSession
+        innerSession
             .acceptAndReturnMessages(request)
             .also { messages -> logMessages(messages) }
 
     override suspend fun shareMessages(messages: Collection<GameMessage<P2, Msg>>) =
-        interceptedSession.shareMessages(messages)
+        innerSession.shareMessages(messages)
 
     private suspend fun logMessages(messages: Collection<GameMessage<P2, Msg>>) =
         messages
@@ -45,21 +45,21 @@ internal class GameSessionWithMessageLogging<in P, in Cmd, P2, Msg>(
         )
 
     override fun getAllMessagesIndexed(): Flow<IndexedValue<GameMessage<P2, Msg>>> =
-        interceptedSession.getAllMessagesIndexed()
+        innerSession.getAllMessagesIndexed()
 }
 
 internal class GameSessionWithMessagesFromLog<in P, in Cmd, P2, Msg>(
-    private val interceptedSession: InternalGameSession<P, Cmd, P2, Msg>,
+    private val innerSession: InternalGameSession<P, Cmd, P2, Msg>,
     private val messageLog: GameMessageLog<P2, Msg>,
 ) : InternalGameSession<P, Cmd, P2, Msg> {
 
     override suspend fun acceptAndReturnMessages(
         request: GameCommandRequest<P, Cmd>,
     ): List<GameMessage<P2, Msg>> =
-        interceptedSession.acceptAndReturnMessages(request)
+        innerSession.acceptAndReturnMessages(request)
 
     override suspend fun shareMessages(messages: Collection<GameMessage<P2, Msg>>) =
-        interceptedSession.shareMessages(messages)
+        innerSession.shareMessages(messages)
 
     override fun getAllMessagesIndexed(): Flow<IndexedValue<GameMessage<P2, Msg>>> =
         flow {
@@ -85,7 +85,7 @@ internal class GameSessionWithMessagesFromLog<in P, in Cmd, P2, Msg>(
             .withIndex()
 
     private fun getIndexedMessagesFromSession(startIndex: Int): Flow<IndexedValue<GameMessage<P2, Msg>>> =
-        interceptedSession
+        innerSession
             .getAllMessagesIndexed()
             .drop(startIndex)
 

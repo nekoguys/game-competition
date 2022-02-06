@@ -18,11 +18,11 @@ class SessionPinGenerator(
         return (id - idModulo + pinModulo).toString()
     }
 
-    suspend fun decodeIdFromPinSafely(sessionPin: String): CommonSession.Id? =
-        decodeIdFromPin(sessionPin)
+    suspend fun decodeIdFromPin(sessionPin: String): CommonSession.Id? =
+        decodeIdFromPinUnsafe(sessionPin)
             ?.let { sessionRepository.findSessionId(it) }
 
-    fun decodeIdFromPin(sessionPin: String): Long? {
+    fun decodeIdFromPinUnsafe(sessionPin: String): Long? {
         val pin = sessionPin.toBigIntegerOrNull() ?: return null
         val pinModulo = pin % MODULO
         val idModulo = pinModulo * MULTIPLIER_INVERT % MODULO

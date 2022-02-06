@@ -13,13 +13,13 @@ import ru.nekoguys.game.core.GameMessage
 
 
 internal class GameSessionWithDeferredCommands<in P, in Cmd, P2, Msg>(
-    private val interceptedSession: InternalGameSession<P, Cmd, P2, Msg>,
+    private val innerSession: InternalGameSession<P, Cmd, P2, Msg>,
 ) : InternalGameSession<P, Cmd, P2, Msg> {
 
     override suspend fun acceptAndReturnMessages(
         request: GameCommandRequest<P, Cmd>,
     ): List<GameMessage<P2, Msg>> {
-        val maybeDeferredMessages = interceptedSession
+        val maybeDeferredMessages = innerSession
             .acceptAndReturnMessages(request)
 
         val (deferreds, nonDeferredMessages) =
@@ -61,11 +61,11 @@ internal class GameSessionWithDeferredCommands<in P, in Cmd, P2, Msg>(
     }
 
     override suspend fun shareMessages(messages: Collection<GameMessage<P2, Msg>>) =
-        interceptedSession.shareMessages(messages)
+        innerSession.shareMessages(messages)
 
 
     override fun getAllMessagesIndexed(): Flow<IndexedValue<GameMessage<P2, Msg>>> =
-        interceptedSession
+        innerSession
             .getAllMessagesIndexed()
             .filter { it.value !is DeferredCommandRequest<*> }
 }

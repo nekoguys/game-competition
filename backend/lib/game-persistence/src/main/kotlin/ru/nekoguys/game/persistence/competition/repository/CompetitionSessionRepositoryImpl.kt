@@ -81,11 +81,7 @@ class CompetitionSessionRepositoryImpl(
         CommonSession.Id(id)
             .takeIf { dbCompetitionSessionRepository.existsById(id) }
 
-    override suspend fun load(id: CommonSession.Id): CompetitionSession =
-        find(id.number)
-            ?: error("")
-
-    suspend fun find(id: Long): CompetitionSession? {
+    override suspend fun find(id: Long): CompetitionSession? {
         val dbGameSession =
             dbGameSessionRepository.findById(id)
                 ?: return null

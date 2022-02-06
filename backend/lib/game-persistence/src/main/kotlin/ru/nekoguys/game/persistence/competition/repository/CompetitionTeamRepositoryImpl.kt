@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository
 import org.springframework.transaction.reactive.TransactionalOperator
 import org.springframework.transaction.reactive.executeAndAwait
 import ru.nekoguys.game.entity.commongame.model.CommonSession
+import ru.nekoguys.game.entity.competition.CompetitionProcessException
 import ru.nekoguys.game.entity.competition.model.CompetitionPlayer
 import ru.nekoguys.game.entity.competition.model.CompetitionTeam
 import ru.nekoguys.game.entity.competition.repository.CompetitionPlayerRepository
@@ -16,10 +17,10 @@ import ru.nekoguys.game.persistence.competition.model.DbCompetitionTeam
 
 @Repository
 class CompetitionTeamRepositoryImpl(
-    @Suppress("SpringJavaInjectionPointsAutowiringInspection")
-    private val transactionalOperator: TransactionalOperator,
     private val competitionPlayerRepository: CompetitionPlayerRepository,
     private val dbCompetitionTeamRepository: DbCompetitionTeamRepository,
+    @Suppress("SpringJavaInjectionPointsAutowiringInspection")
+    private val transactionalOperator: TransactionalOperator,
 ) : CompetitionTeamRepository {
 
     override suspend fun create(
@@ -30,19 +31,12 @@ class CompetitionTeamRepositoryImpl(
         val dbTeam = DbCompetitionTeam(
             id = null,
             sessionId = creator.sessionId.number,
-            teamNumber = -1,
+            teamNumber = -1, // номер пересчитается после создания кампании
             name = name,
             banRound = null,
-        ).let { dbCompetitionTeamRepository.save(it) }
-            .let {
-                val teamNumber = dbCompetitionTeamRepository
-                    .countBySessionIdAndIdLessThanEqual(it.sessionId, it.id!!)
-                if (teamNumber > maxTeams) {
-                    error("No more teams are allowed")
-                }
-                it.copy(teamNumber = teamNumber)
-            }
+        )
             .let { dbCompetitionTeamRepository.save(it) }
+            .let { generateAndSaveTeamNumber(it, maxTeams) }
 
         val captain = CompetitionPlayer.TeamCaptain(
             sessionId = creator.sessionId,
@@ -56,6 +50,22 @@ class CompetitionTeamRepositoryImpl(
             teamMates = emptyList(),
         )
     }!!
+
+    private suspend fun generateAndSaveTeamNumber(
+        dbTeam: DbCompetitionTeam,
+        maxTeams: Int,
+    ): DbCompetitionTeam {
+        val teamNumber = dbCompetitionTeamRepository
+            .countBySessionIdAndIdLessThanEqual(dbTeam.sessionId, dbTeam.id!!)
+
+        if (teamNumber > maxTeams) {
+            throw CompetitionProcessException(
+                "There are too much teams in competition, max amount: $maxTeams"
+            )
+        }
+
+        return dbCompetitionTeamRepository.save(dbTeam.copy(teamNumber = teamNumber))
+    }
 
     override suspend fun findByName(
         sessionId: CommonSession.Id,
@@ -106,9 +116,7 @@ class CompetitionTeamRepositoryImpl(
                 .await()
                 .map { dbTeam ->
                     val members = allMembers[dbTeam.id!!].orEmpty()
-                    val captain = members
-                        .first { it is CompetitionPlayer.TeamCaptain }
-                            as CompetitionPlayer.TeamCaptain
+                    val captain = members.first { it is CompetitionPlayer.TeamCaptain } as CompetitionPlayer.TeamCaptain
                     val teamMates = members
                         .filterIsInstance<CompetitionPlayer.TeamMate>()
 
@@ -140,6 +148,7 @@ private fun createCompetitionTeam(
         id = captain.teamId,
         sessionId = CommonSession.Id(dbTeam.sessionId),
         name = dbTeam.name,
+        numberInGame = dbTeam.teamNumber,
         captain = captain,
         teamMates = teamMates,
         isBanned = dbTeam.banRound != null,
