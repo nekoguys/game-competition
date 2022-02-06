@@ -1,9 +1,9 @@
 package ru.nekoguys.game.persistence.competition
 
-import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.transaction.reactive.TransactionalOperator
 import ru.nekoguys.game.persistence.GamePersistenceTest
 import ru.nekoguys.game.persistence.commongame.model.DbGameProperties
 import ru.nekoguys.game.persistence.commongame.model.DbGameSession
@@ -15,22 +15,24 @@ import ru.nekoguys.game.persistence.competition.repository.*
 import ru.nekoguys.game.persistence.user.model.DbUser
 import ru.nekoguys.game.persistence.user.model.DbUserRole
 import ru.nekoguys.game.persistence.user.repository.DbUserRepository
+import ru.nekoguys.game.persistence.utils.runBlockingWithRollback
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 
 @GamePersistenceTest
 internal class DbCompetitionSessionRepositoryTest @Autowired constructor(
-    private val dbCompetitionSessionRepository: DbCompetitionSessionRepository,
     private val dbCompetitionRoundAnswerRepository: DbCompetitionRoundAnswerRepository,
     private val dbCompetitionRoundInfoRepository: DbCompetitionRoundInfoRepository,
     private val dbCompetitionRoundResultRepository: DbCompetitionRoundResultRepository,
+    private val dbCompetitionSessionRepository: DbCompetitionSessionRepository,
     private val dbCompetitionTeamRepository: DbCompetitionTeamRepository,
     private val dbGamePropertiesRepository: DbGamePropertiesRepository,
     private val dbGameSessionRepository: DbGameSessionRepository,
     private val dbUserRepository: DbUserRepository,
+    private val transactionalOperator: TransactionalOperator,
 ) {
     @Test
-    fun `session insertion and retrieval`(): Unit = runBlocking {
+    fun `session insertion and retrieval`() = transactionalOperator.runBlockingWithRollback {
         val createdSession = createCompetitionSession("email")
 
         val retrievedSession = dbCompetitionSessionRepository.findById(createdSession.parentId!!)
@@ -40,7 +42,7 @@ internal class DbCompetitionSessionRepositoryTest @Autowired constructor(
     }
 
     @Test
-    fun `round info insertion and retrieval`(): Unit = runBlocking {
+    fun `round info insertion and retrieval`() = transactionalOperator.runBlockingWithRollback {
         val competitionSession = createCompetitionSession("email")
 
         val roundInfo = DbCompetitionRoundInfo(
@@ -58,7 +60,7 @@ internal class DbCompetitionSessionRepositoryTest @Autowired constructor(
     }
 
     @Test
-    fun `check answers submission`(): Unit = runBlocking {
+    fun `check answers submission`() = transactionalOperator.runBlockingWithRollback {
         val competitionSession = createCompetitionSession("email")
 
         val roundInfo = DbCompetitionRoundInfo(

@@ -43,7 +43,7 @@ sealed interface CreateCompetitionResponse {
         val message = "Competition created successfully"
     }
 
-    data class CreatedRegistered(
+    data class OpenedRegistration(
         val pin: String,
     ) : CreateCompetitionResponse
 }

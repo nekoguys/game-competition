@@ -1,9 +1,9 @@
 package ru.nekoguys.game.persistence.competition
 
-import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.transaction.reactive.TransactionalOperator
 import ru.nekoguys.game.persistence.GamePersistenceTest
 import ru.nekoguys.game.persistence.commongame.model.DbGameProperties
 import ru.nekoguys.game.persistence.commongame.model.DbGameType
@@ -13,18 +13,20 @@ import ru.nekoguys.game.persistence.competition.repository.DbCompetitionProperti
 import ru.nekoguys.game.persistence.user.model.DbUser
 import ru.nekoguys.game.persistence.user.model.DbUserRole
 import ru.nekoguys.game.persistence.user.repository.DbUserRepository
+import ru.nekoguys.game.persistence.utils.runBlockingWithRollback
 
 @GamePersistenceTest
 internal class DbCompetitionPropertiesRepositoryTest @Autowired constructor(
-    private val dbUserRepository: DbUserRepository,
-    private val dbGamePropertiesRepository: DbGamePropertiesRepository,
     private val dbCompetitionPropertiesRepository: DbCompetitionPropertiesRepository,
+    private val dbGamePropertiesRepository: DbGamePropertiesRepository,
+    private val dbUserRepository: DbUserRepository,
+    private val transactionalOperator: TransactionalOperator,
 ) {
     @Test
-    fun `insertion and retrieval`(): Unit = runBlocking {
+    fun `insertion and retrieval`() = transactionalOperator.runBlockingWithRollback {
         val user = DbUser(
             id = null,
-            email = "test@hse.ru",
+            email = "test-competition-properties@hse.ru",
             password = "897",
             role = DbUserRole.ADMIN,
         ).let { dbUserRepository.save(it) }

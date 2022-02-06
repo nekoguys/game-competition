@@ -1,21 +1,23 @@
 package ru.nekoguys.game.persistence.user
 
-import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.transaction.reactive.TransactionalOperator
 import ru.nekoguys.game.persistence.GamePersistenceTest
 import ru.nekoguys.game.persistence.user.model.DbUser
 import ru.nekoguys.game.persistence.user.model.DbUserRole
 import ru.nekoguys.game.persistence.user.repository.DbUserRepository
+import ru.nekoguys.game.persistence.utils.runBlockingWithRollback
 
 @GamePersistenceTest
 internal class DbUserRepositoryTest @Autowired constructor(
-    private val userRepository: DbUserRepository
+    private val transactionalOperator: TransactionalOperator,
+    private val userRepository: DbUserRepository,
 ) {
 
     @Test
-    fun `simple insertion and retrieval`(): Unit = runBlocking {
+    fun `simple insertion and retrieval`() = transactionalOperator.runBlockingWithRollback {
         val expectedUser = DbUser(
             email = "kpbenua@edu.hse.ru",
             password = "qwerty",

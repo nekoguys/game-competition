@@ -35,7 +35,7 @@ class CompetitionService(
 
         return if (session.stage == CompetitionStage.Registration) {
             val pin = sessionPinGenerator.convertSessionIdToPin(session.id)
-            CreateCompetitionResponse.CreatedRegistered(pin)
+            CreateCompetitionResponse.OpenedRegistration(pin)
         } else {
             CreateCompetitionResponse.Created
         }

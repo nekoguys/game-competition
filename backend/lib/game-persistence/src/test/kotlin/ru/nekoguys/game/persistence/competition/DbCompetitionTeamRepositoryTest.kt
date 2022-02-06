@@ -3,10 +3,10 @@ package ru.nekoguys.game.persistence.competition
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.withIndex
-import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.transaction.reactive.TransactionalOperator
 import ru.nekoguys.game.persistence.GamePersistenceTest
 import ru.nekoguys.game.persistence.commongame.repository.DbGamePropertiesRepository
 import ru.nekoguys.game.persistence.commongame.repository.DbGameSessionRepository
@@ -17,6 +17,7 @@ import ru.nekoguys.game.persistence.competition.repository.DbCompetitionSessionR
 import ru.nekoguys.game.persistence.competition.repository.DbCompetitionTeamMemberRepository
 import ru.nekoguys.game.persistence.competition.repository.DbCompetitionTeamRepository
 import ru.nekoguys.game.persistence.user.repository.DbUserRepository
+import ru.nekoguys.game.persistence.utils.runBlockingWithRollback
 
 @GamePersistenceTest
 internal class DbCompetitionTeamRepositoryTest @Autowired constructor(
@@ -26,9 +27,11 @@ internal class DbCompetitionTeamRepositoryTest @Autowired constructor(
     private val dbGamePropertiesRepository: DbGamePropertiesRepository,
     private val dbGameSessionRepository: DbGameSessionRepository,
     private val dbUserRepository: DbUserRepository,
+    private val transactionalOperator: TransactionalOperator,
 ) {
+
     @Test
-    fun `team, team members and bans insertion and retrieval`(): Unit = runBlocking {
+    fun `team, team members insertion and retrieval`() = transactionalOperator.runBlockingWithRollback {
         val processInfo = competitionSession("sample_email")
 
         val team = DbCompetitionTeam(
@@ -58,6 +61,7 @@ internal class DbCompetitionTeamRepositoryTest @Autowired constructor(
             dbCompetitionTeamMemberRepository
                 .findAllByTeamId(team.id!!)
                 .toList()
+
         assertThat(retrievedTeamMembers)
             .containsExactlyInAnyOrderElementsOf(teamMembers)
     }

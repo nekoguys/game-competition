@@ -41,7 +41,7 @@ class CompetitionController(
     private fun CreateCompetitionResponse.toResponseEntity() =
         when (this) {
             is CreateCompetitionResponse.Created -> toOkResponse()
-            is CreateCompetitionResponse.CreatedRegistered -> toOkResponse()
+            is CreateCompetitionResponse.OpenedRegistration -> toOkResponse()
         }
 
     @GetMapping(

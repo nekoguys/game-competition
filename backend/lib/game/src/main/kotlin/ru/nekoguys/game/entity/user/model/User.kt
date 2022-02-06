@@ -15,15 +15,21 @@ data class User(
 
 sealed interface UserRole {
     sealed interface Student : UserRole {
-        companion object Implementation : Student
+        companion object Implementation : Student {
+            override fun toString() = "Student"
+        }
     }
 
     sealed interface Teacher : UserRole {
-        companion object Implementation : Student, Teacher
+        companion object Implementation : Student, Teacher {
+            override fun toString() = "Teacher"
+        }
     }
 
     sealed interface Admin : UserRole {
-        companion object Implementation : Student, Teacher, Admin
+        companion object Implementation : Student, Teacher, Admin {
+            override fun toString() = "Admin"
+        }
     }
 }
 

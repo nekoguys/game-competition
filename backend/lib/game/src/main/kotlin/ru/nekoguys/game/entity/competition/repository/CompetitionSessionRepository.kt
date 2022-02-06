@@ -28,7 +28,7 @@ interface CompetitionSessionRepository {
 
     suspend fun findByCreatorId(
         creatorId: Long,
-        limit: Int,
-        offset: Int,
+        limit: Int = Int.MAX_VALUE,
+        offset: Int = 0,
     ): List<CompetitionSession>
 }
