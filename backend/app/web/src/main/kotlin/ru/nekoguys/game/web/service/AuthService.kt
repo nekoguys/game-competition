@@ -9,10 +9,7 @@ import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import ru.nekoguys.game.entity.user.model.UserRole
 import ru.nekoguys.game.entity.user.repository.UserRepository
-import ru.nekoguys.game.web.dto.SignInRequest
-import ru.nekoguys.game.web.dto.SignInResponse
-import ru.nekoguys.game.web.dto.SignUpRequest
-import ru.nekoguys.game.web.dto.SignUpResponse
+import ru.nekoguys.game.web.dto.*
 import ru.nekoguys.game.web.security.jwt.JwtProvider
 
 @Service
@@ -45,7 +42,10 @@ class AuthService(
         return SignInResponse(
             accessToken = jwt,
             email = userDetails.username,
-            authorities = userDetails.authorities.map { it.toString() },
+            authorities = userDetails
+                .authorities
+                .map { it.toString() }
+                .map { Authority(it) },
             expirationTimestamp = expirationTimestamp,
         )
     }

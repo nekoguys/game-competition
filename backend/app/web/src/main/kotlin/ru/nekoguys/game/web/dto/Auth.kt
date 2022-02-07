@@ -5,10 +5,14 @@ data class SignInRequest(
     val password: String,
 )
 
+data class Authority(
+    val authority: String,
+)
+
 data class SignInResponse(
     val accessToken: String,
     val email: String,
-    val authorities: Collection<String>,
+    val authorities: Collection<Authority>,
     val expirationTimestamp: Long,
 )
 

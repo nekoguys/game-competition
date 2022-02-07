@@ -12,6 +12,7 @@ import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import ru.nekoguys.game.entity.user.model.UserRole
 import ru.nekoguys.game.web.GameWebApplicationIntegrationTest
+import ru.nekoguys.game.web.dto.Authority
 import ru.nekoguys.game.web.dto.SignInRequest
 import ru.nekoguys.game.web.dto.SignInResponse
 import ru.nekoguys.game.web.dto.SignUpRequest
@@ -91,7 +92,7 @@ class AuthControllerTest @Autowired constructor(
         with(responseBody) {
             assertThat(email).isEqualTo(request.email)
             assertThat(accessToken).isNotBlank
-            assertThat(authorities).contains(roleName)
+            assertThat(authorities).contains(Authority(roleName))
             assertThat(expirationTimestamp).isGreaterThan(
                 LocalDateTime.now().toEpochSecond(ZoneOffset.UTC)
             )
