@@ -13,15 +13,28 @@ interface DbGameSessionRepository : CoroutineCrudRepository<DbGameSession, Long>
 
     @Query("""
         SELECT s.id, s.props_id, s.last_modified_date
-        FROM groudina.public.game_sessions AS s
-        JOIN groudina.public.game_props AS p ON p.id = s.props_id
+        FROM game_sessions AS s
+        JOIN game_props AS p ON p.id = s.props_id
         WHERE p.creator_id = :creatorId
         ORDER BY s.last_modified_date DESC
         LIMIT :limit OFFSET :offset
     """)
     fun findAllByCreatorId(
-        @Param("creatorId") creatorId: Long,
-        @Param("limit") limit: Int,
-        @Param("offset") offset: Int,
+        creatorId: Long,
+        limit: Int,
+        offset: Int,
     ): Flow<DbGameSession>
+
+    @Query("""
+        SELECT EXISTS (
+            SELECT gp.*
+            FROM game_props AS gp
+            JOIN game_sessions AS gs ON gs.props_id = gp.id
+            WHERE gp.creator_id = :creatorId AND gs.id = :sessionId
+        )
+    """)
+    suspend fun existsByIdAndCreatorId(
+        sessionId: Long,
+        creatorId: Long,
+    ): Boolean
 }

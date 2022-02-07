@@ -33,8 +33,14 @@ private fun ru.nekoguys.game.entity.user.model.User.toUserDetails(): UserDetails
 private fun UserRole.toAuthoritiesList(): List<GrantedAuthority> {
     val role = this
     return buildList {
-        if (role is UserRole.Admin) { add(SimpleGrantedAuthority("ROLE_ADMIN")) }
-        if (role is UserRole.Teacher) { add(SimpleGrantedAuthority("ROLE_TEACHER")) }
-        if (role is UserRole.Student) { add(SimpleGrantedAuthority("ROLE_STUDENT")) }
+        if (role is UserRole.Admin) {
+            add(SimpleGrantedAuthority("ROLE_ADMIN"))
+        }
+        if (role is UserRole.Teacher) {
+            add(SimpleGrantedAuthority("ROLE_TEACHER"))
+        }
+        if (role is UserRole.Student) {
+            add(SimpleGrantedAuthority("ROLE_STUDENT"))
+        }
     }
 }

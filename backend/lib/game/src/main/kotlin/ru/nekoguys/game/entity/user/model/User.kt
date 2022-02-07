@@ -6,21 +6,31 @@ data class User(
     val password: String,
     val role: UserRole,
 ) {
-    @JvmInline
-    value class Id(val number: Long)
+    data class Id(val number: Long)
+
+    // Методы toString, equals,
+    override fun toString(): String {
+        return "User(id=$id, email='$email', password='HIDDEN', role=$role)"
+    }
 }
 
 sealed interface UserRole {
     sealed interface Student : UserRole {
-        companion object Implementation : Student
+        companion object Implementation : Student {
+            override fun toString() = "Student"
+        }
     }
 
     sealed interface Teacher : UserRole {
-        companion object Implementation : Student, Teacher
+        companion object Implementation : Student, Teacher {
+            override fun toString() = "Teacher"
+        }
     }
 
     sealed interface Admin : UserRole {
-        companion object Implementation : Student, Teacher, Admin
+        companion object Implementation : Student, Teacher, Admin {
+            override fun toString() = "Admin"
+        }
     }
 }
 

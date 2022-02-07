@@ -1,24 +1,20 @@
 package ru.nekoguys.game.web.dto
 
-import org.springframework.security.core.GrantedAuthority
-
 data class SignInRequest(
     val email: String,
     val password: String,
 )
 
-sealed interface SignInResponse {
-    data class Success(
-        val accessToken: String,
-        val email: String,
-        val authorities: Collection<GrantedAuthority>,
-        val expirationTimestamp: Long,
-    ) : SignInResponse
+data class Authority(
+    val authority: String,
+)
 
-    object InvalidCredentials : SignInResponse {
-        val message = "Invalid credentials"
-    }
-}
+data class SignInResponse(
+    val accessToken: String,
+    val email: String,
+    val authorities: Collection<Authority>,
+    val expirationTimestamp: Long,
+)
 
 data class SignUpRequest(
     val email: String,
@@ -27,11 +23,19 @@ data class SignUpRequest(
 
 sealed interface SignUpResponse {
     object Success : SignUpResponse {
+        @Suppress("MayBeConstant")
         val message = "User registered successfully!"
     }
 
-    data class Error(
-        val message: String,
-    ) : SignUpResponse
+    class InvalidEmailFormat(email: String) : SignUpResponse {
+        val message = listOf(
+            "Invalid email $email",
+            "Email should end with @edu.hse.ru or @hse.ru"
+        ).joinToString(" ")
+    }
+
+    class UserAlreadyRegistered(email: String) : SignUpResponse {
+        val message = "User with email $email already exists!"
+    }
 }
 

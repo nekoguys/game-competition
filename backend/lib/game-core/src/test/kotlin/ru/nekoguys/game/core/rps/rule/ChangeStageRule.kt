@@ -10,8 +10,8 @@ import ru.nekoguys.game.core.rps.model.RpsPlayer
 import ru.nekoguys.game.core.rps.model.RpsStage
 import ru.nekoguys.game.core.rps.storage.RpsPlayerStorage
 import ru.nekoguys.game.core.rps.storage.RpsSessionStorage
-import ru.nekoguys.game.core.rps.util.buildResponse
-import ru.nekoguys.game.core.rps.util.deferCommand
+import ru.nekoguys.game.core.util.buildResponse
+import ru.nekoguys.game.core.util.defer
 
 @Serializable
 sealed class RpsChangeStageMessage : RpsMessage() {
@@ -55,7 +55,7 @@ class ChangeStageRule(
         return when {
             old == RpsStage.PLAYERS_JOINING && new == RpsStage.GAME_STARTED -> {
                 sessionStorage.saveStage(player.sessionId, new)
-                buildResponse(allPlayers) {
+                buildResponse(recipients = allPlayers) {
                     +RpsChangeStageMessage.GameStarted
                 }
             }
@@ -63,7 +63,7 @@ class ChangeStageRule(
                 sessionStorage.saveStage(player.sessionId, new)
                 buildResponse {
                     allPlayers { +RpsChangeStageMessage.GameFinished }
-                    deferCommand(CloseGameSessionRequest)
+                    defer(CloseGameSessionRequest)
                 }
             }
             else -> error("Stage change from $old to $new is impossible")

@@ -8,8 +8,8 @@ import ru.nekoguys.game.core.rps.RpsGameRule
 import ru.nekoguys.game.core.rps.model.*
 import ru.nekoguys.game.core.rps.storage.RpsRoundStorage
 import ru.nekoguys.game.core.rps.storage.RpsSessionStorage
-import ru.nekoguys.game.core.rps.util.buildResponse
-import ru.nekoguys.game.core.rps.util.deferCommand
+import ru.nekoguys.game.core.util.buildResponse
+import ru.nekoguys.game.core.util.defer
 
 @Serializable
 sealed class RpsSubmitAnswerMessage : RpsMessage() {
@@ -124,7 +124,7 @@ class RpsSubmitAnswerRule(
                     +RpsSubmitAnswerMessage.RoundEnded(result = RoundResult.YOU_LOST)
                 }
 
-                deferCommand(
+                defer(
                     fromPlayer = RpsPlayer.Internal(player.sessionId),
                     command = RpsCommand.ChangeStage(newStage = RpsStage.GAME_FINISHED),
                 )

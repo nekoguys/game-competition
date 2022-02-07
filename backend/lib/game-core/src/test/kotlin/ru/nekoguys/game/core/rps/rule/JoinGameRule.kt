@@ -9,8 +9,8 @@ import ru.nekoguys.game.core.rps.model.RpsPlayer
 import ru.nekoguys.game.core.rps.model.RpsStage
 import ru.nekoguys.game.core.rps.storage.RpsPlayerStorage
 import ru.nekoguys.game.core.rps.storage.RpsSessionStorage
-import ru.nekoguys.game.core.rps.util.buildResponse
-import ru.nekoguys.game.core.rps.util.deferCommand
+import ru.nekoguys.game.core.util.buildResponse
+import ru.nekoguys.game.core.util.defer
 
 sealed class RpsJoinGameMessage : RpsMessage() {
     @Serializable
@@ -86,7 +86,7 @@ class RpsJoinGameRule(
 
             // Последний игрок подключился к игре
             if (playersAlreadyInSession.size == maxPlayers - 1) {
-                deferCommand(
+                defer(
                     fromPlayer = RpsPlayer.Internal(player.sessionId),
                     command = RpsCommand.ChangeStage(RpsStage.GAME_STARTED)
                 )

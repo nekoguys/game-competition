@@ -11,7 +11,7 @@ import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.coroutineContext
 
 internal class CloseableGameSession<in P, in Cmd, P2, Msg>(
-    private val interceptedSession: InternalGameSession<P, Cmd, P2, Msg>,
+    private val innerSession: InternalGameSession<P, Cmd, P2, Msg>,
     parentContext: CoroutineContext,
     private val onClose: suspend () -> Unit,
 ) : InternalGameSession<P, Cmd, P2, Msg> {
@@ -24,7 +24,7 @@ internal class CloseableGameSession<in P, in Cmd, P2, Msg>(
     ): List<GameMessage<P2, Msg>> {
         if (request !== CloseGameSessionRequest) {
             val messages = withContext(context) {
-                interceptedSession.acceptAndReturnMessages(request)
+                innerSession.acceptAndReturnMessages(request)
             }
 
             val deferredCloseRequest: DeferredCommandRequest<*> =
@@ -56,10 +56,10 @@ internal class CloseableGameSession<in P, in Cmd, P2, Msg>(
     }
 
     override suspend fun shareMessages(messages: Collection<GameMessage<P2, Msg>>) =
-        interceptedSession.shareMessages(messages)
+        innerSession.shareMessages(messages)
 
     override fun getAllMessagesIndexed(): Flow<IndexedValue<GameMessage<P2, Msg>>> =
-        interceptedSession
+        innerSession
             .getAllMessagesIndexed()
             .takeWhile { (_, value) -> value !== TerminalGameMessage }
 }
