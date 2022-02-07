@@ -2,8 +2,9 @@ package ru.nekoguys.game.entity.competition.rule
 
 import org.springframework.stereotype.Component
 import ru.nekoguys.game.core.util.buildResponse
+import ru.nekoguys.game.entity.competition.CompetitionProcessException
 import ru.nekoguys.game.entity.competition.model.CompetitionPlayer
-import ru.nekoguys.game.entity.competition.model.teamMembers
+import ru.nekoguys.game.entity.competition.model.students
 import ru.nekoguys.game.entity.competition.repository.CompetitionPlayerRepository
 import ru.nekoguys.game.entity.competition.repository.CompetitionPropertiesRepository
 import ru.nekoguys.game.entity.competition.repository.CompetitionTeamRepository
@@ -33,30 +34,27 @@ class CompetitionJoinTeamRule(
                 sessionId = player.sessionId,
                 teamName = command.teamName,
             )
-            ?: error("No team with name ${command.teamName}")
+            ?: throw CompetitionProcessException(
+                "No team in competition with name: ${command.teamName}"
+            )
 
-        val newMember = CompetitionPlayer.TeamMate(
+        val newMember = CompetitionPlayer.TeamMember(
             sessionId = player.sessionId,
             user = player.user,
             teamId = team.id,
         )
 
-        try {
-            competitionPlayerRepository.save(
-                newMember,
-                maxPlayers = properties.settings.maxTeamSize,
-            )
-        } catch (ex: Throwable) {
-            val x = 1 + 2
-            println(x)
-        }
+        competitionPlayerRepository.save(
+            newMember,
+            maxPlayers = properties.settings.maxTeamSize,
+        )
 
         return buildResponse {
             team.id {
                 +CompetitionJoinTeamMessage(
                     teamName = command.teamName,
                     idInGame = team.numberInGame,
-                    membersEmails = (team.teamMembers + newMember)
+                    membersEmails = (team.students + newMember)
                         .map { it.user.email }
                 )
             }

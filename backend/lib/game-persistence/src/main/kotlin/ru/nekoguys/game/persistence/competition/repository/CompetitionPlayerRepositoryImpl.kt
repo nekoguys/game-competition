@@ -5,6 +5,7 @@ import org.springframework.stereotype.Repository
 import org.springframework.transaction.reactive.TransactionalOperator
 import org.springframework.transaction.reactive.executeAndAwait
 import ru.nekoguys.game.entity.commongame.model.CommonSession
+import ru.nekoguys.game.entity.competition.CompetitionProcessException
 import ru.nekoguys.game.entity.competition.model.CompetitionPlayer
 import ru.nekoguys.game.entity.competition.model.CompetitionTeam
 import ru.nekoguys.game.entity.competition.repository.CompetitionPlayerRepository
@@ -23,7 +24,7 @@ class CompetitionPlayerRepositoryImpl(
 ) : CompetitionPlayerRepository {
 
     override suspend fun save(
-        player: CompetitionPlayer.TeamMember,
+        player: CompetitionPlayer.Student,
         maxPlayers: Int,
     ) = transactionalOperator.executeAndAwait {
         val dbTeamMember = DbCompetitionTeamMember(
@@ -33,13 +34,15 @@ class CompetitionPlayerRepositoryImpl(
             captain = player is CompetitionPlayer.TeamCaptain,
         ).let { dbCompetitionTeamMemberRepository.save(it) }
 
-        val membersAlreadyRegistered = dbCompetitionTeamMemberRepository
+        val studentsAlreadyRegistered = dbCompetitionTeamMemberRepository
             .countByTeamIdAndIdLessThanEqual(
                 teamId = dbTeamMember.teamId,
                 id = dbTeamMember.id!!,
             )
-        if (membersAlreadyRegistered > maxPlayers) {
-            error("")
+        if (studentsAlreadyRegistered > maxPlayers) {
+            throw CompetitionProcessException(
+                "There are too much team members already, max amount: $maxPlayers"
+            )
         }
     }!!
 
@@ -76,7 +79,7 @@ class CompetitionPlayerRepositoryImpl(
     override fun loadAllInTeam(
         sessionId: CommonSession.Id,
         teamId: CompetitionTeam.Id,
-    ): Flow<CompetitionPlayer.TeamMember> = flow {
+    ): Flow<CompetitionPlayer.Student> = flow {
         val dbCompetitionTeamMembersByUserId =
             dbCompetitionTeamMemberRepository
                 .findAllByTeamId(teamId.number)
@@ -97,7 +100,7 @@ class CompetitionPlayerRepositoryImpl(
 
     override fun loadAllInSession(
         sessionId: CommonSession.Id,
-    ): Flow<CompetitionPlayer.TeamMember> = flow {
+    ): Flow<CompetitionPlayer.Student> = flow {
         val dbCompetitionTeamMembersByUserId =
             dbCompetitionTeamMemberRepository
                 .findAllBySessionIds(listOf(sessionId.number))
@@ -121,11 +124,11 @@ private fun createTeamMember(
     dbCompetitionTeamMember: DbCompetitionTeamMember,
     sessionId: CommonSession.Id,
     user: User,
-): CompetitionPlayer.TeamMember {
+): CompetitionPlayer.Student {
     val teamId = CompetitionTeam.Id(dbCompetitionTeamMember.teamId)
     return if (dbCompetitionTeamMember.captain) {
         CompetitionPlayer.TeamCaptain(sessionId, user, teamId)
     } else {
-        CompetitionPlayer.TeamMate(sessionId, user, teamId)
+        CompetitionPlayer.TeamMember(sessionId, user, teamId)
     }
 }

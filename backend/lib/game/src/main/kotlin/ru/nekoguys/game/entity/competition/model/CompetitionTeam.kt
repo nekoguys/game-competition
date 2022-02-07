@@ -8,12 +8,12 @@ data class CompetitionTeam(
     val name: String,
     val numberInGame: Int,
     val captain: CompetitionPlayer.TeamCaptain,
-    val teamMates: List<CompetitionPlayer.TeamMate>,
+    val teamMembers: List<CompetitionPlayer.TeamMember>,
     val isBanned: Boolean,
 ) {
     data class Id(val number: Long)
 }
 
-val CompetitionTeam.teamMembers: List<CompetitionPlayer.TeamMember>
-    get() = teamMates + captain
+val CompetitionTeam.students: List<CompetitionPlayer.Student>
+    get() = teamMembers + captain
 

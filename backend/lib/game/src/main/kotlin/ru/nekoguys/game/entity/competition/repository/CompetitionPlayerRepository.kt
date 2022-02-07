@@ -8,7 +8,7 @@ import ru.nekoguys.game.entity.user.model.User
 
 interface CompetitionPlayerRepository {
     suspend fun save(
-        player: CompetitionPlayer.TeamMember,
+        player: CompetitionPlayer.Student,
         maxPlayers: Int = Int.MAX_VALUE,
     )
 
@@ -20,11 +20,11 @@ interface CompetitionPlayerRepository {
     fun loadAllInTeam(
         sessionId: CommonSession.Id,
         teamId: CompetitionTeam.Id,
-    ): Flow<CompetitionPlayer.TeamMember>
+    ): Flow<CompetitionPlayer.Student>
 
     fun loadAllInSession(
         sessionId: CommonSession.Id,
-    ): Flow<CompetitionPlayer.TeamMember>
+    ): Flow<CompetitionPlayer.Student>
 
     companion object ResourceKey
 }

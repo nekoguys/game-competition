@@ -8,6 +8,7 @@ data class User(
 ) {
     data class Id(val number: Long)
 
+    // Методы toString, equals,
     override fun toString(): String {
         return "User(id=$id, email='$email', password='HIDDEN', role=$role)"
     }

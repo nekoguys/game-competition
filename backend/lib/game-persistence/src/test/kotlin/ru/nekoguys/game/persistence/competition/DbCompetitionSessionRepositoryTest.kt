@@ -76,6 +76,7 @@ internal class DbCompetitionSessionRepositoryTest @Autowired constructor(
             sessionId = competitionSession.parentId!!,
             teamNumber = 1,
             name = "Test Team",
+            password = "a",
             banRound = null,
         ).let { dbCompetitionTeamRepository.save(it) }
 

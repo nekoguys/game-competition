@@ -63,7 +63,7 @@ class CompetitionService(
         studentEmail: String,
         request: CreateTeamRequest,
     ): CreateTeamResponse {
-        if (request.teamName.length < 4) {
+        require(request.teamName.length >= 4) {
             return CreateTeamResponse.IncorrectName
         }
 
@@ -81,6 +81,7 @@ class CompetitionService(
                 user = captain,
                 command = CompetitionCommand.CreateTeam(
                     teamName = request.teamName,
+                    password = request.password,
                 ),
             )
             CreateTeamResponse.Success

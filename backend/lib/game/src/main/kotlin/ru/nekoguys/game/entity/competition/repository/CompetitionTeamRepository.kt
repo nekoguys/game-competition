@@ -9,6 +9,7 @@ interface CompetitionTeamRepository {
     suspend fun create(
         creator: CompetitionPlayer.Unknown,
         name: String,
+        password: String,
         maxTeams: Int,
     ): CompetitionTeam
 

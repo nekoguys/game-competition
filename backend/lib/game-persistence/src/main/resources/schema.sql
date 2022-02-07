@@ -58,6 +58,7 @@ CREATE TABLE competition_teams
     session_id  BIGINT  NOT NULL,
     team_number INT     NOT NULL,
     name        VARCHAR NOT NULL,
+    password    VARCHAR NOT NULL,
     ban_round   INT     NULL
 );
 

@@ -26,6 +26,7 @@ class CompetitionTeamRepositoryImpl(
     override suspend fun create(
         creator: CompetitionPlayer.Unknown,
         name: String,
+        password: String,
         maxTeams: Int,
     ): CompetitionTeam = transactionalOperator.executeAndAwait {
         val dbTeam = DbCompetitionTeam(
@@ -33,6 +34,7 @@ class CompetitionTeamRepositoryImpl(
             sessionId = creator.sessionId.number,
             teamNumber = -1, // номер пересчитается после создания кампании
             name = name,
+            password = password,
             banRound = null,
         )
             .let { dbCompetitionTeamRepository.save(it) }
@@ -47,7 +49,7 @@ class CompetitionTeamRepositoryImpl(
         createCompetitionTeam(
             dbTeam = dbTeam,
             captain = captain,
-            teamMates = emptyList(),
+            teamMembers = emptyList(),
         )
     }!!
 
@@ -87,8 +89,8 @@ class CompetitionTeamRepositoryImpl(
             captain = members
                 .filterIsInstance<CompetitionPlayer.TeamCaptain>()
                 .single(),
-            teamMates = members
-                .filterIsInstance<CompetitionPlayer.TeamMate>()
+            teamMembers = members
+                .filterIsInstance<CompetitionPlayer.TeamMember>()
         )
     }
 
@@ -117,13 +119,13 @@ class CompetitionTeamRepositoryImpl(
                 .map { dbTeam ->
                     val members = allMembers[dbTeam.id!!].orEmpty()
                     val captain = members.first { it is CompetitionPlayer.TeamCaptain } as CompetitionPlayer.TeamCaptain
-                    val teamMates = members
-                        .filterIsInstance<CompetitionPlayer.TeamMate>()
+                    val teamMembers = members
+                        .filterIsInstance<CompetitionPlayer.TeamMember>()
 
                     createCompetitionTeam(
                         dbTeam,
                         captain = captain,
-                        teamMates = teamMates,
+                        teamMembers = teamMembers,
                     )
                 }
                 .asFlow()
@@ -142,7 +144,7 @@ class CompetitionTeamRepositoryImpl(
 private fun createCompetitionTeam(
     dbTeam: DbCompetitionTeam,
     captain: CompetitionPlayer.TeamCaptain,
-    teamMates: List<CompetitionPlayer.TeamMate>,
+    teamMembers: List<CompetitionPlayer.TeamMember>,
 ): CompetitionTeam =
     CompetitionTeam(
         id = captain.teamId,
@@ -150,6 +152,6 @@ private fun createCompetitionTeam(
         name = dbTeam.name,
         numberInGame = dbTeam.teamNumber,
         captain = captain,
-        teamMates = teamMates,
+        teamMembers = teamMembers,
         isBanned = dbTeam.banRound != null,
     )

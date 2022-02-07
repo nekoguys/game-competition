@@ -9,6 +9,7 @@ import ru.nekoguys.game.entity.competition.model.*
 sealed class CompetitionCommand {
     data class CreateTeam(
         val teamName: String,
+        val password: String,
     ) : CompetitionCommand()
 
     data class JoinTeam(
@@ -39,33 +40,63 @@ class CompetitionRootRule(
         command: CompetitionCommand,
     ): List<CompGameMessage<CompetitionMessage>> =
         when (command) {
-            is CompetitionCommand.CreateTeam -> {
-                if (player !is CompetitionPlayer.Unknown) {
-                    val msg = if (player is CompetitionPlayer.TeamCaptain) {
-                        "${player.user.email} is Captain and is in another team already"
-                    } else {
-                        "Player $player must not be a member of any team"
-                    }
-                    throw CompetitionProcessException(msg)
-                }
-                createTeamRule.process(player, command)
-            }
+            is CompetitionCommand.CreateTeam ->
+                createTeam(player, command)
 
-            is CompetitionCommand.JoinTeam -> {
-                if (player !is CompetitionPlayer.Unknown) {
-                    val msg = if (player is CompetitionPlayer) {
-                        "This user is in another team already"
-                    } else {
-                        "Player $player must not be a member of any team"
-                    }
-                    throw CompetitionProcessException(msg)
-                }
-                joinTeamRule.process(player, command)
-            }
+            is CompetitionCommand.JoinTeam ->
+                joinTeam(player, command)
 
-            is CompetitionCommand.ChangeStageCommand -> {
-                require(player is InternalPlayer) { "Player $player must be internal" }
-                changeStageRule.process(player, command)
-            }
+            is CompetitionCommand.ChangeStageCommand ->
+                changeStage(player, command)
         }
+
+    private suspend fun createTeam(
+        player: CompetitionBasePlayer,
+        command: CompetitionCommand.CreateTeam,
+    ): List<CompGameMessage<CompetitionCreateTeamMessage>> =
+        when (player) {
+            is CompetitionPlayer.TeamCaptain ->
+                throw CompetitionProcessException(
+                    "${player.user.email} is Captain and is in another team already"
+                )
+
+            is CompetitionPlayer.TeamMember ->
+                throw CompetitionProcessException(
+                    "Player ${player.user.email} must not be a member of any team"
+                )
+
+            is CompetitionPlayer.Unknown ->
+                createTeamRule.process(player, command)
+
+            else -> error("Got unexpected player $player")
+        }
+
+    private suspend fun joinTeam(
+        player: CompetitionBasePlayer,
+        command: CompetitionCommand.JoinTeam,
+    ): List<CompGameMessage<CompetitionJoinTeamMessage>> =
+        when (player) {
+            is CompetitionPlayer.Student ->
+                throw CompetitionProcessException(
+                    "This user is in another team already"
+                )
+
+            is CompetitionPlayer.Teacher ->
+                throw CompetitionProcessException(
+                    "It is forbidden to play with yourself"
+                )
+
+            is CompetitionPlayer.Unknown ->
+                joinTeamRule.process(player, command)
+
+            else -> error("Got unexpected player $player")
+        }
+
+    private suspend fun changeStage(
+        player: CompetitionBasePlayer,
+        command: CompetitionCommand.ChangeStageCommand,
+    ): List<CompGameMessage<CompetitionMessage>> {
+        require(player is InternalPlayer) { "Player $player must be internal" }
+        return changeStageRule.process(player, command)
+    }
 }

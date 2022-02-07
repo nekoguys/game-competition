@@ -13,9 +13,9 @@ import ru.nekoguys.game.entity.user.model.User
  * |   [CompetitionPlayer]
  * |   |   [CompetitionPlayer.Unknown]
  * |   |   [CompetitionPlayer.Teacher]
- * |   |   [CompetitionPlayer.TeamMember]
+ * |   |   [CompetitionPlayer.Student]
  * |   |   |   [CompetitionPlayer.TeamCaptain]
- * |   |   |   [CompetitionPlayer.TeamMate]
+ * |   |   |   [CompetitionPlayer.TeamMember]
  */
 sealed interface CompetitionBasePlayer {
     val sessionId : CommonSession.Id
@@ -41,7 +41,7 @@ sealed interface CompetitionPlayer : CompetitionBasePlayer {
         override val user: User,
     ) : CompetitionPlayer
 
-    sealed interface TeamMember : CompetitionPlayer {
+    sealed interface Student : CompetitionPlayer {
         val teamId: CompetitionTeam.Id
     }
 
@@ -49,13 +49,13 @@ sealed interface CompetitionPlayer : CompetitionBasePlayer {
         override val sessionId: CommonSession.Id,
         override val user: User,
         override val teamId: CompetitionTeam.Id,
-    ) : TeamMember
+    ) : Student
 
-    data class TeamMate(
+    data class TeamMember(
         override val sessionId: CommonSession.Id,
         override val user: User,
         override val teamId: CompetitionTeam.Id,
-    ) : TeamMember
+    ) : Student
 }
 
 

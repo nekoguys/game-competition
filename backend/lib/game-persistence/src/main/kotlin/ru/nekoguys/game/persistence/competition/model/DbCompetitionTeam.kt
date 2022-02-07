@@ -10,5 +10,6 @@ data class DbCompetitionTeam(
     var sessionId: Long,
     var teamNumber: Int,
     var name: String,
+    var password: String,
     var banRound: Int?
 )

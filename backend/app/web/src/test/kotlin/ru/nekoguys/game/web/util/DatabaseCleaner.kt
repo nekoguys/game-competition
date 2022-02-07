@@ -1,17 +1,16 @@
 package ru.nekoguys.game.web.util
 
-import org.junit.jupiter.api.extension.AfterEachCallback
-import org.junit.jupiter.api.extension.ExtensionContext
+import kotlinx.coroutines.reactor.awaitSingle
+import kotlinx.coroutines.reactor.awaitSingleOrNull
 import org.springframework.r2dbc.core.DatabaseClient
-import org.springframework.test.context.junit.jupiter.SpringExtension
+import org.springframework.stereotype.Component
 
-class DatabaseCleanerExtension : AfterEachCallback {
-    override fun afterEach(context: ExtensionContext) {
-        val client = SpringExtension
-            .getApplicationContext(context)
-            .getBean(DatabaseClient::class.java)
-
-        client.sql("""
+@Component
+class DatabaseCleaner(
+    private val databaseClient: DatabaseClient,
+) {
+    suspend fun clearDatabase() {
+        databaseClient.sql("""
             DELETE FROM competition_round_results;
             DELETE FROM competition_round_answers;
             DELETE FROM competition_round_infos;
@@ -22,6 +21,6 @@ class DatabaseCleanerExtension : AfterEachCallback {
             DELETE FROM game_sessions;
             DELETE FROM game_props;
             DELETE FROM users;
-        """.trimIndent()).then().block()
+        """.trimIndent()).then().awaitSingleOrNull()
     }
 }

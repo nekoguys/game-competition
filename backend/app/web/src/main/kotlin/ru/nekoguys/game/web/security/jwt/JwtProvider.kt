@@ -28,18 +28,19 @@ class JwtProvider(
     private val jwtParser: JwtParser =
         Jwts.parserBuilder().setSigningKey(jwtSecretKey).build()
 
-    fun currentExpirationTimestamp(): Long =
+    fun generateExpirationTimestamp(): Long =
         Date().time + properties.expirationSeconds * 1000
 
     fun generateJwtToken(authentication: Authentication, expirationTimestamp: Long): String {
         val roles = authentication
             .authorities
-            .joinToString(";") { it.toString().removePrefix("ROLE_") }
+            .joinToString(";") { "$it".removePrefix("ROLE_") }
+
         return Jwts.builder()
             .setSubject(authentication.name)
             .claim("roles", roles)
-            .setIssuedAt(Date())
-            .setExpiration(Date(Date().time + properties.expirationSeconds * 1000))
+            .setIssuedAt(Date()) // не совсем корректный способ
+            .setExpiration(Date(expirationTimestamp))
             .signWith(jwtSecretKey)
             .compact()
     }

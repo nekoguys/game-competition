@@ -1,9 +1,6 @@
 package ru.nekoguys.game.web.util
 
-import kotlinx.coroutines.runBlocking
 import org.springframework.stereotype.Component
-import org.springframework.transaction.reactive.TransactionalOperator
-import org.springframework.transaction.reactive.executeAndAwait
 import ru.nekoguys.game.entity.commongame.service.SessionPinGenerator
 import ru.nekoguys.game.entity.competition.model.CompetitionSession
 import ru.nekoguys.game.entity.competition.repository.CompetitionSessionRepository
@@ -17,11 +14,10 @@ import ru.nekoguys.game.web.service.CompetitionService
 import java.util.concurrent.atomic.AtomicLong
 
 @Component
-class TestUtils(
+class TestGame(
     private val competitionService: CompetitionService,
     private val competitionSessionRepository: CompetitionSessionRepository,
     private val pinGenerator: SessionPinGenerator,
-    private val transactionalOperator: TransactionalOperator,
     private val userRepository: UserRepository,
 ) {
 
@@ -29,24 +25,23 @@ class TestUtils(
 
     private fun nextIndex() = indexCounter.incrementAndGet()
 
-    fun runBlockingWithRollback(block: suspend () -> Unit): Unit =
-        runBlocking {
-            transactionalOperator.executeAndAwait { tx ->
-                tx.setRollbackOnly()
-                block()
-            }
-        }
-
     suspend fun createUser(
         role: UserRole = UserRole.Admin,
         email: String = "${role.toString().lowercase()}-${nextIndex()}@hse.ru",
         password: String = DEFAULT_PASSWORD,
     ): User =
-        userRepository.create(email, password, role)
+        userRepository.create(email, "{noop}$password", role)
+
+    suspend fun loadCompetitionSession(
+        pin: String,
+    ): CompetitionSession {
+        val sessionId = pinGenerator.decodeIdFromPin(pin)
+        return competitionSessionRepository.load(sessionId!!)
+    }
 
     suspend fun createAndLoadCompetition(
         teacher: User? = null,
-        request: CreateCompetitionRequest,
+        request: CreateCompetitionRequest = DEFAULT_CREATE_COMPETITION_REQUEST,
     ): CompetitionSession {
         val createdTeacher = teacher ?: createUser()
         competitionService.create(createdTeacher.email, request)
@@ -57,10 +52,10 @@ class TestUtils(
     }
 
     suspend fun createDraftCompetition(
-        user: User? = null,
+        teacher: User? = null,
         request: CreateCompetitionRequest = DEFAULT_CREATE_DRAFT_COMPETITION_REQUEST,
     ): String =
-        createAndLoadCompetition(user, request)
+        createAndLoadCompetition(teacher, request)
             .let { pinGenerator.convertSessionIdToPin(it.id) }
 
     suspend fun createCompetition(
@@ -100,14 +95,14 @@ class TestUtils(
     )
 
     suspend fun joinTeam(
-        teamMate: User? = null,
+        teamMember: User? = null,
         competitionPin: String? = null,
         teamName: String? = null,
         password: String = DEFAULT_PASSWORD,
-    ): TestJoinTeamResult {
+    ): TestCreateTeamResult {
         require(competitionPin != null || teamName == null)
 
-        val createdTeamMate = teamMate ?: createUser(role = UserRole.Student)
+        val createdteamMember = teamMember ?: createUser(role = UserRole.Student)
         val createdCompetitionPin = competitionPin ?: createCompetition()
         val createdTeamName = teamName
             ?: createTeam(competitionPin = createdCompetitionPin).teamName
@@ -118,23 +113,29 @@ class TestUtils(
             password = password,
         )
 
-        competitionService.joinTeam(createdTeamMate.email, request)
+        competitionService.joinTeam(createdteamMember.email, request)
 
-        return TestJoinTeamResult(
+        return TestCreateTeamResult(
             competitionPin = request.competitionPin,
             teamName = request.teamName,
             password = request.password,
         )
     }
 
-    data class TestJoinTeamResult(
-        val competitionPin: String,
-        val teamName: String,
-        val password: String,
-    )
+    /**
+     * Псевдоним для [joinTeam]
+     *
+     * С ним тесты более читаемые
+     */
+    suspend fun createAndJoinTeam(
+        teamMember: User? = null,
+    ): TestCreateTeamResult =
+        joinTeam(teamMember = teamMember)
 
     companion object TestData {
+        const val DEFAULT_EMAIL = "test@hse.ru"
         const val DEFAULT_PASSWORD = "password"
+        const val DEFAULT_COMPETITION_NAME = "Test Competition"
 
         val DEFAULT_CREATE_COMPETITION_REQUEST = CreateCompetitionRequest(
             demandFormula = listOf(-2.0, 4.0),
@@ -143,7 +144,7 @@ class TestUtils(
             isAutoRoundEnding = true,
             maxTeamSize = 5,
             maxTeamsAmount = 10,
-            name = "Test competition",
+            name = DEFAULT_COMPETITION_NAME,
             roundLength = 15,
             roundsCount = 3,
             shouldEndRoundBeforeAllAnswered = true,
@@ -155,6 +156,8 @@ class TestUtils(
         )
 
         val DEFAULT_CREATE_DRAFT_COMPETITION_REQUEST =
-            DEFAULT_CREATE_COMPETITION_REQUEST.copy(state = "Draft")
+            DEFAULT_CREATE_COMPETITION_REQUEST.copy(
+                state = "Draft",
+            )
     }
 }

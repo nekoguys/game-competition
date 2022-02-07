@@ -1,10 +1,9 @@
 package ru.nekoguys.game.web.service
 
-import kotlinx.coroutines.reactive.awaitFirstOrNull
-import org.slf4j.LoggerFactory
-import org.springframework.http.ResponseEntity
+import kotlinx.coroutines.reactive.awaitFirst
 import org.springframework.security.authentication.ReactiveAuthenticationManager
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
+import org.springframework.security.core.Authentication
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
@@ -15,8 +14,6 @@ import ru.nekoguys.game.web.dto.SignInResponse
 import ru.nekoguys.game.web.dto.SignUpRequest
 import ru.nekoguys.game.web.dto.SignUpResponse
 import ru.nekoguys.game.web.security.jwt.JwtProvider
-import ru.nekoguys.game.web.util.toBadRequestResponse
-import ru.nekoguys.game.web.util.toOkResponse
 
 @Service
 class AuthService(
@@ -26,32 +23,41 @@ class AuthService(
     private val userRepository: UserRepository,
 ) {
 
-    private val logger = LoggerFactory.getLogger(AuthService::class.java)
-
-    suspend fun signIn(request: SignInRequest): ResponseEntity<SignInResponse> {
-        val authentication = authenticationManager.authenticate(
+    suspend fun signIn(request: SignInRequest): SignInResponse {
+        val token =
             UsernamePasswordAuthenticationToken(request.email, request.password)
-        ).awaitFirstOrNull() ?: return SignInResponse.InvalidCredentials.toBadRequestResponse()
 
-        val userDetails = authentication.principal as UserDetails
-        val expirationTimestamp = jwtProvider.currentExpirationTimestamp()
-        val jwt = jwtProvider.generateJwtToken(authentication, expirationTimestamp)
+        val authentication = authenticationManager
+            .authenticate(token)
+            .awaitFirst()
 
-        val response = SignInResponse.Success(
-            accessToken = jwt,
-            email = userDetails.username,
-            authorities = userDetails.authorities,
-            expirationTimestamp = expirationTimestamp,
-        )
-        return ResponseEntity.ok(response)
+        return authentication.toSignInResponse()
     }
 
-    suspend fun signUp(request: SignUpRequest): ResponseEntity<SignUpResponse> {
-        val email = request.email.lowercase().trim()
+    private fun Authentication.toSignInResponse(): SignInResponse {
+        val expirationTimestamp = jwtProvider.generateExpirationTimestamp()
+        val jwt = jwtProvider.generateJwtToken(
+            authentication = this,
+            expirationTimestamp,
+        )
+
+        val userDetails = principal as UserDetails
+        return SignInResponse(
+            accessToken = jwt,
+            email = userDetails.username,
+            authorities = userDetails.authorities.map { it.toString() },
+            expirationTimestamp = expirationTimestamp,
+        )
+    }
+
+    suspend fun signUp(request: SignUpRequest): SignUpResponse {
+        val email = request.email
+            .lowercase()
+            .trim()
 
         val existingUser = userRepository.findByEmail(email)
         if (existingUser != null) {
-            return userAlreadyExists(email)
+            return SignUpResponse.UserAlreadyRegistered(email)
         }
 
         userRepository.create(
@@ -60,18 +66,10 @@ class AuthService(
             role = when {
                 email.endsWith("@edu.hse.ru") -> UserRole.Student
                 email.endsWith("@hse.ru") -> UserRole.Teacher
-                else -> return createIncorrectEmailFormatResponse(email)
+                else -> return SignUpResponse.InvalidEmailFormat(email)
             },
         )
 
-        return SignUpResponse.Success.toOkResponse()
+        return SignUpResponse.Success
     }
-
-    private fun createIncorrectEmailFormatResponse(email: String): ResponseEntity<SignUpResponse> =
-        SignUpResponse.Error("Invalid email $email. Email should end with @edu.hse.ru or @hse.ru")
-            .toBadRequestResponse()
-
-    private fun userAlreadyExists(email: String): ResponseEntity<SignUpResponse> =
-        SignUpResponse.Error("User with email $email already exists!")
-            .toBadRequestResponse()
 }
