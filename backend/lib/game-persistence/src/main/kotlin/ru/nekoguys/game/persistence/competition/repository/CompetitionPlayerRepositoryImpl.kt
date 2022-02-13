@@ -66,7 +66,7 @@ class CompetitionPlayerRepositoryImpl(
 
         val isTeacher = dbGameSessionRepository
             .existsByIdAndCreatorId(
-                sessionId = sessionId.number,
+                id = sessionId.number,
                 creatorId = user.id.number,
             )
         if (isTeacher) {
@@ -99,11 +99,11 @@ class CompetitionPlayerRepositoryImpl(
     }
 
     override fun loadAllInSession(
-        sessionId: CommonSession.Id,
+        sessionId: Long,
     ): Flow<CompetitionPlayer.Student> = flow {
         val dbCompetitionTeamMembersByUserId =
             dbCompetitionTeamMemberRepository
-                .findAllBySessionIds(listOf(sessionId.number))
+                .findAllBySessionIds(listOf(sessionId))
                 .toList()
                 .associateBy { it.userId }
 
@@ -112,8 +112,8 @@ class CompetitionPlayerRepositoryImpl(
             .map { user ->
                 createTeamMember(
                     dbCompetitionTeamMembersByUserId.getValue(user.id.number),
-                    sessionId,
-                    user
+                    CommonSession.Id(sessionId),
+                    user,
                 )
             }
             .collect { player -> emit(player) }

@@ -94,8 +94,8 @@ class CompetitionTeamRepositoryImpl(
         )
     }
 
-    override fun loadBySession(
-        sessionId: CommonSession.Id,
+    override fun findBySessionId(
+        sessionId: Long,
     ): Flow<CompetitionTeam> = flow {
         coroutineScope {
             val allMembersDeferred = async {
@@ -106,7 +106,7 @@ class CompetitionTeamRepositoryImpl(
 
             val dbTeamsDeferred = async {
                 dbCompetitionTeamRepository
-                    .findAllBySessionId(sessionId.number)
+                    .findAllBySessionId(sessionId)
                     .toList()
             }
 
@@ -133,12 +133,17 @@ class CompetitionTeamRepositoryImpl(
     }
 
     @OptIn(FlowPreview::class)
-    override fun loadAllBySession(
-        sessionIds: Iterable<CommonSession.Id>,
-    ): Flow<CompetitionTeam> =
+    override suspend fun findAllBySessionIds(
+        sessionIds: Iterable<Long>,
+    ): Map<CommonSession.Id, List<CompetitionTeam>> =
         sessionIds
             .asFlow()
-            .flatMapMerge { loadBySession(it) }
+            .flatMapMerge { sessionId ->
+                findBySessionId(sessionId)
+                    .map { sessionId to it }
+            }
+            .toList()
+            .groupBy({ CommonSession.Id(it.first) }) { it.second }
 }
 
 private fun createCompetitionTeam(

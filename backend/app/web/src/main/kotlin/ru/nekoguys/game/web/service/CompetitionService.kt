@@ -7,11 +7,13 @@ import ru.nekoguys.game.entity.competition.CompetitionProcessException
 import ru.nekoguys.game.entity.competition.CompetitionProcessService
 import ru.nekoguys.game.entity.competition.model.*
 import ru.nekoguys.game.entity.competition.repository.CompetitionSessionRepository
+import ru.nekoguys.game.entity.competition.repository.findAll
 import ru.nekoguys.game.entity.competition.rule.CompetitionCommand
 import ru.nekoguys.game.entity.competition.rule.CompetitionCreateTeamMessage
 import ru.nekoguys.game.entity.competition.rule.CompetitionJoinTeamMessage
 import ru.nekoguys.game.entity.user.repository.UserRepository
 import ru.nekoguys.game.web.dto.*
+import java.time.LocalDateTime
 
 @Service
 class CompetitionService(
@@ -33,7 +35,7 @@ class CompetitionService(
             stage = request.state.toCompetitionStage(),
         )
 
-        return if (session.stage == CompetitionStage.Registration) {
+        return if (request.state?.lowercase() == "registration") {
             val pin = sessionPinGenerator.convertSessionIdToPin(session.id)
             CreateCompetitionResponse.OpenedRegistration(pin)
         } else {
@@ -49,14 +51,27 @@ class CompetitionService(
         val user = userRepository.findByEmail(userEmail)
         checkNotNull(user)
 
+        val sessionIds = competitionSessionRepository
+            .findIdsByCreatorId(user.id.number, limit, offset)
+            .toList()
+
         return competitionSessionRepository
-            .findByCreatorId(user.id.number, limit, offset)
+            .findAll(
+                ids = sessionIds.map { it.number },
+                CompetitionSession.WithSettings,
+                CompetitionSession.WithStage,
+                CompetitionSession.WithCommonFields,
+            )
             .map {
-                it.toCompetitionHistoryResponseItem(
+                createCompetitionHistoryResponseItem(
+                    settings = it.settings,
+                    stage = it.stage,
+                    lastModified = it.lastModified,
                     isOwned = true,
-                    pin = sessionPinGenerator.convertSessionIdToPin(it.id),
+                    pin = sessionPinGenerator.convertSessionIdToPin(it.id)
                 )
             }
+            .toList()
     }
 
     suspend fun createTeam(
@@ -146,44 +161,11 @@ class CompetitionService(
             ?: return false
 
         val session = competitionSessionRepository
-            .find(sessionId)
-            ?: return false
+            .findAll(listOf(sessionId), CompetitionSession.WithStage)
+            .singleOrNull() ?: return false
 
         return session.stage == CompetitionStage.Registration
     }
-
-    /*
-
-    @PostMapping(value = "/join_team")
-    @PreAuthorize("hasRole('STUDENT')")
-    public Mono<ResponseEntity> joinTeam(Mono<Principal> principalMono, @Valid @RequestBody JoinTeamRequest joinTeamRequest) {
-        var compMono = this.competitionsRepository.findByPin(joinTeamRequest.getCompetitionPin());
-
-        var userMono = principalMono
-                .map(Principal::getName)
-                .flatMap(userEmail -> {
-                    log.info("POST: /api/competitions/join_team, email: {}, body: {}", userEmail, joinTeamRequest);
-                    return userRepository.findOneByEmail(userEmail);
-                });
-
-        return Mono.zip(compMono, userMono).flatMap(tuple -> {
-            var user = tuple.getT2();
-            var competition = tuple.getT1();
-
-            return teamJoinService.joinTeam(competition, joinTeamRequest, user);
-        }).map(team -> {
-            this.teamConnectionNotifyService.registerTeam(team);
-            return (ResponseEntity)ResponseEntity
-                    .ok(JoinTeamResponse.builder().currentTeamName(team.getName()).build());
-        })
-                .onErrorResume(ex -> {
-                    log.info(String.format("Predicted exception: %s and %s", ex.getClass().getName(), ex.getMessage()));
-                        ex.printStackTrace();
-                        return Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseMessage.of(ex.getMessage())));})
-                .defaultIfEmpty(
-                        ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ResponseMessage.of("No competition with pin: " + joinTeamRequest.getCompetitionPin())));
-    }
-     */
 }
 
 private fun CreateCompetitionRequest.extractCompetitionSettings() =
@@ -224,46 +206,49 @@ private fun List<Double>.toCompetitionDemandFormula() =
         xCoefficient = get(1),
     )
 
-private fun CompetitionSession.toCompetitionHistoryResponseItem(
+private fun createCompetitionHistoryResponseItem(
+    settings: CompetitionSettings,
+    stage: CompetitionStage,
+    lastModified: LocalDateTime,
     isOwned: Boolean,
     pin: String,
 ) =
     GetCompetitionResponse(
         demandFormula = listOf(
-            properties.settings.demandFormula.freeCoefficient.toString(),
-            properties.settings.demandFormula.xCoefficient.toString(),
+            settings.demandFormula.freeCoefficient.toString(),
+            settings.demandFormula.xCoefficient.toString(),
         ),
         expensesFormula = listOf(
-            properties.settings.expensesFormula.xSquareCoefficient.toString(),
-            properties.settings.expensesFormula.xCoefficient.toString(),
-            properties.settings.expensesFormula.freeCoefficient.toString(),
+            settings.expensesFormula.xSquareCoefficient.toString(),
+            settings.expensesFormula.xCoefficient.toString(),
+            settings.expensesFormula.freeCoefficient.toString(),
         ),
-        instruction = properties.settings.instruction,
-        isAutoRoundEnding = properties.settings.isAutoRoundEnding,
+        instruction = settings.instruction,
+        isAutoRoundEnding = settings.isAutoRoundEnding,
         isOwned = isOwned,
         lastUpdateTime = lastModified,
-        maxTeamSize = properties.settings.maxTeamSize,
-        maxTeamsAmount = properties.settings.maxTeamsAmount,
-        name = properties.settings.name,
+        maxTeamSize = settings.maxTeamSize,
+        maxTeamsAmount = settings.maxTeamsAmount,
+        name = settings.name,
         pin = pin,
-        roundLength = properties.settings.roundLength,
-        roundsCount = properties.settings.roundsCount,
-        shouldEndRoundBeforeAllAnswered = properties.settings.endRoundBeforeAllAnswered,
-        shouldShowResultTableInEnd = properties.settings.showStudentsResultsTable,
-        shouldShowStudentPreviousRoundResults = properties.settings.showPreviousRoundResults,
-        showOtherTeamsMembers = properties.settings.showOtherTeamsMembers,
+        roundLength = settings.roundLength,
+        roundsCount = settings.roundsCount,
+        shouldEndRoundBeforeAllAnswered = settings.endRoundBeforeAllAnswered,
+        shouldShowResultTableInEnd = settings.showStudentsResultsTable,
+        shouldShowStudentPreviousRoundResults = settings.showPreviousRoundResults,
+        showOtherTeamsMembers = settings.showOtherTeamsMembers,
         state = stage.name.lowercase().replaceFirstChar(Char::uppercase),
-        teamLossUpperbound = properties.settings.teamLossLimit.toDouble(),
+        teamLossUpperbound = settings.teamLossLimit.toDouble(),
     )
 
-private fun CompetitionCreateTeamMessage.toUpdateNotification(): TeamUpdateNotification =
+private fun CompetitionCreateTeamMessage.toUpdateNotification() =
     TeamUpdateNotification(
         teamName = teamName,
         idInGame = idInGame,
         teamMembers = listOf(captainEmail)
     )
 
-private fun CompetitionJoinTeamMessage.toUpdateNotification(): TeamUpdateNotification =
+private fun CompetitionJoinTeamMessage.toUpdateNotification() =
     TeamUpdateNotification(
         teamName = teamName,
         idInGame = idInGame,

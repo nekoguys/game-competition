@@ -8,7 +8,6 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.transaction.reactive.TransactionalOperator
 import ru.nekoguys.game.persistence.GamePersistenceTest
-import ru.nekoguys.game.persistence.commongame.repository.DbGamePropertiesRepository
 import ru.nekoguys.game.persistence.commongame.repository.DbGameSessionRepository
 import ru.nekoguys.game.persistence.competition.model.DbCompetitionSession
 import ru.nekoguys.game.persistence.competition.model.DbCompetitionTeam
@@ -24,7 +23,6 @@ internal class DbCompetitionTeamRepositoryTest @Autowired constructor(
     private val dbCompetitionSessionRepository: DbCompetitionSessionRepository,
     private val dbCompetitionTeamMemberRepository: DbCompetitionTeamMemberRepository,
     private val dbCompetitionTeamRepository: DbCompetitionTeamRepository,
-    private val dbGamePropertiesRepository: DbGamePropertiesRepository,
     private val dbGameSessionRepository: DbGameSessionRepository,
     private val dbUserRepository: DbUserRepository,
     private val transactionalOperator: TransactionalOperator,
@@ -36,7 +34,7 @@ internal class DbCompetitionTeamRepositoryTest @Autowired constructor(
 
         val team = DbCompetitionTeam(
             id = null,
-            sessionId = processInfo.parentId!!,
+            sessionId = processInfo.sessionId!!,
             teamNumber = 0,
             name = "Test Team",
             password = "a",
@@ -71,7 +69,6 @@ internal class DbCompetitionTeamRepositoryTest @Autowired constructor(
         return createCompetitionSession(
             userEmail,
             dbUserRepository,
-            dbGamePropertiesRepository,
             dbGameSessionRepository,
             dbCompetitionSessionRepository,
         )

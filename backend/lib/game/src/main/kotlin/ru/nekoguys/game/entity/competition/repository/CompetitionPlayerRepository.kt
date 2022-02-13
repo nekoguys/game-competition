@@ -23,7 +23,7 @@ interface CompetitionPlayerRepository {
     ): Flow<CompetitionPlayer.Student>
 
     fun loadAllInSession(
-        sessionId: CommonSession.Id,
+        sessionId: Long,
     ): Flow<CompetitionPlayer.Student>
 
     companion object ResourceKey

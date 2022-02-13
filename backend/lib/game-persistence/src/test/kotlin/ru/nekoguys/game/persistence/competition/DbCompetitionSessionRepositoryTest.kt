@@ -5,10 +5,8 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.transaction.reactive.TransactionalOperator
 import ru.nekoguys.game.persistence.GamePersistenceTest
-import ru.nekoguys.game.persistence.commongame.model.DbGameProperties
 import ru.nekoguys.game.persistence.commongame.model.DbGameSession
 import ru.nekoguys.game.persistence.commongame.model.DbGameType
-import ru.nekoguys.game.persistence.commongame.repository.DbGamePropertiesRepository
 import ru.nekoguys.game.persistence.commongame.repository.DbGameSessionRepository
 import ru.nekoguys.game.persistence.competition.model.*
 import ru.nekoguys.game.persistence.competition.repository.*
@@ -26,7 +24,6 @@ internal class DbCompetitionSessionRepositoryTest @Autowired constructor(
     private val dbCompetitionRoundResultRepository: DbCompetitionRoundResultRepository,
     private val dbCompetitionSessionRepository: DbCompetitionSessionRepository,
     private val dbCompetitionTeamRepository: DbCompetitionTeamRepository,
-    private val dbGamePropertiesRepository: DbGamePropertiesRepository,
     private val dbGameSessionRepository: DbGameSessionRepository,
     private val dbUserRepository: DbUserRepository,
     private val transactionalOperator: TransactionalOperator,
@@ -35,7 +32,7 @@ internal class DbCompetitionSessionRepositoryTest @Autowired constructor(
     fun `session insertion and retrieval`() = transactionalOperator.runBlockingWithRollback {
         val createdSession = createCompetitionSession("email")
 
-        val retrievedSession = dbCompetitionSessionRepository.findById(createdSession.parentId!!)
+        val retrievedSession = dbCompetitionSessionRepository.findById(createdSession.sessionId!!)
 
         assertThat(retrievedSession)
             .isEqualTo(createdSession)
@@ -47,7 +44,7 @@ internal class DbCompetitionSessionRepositoryTest @Autowired constructor(
 
         val roundInfo = DbCompetitionRoundInfo(
             id = null,
-            sessionId = competitionSession.parentId!!,
+            sessionId = competitionSession.sessionId!!,
             roundNumber = 1,
             startTime = LocalDateTime.now().truncatedTo(ChronoUnit.MILLIS),
             endTime = null,
@@ -65,7 +62,7 @@ internal class DbCompetitionSessionRepositoryTest @Autowired constructor(
 
         val roundInfo = DbCompetitionRoundInfo(
             id = null,
-            sessionId = competitionSession.parentId!!,
+            sessionId = competitionSession.sessionId!!,
             roundNumber = 1,
             startTime = LocalDateTime.now(),
             endTime = null,
@@ -73,7 +70,7 @@ internal class DbCompetitionSessionRepositoryTest @Autowired constructor(
 
         val team = DbCompetitionTeam(
             id = null,
-            sessionId = competitionSession.parentId!!,
+            sessionId = competitionSession.sessionId!!,
             teamNumber = 1,
             name = "Test Team",
             password = "a",
@@ -103,7 +100,6 @@ internal class DbCompetitionSessionRepositoryTest @Autowired constructor(
         return createCompetitionSession(
             userEmail,
             dbUserRepository,
-            dbGamePropertiesRepository,
             dbGameSessionRepository,
             dbCompetitionSessionRepository,
         )
@@ -113,7 +109,6 @@ internal class DbCompetitionSessionRepositoryTest @Autowired constructor(
 suspend fun createCompetitionSession(
     userEmail: String,
     userRepository: DbUserRepository,
-    gamePropertiesRepository: DbGamePropertiesRepository,
     gameSessionsRepository: DbGameSessionRepository,
     gameStateRepository: DbCompetitionSessionRepository,
 ): DbCompetitionSession {
@@ -125,19 +120,14 @@ suspend fun createCompetitionSession(
         role = DbUserRole.TEACHER,
     ).let { userRepository.save(it) }
 
-    val props = DbGameProperties(
+    val session = DbGameSession(
         id = null,
         creatorId = user.id!!,
         gameType = DbGameType.COMPETITION,
-    ).let { gamePropertiesRepository.save(it) }
-
-    val session = DbGameSession(
-        id = null,
-        propertiesId = props.id!!,
     ).let { gameSessionsRepository.save(it) }
 
     return DbCompetitionSession(
-        parentId = session.id!!,
+        sessionId = session.id!!,
         stage = DbCompetitionStage.IN_PROGRESS,
         lastRound = 4,
     ).let { gameStateRepository.save(it.asNew()) }

@@ -6,8 +6,10 @@ import org.springframework.stereotype.Component
 import ru.nekoguys.game.core.util.buildResponse
 import ru.nekoguys.game.entity.competition.CompetitionProcessException
 import ru.nekoguys.game.entity.competition.model.CompetitionPlayer
-import ru.nekoguys.game.entity.competition.repository.CompetitionPropertiesRepository
+import ru.nekoguys.game.entity.competition.model.CompetitionSession
+import ru.nekoguys.game.entity.competition.repository.CompetitionSessionRepository
 import ru.nekoguys.game.entity.competition.repository.CompetitionTeamRepository
+import ru.nekoguys.game.entity.competition.repository.load
 
 data class CompetitionCreateTeamMessage(
     val teamName: String,
@@ -17,7 +19,7 @@ data class CompetitionCreateTeamMessage(
 
 @Component
 class CompetitionCreateTeamRule(
-    private val competitionPropertiesRepository: CompetitionPropertiesRepository,
+    private val competitionSessionRepository: CompetitionSessionRepository,
     private val competitionTeamRepository: CompetitionTeamRepository,
 ) : CompetitionRule<CompetitionPlayer.Unknown, CompetitionCommand.CreateTeam, CompetitionCreateTeamMessage> {
 
@@ -25,9 +27,10 @@ class CompetitionCreateTeamRule(
         player: CompetitionPlayer.Unknown,
         command: CompetitionCommand.CreateTeam,
     ): List<CompGameMessage<CompetitionCreateTeamMessage>> = coroutineScope {
-        val properties = async {
-            competitionPropertiesRepository
-                .loadBySessionId(player.sessionId)
+        val settings = async {
+            competitionSessionRepository
+                .load(player.sessionId, CompetitionSession.WithSettings)
+                .settings
         }
 
         val existingTeam = async {
@@ -48,7 +51,7 @@ class CompetitionCreateTeamRule(
             creator = player,
             name = command.teamName,
             password = command.password,
-            maxTeams = properties.await().settings.maxTeamsAmount,
+            maxTeams = settings.await().maxTeamsAmount,
         )
 
         buildResponse {

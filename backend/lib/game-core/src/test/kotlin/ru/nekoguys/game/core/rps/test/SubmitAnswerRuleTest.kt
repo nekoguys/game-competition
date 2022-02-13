@@ -22,7 +22,7 @@ import ru.nekoguys.game.core.session.getMessages
 
 @RpsGameCoreTest
 class SubmitAnswerRuleTest @Autowired constructor(
-    private val gameService: RpsGameService
+    private val gameService: RpsGameService,
 ) {
 
 

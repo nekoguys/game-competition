@@ -13,7 +13,7 @@ import ru.nekoguys.game.entity.competition.model.CompetitionSettings
 data class DbCompetitionProperties(
     @Id
     @Column("id")
-    var parentId: Long?,
+    var sessionId: Long?,
 
     var autoRoundEnding: Boolean,
 
@@ -48,21 +48,21 @@ data class DbCompetitionProperties(
 ) : Persistable<Long> {
 
     @Transient
-    private var isNew: Boolean = parentId == null
+    private var isNew: Boolean = sessionId == null
 
     fun asNew(): DbCompetitionProperties =
         apply { isNew = true }
 
     override fun isNew(): Boolean = isNew
 
-    override fun getId(): Long? = parentId
+    override fun getId(): Long? = sessionId
 }
 
 fun CompetitionSettings.toDbCompetitionProperties(
-    parentId: Long?,
+    sessionId: Long?,
 ): DbCompetitionProperties =
     DbCompetitionProperties(
-        parentId = parentId,
+        sessionId = sessionId,
         autoRoundEnding = isAutoRoundEnding,
         demandFormula = demandFormula.toDbString(),
         endRoundBeforeAllAnswered = endRoundBeforeAllAnswered,

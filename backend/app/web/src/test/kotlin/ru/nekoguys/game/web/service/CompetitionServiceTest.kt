@@ -25,7 +25,7 @@ class CompetitionServiceTest @Autowired constructor(
         )
 
         with(session) {
-            assertThat(properties.settings.name).isNotNull
+            assertThat(settings.name).isNotNull
             assertThat(lastModified).isBefore(LocalDateTime.now())
             assertThat(stage).isEqualTo(CompetitionStage.Draft)
             assertThat(teams).isEmpty()
@@ -39,7 +39,7 @@ class CompetitionServiceTest @Autowired constructor(
         )
 
         with(session) {
-            assertThat(properties.settings.name).isNotNull
+            assertThat(settings.name).isNotNull
             assertThat(lastModified).isBefore(LocalDateTime.now())
             assertThat(stage).isEqualTo(CompetitionStage.Registration)
             assertThat(teams).isEmpty()

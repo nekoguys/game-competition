@@ -18,11 +18,11 @@ interface CompetitionTeamRepository {
         teamName: String,
     ): CompetitionTeam?
 
-    fun loadBySession(
-        sessionId: CommonSession.Id,
+    fun findBySessionId(
+        sessionId: Long,
     ): Flow<CompetitionTeam>
 
-    fun loadAllBySession(
-        sessionIds: Iterable<CommonSession.Id>,
-    ): Flow<CompetitionTeam>
+    suspend fun findAllBySessionIds(
+        sessionIds: Iterable<Long>,
+    ): Map<CommonSession.Id, List<CompetitionTeam>>
 }

@@ -6,7 +6,7 @@ import ru.nekoguys.game.entity.competition.CompetitionProcessException
 import ru.nekoguys.game.entity.competition.model.CompetitionPlayer
 import ru.nekoguys.game.entity.competition.model.students
 import ru.nekoguys.game.entity.competition.repository.CompetitionPlayerRepository
-import ru.nekoguys.game.entity.competition.repository.CompetitionPropertiesRepository
+import ru.nekoguys.game.entity.competition.repository.CompetitionSettingsRepository
 import ru.nekoguys.game.entity.competition.repository.CompetitionTeamRepository
 
 data class CompetitionJoinTeamMessage(
@@ -17,7 +17,7 @@ data class CompetitionJoinTeamMessage(
 
 @Component
 class CompetitionJoinTeamRule(
-    private val competitionPropertiesRepository: CompetitionPropertiesRepository,
+    private val competitionSettingsRepository: CompetitionSettingsRepository,
     private val competitionTeamRepository: CompetitionTeamRepository,
     private val competitionPlayerRepository: CompetitionPlayerRepository,
 ) : CompetitionRule<CompetitionPlayer.Unknown, CompetitionCommand.JoinTeam, CompetitionJoinTeamMessage> {
@@ -26,8 +26,8 @@ class CompetitionJoinTeamRule(
         player: CompetitionPlayer.Unknown,
         command: CompetitionCommand.JoinTeam,
     ): List<CompGameMessage<CompetitionJoinTeamMessage>> {
-        val properties =
-            competitionPropertiesRepository.loadBySessionId(player.sessionId)
+        val settings =
+            competitionSettingsRepository.load(player.sessionId)
 
         val team = competitionTeamRepository
             .findByName(
@@ -46,7 +46,7 @@ class CompetitionJoinTeamRule(
 
         competitionPlayerRepository.save(
             newMember,
-            maxPlayers = properties.settings.maxTeamSize,
+            maxPlayers = settings.maxTeamSize,
         )
 
         return buildResponse {

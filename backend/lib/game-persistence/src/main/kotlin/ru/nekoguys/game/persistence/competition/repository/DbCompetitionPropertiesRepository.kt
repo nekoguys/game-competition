@@ -10,6 +10,6 @@ interface DbCompetitionPropertiesRepository
 
     fun findAllByIdIn(
         ids: Collection<Long>,
-        sort: Sort = Sort.by(DbCompetitionProperties::parentId.name),
+        sort: Sort = Sort.by(DbCompetitionProperties::sessionId.name),
     ): Flow<DbCompetitionProperties>
 }

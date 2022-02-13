@@ -16,10 +16,9 @@ class DatabaseCleaner(
             DELETE FROM competition_round_infos;
             DELETE FROM competition_team_members;
             DELETE FROM competition_teams;
-            DELETE FROM competition_game_sessions;
             DELETE FROM competition_game_props;
+            DELETE FROM competition_game_sessions;
             DELETE FROM game_sessions;
-            DELETE FROM game_props;
             DELETE FROM users;
         """.trimIndent()).then().awaitSingleOrNull()
     }

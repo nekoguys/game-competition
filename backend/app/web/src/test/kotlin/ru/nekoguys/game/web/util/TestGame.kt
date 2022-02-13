@@ -4,6 +4,8 @@ import org.springframework.stereotype.Component
 import ru.nekoguys.game.entity.commongame.service.SessionPinGenerator
 import ru.nekoguys.game.entity.competition.model.CompetitionSession
 import ru.nekoguys.game.entity.competition.repository.CompetitionSessionRepository
+import ru.nekoguys.game.entity.competition.repository.findAll
+import ru.nekoguys.game.entity.competition.repository.load
 import ru.nekoguys.game.entity.user.model.User
 import ru.nekoguys.game.entity.user.model.UserRole
 import ru.nekoguys.game.entity.user.repository.UserRepository
@@ -34,21 +36,26 @@ class TestGame(
 
     suspend fun loadCompetitionSession(
         pin: String,
-    ): CompetitionSession {
+    ): CompetitionSession.Full {
         val sessionId = pinGenerator.decodeIdFromPin(pin)
-        return competitionSessionRepository.load(sessionId!!)
+        return competitionSessionRepository
+            .load(sessionId!!, CompetitionSession.Full)
     }
 
     suspend fun createAndLoadCompetition(
         teacher: User? = null,
         request: CreateCompetitionRequest = DEFAULT_CREATE_COMPETITION_REQUEST,
-    ): CompetitionSession {
+    ): CompetitionSession.Full {
         val createdTeacher = teacher ?: createUser()
         competitionService.create(createdTeacher.email, request)
 
+        val sessionIds = competitionSessionRepository
+            .findIdsByCreatorId(createdTeacher.id.number)
+            .map { it.number }
+
         return competitionSessionRepository
-            .findByCreatorId(createdTeacher.id.number)
-            .first { it.properties.settings.name == request.name }
+            .findAll(sessionIds, CompetitionSession.Full)
+            .first { it.settings.name == request.name }
     }
 
     suspend fun createDraftCompetition(

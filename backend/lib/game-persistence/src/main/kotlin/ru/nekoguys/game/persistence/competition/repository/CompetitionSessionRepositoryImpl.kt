@@ -3,17 +3,18 @@ package ru.nekoguys.game.persistence.competition.repository
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.launch
 import org.springframework.stereotype.Repository
 import org.springframework.transaction.reactive.TransactionalOperator
 import org.springframework.transaction.reactive.executeAndAwait
-import ru.nekoguys.game.entity.commongame.model.CommonProperties
 import ru.nekoguys.game.entity.commongame.model.CommonSession
 import ru.nekoguys.game.entity.competition.model.*
-import ru.nekoguys.game.entity.competition.repository.CompetitionPropertiesRepository
 import ru.nekoguys.game.entity.competition.repository.CompetitionSessionRepository
+import ru.nekoguys.game.entity.competition.repository.CompetitionSettingsRepository
 import ru.nekoguys.game.entity.competition.repository.CompetitionTeamRepository
 import ru.nekoguys.game.entity.user.model.User
 import ru.nekoguys.game.persistence.commongame.model.DbGameSession
+import ru.nekoguys.game.persistence.commongame.model.DbGameType
 import ru.nekoguys.game.persistence.commongame.repository.DbGameSessionRepository
 import ru.nekoguys.game.persistence.competition.model.DbCompetitionSession
 import ru.nekoguys.game.persistence.competition.model.extractCompetitionStage
@@ -23,7 +24,7 @@ import java.time.temporal.ChronoUnit
 
 @Repository
 class CompetitionSessionRepositoryImpl(
-    private val competitionPropertiesRepository: CompetitionPropertiesRepository,
+    private val competitionSettingsRepository: CompetitionSettingsRepository,
     private val competitionTeamRepository: CompetitionTeamRepository,
     @Suppress("SpringJavaInjectionPointsAutowiringInspection")
     private val transactionalOperator: TransactionalOperator,
@@ -32,157 +33,130 @@ class CompetitionSessionRepositoryImpl(
 ) : CompetitionSessionRepository {
 
     override suspend fun create(
-        propertiesId: CommonProperties.Id,
-        stage: CompetitionStage,
-    ): CompetitionSession {
-        return transactionalOperator.executeAndAwait {
-            val properties = competitionPropertiesRepository.load(propertiesId)
-            createInTransaction(properties, stage)
-        } ?: error("Can't create a session with propertiesId = $propertiesId, " +
-                "stage = $stage")
-    }
-
-    override suspend fun create(
         userId: User.Id,
         settings: CompetitionSettings,
         stage: CompetitionStage,
-    ): CompetitionSession {
-        return transactionalOperator.executeAndAwait {
-            val properties = competitionPropertiesRepository.create(userId, settings)
-            createInTransaction(properties, stage)
-        } ?: error("Can't create a session with userId = $userId, " +
-                "settings = $settings, stage = $stage")
-    }
-
-    private suspend fun createInTransaction(
-        properties: CompetitionProperties,
-        stage: CompetitionStage,
-    ): CompetitionSession {
+    ): CompetitionSession = transactionalOperator.executeAndAwait {
         val dbGameSession = DbGameSession(
             id = null,
-            propertiesId = properties.id.number,
+            creatorId = userId.number,
+            gameType = DbGameType.COMPETITION,
         ).let { dbGameSessionRepository.save(it) }
 
         val dbCompetitionSession = DbCompetitionSession(
-            parentId = dbGameSession.id!!,
+            sessionId = dbGameSession.id!!,
             stage = stage.toDbCompetitionStage(),
             lastRound = stage.extractLastRound(),
         ).let { dbCompetitionSessionRepository.save(it.asNew()) }
 
-        return createCompetitionSession(
-            dbGameSession = dbGameSession,
+        val sessionId = CommonSession.Id(dbGameSession.id!!)
+        val savedSettings = competitionSettingsRepository.save(sessionId, settings)
+
+        createCompetitionSession(
             dbCompetitionSession = dbCompetitionSession,
-            properties = properties,
-            teams = emptyList(),
+            dbGameSession = dbGameSession,
+            settings = savedSettings,
         )
-    }
+    } ?: error("Can't create a session with userId = $userId, " +
+            "settings = $settings, stage = $stage")
 
-    override suspend fun findSessionId(id: Long): CommonSession.Id? =
-        CommonSession.Id(id)
-            .takeIf { dbCompetitionSessionRepository.existsById(id) }
+    override suspend fun findAll(
+        ids: Collection<Long>,
+        fieldSelectors: Set<CompetitionSessionFieldSelector<*>>,
+    ): List<CompetitionSession> = coroutineScope {
+        val dbGameSessions = async {
+            dbGameSessionRepository
+                .takeIf {
+                    CompetitionSession.WithCommonFields in fieldSelectors ||
+                            CompetitionSession.Full in fieldSelectors
+                }
+                ?.findAllById(ids)
+                ?.toList()
+                ?.associateBy { it.id!! }
+        }
 
-    override suspend fun find(id: Long): CompetitionSession? {
-        val dbGameSession =
-            dbGameSessionRepository.findById(id)
-                ?: return null
+        val settings = async {
+            competitionSettingsRepository
+                .takeIf {
+                    CompetitionSession.WithSettings in fieldSelectors ||
+                            CompetitionSession.Full in fieldSelectors
+                }
+                ?.findAll(ids)
+                ?.mapKeys { (a) -> a.number }
+        }
 
-        return coroutineScope {
-            val properties = async {
-                competitionPropertiesRepository.find(dbGameSession.propertiesId)
-                    ?: error("Competition game session doesn't have saved properties: $dbGameSession")
-            }
+        val teams = async {
+            competitionTeamRepository
+                .takeIf {
+                    CompetitionSession.WithTeams in fieldSelectors ||
+                            CompetitionSession.Full in fieldSelectors
+                }
+                ?.findAllBySessionIds(ids)
+                ?.mapKeys { (a) -> a.number }
+        }
 
-            val dbCompetitionSession = async {
-                dbCompetitionSessionRepository.findById(id)
-                    ?: error("Competition game session doesn't have saved state: $dbGameSession")
-            }
+        val dbCompetitionSessions = dbCompetitionSessionRepository
+            .findAllById(ids)
+            .toList()
+            .associateBy { it.id!! }
 
-            val teams = async {
-                competitionTeamRepository
-                    .loadBySession(CommonSession.Id(dbGameSession.id!!))
-                    .toList()
-            }
-
+        dbCompetitionSessions.map { (id, dbCompetitionSession) ->
             createCompetitionSession(
-                dbGameSession = dbGameSession,
-                dbCompetitionSession = dbCompetitionSession.await(),
-                properties = properties.await(),
-                teams = teams.await(),
+                dbCompetitionSession = dbCompetitionSession,
+                dbGameSession = dbGameSessions.await()?.getValue(id),
+                settings = settings.await()?.getValue(id),
+                teams = teams.await()?.run { get(id).orEmpty() },
             )
         }
     }
 
-    override suspend fun findByCreatorId(
+    override suspend fun update(
+        from: CompetitionSession,
+        to: CompetitionSession,
+    ) = coroutineScope {
+        // других типов CompetitionSession и не бывает
+        from as CompetitionSession.Full
+        to as CompetitionSession.Full
+
+        if (to._settings != null && to.settings != from._settings) {
+            launch {
+                competitionSettingsRepository.save(to.id, to.settings)
+            }
+        }
+
+        if (to._stage != null && to.stage != from._stage) {
+            DbCompetitionSession(
+                sessionId = to.id.number,
+                stage = to.stage.toDbCompetitionStage(),
+                lastRound = to.stage.extractLastRound(),
+            ).let { dbCompetitionSessionRepository.save(it.asNew()) }
+        }
+    }
+
+    override suspend fun findIdsByCreatorId(
         creatorId: Long,
         limit: Int,
         offset: Int,
-    ): List<CompetitionSession> {
-        val dbGameSessions = dbGameSessionRepository
-            .findAllByCreatorId(creatorId, limit, offset)
+    ): List<CommonSession.Id> =
+        dbGameSessionRepository
+            .findIdsByCreatorId(creatorId, limit, offset)
             .toList()
-
-        return coroutineScope {
-            val propertiesList = async {
-                competitionPropertiesRepository
-                    .findAll(dbGameSessions.map { it.propertiesId })
-                    .toList()
-            }
-
-            val dbCompetitionSessions = async {
-                dbCompetitionSessionRepository
-                    .findAllById(dbGameSessions.map { it.id!! })
-                    .toList()
-            }
-
-            val teams = async {
-                competitionTeamRepository
-                    .loadAllBySession(dbGameSessions
-                        .map { CommonSession.Id(it.id!!) })
-                    .toList()
-            }
-
-            createCompetitionSessions(
-                propertiesList = propertiesList.await(),
-                dbGameSessions = dbGameSessions,
-                dbCompetitionSessions = dbCompetitionSessions.await(),
-                teams = teams.await(),
-            )
-        }
-    }
-}
-
-private fun createCompetitionSessions(
-    propertiesList: List<CompetitionProperties>,
-    dbGameSessions: List<DbGameSession>,
-    dbCompetitionSessions: List<DbCompetitionSession>,
-    teams: List<CompetitionTeam>,
-): List<CompetitionSession> {
-    val propertiesById = propertiesList.associateBy { it.id.number }
-    val dbCompetitionSessionsById = dbCompetitionSessions.associateBy { it.id!! }
-    val teamsBySessionId = teams.groupBy { it.sessionId.number }
-
-    return dbGameSessions.map {
-        createCompetitionSession(
-            dbGameSession = it,
-            dbCompetitionSession = dbCompetitionSessionsById.getValue(it.id!!),
-            properties = propertiesById.getValue(it.propertiesId),
-            teams = teamsBySessionId[it.id!!].orEmpty(),
-        )
-    }
+            .map(CommonSession::Id)
 }
 
 private fun createCompetitionSession(
-    dbGameSession: DbGameSession,
     dbCompetitionSession: DbCompetitionSession,
-    properties: CompetitionProperties,
-    teams: List<CompetitionTeam>,
-): CompetitionSession =
-    CompetitionSession(
-        id = CommonSession.Id(dbGameSession.id!!),
-        properties = properties,
-        lastModified = dbGameSession
-            .lastModifiedDate!!
-            .truncatedTo(ChronoUnit.MILLIS),
-        stage = dbCompetitionSession.extractCompetitionStage(),
-        teams = teams,
+    dbGameSession: DbGameSession? = null,
+    settings: CompetitionSettings? = null,
+    teams: List<CompetitionTeam>? = null,
+): CompetitionSession.Full =
+    CompetitionSession.Full(
+        _id = CommonSession.Id(dbCompetitionSession.id!!),
+        _settings = settings,
+        _creatorId = dbGameSession?.creatorId?.let(User::Id),
+        _lastModified = dbGameSession
+            ?.lastModifiedDate
+            ?.truncatedTo(ChronoUnit.MILLIS),
+        _stage = dbCompetitionSession.extractCompetitionStage(),
+        _teams = teams,
     )

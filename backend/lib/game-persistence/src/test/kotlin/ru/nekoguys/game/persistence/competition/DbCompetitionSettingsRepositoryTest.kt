@@ -5,20 +5,24 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.transaction.reactive.TransactionalOperator
 import ru.nekoguys.game.persistence.GamePersistenceTest
-import ru.nekoguys.game.persistence.commongame.model.DbGameProperties
+import ru.nekoguys.game.persistence.commongame.model.DbGameSession
 import ru.nekoguys.game.persistence.commongame.model.DbGameType
-import ru.nekoguys.game.persistence.commongame.repository.DbGamePropertiesRepository
+import ru.nekoguys.game.persistence.commongame.repository.DbGameSessionRepository
 import ru.nekoguys.game.persistence.competition.model.DbCompetitionProperties
+import ru.nekoguys.game.persistence.competition.model.DbCompetitionSession
+import ru.nekoguys.game.persistence.competition.model.DbCompetitionStage
 import ru.nekoguys.game.persistence.competition.repository.DbCompetitionPropertiesRepository
+import ru.nekoguys.game.persistence.competition.repository.DbCompetitionSessionRepository
 import ru.nekoguys.game.persistence.user.model.DbUser
 import ru.nekoguys.game.persistence.user.model.DbUserRole
 import ru.nekoguys.game.persistence.user.repository.DbUserRepository
 import ru.nekoguys.game.persistence.utils.runBlockingWithRollback
 
 @GamePersistenceTest
-internal class DbCompetitionPropertiesRepositoryTest @Autowired constructor(
+internal class DbCompetitionSettingsRepositoryTest @Autowired constructor(
     private val dbCompetitionPropertiesRepository: DbCompetitionPropertiesRepository,
-    private val dbGamePropertiesRepository: DbGamePropertiesRepository,
+    private val dbCompetitionSessionRepository: DbCompetitionSessionRepository,
+    private val dbGameSessionRepository: DbGameSessionRepository,
     private val dbUserRepository: DbUserRepository,
     private val transactionalOperator: TransactionalOperator,
 ) {
@@ -30,15 +34,19 @@ internal class DbCompetitionPropertiesRepositoryTest @Autowired constructor(
             password = "897",
             role = DbUserRole.ADMIN,
         ).let { dbUserRepository.save(it) }
-
-        val props = DbGameProperties(
+        val dbGameSession = DbGameSession(
             id = null,
             creatorId = user.id!!,
             gameType = DbGameType.COMPETITION,
-        ).let { dbGamePropertiesRepository.save(it) }
+        ).let { dbGameSessionRepository.save(it) }
+        DbCompetitionSession(
+            sessionId = dbGameSession.id,
+            stage = DbCompetitionStage.REGISTRATION,
+            lastRound = null,
+        ).let { dbCompetitionSessionRepository.save(it.asNew()) }
 
         val competitionProps = DbCompetitionProperties(
-            parentId = props.id,
+            sessionId = dbGameSession.id,
             autoRoundEnding = true,
             demandFormula = "2;-4",
             endRoundBeforeAllAnswered = true,
@@ -55,7 +63,7 @@ internal class DbCompetitionPropertiesRepositoryTest @Autowired constructor(
             teamLossLimit = 1000,
         ).let { dbCompetitionPropertiesRepository.save(it.asNew()) }
 
-        assertThat(dbCompetitionPropertiesRepository.findById(competitionProps.parentId!!))
+        assertThat(dbCompetitionPropertiesRepository.findById(competitionProps.sessionId!!))
             .isEqualTo(competitionProps)
     }
 }

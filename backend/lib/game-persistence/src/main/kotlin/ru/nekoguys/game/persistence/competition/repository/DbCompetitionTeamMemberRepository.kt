@@ -11,10 +11,10 @@ interface DbCompetitionTeamMemberRepository : CoroutineCrudRepository<DbCompetit
 
     @Query(
         "SELECT ctm.* " +
-        "FROM competition_team_members AS ctm " +
-        "JOIN competition_teams AS ct ON ct.id = ctm.team_id " +
-        "WHERE ct.session_id = :sessionId AND ctm.user_id = :userId " +
-        "LIMIT 1"
+                "FROM competition_team_members AS ctm " +
+                "JOIN competition_teams AS ct ON ct.id = ctm.team_id " +
+                "WHERE ct.session_id = :sessionId AND ctm.user_id = :userId " +
+                "LIMIT 1"
     )
     suspend fun findBySessionIdAndUserId(
         sessionId: Long,
@@ -23,9 +23,9 @@ interface DbCompetitionTeamMemberRepository : CoroutineCrudRepository<DbCompetit
 
     @Query(
         "SELECT ctm.* " +
-        "FROM competition_team_members AS ctm " +
-        "JOIN competition_teams AS ct ON ct.id = ctm.team_id " +
-        "WHERE ct.session_id IN (:sessionIds)"
+                "FROM competition_team_members AS ctm " +
+                "JOIN competition_teams AS ct ON ct.id = ctm.team_id " +
+                "WHERE ct.session_id IN (:sessionIds)"
     )
     fun findAllBySessionIds(
         sessionIds: Iterable<Long>,
