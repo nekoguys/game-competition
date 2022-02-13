@@ -1,5 +1,16 @@
 .page-title {
-    font-size: 30px;
+    font-size: 26px;
+}
+
+.default-button {
+    color: rgba(0, 0, 0, 0.6);
+    background-color: #BBC2D3;
+    border-radius: 20px;
+    border: 0;
+}
+
+.default-button:hover {
+    background-color: #b8becf
 }
 
 .below-navbar {
@@ -13,5 +24,9 @@
 
     .page-title {
         font-size: 20px;
+    }
+
+    .default-button {
+        border-radius: 8px;
     }
 }

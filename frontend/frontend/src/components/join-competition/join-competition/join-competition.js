@@ -1,14 +1,14 @@
 import React from "react";
-import JoinCompetitionForm from "../join-competition-captain-form";
 import DefaultCheckboxButtonGroup from "../../common/default-checkbox-button-group";
 import {NavbarHeaderWithFetcher as NavbarHeader} from "../../app/app";
 import toSnakeCase from "../../../helpers/snake-case-helper";
-import JoinCompetitionPlayerForm from "../join-competition-player-form";
 import ApiHelper from "../../../helpers/api-helper";
 
 import showNotification from "../../../helpers/notification-helper";
 import withAuthenticated from "../../../helpers/with-authenticated";
 import {withTranslation} from "react-i18next";
+import JoinCompetitionPlayerForm from "../join-competition-player-form";
+import JoinCompetitionCaptainForm from "../join-competition-captain-form";
 
 
 class JoinCompetition extends React.Component {
@@ -66,7 +66,7 @@ class JoinCompetition extends React.Component {
         const {i18n} = this.props;
         let res;
         if (this.state.currentPage === "captain") {
-            res = <JoinCompetitionForm showNotification={this.props.showNotification} onFormSubmit={this.onCreateTeamClick}/>
+            res = <JoinCompetitionCaptainForm showNotification={this.props.showNotification} onFormSubmit={this.onCreateTeamClick}/>
         } else {
             res = <JoinCompetitionPlayerForm showNotification={this.props.showNotification}/>
         }

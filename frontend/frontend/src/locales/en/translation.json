@@ -111,7 +111,9 @@
       "game": "Game ID",
       "team_name": "Team Name",
       "password": "Password for joining team",
-      "enter": "Enter the Game"
+      "password_short": "Password",
+      "enter": "Enter the Game",
+      "enter_game_with_id": "Entering the Game"
     },
     "member": {
       "find": "Find Team"

@@ -110,7 +110,9 @@
       "game": "ID игры",
       "team_name": "Название команды",
       "password": "Пароль для входа",
-      "enter": "Войти в игру"
+      "password_short": "Пароль",
+      "enter": "Войти в игру",
+      "enter_game_with_id": "Вход в игру"
     },
     "member": {
       "find": "Найти команды"

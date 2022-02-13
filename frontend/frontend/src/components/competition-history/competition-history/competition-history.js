@@ -2,12 +2,12 @@ import React from "react";
 import {NavbarHeaderWithFetcher as NavbarHeader} from "../../app/app";
 import {NotificationContainer} from "react-notifications";
 import CompetitionCollection from './competition-collection';
-import DefaultSubmitButton from "../../common/default-submit-button";
 
 import "./competition-history.css";
 import "../../../helpers/common.css";
 import withAuthenticated from "../../../helpers/with-authenticated";
 import {withTranslation} from "react-i18next";
+import JoinCompetitionForm from "../../join-competition/join-competition-form";
 
 class CompetitionHistory extends React.Component {
     static itemsPerPage = 4;
@@ -71,6 +71,14 @@ class CompetitionHistory extends React.Component {
         this.competitionsEnd.scrollIntoView({behavior: "smooth"});
     };
 
+    processToCreateTeam = (pin) => {
+        this.props.history('/competitions/join-new-captain/' + pin)
+    }
+
+    processToJoinTeam = (pin) => {
+       // this.props.history('/')
+    }
+
     render() {
         const {i18n} = this.props;
         return (
@@ -79,15 +87,18 @@ class CompetitionHistory extends React.Component {
                 <NavbarHeader/>
                 </div>
                 <div className={"below-navbar root-container"}>
-                    <div className={"page-title title"}>
-                        {i18n.t('competition_history.last_games')}
-                    </div>
-                    <div className={"collection-holder"} style={{margin: "0 auto"}}>
+                        <JoinCompetitionForm showNotification={this.props.showNotification} pinCheckFetcher={this.props.fetchers.pinCheckFetcher} processToJoinTeam={this.processToJoinTeam} processToCreateTeam={this.processToCreateTeam}/>
+                    <div className={"collection-holder"}>
+                        <div className={"page-title title"}>
+                            {i18n.t('competition_history.last_games')}
+                        </div>
                         <CompetitionCollection items={this.state.items} onHistoryItemClickCallback={this.onHistoryItemClickCallback} isAnyCloneable={this.state.isAnyCloneable}/>
                         <div className={"more-button-container"}>
-                            <DefaultSubmitButton additionalClasses={["more-button"]} text={i18n.t('competition_history.more')} onClick={() => {
+                            <button className={"default-button more-button"} onClick={() => {
                                 this.updateHistory(CompetitionHistory.itemsPerPage);
-                            }}/>
+                            }}>
+                                {i18n.t('competition_history.more')}
+                            </button>
                         </div>
                     </div>
                 </div>

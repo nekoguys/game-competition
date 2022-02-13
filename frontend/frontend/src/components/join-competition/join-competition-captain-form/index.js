@@ -1,3 +1,3 @@
-import JoinCompetitionForm from "./join-competition-form";
+import JoinCompetitionForm from "./join-competition-captain-form";
 
 export default JoinCompetitionForm;

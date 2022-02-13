@@ -12,7 +12,7 @@ class ForbiddenError extends React.Component {
             res = (
                 <div style={{paddingTop: "30px"}}>
                     <div style={{width:"30%", margin: "0 auto"}}>
-                        <DefaultSubmitButton onClick={() => {
+                        <DefaultSubmitButton style={{width: "100%"}} onClick={() => {
                                 this.props.history("/")
                         }} text={"Назад"}/>
                     </div>
