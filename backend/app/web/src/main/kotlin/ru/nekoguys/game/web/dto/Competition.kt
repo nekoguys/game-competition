@@ -10,7 +10,7 @@ import java.time.LocalDateTime
 import javax.validation.constraints.NotNull
 import javax.validation.constraints.Size
 
-@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
+@JsonNaming(PropertyNamingStrategies.LowerCamelCaseStrategy::class)
 data class CreateCompetitionRequest(
     @NotNull
     @Size(min = 2, max = 2, message = "Demand formula should contain 2 values separated by ;")
@@ -49,7 +49,7 @@ sealed interface CreateCompetitionResponse {
 }
 
 
-@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
+@JsonNaming(PropertyNamingStrategies.LowerCamelCaseStrategy::class)
 data class GetCompetitionResponse(
     val demandFormula: String,
     val expensesFormula: String,
@@ -72,7 +72,7 @@ data class GetCompetitionResponse(
     val teamLossUpperbound: Double,
 )
 
-@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
+@JsonNaming(PropertyNamingStrategies.LowerCamelCaseStrategy::class)
 data class CompetitionCloneInfoResponse(
     val name: String,
     val demandFormula: String,
@@ -89,7 +89,7 @@ data class CompetitionCloneInfoResponse(
     val showOtherTeamsMembers: Boolean
 )
 
-@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
+@JsonNaming(PropertyNamingStrategies.LowerCamelCaseStrategy::class)
 data class CreateTeamRequest(
     @JsonProperty("game_id")
     val pin: String,
