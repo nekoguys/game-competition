@@ -51,8 +51,8 @@ sealed interface CreateCompetitionResponse {
 
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
 data class GetCompetitionResponse(
-    val demandFormula: List<String>,
-    val expensesFormula: List<String>,
+    val demandFormula: String,
+    val expensesFormula: String,
     val instruction: String,
     val isAutoRoundEnding: Boolean,
     val isOwned: Boolean,
@@ -70,6 +70,23 @@ data class GetCompetitionResponse(
     val showOtherTeamsMembers: Boolean,
     val state: String,
     val teamLossUpperbound: Double,
+)
+
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
+data class CompetitionCloneInfoResponse(
+    val name: String,
+    val demandFormula: String,
+    val expensesFormula: String,
+    val maxTeamsAmount: Int,
+    val maxTeamSize: Int,
+    val roundsCount: Int,
+    val roundLength: Int,
+    val teamLossUpperbound: Double,
+    val instruction: String,
+    val shouldShowResultsTableInEnd: Boolean,
+    val shouldShowStudentPreviousRoundResults: Boolean,
+    val isAutoRoundEnding: Boolean,
+    val showOtherTeamsMembers: Boolean
 )
 
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)

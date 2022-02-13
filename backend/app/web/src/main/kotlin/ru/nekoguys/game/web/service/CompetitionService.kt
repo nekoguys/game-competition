@@ -152,6 +152,10 @@ class CompetitionService(
         return session.stage == CompetitionStage.Registration
     }
 
+    suspend fun getCompetitionCloneInfo(sessionPin: Long): CompetitionCloneInfoResponse? {
+        return competitionSessionRepository.find(sessionPin)?.toCompetitionCloneInfo()
+    }
+
     /*
 
     @PostMapping(value = "/join_team")
@@ -224,20 +228,27 @@ private fun List<Double>.toCompetitionDemandFormula() =
         xCoefficient = get(1),
     )
 
+private val CompetitionProperties.demandFormulaString: String
+    get() = listOf(
+        settings.demandFormula.freeCoefficient.toString(),
+        settings.demandFormula.xCoefficient.toString(),
+    ).joinToString(";")
+
+
+private val CompetitionProperties.expensesFormulaString: String
+    get() = listOf(
+        settings.expensesFormula.xSquareCoefficient.toString(),
+        settings.expensesFormula.xCoefficient.toString(),
+        settings.expensesFormula.freeCoefficient.toString(),
+    ).joinToString(";")
+
 private fun CompetitionSession.toCompetitionHistoryResponseItem(
     isOwned: Boolean,
     pin: String,
 ) =
     GetCompetitionResponse(
-        demandFormula = listOf(
-            properties.settings.demandFormula.freeCoefficient.toString(),
-            properties.settings.demandFormula.xCoefficient.toString(),
-        ),
-        expensesFormula = listOf(
-            properties.settings.expensesFormula.xSquareCoefficient.toString(),
-            properties.settings.expensesFormula.xCoefficient.toString(),
-            properties.settings.expensesFormula.freeCoefficient.toString(),
-        ),
+        demandFormula = properties.demandFormulaString,
+        expensesFormula = properties.expensesFormulaString,
         instruction = properties.settings.instruction,
         isAutoRoundEnding = properties.settings.isAutoRoundEnding,
         isOwned = isOwned,
@@ -269,3 +280,21 @@ private fun CompetitionJoinTeamMessage.toUpdateNotification(): TeamUpdateNotific
         idInGame = idInGame,
         teamMembers = membersEmails,
     )
+
+private fun CompetitionSession.toCompetitionCloneInfo() =
+    CompetitionCloneInfoResponse(
+        name = properties.settings.name,
+        expensesFormula = properties.expensesFormulaString,
+        demandFormula = properties.demandFormulaString,
+        instruction = properties.settings.instruction,
+        isAutoRoundEnding = properties.settings.isAutoRoundEnding,
+        maxTeamSize = properties.settings.maxTeamSize,
+        maxTeamsAmount = properties.settings.maxTeamsAmount,
+        roundLength = properties.settings.roundLength,
+        roundsCount = properties.settings.roundsCount,
+        shouldShowResultsTableInEnd = properties.settings.showStudentsResultsTable,
+        shouldShowStudentPreviousRoundResults = properties.settings.showPreviousRoundResults,
+        showOtherTeamsMembers = properties.settings.showOtherTeamsMembers,
+        teamLossUpperbound = properties.settings.teamLossLimit.toDouble()
+    )
+
