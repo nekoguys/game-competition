@@ -8,6 +8,7 @@ import "../../../helpers/common.css";
 import withAuthenticated from "../../../helpers/with-authenticated";
 import {withTranslation} from "react-i18next";
 import JoinCompetitionForm from "../../join-competition/join-competition-form";
+import TeacherCreateCompetitionHeader from "./teach-create-competition-header";
 
 class CompetitionHistory extends React.Component {
     static itemsPerPage = 4;
@@ -72,22 +73,29 @@ class CompetitionHistory extends React.Component {
     };
 
     processToCreateTeam = (pin) => {
-        this.props.history('/competitions/join-new-captain/' + pin)
+        this.props.history('/competitions/join-new-captain/' + pin);
     }
 
     processToJoinTeam = (pin) => {
-       // this.props.history('/')
+        this.props.history('/competitions/join-new-member/' + pin);
+    }
+
+    processToCreateGame = () => {
+        this.props.history('/competitions/create');
     }
 
     render() {
         const {i18n} = this.props;
+        const actionsHeader = this.props.isTeacher()
+            ? <TeacherCreateCompetitionHeader onClickAction={this.processToCreateGame}/>
+            :  <JoinCompetitionForm showNotification={this.props.showNotification} pinCheckFetcher={this.props.fetchers.pinCheckFetcher} processToJoinTeam={this.processToJoinTeam} processToCreateTeam={this.processToCreateTeam}/>
         return (
             <div>
                 <div>
                 <NavbarHeader/>
                 </div>
                 <div className={"below-navbar root-container"}>
-                        <JoinCompetitionForm showNotification={this.props.showNotification} pinCheckFetcher={this.props.fetchers.pinCheckFetcher} processToJoinTeam={this.processToJoinTeam} processToCreateTeam={this.processToCreateTeam}/>
+                    {actionsHeader}
                     <div className={"collection-holder"}>
                         <div className={"page-title title"}>
                             {i18n.t('competition_history.last_games')}

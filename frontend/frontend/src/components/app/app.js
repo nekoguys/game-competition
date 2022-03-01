@@ -31,6 +31,7 @@ import {LocalStorageWrapper} from "../../helpers/storage-wrapper";
 import CreateCompetition from "../create-competition/create-competition";
 import EventSourceMock from "../../helpers/mocks/event-source-mock";
 import EventSourceWrapper from "../../helpers/event-source-wrapper";
+import {isTeacher} from "../../helpers/role-helper";
 
 const signinFetcher = {
     mock: (_) => {
@@ -187,7 +188,8 @@ const paths = [
             fetchers: {
                 history: historyFetcher,
                 pinCheckFetcher: pinFetcher
-            }
+            },
+            isTeacher: isTeacher
         }
     },
     {
