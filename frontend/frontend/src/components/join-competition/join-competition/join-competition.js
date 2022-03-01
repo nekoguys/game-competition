@@ -1,7 +1,6 @@
 import React from "react";
 import DefaultCheckboxButtonGroup from "../../common/default-checkbox-button-group";
 import {NavbarHeaderWithFetcher as NavbarHeader} from "../../app/app";
-import toSnakeCase from "../../../helpers/snake-case-helper";
 import ApiHelper from "../../../helpers/api-helper";
 
 import showNotification from "../../../helpers/notification-helper";
@@ -36,10 +35,7 @@ class JoinCompetition extends React.Component {
     };
 
     onCreateTeamClick = (formState) => {
-        let obj = {captain_email: window.localStorage.getItem('user_email')};
-        Object.keys(formState).forEach(key => {
-            obj[toSnakeCase(key)] = formState[key];
-        });
+        const obj = {captain_email: window.localStorage.getItem('user_email'), ...formState};
         console.log(obj);
         const timeout = 2000;
         ApiHelper.createTeam(obj).then(resp => {
