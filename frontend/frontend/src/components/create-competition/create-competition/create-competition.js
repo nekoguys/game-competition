@@ -1,5 +1,6 @@
 import React from "react";
-import NavbarHeader from "../../competition-history/navbar-header";
+//import NavbarHeader from "../../competition-history/navbar-header";
+import {NavbarHeaderWithFetcher as NavbarHeader} from "../../app/app";
 import CompetitionParamsForm from "../competition-params";
 import "../competition-params/competition-params.css";
 import ApiHelper from "../../../helpers/api-helper";

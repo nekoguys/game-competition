@@ -1,8 +1,10 @@
 import React from "react";
-import {TextInputWithSubmitButton} from "../../../join-competition/join-competition-player-form/join-competition-player-form.js";
 import submitButtonImage from "../../../join-competition/join-competition-player-form/submitButton.png";
 import "./messages-container.css";
 import {withTranslation} from "react-i18next";
+import {
+    TextInputWithSubmitButton
+} from "../../../join-competition/join-competition-player-form/text-input-with-submit-button/text-input-with-submit-button";
 
 class MessagesContainer extends React.Component {
     render() {

@@ -8,31 +8,32 @@ import {withTranslation} from "react-i18next";
 class CompetitionCollectionElement extends React.Component {
     stateMapper(state) {
         if (state === "Registration")
-            return this.props.i18n.t('competition_history.list.registration');
+            return {stateText: this.props.i18n.t('competition_history.list.registration')};
         else if (state === "InProcess")
-            return this.props.i18n.t('competition_history.list.in_process');
+            return {stateText: this.props.i18n.t('competition_history.list.in_process'), additionalClassName: " state-text-marked" };
         else if (state === "Draft")
-            return this.props.i18n.t('competition_history.list.draft');
+            return {stateText: this.props.i18n.t('competition_history.list.draft')};
         else if (state === "Ended")
-            return this.props.i18n.t('competition_history.list.ended');
+            return {stateText: this.props.i18n.t('competition_history.list.ended')};
         else
-            return "Неизвестно";
+            return {stateText: "Неизвестно"};
     }
 
     render() {
         const {name, state, lastUpdateTime, owned} = this.props.item;
         const {onItemClickCallback = (item) => {}} = this.props;
+        const {stateText, additionalClassName = ""} = this.stateMapper(state);
 
         let res;
         if (lastUpdateTime) {
             res = (
                 <div>
-                <div style={{margin: "auto 0", display: "inline-block"}}>{this.stateMapper(state)}</div>
+                <div style={{margin: "auto 0", display: "inline-block"}}>{stateText}</div>
                 <div >{lastUpdateTime}</div>
                 </div>
             )
         } else {
-            res = <div>{this.stateMapper(state)}</div>
+            res = <div>{stateText}</div>
         }
 
         let button;
@@ -55,7 +56,7 @@ class CompetitionCollectionElement extends React.Component {
             <div style={{display: "flex", height: "100%"}}>
                 <div className={"game-name-text"}>{name}</div>
                 <div className={"spacer-name-state"}/>
-                <div className={"state-text state-text-table" + stateAdditionalClasses}>
+                <div className={"state-text state-text-table" + stateAdditionalClasses + additionalClassName}>
                     {res}
                 </div>
                 {stateCloneSpacer}

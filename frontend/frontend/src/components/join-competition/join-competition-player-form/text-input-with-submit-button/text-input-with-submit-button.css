@@ -1,0 +1,9 @@
+.input-with-submit-button__container {
+    display: flex;
+    overflow: hidden;
+    flex-wrap: nowrap;
+}
+
+.input-with-submit-button__input {
+    width: 100%;
+}

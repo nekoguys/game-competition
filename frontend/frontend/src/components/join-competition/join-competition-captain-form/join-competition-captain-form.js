@@ -6,7 +6,7 @@ import "./join-competition-form.css";
 import {withTranslation} from "react-i18next";
 
 
-class JoinCompetitionForm extends React.Component {
+class JoinCompetitionCaptainForm extends React.Component {
     constructor(props) {
         super(props);
 
@@ -89,4 +89,4 @@ class JoinCompetitionForm extends React.Component {
     }
 }
 
-export default withTranslation('translation')(JoinCompetitionForm);
+export default withTranslation('translation')(JoinCompetitionCaptainForm);

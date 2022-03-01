@@ -3,7 +3,7 @@ import React from "react";
 import Select from 'react-select';
 
 import "./adminka.css";
-import NavbarHeader from "../competition-history/navbar-header/navbar-header";
+import {NavbarHeaderWithFetcher as NavbarHeader} from "../app/app";
 import DefaultTextInput from "../common/default-text-input";
 import DefaultSubmitButton from "../common/default-submit-button";
 import {ADMINKA_PAGE_SIZE} from "../../helpers/constants";

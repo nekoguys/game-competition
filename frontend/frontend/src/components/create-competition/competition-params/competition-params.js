@@ -3,7 +3,6 @@ import React from "react";
 import "./competition-params.css"
 import DefaultTextInput from "../../common/default-text-input";
 import DefaultCheckboxButton from "../../common/default-checkbox-button";
-import toSnakeCase from "../../../helpers/snake-case-helper";
 import getValueForJsonObject from "../../../helpers/competition-params-helper";
 
 class CompetitionParams {
@@ -33,7 +32,7 @@ class CompetitionParams {
         let jsonObj = {};
 
         Object.keys(this).forEach(key => {
-            jsonObj[toSnakeCase(key)] = getValueForJsonObject(key, this[key]);
+            jsonObj[key] = getValueForJsonObject(key, this[key]);
         });
 
         return jsonObj;

@@ -1,5 +1,5 @@
 import React from "react";
-import NavbarHeader from "../../competition-history/navbar-header";
+import {NavbarHeaderWithFetcher as NavbarHeader} from "../../app/app";
 import DefaultSubmitButton from "../../common/default-submit-button";
 import {withRouter} from "../../../helpers/with-router";
 import isAuthenticated from "../../../helpers/is-authenticated";
@@ -12,7 +12,7 @@ class ForbiddenError extends React.Component {
             res = (
                 <div style={{paddingTop: "30px"}}>
                     <div style={{width:"30%", margin: "0 auto"}}>
-                        <DefaultSubmitButton onClick={() => {
+                        <DefaultSubmitButton style={{width: "100%"}} onClick={() => {
                                 this.props.history("/")
                         }} text={"Назад"}/>
                     </div>

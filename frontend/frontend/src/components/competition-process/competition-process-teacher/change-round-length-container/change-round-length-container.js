@@ -2,8 +2,10 @@ import React from "react";
 
 import "./change-round-length-container.css";
 import submitButtonImage from "../../../join-competition/join-competition-player-form/submitButton.png";
-import {TextInputWithSubmitButton} from "../../../join-competition/join-competition-player-form/join-competition-player-form";
 import {withTranslation} from "react-i18next";
+import {
+    TextInputWithSubmitButton
+} from "../../../join-competition/join-competition-player-form/text-input-with-submit-button/text-input-with-submit-button";
 
 class ChangeRoundLengthContainer extends React.Component {
     render() {

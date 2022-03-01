@@ -1,7 +1,19 @@
 .default-submit-button {
     border-radius: 20px;
-    background-color: #5B87F6;
-    color: black;
+    background-color: #BBC2D3;
+    color: rgba(0, 0, 0, 0.6);
+    border: none;
+    outline: none;
+}
+
+.default-submit-button:disabled {
+    background-color: #ccd3e6;
+    color: rgba(0, 0, 0, 0.5);
+}
+
+.default-submit-button:hover {
+    background-color: #a8aebd;
+    color: rgba(0, 0, 0, 0.6);
 }
 
 @media (max-width: 500px) {

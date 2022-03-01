@@ -1,18 +1,24 @@
 import React from "react";
 
 import "./root.css";
-import NavbarHeader from "../../competition-history/navbar-header/navbar-header";
+import {NavbarHeaderWithFetcher as NavbarHeader} from "../../app/app";
 import UserProfileForm from "../form";
 import ApiHelper from "../../../helpers/api-helper";
 import DefaultSubmitButton from "../../common/default-submit-button";
 import showNotification from "../../../helpers/notification-helper";
 import withAuthenticated from "../../../helpers/with-authenticated";
 import {withTranslation} from "react-i18next";
+import {FunctionStorageWrapper} from "../../../helpers/storage-wrapper";
 
 
 class UserProfileRoot extends React.Component {
     constructor(props) {
         super(props);
+
+        this.needUpdateNavbarStorage = new FunctionStorageWrapper(
+            () => this.state.needUpdateNavbar,
+            (newValue) => this.setState({needUpdateNavbar: newValue})
+        )
 
         this.state = {
             formState: {
@@ -70,7 +76,7 @@ class UserProfileRoot extends React.Component {
 
                     this.getProfileInfo();
 
-                    this.setState(prevState => {
+                    this.setState(() => {
                         return {needUpdateNavbar: true};
                     })
                 })
@@ -85,10 +91,11 @@ class UserProfileRoot extends React.Component {
     render() {
         const {i18n} = this.props;
         console.log({state: this.state.formState});
+
         return (
             <div>
                 <div>
-                    <NavbarHeader onNoNeedUpdateNavbar={this.onNoNeedUpdateNavbar} needUpdate={this.state.needUpdateNavbar}/>
+                    <NavbarHeader needUpdateNavbarStorage={this.needUpdateNavbarStorage}/>
                 </div>
 
                 <div style={{paddingTop: "80px"}}>

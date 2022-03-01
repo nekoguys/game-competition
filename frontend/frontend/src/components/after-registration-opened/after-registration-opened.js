@@ -7,7 +7,6 @@ import CompetitionParamsForm from "../create-competition/competition-params";
 import ApiHelper from "../../helpers/api-helper";
 import toCamelCase from "../../helpers/camel-case-helper";
 import DefaultSubmitButton from "../common/default-submit-button";
-import toSnakeCase from "../../helpers/snake-case-helper";
 import getValueForJsonObject from "../../helpers/competition-params-helper";
 import withRedirect from "../../helpers/redirect-helper";
 
@@ -107,7 +106,7 @@ class AfterRegistrationOpenedComponent extends React.Component {
         let jsonObj = {};
 
         Object.keys(this.state.formState).forEach(key => {
-            jsonObj[toSnakeCase(key)] = getValueForJsonObject(key, this.state.formState[key]);
+            jsonObj[key] = getValueForJsonObject(key, this.state.formState[key]);
         });
 
         jsonObj = {...jsonObj, ...additionalParams};

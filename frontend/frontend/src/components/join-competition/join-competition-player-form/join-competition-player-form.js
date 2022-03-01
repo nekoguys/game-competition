@@ -10,70 +10,8 @@ import showNotification from "../../../helpers/notification-helper";
 
 import "./join-competition-player-form.css";
 import {withTranslation} from "react-i18next";
+import {TextInputWithSubmitButton} from "./text-input-with-submit-button/text-input-with-submit-button";
 
-
-export class TextInputWithSubmitButton extends React.Component {
-    constructor(props) {
-        super(props);
-
-        this.input = {};
-
-        this.state = {
-            text: ""
-        }
-    }
-
-    onTextChanged = (text) => {
-        this.setState(prevState => {
-            const {onChange = (_val) => {}} = this.props;
-            onChange(text);
-            return {
-                text: text
-            }
-        })
-    };
-
-    render() {
-        const {type="text", placeholder="", containerStyle={}, buttonStyle={},
-            inputStyle={}, imagePath="", imgStyle={}, onSubmit=(_value) => {}, alt="submit competition id",
-            clearOnSubmit=false
-        } = this.props;
-
-        let addProps = {};
-
-        if (this.props.submitOnKey !== undefined) {
-            addProps.onKeyDown = event => {
-                if (event.key.toLowerCase() === this.props.submitOnKey) {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    onSubmit(this.state.text);
-                    if (clearOnSubmit) {
-                        this.input.value = "";
-                        this.setState({text: ""});
-                        this.input.focus();
-                    }
-                }
-            }
-        }
-
-        return (
-            <div className={"row"} style={{overflow: "hidden", flexWrap: "nowrap", ...containerStyle}}>
-                <input placeholder={placeholder} type={type} style={{width: "100%", ...inputStyle}}
-                       onChange={event => this.onTextChanged(event.target.value)} ref={el => this.input = el}
-                       {...addProps}
-                />
-                <button style={buttonStyle} onClick={() => {
-                    onSubmit(this.state.text);
-                    if (clearOnSubmit) {
-                        this.input.value = "";
-                        this.setState({text: ""});
-                        this.input.focus();
-                    }
-                }} type={"submit"}><img src={imagePath} alt={alt} style={imgStyle}/></button>
-            </div>
-        )
-    }
-}
 
 class JoinCompetitionPlayerForm extends React.Component {
 
@@ -195,37 +133,16 @@ class JoinCompetitionPlayerForm extends React.Component {
     }
 
     gamePinPage() {
-        const buttonStyle = {
-            backgroundColor: "Transparent",
-            padding: "-5px",
-            border: "none",
-            overflow: "hidden",
-            marginLeft: "-50px"
-        };
-        const inputStyle = {
-            border: "none",
-            outline: "none",
-            backgroundColor: "Transparent",
-            fontSize: "16px",
-            textAlign: "center",
-        };
-        const innerContainerStyle = {
-            width: "20%",
-            margin: "0 auto",
-            borderRadius: "20px",
-            paddingTop: "5px",
-            paddingBottom: "5px",
-            backgroundColor: "white"
-        };
         const {i18n} = this.props;
 
         return (
-            <div style={{marginTop: "40px"}}>
-                <div style={innerContainerStyle}>
+            <div style={{marginTop: "18px"}}>
+                <div className={"join-player-form__input-container"}>
                     <TextInputWithSubmitButton imagePath={submitButtonImage} containerStyle={{margin: "0 auto"}}
                                                placeholder={i18n.t('join_competition.captain.game')} onSubmit={this.onGameIdSubmitButton}
-                                               buttonStyle={buttonStyle} inputStyle={inputStyle}
-                                               imgStyle={{width: "35px", height: "35px"}}
+                                               buttonStyle={{}} buttonClasses={" join-player-form__input-button"} inputStyle={{}}
+                                               inputClasses={" join-player-form__input-input"}
+                                               imgClasses={" join-player-form__input-img"}
                     />
                 </div>
             </div>

@@ -1,15 +1,22 @@
 .item-element-container {
-    background-color: #C9C9C9;
+    background: #DFDCDF;
     border-radius: 20px;
     margin-top: 12px;
     max-height: 5%;
     min-height: 70px;
+    transition: box-shadow 0.15s ease-in-out;
+    font-size: 20px;
+    color: rgba(0, 0, 0, 0.6);
+}
+
+.item-element-container:first-child {
+    margin-top: 0;
 }
 
 .item-element-container:hover {
     box-shadow: 3px 3px 3px #bdbdbd,
     -1px -1px 2px #d5d5d5;
-    background-color: #c5c5c5;
+    transition: box-shadow 0.15s ease-in-out;
 }
 
 .state-text {
@@ -18,6 +25,11 @@
     align-items: center;
     alignment: right;
     padding: 0 46px 0 0;
+    text-transform: capitalize;
+}
+
+.state-text-marked {
+    color: #B89345;
 }
 
 .state-text-table {
@@ -64,6 +76,7 @@
 @media (max-width: 500px) {
     .item-element-container {
         border-radius: 8px;
+        font-size: 16px;
     }
 
     .game-name-text {

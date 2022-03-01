@@ -1,0 +1,27 @@
+.switch-option-text {
+    font-size: 16px;
+    padding: 6px 12px 8px 12px;
+    margin: 0;
+    line-height: 19px;
+    user-select: none;
+}
+
+.switch-option-text-selected {
+    text-decoration: underline;
+}
+
+.switch-option-container {
+    background-color: #E8E6E4;
+}
+
+.switch-option-container-selected {
+    background-color: white;
+}
+
+.switch-container {
+    border: 1px solid #D9D9D9;
+    border-radius: 5px;
+    display: inline-flex;
+    flex-direction: row;
+    overflow: hidden;
+}
