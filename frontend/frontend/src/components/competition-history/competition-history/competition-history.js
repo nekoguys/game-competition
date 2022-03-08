@@ -97,7 +97,7 @@ class CompetitionHistory extends React.Component {
                 <div className={"below-navbar root-container"}>
                     {actionsHeader}
                     <div className={"collection-holder"}>
-                        <div className={"page-title title"}>
+                        <div className={"page-title competition-header-title"}>
                             {i18n.t('competition_history.last_games')}
                         </div>
                         <CompetitionCollection items={this.state.items} onHistoryItemClickCallback={this.onHistoryItemClickCallback} isAnyCloneable={this.state.isAnyCloneable}/>
