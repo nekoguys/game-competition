@@ -1,7 +1,7 @@
 import React from "react";
 
 import "./root.css";
-import NavbarHeader from "../../../competition-history/navbar-header/navbar-header";
+import {NavbarHeaderWithFetcher as NavbarHeader} from "../../../app/app";
 import StudentResultsTable from "../results-table";
 import SendAnswer from "../send-answer";
 import MessagesContainer from "../messages";

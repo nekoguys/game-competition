@@ -7,6 +7,9 @@
       "password": "Пароль",
       "button": "Войти"
     },
+    "oauth": {
+      "greeting": "Добро пожаловать\nна платформу “Конкуренция”"
+    },
     "register": {
       "button": "Зарегистрироваться",
       "repeat_password": "Повторите пароль"
@@ -22,7 +25,8 @@
       "exit": "Выйти",
       "history": "История игр",
       "create": "Создать игру",
-      "join": "Войти в игру"
+      "join": "Войти в игру",
+      "back_to_main_page": "На главную"
     }
   },
   "competition_process": {
@@ -106,7 +110,9 @@
       "game": "ID игры",
       "team_name": "Название команды",
       "password": "Пароль для входа",
-      "enter": "Войти в игру"
+      "password_short": "Пароль",
+      "enter": "Войти в игру",
+      "enter_game_with_id": "Вход в игру"
     },
     "member": {
       "find": "Найти команды"

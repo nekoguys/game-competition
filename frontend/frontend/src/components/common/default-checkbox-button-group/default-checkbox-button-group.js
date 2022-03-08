@@ -6,7 +6,7 @@ class DefaultCheckboxButtonGroup extends React.Component {
         super(props);
 
         this.choices = props.choices;
-        const initialChoiceIndex = props.initialChoice ? this.choices.indexOf(props.initialChoice) : 0;
+        const initialChoiceIndex = props.initialChoiceIndex ?? 0;
 
         this.state = {
             choiceIndex: initialChoiceIndex
@@ -25,18 +25,18 @@ class DefaultCheckboxButtonGroup extends React.Component {
     render() {
         const notSelectedClassName = "btn btn-group-elem";
         const selectedClassName = notSelectedClassName + " active";
-        const {buttonStyle = {}, style = {}} = this.props;
+        const {buttonStyle = {}, style = {}, buttonClasses=""} = this.props;
 
         const innerElements = this.choices.map((value, index) => {
             const isSelected = index === this.state.choiceIndex;
             return (
-                <label className={isSelected ? selectedClassName : notSelectedClassName} style={buttonStyle} key={index}>
+                <label key={index} className={(isSelected ? selectedClassName : notSelectedClassName) + buttonClasses} style={buttonStyle}>
                     <input type={"radio"} autoComplete={"off"} defaultChecked={isSelected} onClick={() => this.onChoiceChanged(index)}/>
                     {value}
                 </label>
             )
         });
-
+        innerElements.splice(1, 0, <div key={123} className={"btn-divider"}/>)
         return (
             <div className={"btn-group btn-group-toggle"} style={style}>
                 {innerElements}

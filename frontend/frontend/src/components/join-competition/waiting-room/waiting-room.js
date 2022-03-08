@@ -2,7 +2,7 @@ import React from "react";
 import "./waiting-room.css";
 import ApiHelper from "../../../helpers/api-helper";
 
-import NavbarHeader from "../../competition-history/navbar-header";
+import {NavbarHeaderWithFetcher as NavbarHeader} from "../../app/app";
 import RoomTeammatesCollection from "./room-teammates-collection";
 import withAuthenticated from "../../../helpers/with-authenticated";
 

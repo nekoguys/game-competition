@@ -14,4 +14,32 @@ function getValueForJsonObject(fieldName, value) {
     return (rules[fieldName] || identity)(value);
 }
 
+
+export const toCompetitionFormJsonObject = (obj) => {
+    let jsonObj = {};
+
+    Object.keys(obj).forEach(key => {
+        jsonObj[key] = getValueForJsonObject(key, obj[key]);
+    });
+
+    return jsonObj;
+}
+
+export const makeStartingCompetitionForm = () => {
+    return {
+        name: "",
+        expensesFormula: "",
+        demandFormula: "",
+        maxTeamsAmount: "",
+        maxTeamSize: "",
+        roundsCount: "",
+        roundLength: "",
+        instruction: "",
+        teamLossUpperbound: "",
+        shouldShowStudentPreviousRoundResults: false,
+        shouldShowResultTableInEnd: false,
+        isAutoRoundEnding: false
+    }
+}
+
 export default getValueForJsonObject;

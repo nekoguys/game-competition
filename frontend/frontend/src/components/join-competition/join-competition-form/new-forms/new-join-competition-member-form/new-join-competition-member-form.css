@@ -1,0 +1,42 @@
+.team-name-input-container {
+    margin: 0 auto;
+    padding-top: 32px;
+    width: 40%;
+    min-width: 340px;
+}
+
+.team-name-input {
+    width: 100%;
+    background-color: white;
+    border-radius: 30px;
+    font-size: 20px;
+    padding-top: 7px;
+    padding-bottom: 7px;
+    text-align: center;
+    border: none;
+    outline: none;
+    margin-bottom: 17px;
+    color: rgba(0, 0, 0, 0.8);
+}
+
+.team-collection-root-container {
+    padding-left: 80px;
+    padding-right: 80px;
+}
+
+@media (max-width: 500px) {
+    .team-collection-root-container {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+
+    .team-name-input {
+        border-radius: 10px;
+        padding-top: 4px;
+        padding-bottom: 4px;
+    }
+
+    .team-name-input-container {
+        padding-top: 15px;
+    }
+}

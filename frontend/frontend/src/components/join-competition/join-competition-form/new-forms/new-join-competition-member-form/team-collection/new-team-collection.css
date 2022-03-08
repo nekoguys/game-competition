@@ -1,0 +1,114 @@
+.new-team-collection-holder {
+    padding: 25px;
+    border-radius: 30px;
+    background-color: rgba(222, 220, 222, 0.35);
+}
+
+.new-team-element-root-holder {
+    margin-top: 12px;
+}
+
+.new-team-element-root-holder:first-child {
+    margin-top: 0;
+}
+
+.new-team-element-holder {
+    background-color: #DFDCDF;
+    padding: 23px 46px;
+    border-radius: 30px;
+    font-size: 20px;
+    color: rgba(0, 0, 0, 0.6);
+}
+
+.team-name-text {
+    display: flex;
+    justify-content: left;
+    align-items: center;
+    text-align: left;
+    width: 50%;
+}
+
+.show-team-members-button {
+    height: 40px;
+    width: 40px;
+    background: transparent;
+    border: none;
+    outline: none;
+    alignment: right;
+    padding-left: 30px;
+}
+
+.spacer {
+    display: flex;
+    flex-grow: 1;
+}
+
+.team-password-input {
+    border: none;
+    outline: none;
+    border-radius: 10px;
+    font-size: 16px;
+    padding: 6px 10px;
+}
+
+.team-password-input-hidden {
+    display: none;
+}
+
+.team-dropdown-img {
+    width: 15px;
+    height: 15px;
+    margin-left: 30px;
+}
+
+.element-content-container {
+    display: flex;
+    height: 100%;
+    align-items: center;
+}
+
+.team-members-collection-holder {
+    margin-top: 12px;
+    border-radius: 20px;
+    padding: 22px 46px;
+    font-size: 16px;
+    color: rgba(0, 0, 0, 0.6);
+    background-color: #F4F4F4;
+}
+
+.team-members-collection-holder > ul {
+    list-style-position: inside;
+    padding-left: 0;
+    margin: 0;
+}
+
+.team-members-container {
+}
+
+.team-members-container-hidden {
+    display: none;
+}
+
+@media(max-width: 500px) {
+    .new-team-collection-holder {
+        padding: 10px;
+        border-radius: 10px;
+    }
+
+    .new-team-element-holder {
+        padding: 5px;
+        border-radius: 5px;
+        font-size: 15px;
+    }
+
+    .team-password-input {
+        max-width: 40%;
+        padding: 3px;
+        border-radius: 5px;
+    }
+
+    .team-dropdown-img {
+        margin-left: 10px;
+        margin-right: 5px;
+    }
+}

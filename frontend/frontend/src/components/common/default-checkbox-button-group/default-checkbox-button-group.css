@@ -1,9 +1,25 @@
 .btn-group-elem {
-    color: #000000;
-    background-color: #C4C4C4;
+    color: rgba(0, 0, 0, 0.7);
+    background-color: #DFDCDF;
     border-radius: 30px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    margin: 0
+}
+
+.btn-divider {
+    background-color: rgba(0, 0, 0, 0.7);
+    width: 2px;
 }
 
 .btn-group-elem.active {
-    background-color: #5B87F6;
+    background-color: #CFA856;
+}
+
+@media (max-width: 500px) {
+    .btn-group-elem {
+        border-radius: 8px;
+        padding-top: 2px;
+        padding-bottom: 2px;
+    }
 }

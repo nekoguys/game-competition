@@ -166,6 +166,10 @@ class CompetitionService(
 
         return session.stage == CompetitionStage.Registration
     }
+
+    suspend fun getCompetitionCloneInfo(sessionPin: Long): CompetitionCloneInfoResponse? {
+        return competitionSessionRepository.find(sessionPin)?.toCompetitionCloneInfo()
+    }
 }
 
 private fun CreateCompetitionRequest.extractCompetitionSettings() =
@@ -206,6 +210,20 @@ private fun List<Double>.toCompetitionDemandFormula() =
         xCoefficient = get(1),
     )
 
+private val CompetitionSettings.demandFormulaString: String
+    get() = listOf(
+        demandFormula.freeCoefficient.toString(),
+        demandFormula.xCoefficient.toString(),
+    ).joinToString(";")
+
+
+private val CompetitionSettings.expensesFormulaString: String
+    get() = listOf(
+        expensesFormula.xSquareCoefficient.toString(),
+        expensesFormula.xCoefficient.toString(),
+        expensesFormula.freeCoefficient.toString(),
+    ).joinToString(";")
+
 private fun createCompetitionHistoryResponseItem(
     settings: CompetitionSettings,
     stage: CompetitionStage,
@@ -214,15 +232,8 @@ private fun createCompetitionHistoryResponseItem(
     pin: String,
 ) =
     GetCompetitionResponse(
-        demandFormula = listOf(
-            settings.demandFormula.freeCoefficient.toString(),
-            settings.demandFormula.xCoefficient.toString(),
-        ),
-        expensesFormula = listOf(
-            settings.expensesFormula.xSquareCoefficient.toString(),
-            settings.expensesFormula.xCoefficient.toString(),
-            settings.expensesFormula.freeCoefficient.toString(),
-        ),
+        demandFormula = settings.demandFormulaString,
+        expensesFormula = settings.expensesFormulaString,
         instruction = settings.instruction,
         isAutoRoundEnding = settings.isAutoRoundEnding,
         isOwned = isOwned,
@@ -254,3 +265,21 @@ private fun CompetitionJoinTeamMessage.toUpdateNotification() =
         idInGame = idInGame,
         teamMembers = membersEmails,
     )
+
+private fun CompetitionSession.Full.toCompetitionCloneInfo() =
+    CompetitionCloneInfoResponse(
+        name = settings.name,
+        expensesFormula = settings.expensesFormulaString,
+        demandFormula = settings.demandFormulaString,
+        instruction = settings.instruction,
+        isAutoRoundEnding = settings.isAutoRoundEnding,
+        maxTeamSize = settings.maxTeamSize,
+        maxTeamsAmount = settings.maxTeamsAmount,
+        roundLength = settings.roundLength,
+        roundsCount = settings.roundsCount,
+        shouldShowResultsTableInEnd = settings.showStudentsResultsTable,
+        shouldShowStudentPreviousRoundResults = settings.showPreviousRoundResults,
+        showOtherTeamsMembers = settings.showOtherTeamsMembers,
+        teamLossUpperbound = settings.teamLossLimit.toDouble()
+    )
+
