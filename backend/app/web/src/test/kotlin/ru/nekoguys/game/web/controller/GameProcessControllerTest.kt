@@ -1,6 +1,5 @@
 package ru.nekoguys.game.web.controller
 
-import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.test.context.support.WithMockUser
@@ -19,7 +18,7 @@ class GameProcessControllerTest @Autowired constructor(
 
     @Test
     @WithMockUser(value = "me@admin.hse.ru", roles = ["ADMIN"])
-    fun test(): Unit = runBlocking {
+    fun test() {
         webTestClient
             .get()
             .uri("/game/hello")

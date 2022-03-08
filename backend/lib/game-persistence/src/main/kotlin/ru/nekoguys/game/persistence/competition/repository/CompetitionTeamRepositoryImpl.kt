@@ -69,6 +69,43 @@ class CompetitionTeamRepositoryImpl(
         return dbCompetitionTeamRepository.save(dbTeam.copy(teamNumber = teamNumber))
     }
 
+    override suspend fun update(
+        teamsDiff: Collection<Pair<CompetitionTeam, CompetitionTeam>>,
+    ): Unit = transactionalOperator.executeAndAwait {
+        teamsDiff
+            .filter { (from, to) ->
+                require(from.id == to.id)
+                require(from.sessionId == to.sessionId)
+                require(from.numberInGame == to.numberInGame)
+                require(from.captain == to.captain)
+
+                from.name != to.name
+                        || from.captain != to.captain
+                        || from.teamMembers != to.teamMembers
+                        || from.isBanned != to.isBanned
+            }
+            .map { (_, team) ->
+                DbCompetitionTeam(
+                    id = team.id.number,
+                    sessionId = team.sessionId.number,
+                    teamNumber = team.numberInGame,
+                    name = team.name,
+                    password = "1234",
+                    banRound = null,
+                )
+            }
+            .let { dbCompetitionTeamRepository.saveAll(it) }
+            .collect()
+
+        teamsDiff
+            .forEach { (from, to) ->
+                val newTeamMembers = to.teamMembers - from.teamMembers.toSet()
+                for(teamMember in newTeamMembers) {
+                    competitionPlayerRepository.save(teamMember)
+                }
+            }
+    }!!
+
     override suspend fun findByName(
         sessionId: CommonSession.Id,
         teamName: String,
@@ -118,7 +155,9 @@ class CompetitionTeamRepositoryImpl(
                 .await()
                 .map { dbTeam ->
                     val members = allMembers[dbTeam.id!!].orEmpty()
-                    val captain = members.first { it is CompetitionPlayer.TeamCaptain } as CompetitionPlayer.TeamCaptain
+                    val captain = members
+                        .filterIsInstance<CompetitionPlayer.TeamCaptain>()
+                        .single()
                     val teamMembers = members
                         .filterIsInstance<CompetitionPlayer.TeamMember>()
 

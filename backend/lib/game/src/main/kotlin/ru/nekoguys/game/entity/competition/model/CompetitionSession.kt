@@ -68,47 +68,7 @@ sealed interface CompetitionSession {
         companion object : CompetitionSessionFieldSelector<WithTeams>
     }
 
-    data class Full(
-        val _id: CommonSession.Id?,
-        val _creatorId: User.Id? = null,
-        val _lastModified: LocalDateTime? = null,
-        val _settings: CompetitionSettings? = null,
-        val _stage: CompetitionStage? = null,
-        val _teams: List<CompetitionTeam>? = null,
-    ) : WithCommonFields,
-        WithTeams,
-        WithSettings,
-        WithStage {
-        override val id: CommonSession.Id
-            get() = _id ?: error("")
-
-        override val creatorId: User.Id
-            get() = _creatorId ?: error("")
-
-        override val lastModified: LocalDateTime
-            get() = _lastModified ?: error("")
-
-        override val settings: CompetitionSettings
-            get() = _settings ?: error("")
-
-        override val stage: CompetitionStage
-            get() = _stage ?: error("")
-
-        override val teams: List<CompetitionTeam>
-            get() = _teams ?: error("")
-
-        override fun copy(
-            creatorId: User.Id?,
-            settings: CompetitionSettings?,
-            stage: CompetitionStage?,
-            teams: List<CompetitionTeam>?,
-        ): CompetitionSession = copy(
-            _creatorId = creatorId,
-            _settings = settings,
-            _stage = stage,
-            _teams = teams,
-        )
-
+    sealed interface Full : WithTeams, WithSettings, WithStage, WithCommonFields {
         companion object : CompetitionSessionFieldSelector<Full>
     }
 }
@@ -127,11 +87,75 @@ fun CompetitionSession(
     stage: CompetitionStage? = null,
     teams: List<CompetitionTeam>? = null,
 ): CompetitionSession =
-    CompetitionSession.Full(
-        _id = id,
-        _creatorId = creatorId,
-        _lastModified = lastModified,
-        _settings = settings,
-        _stage = stage,
-        _teams = teams,
+    CompetitionSessionImpl(
+        idOrNull = id,
+        creatorIdOrNull = creatorId,
+        lastModifiedOrNull = lastModified,
+        settingsOrNull = settings,
+        stageOrNull = stage,
+        teamsOrNull = teams,
     )
+
+data class CompetitionSessionImpl(
+    val idOrNull: CommonSession.Id?,
+    val creatorIdOrNull: User.Id? = null,
+    val lastModifiedOrNull: LocalDateTime? = null,
+    val settingsOrNull: CompetitionSettings? = null,
+    val stageOrNull: CompetitionStage? = null,
+    val teamsOrNull: List<CompetitionTeam>? = null,
+) : CompetitionSession.Full {
+
+    @Deprecated(
+        "This property may throw if field is not set",
+        ReplaceWith("idOrNull"),
+    )
+    override val id: CommonSession.Id
+        get() = idOrNull ?: error("")
+
+    @Deprecated(
+        "This property may throw if field is not set",
+        ReplaceWith("creatorIdOrNull"),
+    )
+    override val creatorId: User.Id
+        get() = creatorIdOrNull ?: error("")
+
+    @Deprecated(
+        "This property may throw if field is not set",
+        ReplaceWith("lastModifiedOrNull"),
+    )
+    override val lastModified: LocalDateTime
+        get() = lastModifiedOrNull ?: error("")
+
+    @Deprecated(
+        "This property may throw if field is not set",
+        ReplaceWith("settingsOrNull"),
+    )
+    override val settings: CompetitionSettings
+        get() = settingsOrNull ?: error("")
+
+    @Deprecated(
+        "This property may throw if field is not set",
+        ReplaceWith("stageOrNull"),
+    )
+    override val stage: CompetitionStage
+        get() = stageOrNull ?: error("")
+
+    @Deprecated(
+        "This property may throw if field is not set",
+        ReplaceWith("teamsOrNull"),
+    )
+    override val teams: List<CompetitionTeam>
+        get() = teamsOrNull ?: error("")
+
+    override fun copy(
+        creatorId: User.Id?,
+        settings: CompetitionSettings?,
+        stage: CompetitionStage?,
+        teams: List<CompetitionTeam>?,
+    ): CompetitionSession = copy(
+        creatorIdOrNull = creatorId,
+        settingsOrNull = settings,
+        stageOrNull = stage,
+        teamsOrNull = teams,
+    )
+}

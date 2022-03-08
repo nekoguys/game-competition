@@ -1,6 +1,5 @@
 package ru.nekoguys.game.web.service
 
-import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -19,7 +18,7 @@ class CompetitionServiceTest @Autowired constructor(
 ) {
 
     @Test
-    fun `can create competition in draft state`(): Unit = runBlocking {
+    fun `can create competition in draft state`() {
         val session = game.createAndLoadCompetition(
             request = TestGame.DEFAULT_CREATE_DRAFT_COMPETITION_REQUEST,
         )
@@ -33,7 +32,7 @@ class CompetitionServiceTest @Autowired constructor(
     }
 
     @Test
-    fun `can create competition in registration state`(): Unit = runBlocking {
+    fun `can create competition in registration state`() {
         val session = game.createAndLoadCompetition(
             request = TestGame.DEFAULT_CREATE_COMPETITION_REQUEST,
         )
@@ -47,10 +46,10 @@ class CompetitionServiceTest @Autowired constructor(
     }
 
     @Test
-    fun `can create a team`(): Unit = runBlocking {
+    fun `can create a team`() {
         val competitionPin = game.createCompetition()
         val captain = game.createUser(role = UserRole.Student)
-        game.createTeam(captain = captain, competitionPin = competitionPin)
+        game.createTeam(competitionPin = competitionPin, captain = captain)
 
         val session = game.loadCompetitionSession(competitionPin)
 

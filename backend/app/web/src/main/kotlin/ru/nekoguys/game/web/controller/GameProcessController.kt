@@ -19,5 +19,5 @@ class GameProcessController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/error")
-    suspend fun error(): ResponseEntity<*> = TODO()
+    suspend fun error(): ResponseEntity<*> = error()
 }

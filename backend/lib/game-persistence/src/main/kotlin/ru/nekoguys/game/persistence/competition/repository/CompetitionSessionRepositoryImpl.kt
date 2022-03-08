@@ -9,6 +9,7 @@ import org.springframework.transaction.reactive.TransactionalOperator
 import org.springframework.transaction.reactive.executeAndAwait
 import ru.nekoguys.game.entity.commongame.model.CommonSession
 import ru.nekoguys.game.entity.competition.model.*
+import ru.nekoguys.game.entity.competition.repository.CompetitionPlayerRepository
 import ru.nekoguys.game.entity.competition.repository.CompetitionSessionRepository
 import ru.nekoguys.game.entity.competition.repository.CompetitionSettingsRepository
 import ru.nekoguys.game.entity.competition.repository.CompetitionTeamRepository
@@ -18,12 +19,13 @@ import ru.nekoguys.game.persistence.commongame.model.DbGameType
 import ru.nekoguys.game.persistence.commongame.repository.DbGameSessionRepository
 import ru.nekoguys.game.persistence.competition.model.DbCompetitionSession
 import ru.nekoguys.game.persistence.competition.model.extractCompetitionStage
-import ru.nekoguys.game.persistence.competition.model.extractLastRound
-import ru.nekoguys.game.persistence.competition.model.toDbCompetitionStage
+import ru.nekoguys.game.persistence.competition.model.extractDbCompetitionStage
+import ru.nekoguys.game.persistence.competition.model.extractDbLastRound
 import java.time.temporal.ChronoUnit
 
 @Repository
 class CompetitionSessionRepositoryImpl(
+    private val competitionPlayerRepository: CompetitionPlayerRepository,
     private val competitionSettingsRepository: CompetitionSettingsRepository,
     private val competitionTeamRepository: CompetitionTeamRepository,
     @Suppress("SpringJavaInjectionPointsAutowiringInspection")
@@ -45,8 +47,8 @@ class CompetitionSessionRepositoryImpl(
 
         val dbCompetitionSession = DbCompetitionSession(
             sessionId = dbGameSession.id!!,
-            stage = stage.toDbCompetitionStage(),
-            lastRound = stage.extractLastRound(),
+            stage = stage.extractDbCompetitionStage(),
+            lastRound = stage.extractDbLastRound(),
         ).let { dbCompetitionSessionRepository.save(it.asNew()) }
 
         val sessionId = CommonSession.Id(dbGameSession.id!!)
@@ -115,21 +117,31 @@ class CompetitionSessionRepositoryImpl(
         to: CompetitionSession,
     ) = coroutineScope {
         // других типов CompetitionSession и не бывает
-        from as CompetitionSession.Full
-        to as CompetitionSession.Full
+        from as CompetitionSessionImpl
+        to as CompetitionSessionImpl
 
-        if (to._settings != null && to.settings != from._settings) {
+        val newSettings = to.settingsOrNull
+        if (newSettings != null && newSettings != from.settingsOrNull) {
             launch {
-                competitionSettingsRepository.save(to.id, to.settings)
+                competitionSettingsRepository.save(to.id, newSettings)
             }
         }
 
-        if (to._stage != null && to.stage != from._stage) {
+        val newStage = to.stageOrNull
+        if (newStage != null && newStage != from.stageOrNull) {
             DbCompetitionSession(
                 sessionId = to.id.number,
-                stage = to.stage.toDbCompetitionStage(),
-                lastRound = to.stage.extractLastRound(),
+                stage = newStage.extractDbCompetitionStage(),
+                lastRound = newStage.extractDbLastRound(),
             ).let { dbCompetitionSessionRepository.save(it.asNew()) }
+        }
+
+        val oldTeams = from.teamsOrNull.orEmpty().toSet()
+        val newTeams = to.teamsOrNull.orEmpty().filter { it !in oldTeams }
+        if (newTeams.isNotEmpty()) {
+            launch {
+                competitionTeamRepository
+            }
         }
     }
 
@@ -149,14 +161,14 @@ private fun createCompetitionSession(
     dbGameSession: DbGameSession? = null,
     settings: CompetitionSettings? = null,
     teams: List<CompetitionTeam>? = null,
-): CompetitionSession.Full =
-    CompetitionSession.Full(
-        _id = CommonSession.Id(dbCompetitionSession.id!!),
-        _settings = settings,
-        _creatorId = dbGameSession?.creatorId?.let(User::Id),
-        _lastModified = dbGameSession
+): CompetitionSession =
+    CompetitionSession(
+        id = CommonSession.Id(dbCompetitionSession.id!!),
+        settings = settings,
+        creatorId = dbGameSession?.creatorId?.let(User::Id),
+        lastModified = dbGameSession
             ?.lastModifiedDate
             ?.truncatedTo(ChronoUnit.MILLIS),
-        _stage = dbCompetitionSession.extractCompetitionStage(),
-        _teams = teams,
+        stage = dbCompetitionSession.extractCompetitionStage(),
+        teams = teams,
     )

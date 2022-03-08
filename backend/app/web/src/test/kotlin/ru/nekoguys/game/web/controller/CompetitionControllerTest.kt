@@ -1,6 +1,5 @@
 package ru.nekoguys.game.web.controller
 
-import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -26,13 +25,13 @@ class CompetitionControllerTest @Autowired constructor(
     private lateinit var testUser: User
 
     @BeforeEach
-    fun createUser(): Unit = runBlocking {
+    fun createUser() {
         testUser = game.createUser(email = "test@hse.ru")
     }
 
     @WithMockUser(username = TestGame.DEFAULT_EMAIL, roles = ["TEACHER"])
     @Test
-    fun `create competition in draft stage`(): Unit = runBlocking {
+    fun `create competition in draft stage`() {
         webTestClient
             .post()
             .uri("/api/competitions/create")
@@ -45,7 +44,7 @@ class CompetitionControllerTest @Autowired constructor(
 
     @WithMockUser(username = TestGame.DEFAULT_EMAIL, roles = ["TEACHER"])
     @Test
-    fun `can create competition in draft state`(): Unit = runBlocking {
+    fun `can create competition in draft state`() {
         webTestClient
             .post()
             .uri("/api/competitions/create")
@@ -58,7 +57,7 @@ class CompetitionControllerTest @Autowired constructor(
 
     @WithMockUser(username = TestGame.DEFAULT_EMAIL, roles = ["TEACHER"])
     @Test
-    fun `can create competition in registration state`(): Unit = runBlocking {
+    fun `can create competition in registration state`() {
         webTestClient
             .post()
             .uri("/api/competitions/create")
@@ -71,7 +70,7 @@ class CompetitionControllerTest @Autowired constructor(
 
     @WithMockUser(username = TestGame.DEFAULT_EMAIL, roles = ["STUDENT"])
     @Test
-    fun `can create a team`(): Unit = runBlocking {
+    fun `can create a team`() {
         val competitionPin = game.createCompetition()
 
         val request = CreateTeamRequest(
@@ -93,7 +92,7 @@ class CompetitionControllerTest @Autowired constructor(
 
     @WithMockUser(username = TestGame.DEFAULT_EMAIL, roles = ["STUDENT"])
     @Test
-    fun `can't create a team with same captain`(): Unit = runBlocking {
+    fun `can't create a team with same captain`() {
         val (competitionPin) = game.createTeam(captain = testUser)
 
         val request = CreateTeamRequest(
@@ -115,7 +114,7 @@ class CompetitionControllerTest @Autowired constructor(
 
     @WithMockUser(username = TestGame.DEFAULT_EMAIL, roles = ["STUDENT"])
     @Test
-    fun `can't create a team with same name`(): Unit = runBlocking {
+    fun `can't create a team with same name`() {
         val (competitionPin, teamName) = game.createTeam(captain = testUser)
 
         val request = CreateTeamRequest(
@@ -137,7 +136,7 @@ class CompetitionControllerTest @Autowired constructor(
 
     @WithMockUser(username = "test@hse.ru", roles = ["STUDENT"])
     @Test
-    fun `can join a team`(): Unit = runBlocking {
+    fun `can join a team`() {
         val (competitionPin, teamName, password) = game.createTeam()
 
         val request = JoinTeamRequest(
@@ -158,7 +157,7 @@ class CompetitionControllerTest @Autowired constructor(
 
     @WithMockUser(username = "test@hse.ru", roles = ["STUDENT"])
     @Test
-    fun `can't join non-existent team`(): Unit = runBlocking {
+    fun `can't join non-existent team`() {
         val competitionPin = game.createCompetition()
 
         val request = JoinTeamRequest(
@@ -179,7 +178,7 @@ class CompetitionControllerTest @Autowired constructor(
 
     @WithMockUser(username = "test@hse.ru", roles = ["STUDENT"])
     @Test
-    fun `can't join same team twice`(): Unit = runBlocking {
+    fun `can't join same team twice`() {
         val (competitionPin, teamName, password) =
             game.createAndJoinTeam(teamMember = testUser)
 

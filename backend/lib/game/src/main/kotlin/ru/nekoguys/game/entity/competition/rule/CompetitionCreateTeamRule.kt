@@ -33,19 +33,7 @@ class CompetitionCreateTeamRule(
                 .settings
         }
 
-        val existingTeam = async {
-            competitionTeamRepository
-                .findByName(
-                    sessionId = player.sessionId,
-                    teamName = command.teamName,
-                )
-        }
-
-        if (existingTeam.await() != null) {
-            throw CompetitionProcessException(
-                "There is team with same name already"
-            )
-        }
+        checkTeamDoesNotExists(player, command)
 
         val team = competitionTeamRepository.create(
             creator = player,
@@ -59,9 +47,27 @@ class CompetitionCreateTeamRule(
                 +CompetitionCreateTeamMessage(
                     teamName = team.name,
                     idInGame = team.numberInGame,
-                    captainEmail = team.captain.user.email,
+                    captainEmail = player.user.email,
                 )
             }
+        }
+    }
+
+    private suspend fun checkTeamDoesNotExists(
+        player: CompetitionPlayer.Unknown,
+        command: CompetitionCommand.CreateTeam,
+    ) {
+        val existingTeam =
+            competitionTeamRepository
+                .findByName(
+                    sessionId = player.sessionId,
+                    teamName = command.teamName,
+                )
+
+        if (existingTeam != null) {
+            throw CompetitionProcessException(
+                "There is team with same name already"
+            )
         }
     }
 }

@@ -13,6 +13,17 @@ interface CompetitionTeamRepository {
         maxTeams: Int,
     ): CompetitionTeam
 
+    suspend fun update(
+        from: CompetitionTeam,
+        to: CompetitionTeam,
+    ) {
+        update(listOf(from to to))
+    }
+
+    suspend fun update(
+        teamsDiff: Collection<Pair<CompetitionTeam, CompetitionTeam>>,
+    )
+
     suspend fun findByName(
         sessionId: CommonSession.Id,
         teamName: String,

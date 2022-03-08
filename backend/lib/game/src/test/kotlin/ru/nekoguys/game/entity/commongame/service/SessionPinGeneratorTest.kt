@@ -28,7 +28,7 @@ class SessionPinGeneratorTest {
             competitionSessionRepository.findAll(any(), any())
         } answers {
             firstArg<List<Long>>()
-                .map { CompetitionSession.Full(_id = CommonSession.Id(it)) }
+                .map { CompetitionSession(id = CommonSession.Id(it)) }
         }
 
         sessionPinGenerator = SessionPinGenerator(competitionSessionRepository)
