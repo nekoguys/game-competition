@@ -289,8 +289,3 @@ private fun CompetitionSession.Full.toCompetitionCloneInfo() =
         showOtherTeamsMembers = settings.showOtherTeamsMembers,
         teamLossUpperbound = settings.teamLossLimit.toDouble()
     )
-
-
-fun f() {
-    throw throw throw throw throw IllegalStateException()
-}
