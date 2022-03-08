@@ -1,0 +1,59 @@
+.create-game-title {
+    text-align: center;
+    margin: 0 auto;
+    padding-top: 5px;
+    padding-bottom: 34px;
+}
+
+.competition-form-holder {
+    border-radius: 30px;
+    background: #E7E7E7;
+    margin: 42px auto;
+    padding: 20px 42px 20px 42px;
+    width: 55%;
+    max-width: 800px;
+    min-width: 550px;
+}
+
+.competition-form-action-buttons-container {
+    flex-direction: row;
+    display: flex;
+    margin-top: 60px;
+    gap: 5px;
+}
+
+.competition-form-action-button {
+    border: none;
+    background-color: #BBC2D3;
+    border-radius: 20px;
+    padding: 7px 5px;
+    width: 250px;
+    font-size: 20px;
+    line-height: 24px;
+    color: rgba(0, 0, 0, 0.6);
+    transition: background-color 0.3s ease;
+}
+
+.competition-form-action-button:hover {
+    background-color: #a1afbf;
+}
+
+@media (max-width: 500px) {
+    .competition-form-holder {
+        width: 90%;
+        padding: 10px 21px;
+        margin-left: auto;
+        margin-right: auto;
+        border-radius: 10px;
+        min-width: unset;
+        max-width: unset;
+    }
+
+    .competition-form-action-button {
+        border-radius: 10px;
+    }
+
+    .competition-form-action-buttons-container {
+        margin-top: 30px;
+    }
+}

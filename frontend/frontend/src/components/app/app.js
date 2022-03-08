@@ -120,8 +120,26 @@ const joinTeamFetcher = {
     real: (data) => { return apiFetcher(data, (data) => ApiHelper.joinTeam(data)) }
 }['mock']
 
+const createCompetitionFetcher = {
+    mock: (_) => {
+        return new Promise(resolve => resolve({pin: 1234}))
+    },
+    real: (obj) => {
+        return apiFetcher(obj, (data) => ApiHelper.createCompetition(data))
+    }
+}['mock'];
+
+const updateCompetitionFetcher = {
+    mock: (_, __) => {
+        return new Promise(resolve => resolve({}))
+    },
+    real: (pin, obj) => {
+        return apiFetcher({pin, obj}, (data) => ApiHelper.updateCompetition(data.pin, data.obj))
+    }
+}['mock'];
+
 const teamEventsSource = {
-    mock: (pin) => {
+    mock: (_) => {
         return new EventSourceMock([
             {
                 teamName: "Команда Команда Команда",
@@ -194,11 +212,25 @@ const paths = [
     },
     {
         path: "/competitions/create",
-        component: CreateCompetition
+        component: CreateCompetition,
+        props: {
+            fetchers: {
+                createCompetition: createCompetitionFetcher,
+                updateCompetition: updateCompetitionFetcher,
+            },
+            isUpdateMode: false
+        }
     },
     {
         path: "/competitions/draft_competition/:pin",
-        component: CreateCompetition
+        component: CreateCompetition,
+        props: {
+            fetchers: {
+                createCompetition: createCompetitionFetcher,
+                updateCompetition: updateCompetitionFetcher,
+            },
+            isUpdateMode: true
+        }
     },
     {
         path: "/competitions/join",

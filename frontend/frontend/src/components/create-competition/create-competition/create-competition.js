@@ -1,161 +1,106 @@
-import React from "react";
-//import NavbarHeader from "../../competition-history/navbar-header";
+import React, {useRef} from "react";
 import {NavbarHeaderWithFetcher as NavbarHeader} from "../../app/app";
 import CompetitionParamsForm from "../competition-params";
 import "../competition-params/competition-params.css";
-import ApiHelper from "../../../helpers/api-helper";
-import {NotificationContainer} from "react-notifications";
-import DefaultSubmitButton from "../../common/default-submit-button";
 import withRedirect from "../../../helpers/redirect-helper";
-import showNotification from "../../../helpers/notification-helper";
+import "./create-competition.css";
 
-import {withTranslation} from "react-i18next";
+import {useTranslation} from "react-i18next";
+import {useLocation, useNavigate, useParams} from "react-router";
+import {makeStartingCompetitionForm, toCompetitionFormJsonObject} from "../../../helpers/competition-params-helper";
 
 
-class CreateCompetition extends React.Component {
-    constructor(props) {
-        super(props);
+const CreateCompetition = ({isUpdateMode, fetchers, showNotification}) => {
+    const {t} = useTranslation();
+    const location = useLocation();
+    const initialState = location?.state?.initialState || makeStartingCompetitionForm();
+    const formState = useRef(initialState);
+    const params = useParams();
+    const navigate = useNavigate();
 
-        this.formState = {};
-    }
-
-    componentDidMount() {
-        if (this.props.location.state)
-            this.initialState = this.props.location.state.initialState;
-    }
-
-    isUpdateMode() {
-        return !!(this.props.match && this.props.match.params && this.props.match.params.pin);
-    }
-
-    onSaveAsDraftClick = () => {
-        let obj = {...this.formState.toJSONObject(), state: "Draft"};
-
-        if (!this.isUpdateMode()) {
-            this.onCreateCompetition(obj, () => {
-                this.props.history('/competitions/history')
+    const onSaveAsDraftClick = () => {
+        const obj = {...toCompetitionFormJsonObject(formState.current), state: "Draft"};
+        if (isUpdateMode) {
+            onUpdateDraftCompetition(obj, () => {
+                navigate("/competitions/history")
             });
         } else {
-            this.onUpdateDraftCompetition(obj, () => {
-                this.props.history('/competitions/history');
-            })
+            onCreateCompetition(obj, () => {
+                navigate("/competitions/history")
+            });
         }
-    };
+    }
 
-    onOpenRegistrationClick = () => {
-        let obj = {...this.formState.toJSONObject(), state: "Registration"};
+    const onOpenRegistrationClick = () => {
+        let obj = {...toCompetitionFormJsonObject(formState.current), state: "Registration"};
 
-        if (!this.isUpdateMode()) {
-
-            this.onCreateCompetition(obj, () => {
-                console.log({pin: this.pin});
-                this.props.history("/competitions/after_registration_opened/" + this.pin);
+        if (isUpdateMode) {
+            onUpdateDraftCompetition(obj, () => {
+                navigate("/competitions/after_registration_opened/" + params.pin);
             })
         } else {
-            this.onUpdateDraftCompetition(obj, () => {
-                this.props.history("/competitions/after_registration_opened/" + this.props.match.params.pin);
+            onCreateCompetition(obj, (pin) => {
+                navigate("/competitions/after_registration_opened/" + pin);
             })
         }
     };
 
-    onUpdateDraftCompetition = (obj, successCallback) => {
+    const onCreateCompetition = (obj, successCallback) => {
         const timeout = 2000;
-
-        const {pin} = this.props.match.params;
-
-        ApiHelper.updateCompetition(pin, obj)
-            .catch(err => {
-                showNotification(this).error(err, "Error", timeout);
-            })
-            .then(resp => {
-                if (resp.status >= 300) {
-                    return {success: false, response: resp.text()}
-                }
-
-                return {success: true, json: resp.json()};
-            }).then(resp => {
-                resp.json.then(jsonBody => {
-                    if (resp.success) {
-                        showNotification(this).success("Competition saved successfully", "Success!", timeout);
-                        successCallback();
-                    } else {
-                        showNotification(this).error(jsonBody, "Error", timeout);
-                    }
-                })
-        })
-    };
-
-    onCreateCompetition = (obj, successCallback) => {
-        
-        const timeout = 800;
-
-        ApiHelper.createCompetition(obj).then(response => {
-            console.log(response);
-            if (response.status >= 300) {
-                return {success: false, response: response.body}
-            }
-
-            return {success: true, json: response.json()};
+        fetchers.createCompetition(obj).then(resp => {
+            showNotification().success("Competition created successfully", "Success!", timeout);
+            setTimeout(() => {
+                successCallback(resp.pin);
+            }, timeout);
         }).catch(err => {
-            console.log(err);
-        }).then(result => {
-            if (result.success) {
-                return result.json.then(bodyJson => {
-                    console.log(bodyJson);
-
-                    if ("pin" in bodyJson) {
-                        this.pin = bodyJson.pin;
-                    }
-
-                    showNotification(this).success("Competition created successfully", "Success!", timeout);
-                    successCallback();
-                })
-            } else {
-                console.log("Error");
-                showNotification(this).error("Invalid competition params", "Error", timeout);
-            }
+            console.log("Error");
+            showNotification().error(`Invalid competition params ${err}`, "Error", timeout);
         })
-    };
-
-    onFormStateUpdated = (formState) => {
-        this.formState = formState;
-    };
-
-    render() {
-
-        const {i18n} = this.props;
-
-        return (
-            <div>
-                <div>
-                    <NavbarHeader/>
-                </div>
-                <div style={{paddingTop: "100px"}}>
-                    <div style={{margin: "0 auto", textAlign: "center", fontSize: "36px"}}>
-                        <span>{i18n.t('create_competition.create_game')}
-                        </span>
-                    </div>
-                    <div className={"competition-form-holder"}>
-                        <CompetitionParamsForm onFormStateUpdated={(formState) => this.onFormStateUpdated(formState)}
-                                               initialState={this.props.location.state ? this.props.location.state.initialState : {}}/>
-                        <div className={"form-group row"} style={{marginTop: "30px", marginLeft: "7.5%", marginRight: "7.5%"}}>
-                            <div className={"mr-auto p-2"}>
-                                <DefaultSubmitButton text={i18n.t('create_competition.save_draft')} style={{height: "100%", fontSize: "26px",
-                                    paddingTop: "15.5px", paddingBottom: "15.5px"}} onClick={() => this.onSaveAsDraftClick()}/>
-                            </div>
-                            <div className={"p-2"}>
-                                <DefaultSubmitButton text={i18n.t('create_competition.open_registration')} style={{height: "100%", fontSize: "26px",
-                                    paddingTop: "15.5px", paddingBottom: "15.5px"}}
-                                                     onClick={() => this.onOpenRegistrationClick()}/>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <NotificationContainer/>
-
-            </div>
-        )
     }
+
+    const onUpdateDraftCompetition = (obj, successCallback) => {
+        const timeout = 2000;
+        const {pin} = params;
+        fetchers.updateCompetition(pin, obj).then(_ => {
+            showNotification().success("Competition saved successfully", "Success!", timeout);
+            successCallback();
+        }).catch(err => {
+            showNotification().error(err, "Error", timeout);
+        })
+    }
+
+    const onFormStateUpdated = (newFormState) => {
+        formState.current = newFormState;
+    };
+
+    return (
+        <div>
+            <div>
+                <NavbarHeader/>
+            </div>
+            <div className={"below-navbar"}>
+
+                <div className={"competition-form-holder"}>
+                    <div className={"page-title create-game-title"}>
+                        {t('create_competition.create_game')}
+                    </div>
+                    <CompetitionParamsForm onFormStateUpdated={(formState) => onFormStateUpdated(formState)}
+                                           initialState={initialState}/>
+                    <ActionsButtons t={t} actions={[onSaveAsDraftClick, onOpenRegistrationClick]}/>
+                </div>
+            </div>
+        </div>
+    )
 }
 
-export default withTranslation('translation')(withRedirect(CreateCompetition));
+const ActionsButtons = ({t, actions}) => {
+    return (
+        <div className={"competition-form-action-buttons-container"}>
+            <button onClick={actions[0]} className={"competition-form-action-button"}>{t('create_competition.save_draft')}</button>
+            <div className={"spacer"}/>
+            <button onClick={actions[1]} className={"competition-form-action-button"}>{t('create_competition.open_registration')}</button>
+        </div>
+    )
+}
+
+export default withRedirect(CreateCompetition);

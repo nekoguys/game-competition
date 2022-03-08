@@ -1,7 +1,7 @@
 .collection-holder {
     background: #DFDCDF66;;
     border-radius: 30px;
-    padding: 0px 40px 0 40px;
+    padding: 0 40px 0 40px;
     margin: 51px auto 0 auto;
 }
 
@@ -10,7 +10,7 @@
     padding-right: 40px;
 }
 
-.title {
+.competition-header-title {
     padding-top: 18px;
     padding-bottom: 34px;
     text-align: center;
