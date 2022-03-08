@@ -1,6 +1,5 @@
 package ru.nekoguys.game.web.util
 
-import kotlinx.coroutines.reactor.awaitSingle
 import kotlinx.coroutines.reactor.awaitSingleOrNull
 import org.springframework.r2dbc.core.DatabaseClient
 import org.springframework.stereotype.Component
@@ -9,6 +8,7 @@ import org.springframework.stereotype.Component
 class DatabaseCleaner(
     private val databaseClient: DatabaseClient,
 ) {
+    @Suppress("SqlResolve", "SqlWithoutWhere")
     suspend fun clearDatabase() {
         databaseClient.sql("""
             DELETE FROM competition_round_results;
@@ -16,10 +16,9 @@ class DatabaseCleaner(
             DELETE FROM competition_round_infos;
             DELETE FROM competition_team_members;
             DELETE FROM competition_teams;
-            DELETE FROM competition_game_sessions;
             DELETE FROM competition_game_props;
+            DELETE FROM competition_game_sessions;
             DELETE FROM game_sessions;
-            DELETE FROM game_props;
             DELETE FROM users;
         """.trimIndent()).then().awaitSingleOrNull()
     }

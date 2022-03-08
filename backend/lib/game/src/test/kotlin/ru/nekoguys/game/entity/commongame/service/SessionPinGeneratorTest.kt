@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.extension.ExtendWith
 import ru.nekoguys.game.entity.commongame.model.CommonSession
+import ru.nekoguys.game.entity.competition.model.CompetitionSession
 import ru.nekoguys.game.entity.competition.repository.CompetitionSessionRepository
 
 @ExtendWith(MockKExtension::class)
@@ -24,8 +25,11 @@ class SessionPinGeneratorTest {
     @BeforeAll
     fun before() {
         coEvery {
-            competitionSessionRepository.findSessionId(any())
-        } answers { CommonSession.Id(firstArg()) }
+            competitionSessionRepository.findAll(any(), any())
+        } answers {
+            firstArg<List<Long>>()
+                .map { CompetitionSession(id = CommonSession.Id(it)) }
+        }
 
         sessionPinGenerator = SessionPinGenerator(competitionSessionRepository)
     }

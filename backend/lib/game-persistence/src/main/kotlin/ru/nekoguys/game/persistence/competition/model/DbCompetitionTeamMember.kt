@@ -9,5 +9,5 @@ data class DbCompetitionTeamMember(
     var id: Long?,
     var userId: Long,
     var teamId: Long,
-    var captain: Boolean
+    var captain: Boolean,
 )

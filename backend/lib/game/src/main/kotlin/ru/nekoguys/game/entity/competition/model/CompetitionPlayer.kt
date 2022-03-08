@@ -18,7 +18,7 @@ import ru.nekoguys.game.entity.user.model.User
  * |   |   |   [CompetitionPlayer.TeamMember]
  */
 sealed interface CompetitionBasePlayer {
-    val sessionId : CommonSession.Id
+    val sessionId: CommonSession.Id
 }
 
 /**

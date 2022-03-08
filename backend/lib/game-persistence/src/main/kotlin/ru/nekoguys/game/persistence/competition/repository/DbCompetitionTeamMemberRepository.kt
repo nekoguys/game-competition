@@ -9,31 +9,27 @@ interface DbCompetitionTeamMemberRepository : CoroutineCrudRepository<DbCompetit
     @Suppress("SpringDataRepositoryMethodParametersInspection")
     fun findAllByTeamId(teamId: Long): Flow<DbCompetitionTeamMember>
 
+    @Suppress("SqlResolve")
     @Query(
         "SELECT ctm.* " +
-        "FROM competition_team_members AS ctm " +
-        "JOIN competition_teams AS ct ON ct.id = ctm.team_id " +
-        "WHERE ct.session_id = :sessionId AND ctm.user_id = :userId " +
-        "LIMIT 1"
+                "FROM competition_team_members AS ctm " +
+                "JOIN competition_teams AS ct ON ct.id = ctm.team_id " +
+                "WHERE ct.session_id = :sessionId AND ctm.user_id = :userId " +
+                "LIMIT 1"
     )
     suspend fun findBySessionIdAndUserId(
         sessionId: Long,
         userId: Long,
     ): DbCompetitionTeamMember?
 
+    @Suppress("SqlResolve")
     @Query(
         "SELECT ctm.* " +
-        "FROM competition_team_members AS ctm " +
-        "JOIN competition_teams AS ct ON ct.id = ctm.team_id " +
-        "WHERE ct.session_id IN (:sessionIds)"
+                "FROM competition_team_members AS ctm " +
+                "JOIN competition_teams AS ct ON ct.id = ctm.team_id " +
+                "WHERE ct.session_id IN (:sessionIds)"
     )
     fun findAllBySessionIds(
         sessionIds: Iterable<Long>,
     ): Flow<DbCompetitionTeamMember>
-
-    @Suppress("SpringDataRepositoryMethodParametersInspection")
-    suspend fun countByTeamIdAndIdLessThanEqual(
-        teamId: Long,
-        id: Long,
-    ): Int
 }

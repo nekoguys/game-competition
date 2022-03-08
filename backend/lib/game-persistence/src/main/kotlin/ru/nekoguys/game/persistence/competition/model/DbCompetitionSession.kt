@@ -11,7 +11,7 @@ import ru.nekoguys.game.entity.competition.model.CompetitionStage
 data class DbCompetitionSession(
     @Id
     @Column("id")
-    var parentId: Long?,
+    var sessionId: Long?,
 
     var stage: DbCompetitionStage,
 
@@ -19,14 +19,14 @@ data class DbCompetitionSession(
 ) : Persistable<Long> {
 
     @Transient
-    private var isNew: Boolean = parentId == null
+    private var isNew: Boolean = sessionId == null
 
     fun asNew(): DbCompetitionSession =
         apply { isNew = true }
 
     override fun isNew(): Boolean = isNew
 
-    override fun getId(): Long? = parentId
+    override fun getId(): Long? = sessionId
 }
 
 enum class DbCompetitionStage {
@@ -37,7 +37,7 @@ enum class DbCompetitionStage {
     UNKNOWN,
 }
 
-fun CompetitionStage.toDbCompetitionStage() =
+fun CompetitionStage.extractDbCompetitionStage() =
     when (this) {
         is CompetitionStage.Draft -> DbCompetitionStage.DRAFT
         is CompetitionStage.Registration -> DbCompetitionStage.REGISTRATION
@@ -45,7 +45,7 @@ fun CompetitionStage.toDbCompetitionStage() =
         is CompetitionStage.Ended -> DbCompetitionStage.ENDED
     }
 
-fun CompetitionStage.extractLastRound(): Int? =
+fun CompetitionStage.extractDbLastRound(): Int? =
     if (this is CompetitionStage.InProgress) {
         round
     } else {

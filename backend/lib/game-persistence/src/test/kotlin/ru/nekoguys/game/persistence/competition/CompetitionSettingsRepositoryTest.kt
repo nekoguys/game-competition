@@ -4,19 +4,27 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.transaction.reactive.TransactionalOperator
+import ru.nekoguys.game.entity.commongame.model.CommonSession
 import ru.nekoguys.game.entity.competition.model.CompetitionDemandFormula
 import ru.nekoguys.game.entity.competition.model.CompetitionExpensesFormula
-import ru.nekoguys.game.entity.competition.model.CompetitionProperties
 import ru.nekoguys.game.entity.competition.model.CompetitionSettings
-import ru.nekoguys.game.entity.competition.repository.CompetitionPropertiesRepository
+import ru.nekoguys.game.entity.competition.repository.CompetitionSettingsRepository
 import ru.nekoguys.game.entity.user.model.UserRole
 import ru.nekoguys.game.entity.user.repository.UserRepository
 import ru.nekoguys.game.persistence.GamePersistenceTest
+import ru.nekoguys.game.persistence.commongame.model.DbGameSession
+import ru.nekoguys.game.persistence.commongame.model.DbGameType
+import ru.nekoguys.game.persistence.commongame.repository.DbGameSessionRepository
+import ru.nekoguys.game.persistence.competition.model.DbCompetitionSession
+import ru.nekoguys.game.persistence.competition.model.DbCompetitionStage
+import ru.nekoguys.game.persistence.competition.repository.DbCompetitionSessionRepository
 import ru.nekoguys.game.persistence.utils.runBlockingWithRollback
 
 @GamePersistenceTest
-class CompetitionPropertiesRepositoryTest @Autowired constructor(
-    private val competitionPropertiesRepository: CompetitionPropertiesRepository,
+class CompetitionSettingsRepositoryTest @Autowired constructor(
+    private val competitionSettingsRepository: CompetitionSettingsRepository,
+    private val dbCompetitionSessionRepository: DbCompetitionSessionRepository,
+    private val dbGameSessionRepository: DbGameSessionRepository,
     private val transactionalOperator: TransactionalOperator,
     private val userRepository: UserRepository,
 ) {
@@ -28,24 +36,29 @@ class CompetitionPropertiesRepositoryTest @Autowired constructor(
             password = "880",
             role = UserRole.Teacher,
         )
+        val dbGameSession = DbGameSession(
+            id = null,
+            creatorId = user.id.number,
+            gameType = DbGameType.COMPETITION,
+        ).let { dbGameSessionRepository.save(it) }
+        DbCompetitionSession(
+            sessionId = dbGameSession.id,
+            stage = DbCompetitionStage.REGISTRATION,
+            lastRound = null,
+        ).let { dbCompetitionSessionRepository.save(it.asNew()) }
 
-        val createdProps = competitionPropertiesRepository.create(
-            userId = user.id,
+        competitionSettingsRepository.save(
+            sessionId = CommonSession.Id(dbGameSession.id!!),
             settings = DEFAULT_COMPETITION_SETTINGS,
         )
 
-        val expectedProps = CompetitionProperties(
-            id = createdProps.id,
-            creatorId = user.id,
-            settings = DEFAULT_COMPETITION_SETTINGS,
-        )
-
-        val actualProps = competitionPropertiesRepository.load(createdProps.id)
-
-        assertThat(actualProps)
+        val expectedSettings = DEFAULT_COMPETITION_SETTINGS
+        val actualSettings = competitionSettingsRepository
+            .load(CommonSession.Id(dbGameSession.id!!))
+        assertThat(actualSettings)
             .usingRecursiveComparison()
             .withStrictTypeChecking()
-            .isEqualTo(expectedProps)
+            .isEqualTo(expectedSettings)
     }
 }
 

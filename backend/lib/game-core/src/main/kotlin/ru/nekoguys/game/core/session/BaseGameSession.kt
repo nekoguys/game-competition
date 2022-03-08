@@ -44,7 +44,7 @@ internal class BaseGameSession<in P, in Cmd, P2, Msg>(
     }
 
     override suspend fun shareMessages(messages: Collection<GameMessage<P2, Msg>>) {
-        for (message in messages) {
+        for(message in messages) {
             gameMessages.emit(message.withNextIndex())
         }
     }

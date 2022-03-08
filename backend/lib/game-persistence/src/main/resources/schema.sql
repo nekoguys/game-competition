@@ -9,26 +9,30 @@ CREATE TABLE users
 CREATE UNIQUE INDEX users_email_unique_index
     ON users (email);
 
-CREATE TABLE game_props
-(
-    id         BIGSERIAL PRIMARY KEY,
-    creator_id BIGINT  NOT NULL,
-    game_type  VARCHAR NOT NULL
-);
-
 CREATE TABLE game_sessions
 (
     id                 BIGSERIAL PRIMARY KEY,
-    props_id           BIGINT NOT NULL,
-    last_modified_date TIMESTAMP
+    creator_id         BIGINT  NOT NULL,
+    game_type          VARCHAR NOT NULL,
+    last_modified_date TIMESTAMP WITHOUT TIME ZONE
 );
+
+CREATE INDEX game_sessions_creator_id_index
+    ON game_sessions (creator_id);
 
 CREATE INDEX game_sessions_last_modified_date_index
     ON game_sessions (last_modified_date DESC);
 
+CREATE TABLE competition_game_sessions
+(
+    id         BIGINT PRIMARY KEY,
+    stage      VARCHAR NOT NULL,
+    last_round INT
+);
+
 CREATE TABLE competition_game_props
 (
-    id                            BIGSERIAL PRIMARY KEY,
+    id                            BIGINT PRIMARY KEY,
     auto_round_ending             BOOLEAN NOT NULL,
     demand_formula                VARCHAR NOT NULL,
     end_round_before_all_answered BOOLEAN NOT NULL,
@@ -43,13 +47,6 @@ CREATE TABLE competition_game_props
     show_prev_round_results       BOOLEAN NOT NULL,
     show_students_results_table   BOOLEAN NOT NULL,
     team_loss_upperbound          INT     NOT NULL
-);
-
-CREATE TABLE competition_game_sessions
-(
-    id         BIGSERIAL PRIMARY KEY,
-    stage      VARCHAR NOT NULL,
-    last_round INT
 );
 
 CREATE TABLE competition_teams
@@ -76,7 +73,7 @@ CREATE TABLE competition_team_members
 CREATE TABLE competition_round_infos
 (
     id           BIGSERIAL PRIMARY KEY,
-    session_id   BIGINT,
+    session_id   BIGINT NOT NULL,
     round_number INT,
     start_time   TIMESTAMP,
     end_time     TIMESTAMP,
@@ -100,21 +97,13 @@ CREATE TABLE competition_round_results
     team_id  BIGINT
 );
 
-ALTER TABLE game_props
-    ADD CONSTRAINT fk_game_props_creator_id
+ALTER TABLE game_sessions
+    ADD CONSTRAINT fk_game_sessions_creator_id
         FOREIGN KEY (creator_id) REFERENCES users (id);
 
-ALTER TABLE game_props
-    ADD CONSTRAINT fk_game_props_game_type_check
-        CHECK (game_type in ('COMPETITION'));
-
 ALTER TABLE game_sessions
-    ADD CONSTRAINT fk_game_sessions_props_id
-        FOREIGN KEY (props_id) REFERENCES game_props (id);
-
-ALTER TABLE competition_game_props
-    ADD CONSTRAINT fk_competition_game_props_id
-        FOREIGN KEY (id) REFERENCES game_props (id);
+    ADD CONSTRAINT fk_game_sessions_game_type_check
+        CHECK (game_type in ('COMPETITION'));
 
 ALTER TABLE competition_game_sessions
     ADD CONSTRAINT fk_competition_game_sessions_id
@@ -123,6 +112,10 @@ ALTER TABLE competition_game_sessions
 ALTER TABLE competition_game_sessions
     ADD CONSTRAINT competition_game_sessions_stage_check
         CHECK (stage in ('DRAFT', 'REGISTRATION', 'IN_PROGRESS', 'ENDED'));
+
+ALTER TABLE competition_game_props
+    ADD CONSTRAINT fk_competition_game_props_id
+        FOREIGN KEY (id) REFERENCES competition_game_sessions (id);
 
 ALTER TABLE competition_teams
     ADD CONSTRAINT fk_competition_teams_session_id

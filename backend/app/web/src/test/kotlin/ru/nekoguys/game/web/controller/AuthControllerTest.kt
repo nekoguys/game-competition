@@ -1,6 +1,5 @@
 package ru.nekoguys.game.web.controller
 
-import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -45,7 +44,7 @@ class AuthControllerTest @Autowired constructor(
     }
 
     @Test
-    fun `can't signup twice`(): Unit = runBlocking {
+    fun `can't signup twice`() {
         val user = game.createUser()
 
         val request = SignUpRequest(
@@ -68,7 +67,7 @@ class AuthControllerTest @Autowired constructor(
     fun `can signin with role`(
         role: UserRole,
         roleName: String,
-    ): Unit = runBlocking {
+    ) {
         val user = game.createUser(
             role = role,
             password = TestGame.DEFAULT_PASSWORD,
@@ -100,7 +99,7 @@ class AuthControllerTest @Autowired constructor(
     }
 
     @Test
-    fun `can't signin with unknown email`(): Unit = runBlocking {
+    fun `can't signin with unknown email`() {
         val request = SignInRequest(
             email = "test@hse.ru",
             password = "here",
@@ -115,7 +114,7 @@ class AuthControllerTest @Autowired constructor(
     }
 
     @Test
-    fun `can't signin with incorrect password`(): Unit = runBlocking {
+    fun `can't signin with incorrect password`() {
         val user = game.createUser()
 
         val request = SignInRequest(

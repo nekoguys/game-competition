@@ -19,7 +19,7 @@ import ru.nekoguys.game.core.session.getMessages
 
 @RpsGameCoreTest
 class JoinGameRuleTest @Autowired constructor(
-    private val gameService: RpsGameService
+    private val gameService: RpsGameService,
 ) {
 
     @Test
