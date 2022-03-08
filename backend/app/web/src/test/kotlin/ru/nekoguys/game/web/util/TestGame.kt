@@ -7,6 +7,7 @@ import ru.nekoguys.game.entity.competition.repository.CompetitionSessionReposito
 import ru.nekoguys.game.entity.user.model.User
 import ru.nekoguys.game.entity.user.model.UserRole
 import ru.nekoguys.game.entity.user.repository.UserRepository
+import ru.nekoguys.game.web.dto.CompetitionCloneInfoResponse
 import ru.nekoguys.game.web.dto.CreateCompetitionRequest
 import ru.nekoguys.game.web.dto.CreateTeamRequest
 import ru.nekoguys.game.web.dto.JoinTeamRequest
@@ -120,6 +121,11 @@ class TestGame(
             teamName = request.teamName,
             password = request.password,
         )
+    }
+
+    suspend fun getCloneInfo(competitionPin: String): CompetitionCloneInfoResponse? {
+        val sessionId = pinGenerator.decodeIdFromPin(competitionPin)
+        return sessionId?.number?.let { competitionService.getCompetitionCloneInfo(it) }
     }
 
     /**

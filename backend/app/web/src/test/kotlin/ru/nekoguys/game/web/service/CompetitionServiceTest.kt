@@ -57,4 +57,21 @@ class CompetitionServiceTest @Autowired constructor(
         assertThat(session.teams).hasSize(1)
         assertThat(session.teams[0].captain.user).isEqualTo(captain)
     }
+
+    @Test
+    fun `get clone info for competition`(): Unit = runBlocking {
+        val competitionPin = game.createCompetition()
+        val session = game.loadCompetitionSession(competitionPin)
+        val settings = session.properties.settings
+        val cloneInfo = game.getCloneInfo(competitionPin)
+        assertThat(cloneInfo).isNotNull
+        assertThat(cloneInfo?.name).isEqualTo(settings.name)
+        assertThat(cloneInfo?.instruction).isEqualTo(settings.instruction)
+        assertThat(cloneInfo?.maxTeamSize).isEqualTo(settings.maxTeamSize)
+        assertThat(cloneInfo?.maxTeamsAmount).isEqualTo(settings.maxTeamsAmount)
+        assertThat(cloneInfo?.shouldShowResultsTableInEnd).isEqualTo(settings.showStudentsResultsTable)
+        assertThat(cloneInfo?.shouldShowStudentPreviousRoundResults).isEqualTo(settings.showPreviousRoundResults)
+        assertThat(cloneInfo?.roundLength).isEqualTo(settings.roundLength)
+        assertThat(cloneInfo?.isAutoRoundEnding).isEqualTo(settings.isAutoRoundEnding)
+    }
 }

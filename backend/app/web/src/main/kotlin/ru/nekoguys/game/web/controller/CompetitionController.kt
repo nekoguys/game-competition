@@ -141,4 +141,18 @@ class CompetitionController(
             .ifSessionCanBeJoined(sessionPin = request.pin)
             .let(::CheckGamePinResponse)
             .toOkResponse()
+
+    @GetMapping(
+        "/get_clone_info/{pin}",
+        produces = [MediaType.APPLICATION_JSON_VALUE]
+    )
+    @PreAuthorize("hasRole('TEACHER')")
+    suspend fun getCompetitionInfo(@PathVariable pin: Long) {
+        withMDCContext {
+            competitionService
+                .getCompetitionCloneInfo(pin)
+                ?.toOkResponse()
+                ?: toBadRequestResponse()
+        }
+    }
 }
