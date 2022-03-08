@@ -3,9 +3,7 @@ package ru.nekoguys.game.persistence.competition.repository
 import kotlinx.coroutines.flow.*
 import org.springframework.stereotype.Repository
 import org.springframework.transaction.reactive.TransactionalOperator
-import org.springframework.transaction.reactive.executeAndAwait
 import ru.nekoguys.game.entity.commongame.model.CommonSession
-import ru.nekoguys.game.entity.competition.CompetitionProcessException
 import ru.nekoguys.game.entity.competition.model.CompetitionPlayer
 import ru.nekoguys.game.entity.competition.model.CompetitionTeam
 import ru.nekoguys.game.entity.competition.repository.CompetitionPlayerRepository
@@ -25,26 +23,14 @@ class CompetitionPlayerRepositoryImpl(
 
     override suspend fun save(
         player: CompetitionPlayer.Student,
-        maxPlayers: Int,
-    ) = transactionalOperator.executeAndAwait {
-        val dbTeamMember = DbCompetitionTeamMember(
+    ) {
+        DbCompetitionTeamMember(
             id = null,
             teamId = player.teamId.number,
             userId = player.user.id.number,
             captain = player is CompetitionPlayer.TeamCaptain,
         ).let { dbCompetitionTeamMemberRepository.save(it) }
-
-        val studentsAlreadyRegistered = dbCompetitionTeamMemberRepository
-            .countByTeamIdAndIdLessThanEqual(
-                teamId = dbTeamMember.teamId,
-                id = dbTeamMember.id!!,
-            )
-        if (studentsAlreadyRegistered > maxPlayers) {
-            throw CompetitionProcessException(
-                "There are too much team members already, max amount: $maxPlayers"
-            )
-        }
-    }!!
+    }
 
     override suspend fun load(
         sessionId: CommonSession.Id,

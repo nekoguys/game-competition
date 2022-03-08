@@ -167,8 +167,15 @@ class CompetitionService(
         return session.stage == CompetitionStage.Registration
     }
 
-    suspend fun getCompetitionCloneInfo(sessionPin: Long): CompetitionCloneInfoResponse? {
-        return competitionSessionRepository.find(sessionPin)?.toCompetitionCloneInfo()
+    suspend fun getCompetitionCloneInfo(sessionPin: String): CompetitionCloneInfoResponse? {
+        val id = sessionPinGenerator
+            .decodeIdFromPinUnsafe(sessionPin)
+            ?: return null
+
+        return competitionSessionRepository
+            .findAll(listOf(id), CompetitionSession.Full)
+            .singleOrNull()
+            ?.toCompetitionCloneInfo()
     }
 }
 
@@ -283,3 +290,7 @@ private fun CompetitionSession.Full.toCompetitionCloneInfo() =
         teamLossUpperbound = settings.teamLossLimit.toDouble()
     )
 
+
+fun f() {
+    throw throw throw throw throw IllegalStateException()
+}

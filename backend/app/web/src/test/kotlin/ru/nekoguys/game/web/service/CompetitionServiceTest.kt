@@ -1,5 +1,6 @@
 package ru.nekoguys.game.web.service
 
+import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -15,6 +16,7 @@ import java.time.LocalDateTime
 @GameWebApplicationTest
 class CompetitionServiceTest @Autowired constructor(
     private val game: TestGame,
+    private val competitionService: CompetitionService,
 ) {
 
     @Test
@@ -58,19 +60,27 @@ class CompetitionServiceTest @Autowired constructor(
     }
 
     @Test
-    fun `get clone info for competition`(): Unit = runBlocking {
+    fun `get clone info for competition`() {
         val competitionPin = game.createCompetition()
         val session = game.loadCompetitionSession(competitionPin)
-        val settings = session.properties.settings
-        val cloneInfo = game.getCloneInfo(competitionPin)
-        assertThat(cloneInfo).isNotNull
-        assertThat(cloneInfo?.name).isEqualTo(settings.name)
-        assertThat(cloneInfo?.instruction).isEqualTo(settings.instruction)
-        assertThat(cloneInfo?.maxTeamSize).isEqualTo(settings.maxTeamSize)
-        assertThat(cloneInfo?.maxTeamsAmount).isEqualTo(settings.maxTeamsAmount)
-        assertThat(cloneInfo?.shouldShowResultsTableInEnd).isEqualTo(settings.showStudentsResultsTable)
-        assertThat(cloneInfo?.shouldShowStudentPreviousRoundResults).isEqualTo(settings.showPreviousRoundResults)
-        assertThat(cloneInfo?.roundLength).isEqualTo(settings.roundLength)
-        assertThat(cloneInfo?.isAutoRoundEnding).isEqualTo(settings.isAutoRoundEnding)
+        val settings = session.settings
+
+        val cloneInfo = runBlocking {
+            competitionService.getCompetitionCloneInfo(competitionPin)
+        }
+
+        assertThat(cloneInfo)
+            .usingRecursiveComparison()
+            .ignoringExpectedNullFields()
+            .isEqualTo(@Suppress("unused") object {
+                val name = settings.name
+                val instruction = settings.instruction
+                val maxTeamSize = settings.maxTeamSize
+                val maxTeamsAmount = settings.maxTeamsAmount
+                val shouldShowResultsTableInEnd = settings.showStudentsResultsTable
+                val shouldShowStudentPreviousRoundResults = settings.showPreviousRoundResults
+                val roundLength = settings.roundLength
+                val isAutoRoundEnding = settings.isAutoRoundEnding
+            })
     }
 }

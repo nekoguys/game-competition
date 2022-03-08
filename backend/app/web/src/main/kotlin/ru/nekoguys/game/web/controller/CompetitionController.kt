@@ -147,7 +147,7 @@ class CompetitionController(
         produces = [MediaType.APPLICATION_JSON_VALUE]
     )
     @PreAuthorize("hasRole('TEACHER')")
-    suspend fun getCompetitionInfo(@PathVariable pin: Long) {
+    suspend fun getCompetitionInfo(@PathVariable pin: String) {
         withMDCContext {
             competitionService
                 .getCompetitionCloneInfo(pin)

@@ -9,7 +9,6 @@ import ru.nekoguys.game.entity.user.model.User
 interface CompetitionPlayerRepository {
     suspend fun save(
         player: CompetitionPlayer.Student,
-        maxPlayers: Int = Int.MAX_VALUE,
     )
 
     suspend fun load(

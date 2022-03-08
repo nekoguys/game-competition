@@ -134,7 +134,34 @@ class CompetitionControllerTest @Autowired constructor(
             .jsonPath("$.message").exists()
     }
 
-    @WithMockUser(username = "test@hse.ru", roles = ["STUDENT"])
+    @WithMockUser(username = TestGame.DEFAULT_EMAIL, roles = ["STUDENT"])
+    @Test
+    fun `can't create too many teams`() {
+        val competitionPin = game.createCompetition(
+            request = DEFAULT_CREATE_COMPETITION_REQUEST.copy(
+                maxTeamsAmount = 2,
+            )
+        )
+        repeat(2) { game.createTeam(competitionPin) }
+
+        val request = CreateTeamRequest(
+            pin = competitionPin,
+            teamName = "Test team name",
+            captainEmail = game.createUser().email,
+            password = TestGame.DEFAULT_PASSWORD,
+        )
+
+        webTestClient
+            .post()
+            .uri("/api/competitions/create_team")
+            .bodyValue(request)
+            .exchange()
+            .expectStatus().isBadRequest
+            .expectBody()
+            .jsonPath("$.message").exists()
+    }
+
+    @WithMockUser(username = TestGame.DEFAULT_EMAIL, roles = ["STUDENT"])
     @Test
     fun `can join a team`() {
         val (competitionPin, teamName, password) = game.createTeam()
@@ -181,6 +208,34 @@ class CompetitionControllerTest @Autowired constructor(
     fun `can't join same team twice`() {
         val (competitionPin, teamName, password) =
             game.createAndJoinTeam(teamMember = testUser)
+
+        val request = JoinTeamRequest(
+            competitionPin = competitionPin,
+            teamName = teamName,
+            password = password
+        )
+
+        webTestClient
+            .post()
+            .uri("/api/competitions/join_team")
+            .bodyValue(request)
+            .exchange()
+            .expectStatus().isBadRequest
+            .expectBody()
+            .jsonPath("$.message").exists()
+    }
+
+    @WithMockUser(username = "test@hse.ru", roles = ["STUDENT"])
+    @Test
+    fun `can't join full team`() {
+        val competitionPin = game.createCompetition(
+            request = DEFAULT_CREATE_COMPETITION_REQUEST.copy(
+                maxTeamSize = 2,
+            )
+        )
+        val (_, teamName, password) = game.createAndJoinTeam(competitionPin)
+        game.joinTeam(competitionPin, teamName)
+        game.joinTeam(competitionPin, teamName)
 
         val request = JoinTeamRequest(
             competitionPin = competitionPin,

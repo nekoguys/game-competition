@@ -43,6 +43,13 @@ class CompetitionJoinTeamRule(
                 "No team in competition with name: ${command.teamName}"
             )
 
+        val maxTeamSize = session.settings.maxTeamSize
+        if (team.teamMembers.size > maxTeamSize) {
+            throw CompetitionProcessException(
+                "There are too much team members already, max amount: $maxTeamSize"
+            )
+        }
+
         val newStudent = CompetitionPlayer.TeamMember(
             sessionId = player.sessionId,
             user = player.user,
