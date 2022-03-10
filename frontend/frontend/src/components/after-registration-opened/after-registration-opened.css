@@ -18,3 +18,68 @@
     margin-right: 30px;
     background-color: #E7E7E7;
 }
+
+.after-registration-opened-teams-container {
+    border-radius: 30px;
+    padding: 10px 20px 20px;
+    margin-left: auto;
+    margin-right: auto;
+    background-color: #E7E7E7;
+
+    width: 55%;
+    max-width: 800px;
+    min-width: 550px;
+}
+
+.after-registration-opened-title-container {
+    text-align: center;
+}
+
+.after-registration-opened-title {
+    font-size: 30px;
+    color: #CFA856;
+}
+
+.after-registration-opened-subtitle {
+    font-size: 24px;
+    color: #CFA856
+}
+
+.after-registration-opened-show-settings-toggle {
+    margin-top: 42px;
+}
+
+.after-registration-opened-teams-container-title {
+    text-align: center;
+    font-size: 26px;
+    color: rgba(0, 0, 0, 0.6);
+    margin-bottom: 30px;
+}
+
+.after-registration-opened-params-teams-spacer {
+    height: 50px;
+}
+
+.after-registration-opened-competition-form-holder {
+    border-radius: 30px;
+    background: #E7E7E7;
+    margin-left: auto;
+    margin-top: 20px;
+    margin-right: auto;
+    padding: 20px 42px 20px 42px;
+    width: 55%;
+    max-width: 800px;
+    min-width: 550px;
+}
+
+.after-registration-opened-competition-form-holder-action-button-container {
+    margin-top: 48px;
+    display: flex;
+    justify-content: center;
+}
+
+.after-registration-opened-start-game-holder {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}

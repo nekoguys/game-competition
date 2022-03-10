@@ -56,9 +56,9 @@ const NewTeamCollectionElement = ({idInGame, teamName, isReadOnly= false, member
     )
 }
 
-const NewTeamCollection = ({teams, onSubmit}) => {
+const NewTeamCollection = ({teams, onSubmit, readOnly=false}) => {
     return (
-        <div className={"new-team-collection-holder"}>
+        <div>
         {
             teams.map((team) => {
                 return <NewTeamCollectionElement
@@ -66,6 +66,7 @@ const NewTeamCollection = ({teams, onSubmit}) => {
                     idInGame={team.idInGame}
                     teamName={team.teamName}
                     members={team.teamMembers}
+                    isReadOnly={readOnly}
                     onSubmit={onSubmit}
                 />
             })

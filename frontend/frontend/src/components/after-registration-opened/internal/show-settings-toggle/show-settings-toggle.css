@@ -1,0 +1,38 @@
+.show-settings-toggle-container {
+    background-color: rgba(223, 220, 223, 0.6);
+    border-radius: 20px;
+    text-align: center;
+    margin-top: 10px;
+    display: inline-block;
+    margin-left: auto;
+    margin-right: auto;
+    font-size: 18px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    position: relative;
+    user-select: none;
+}
+
+.show-settings-toggle-centered-inner-container {
+    text-align: center;
+}
+
+.show-settings-toggle-text {
+    display: inline-block;
+    margin-left: 48px;
+    margin-right: 48px;
+}
+
+.show-settings-toggle-unwind {
+    width: 15px;
+    height: 10px;
+    display: inline-block;
+    position: absolute;
+    top: 50%;
+    right: 17px;
+    transform: translateY(-50%);
+}
+
+.show-settings-toggle-wind {
+    transform: translateY(-50%) rotate(180deg);
+}
