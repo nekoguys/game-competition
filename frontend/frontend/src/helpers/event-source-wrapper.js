@@ -4,7 +4,11 @@ class EventSourceWrapper {
     }
 
     subscribe(callback) {
-        this.eventSource.addEventListener("message", callback);
+        const wrappedCallback = (event) => {
+            let data = JSON.parse(event.data)
+            callback(data)
+        };
+        this.eventSource.addEventListener("message", wrappedCallback);
     }
 
     close() {
