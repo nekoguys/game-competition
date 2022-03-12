@@ -51,7 +51,9 @@ const NewJoinCompetitionMemberForm = ({fetchers, eventSources, showNotification}
                         <input placeholder={t('join_competition.member.find')} className={"team-name-input"} onChange={(ev) => setTeamSearchString(ev.target.value)}/>
                     </div>
                     <div className={"team-collection-root-container"}>
-                        <NewTeamCollection teams={filteredTeams} onSubmit={onSubmit}/>
+                        <div className={"new-team-collection-holder"}>
+                            <NewTeamCollection teams={filteredTeams} onSubmit={onSubmit}/>
+                        </div>
                     </div>
                 </div>
             </div>

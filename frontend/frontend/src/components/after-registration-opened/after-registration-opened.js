@@ -1,221 +1,114 @@
-import React from "react";
+import React, {useEffect, useState} from "react";
 import "./after-registration-opened.css";
-import TeamCollection from "../join-competition/join-competition-player-form/team-collection";
-import buttonUpImage from "../join-competition/join-competition-player-form/team-collection/buttonUp.png";
-import buttonDownImage from "../join-competition/join-competition-player-form/team-collection/buttonDown.png";
 import CompetitionParamsForm from "../create-competition/competition-params";
-import ApiHelper from "../../helpers/api-helper";
-import toCamelCase from "../../helpers/camel-case-helper";
-import DefaultSubmitButton from "../common/default-submit-button";
-import getValueForJsonObject from "../../helpers/competition-params-helper";
+import {toCompetitionFormJsonObject} from "../../helpers/competition-params-helper";
 import withRedirect from "../../helpers/redirect-helper";
+import {useTranslation} from "react-i18next";
+import {useNavigate, useParams} from "react-router";
+import {NavbarHeaderWithFetcher} from "../app/app";
+import ShowSettingsToggle from "./internal/show-settings-toggle";
+import NewTeamCollection
+    from "../join-competition/join-competition-form/new-forms/new-join-competition-member-form/team-collection";
 
-import showNotification from "../../helpers/notification-helper";
-import {withTranslation} from "react-i18next";
 
+const AfterRegistrationOpenedNewComponent = ({eventSources, fetchers, showNotification}) => {
+    const params = useParams();
+    const navigate = useNavigate()
+    const {t} = useTranslation();
+    const [teams, setTeams] = useState([]);
+    const [expanded, setExpanded] = useState(false);
+    const [formState, setFormState] = useState({});
+    const {pin} = params;
 
-class AfterRegistrationOpenedComponent extends React.Component {
-    constructor(props) {
-        super(props);
+    useEffect(() => {
+        const eventSource = eventSources.teams(pin);
+        eventSource.subscribe((newTeam) => {
+            console.log({newTeam, teams});
+            setTeams(prevValue => [...prevValue, newTeam]);
+        })
 
-        this.state = {
-            isExpanded: false,
-            formState: {},
-            items: []
+        return function cleanup() {
+            eventSource.close();
         }
-    }
+    }, [])
 
-    setupTeamEventConnection() {
-        const {pin} = this.props.match.params;
+    useEffect(() => {
+        fetchers.cloneInfo(pin).then(resp => {
+            setFormState(resp);
+        })
+    }, [])
 
-        this.eventSource = ApiHelper.teamCreationEventSource(pin);
-        this.eventSource.addEventListener("error",
-            (err) => {
-                console.log("EventSource failed: ", err)
-            });
-        this.eventSource.addEventListener("message", (event) => {
-            console.log({eventId: event.lastEventId});
-            console.log({event});
-            console.log({data: event.data});
-            this.setState((prevState) => {
-                let arr = prevState.items.slice(0);
-                const elem = JSON.parse(event.data);
-                const index = arr.findIndex(el => {return el.teamName === elem.teamName});
-                if (index === -1) {
-                    arr.push(elem);
-                } else {
-                    arr[index] = elem;
-                }
+    const startCompetition = () => {
+        const {pin} = params;
 
-                return {items: arr}
-            });
-        });
-    }
-
-    componentDidMount() {
-        this.setupTeamEventConnection();
-
-        const {pin} = this.props.match.params;
-
-        ApiHelper.getCompetitionCloneInfo(pin).then((resp) => {
-            console.log({resp});
-            if (resp.status >= 300) {
-                return {success: false, json: resp.json()}
-            }
-            return {success: true, json: resp.json()}
-        }).then(resp => {
-            resp.json.then(bodyJson => {
-                if (resp.success) {
-                    console.log({bodyJson});
-                    console.log({camel: toCamelCase(bodyJson)});
-                    this.setState({formState: toCamelCase(bodyJson)});
-                }
-            })
+        fetchers.startCompetition(pin).then(_ => {
+            showNotification().success("Competition Started!", "Success", 1500);
+            setTimeout(() => {
+                navigate("/competitions/process_teacher/" + pin)
+            }, 1500);
+        }).catch(err => {
+            showNotification().error(err.message || "Error", "Error", 1500)
         })
     }
 
-    componentWillUnmount() {
-        if (this.eventSource !== undefined) {
-            this.eventSource.close();
-        }
+    const updateCompetition = () => {
+        const {pin} = params;
+        fetchers.updateCompetition(pin, toCompetitionFormJsonObject(formState)).then(resp => {
+            setFormState(resp);
+            showNotification().success("Competition updated successfully", "Success", 900);
+        })
     }
 
-    startCompetition = (successCallback) => {
-        const {pin} = this.props.match.params;
+    const paramsForm = expanded
+        ? <CompetitionsParamsWrapper formState={formState} setFormState={setFormState} saveAction={() => updateCompetition()}/>
+        : null
 
-        ApiHelper.startCompetition(pin).then(resp => {
-            if (resp.status >= 300) {
-                return {success: false, json: resp.text()}
-            }
-            return {success: true, json: resp.json()}
-        }).then(resp => {
-            resp.json.then(bodyJson => {
-                if (resp.success) {
-                    successCallback(bodyJson.message);
-                } else {
-                    const mes = bodyJson.message || bodyJson;
-                    showNotification(this).error(mes, "Error", 1200);
-                }
-            })
-        })
-    };
-
-    updateCompetition = (additionalParams={}, successCallback=()=>{}) => {
-        const {pin} = this.props.match.params;
-
-        let jsonObj = {};
-
-        Object.keys(this.state.formState).forEach(key => {
-            jsonObj[key] = getValueForJsonObject(key, this.state.formState[key]);
-        });
-
-        jsonObj = {...jsonObj, ...additionalParams};
-
-        ApiHelper.updateCompetition(pin, jsonObj).then(resp => {
-            console.log({resp});
-            if (resp.status >= 300) {
-                return {success: false, json: resp.text()}
-            }
-            return {success: true, json: resp.json()}
-        }).then(resp => {
-            resp.json.then(bodyJson => {
-                if (resp.success) {
-                    console.log({bodyJson});
-                    console.log({camel: toCamelCase(bodyJson)});
-                    successCallback(toCamelCase(bodyJson));
-                } else {
-                    const mes = bodyJson.message || bodyJson;
-                    showNotification(this).error(mes, "Error", 1200);
-                }
-            })
-        })
-    };
-
-    render() {
-        
-        const {i18n} = this.props;
-
-        const {pin} = this.props.match.params;
-        console.log(pin);
-
-        let res;
-
-        const image = this.state.isExpanded ? buttonDownImage : buttonUpImage;
-
-        if (this.state.isExpanded) {
-            res = (
-                <div>
-                <div>
-                    <CompetitionParamsForm initialState={this.state.formState} onFormStateUpdated={(state) => {
-                    this.setState({formState: state})
-                    }}/>
-                </div>
-                    <DefaultSubmitButton
-                        text={i18n.t('waiting_room.save')}
-                        onClick={() => this.updateCompetition({}, (resp) => {
-                            this.setState({formState: toCamelCase(resp)});
-                            showNotification(this).success("Competition updated successfully", "Success", 900);
-                        })}
-                        style={{
-                            width: "20%",
-                            minWidth: "180px",
-                            maxWidth: "250px",
-                            paddingTop: "7px",
-                            paddingBottom: "7px"
-                             }}/>
-                </div>
-            )
-        }
-
-        return (
+    return (
+        <div>
             <div>
-                <div style={{fontSize: "31px"}}>
-                    <div style={{textAlign: "center"}}>
-                        {i18n.t('waiting_room.create') + pin}
-                    </div>
-                    <div style={{textAlign: "center"}}>
-                        {i18n.t('waiting_room.registration_opened')}
-                    </div>
+                <NavbarHeaderWithFetcher/>
+            </div>
+            <div className={"below-navbar"}>
+                <div className={"after-registration-opened-title-container"}>
+                    <div className={"after-registration-opened-title"}>{t('waiting_room_new.registration_opened')}</div>
+                    <div className={"after-registration-opened-subtitle"}>{t('waiting_room_new.create') + pin}</div>
                 </div>
-                <div className={"form-container"}>
-                    <div style={{margin: "0 auto", width: "22%", minWidth:"250px", maxWidth: "320px"}}>
-                    <div className={"show-settings"}
-                         onClick={() => this.setState(prevState => {
-                             return {isExpanded: !prevState.isExpanded};
-                         })}>
-                            <div style={{display: "inline"}}>
-                            {i18n.t('waiting_room.show_settings')}
-                                </div>
-                        <button style={{
-                            border: "none",
-                            backgroundColor: "Transparent",
-                            marginLeft: "15px",
-                            transform: "scale(0.35) translate(-20px, -5px)"
-                        }}><img src={image} alt={"unwind"}/></button>
+                <div>
+                    <div className={"after-registration-opened-show-settings-toggle"}>
+                        <ShowSettingsToggle t={t} isExpanded={expanded} setExpanded={setExpanded}/>
                     </div>
-                    </div>
-                    <div style={{paddingTop: "20px"}}>
-                        {res}
-                    </div>
-                    <br/>
-                    <div style={{paddingTop: "40px", width: "80%", margin: "0 auto"}}>
-                        <TeamCollection i18n={i18n} items={this.state.items} isReadOnly={true}/>
-                    </div>
-                    <div style={{paddingTop: "40px", width: "25%", margin: "0 auto"}}>
-                        <DefaultSubmitButton text={i18n.t('waiting_room.start_game')} onClick={() => {
+                    {paramsForm}
+                </div>
+                <div className={"after-registration-opened-params-teams-spacer"}>
 
-                            this.startCompetition(() => {
-                                showNotification(this).success("Competition Started!", "Success", 1500);
-                                setTimeout(() => {
-                                    this.props.history("/competitions/process_teacher/" + pin)
-                                }, 1500);
-                            });
-                        }} style={{padding: "10px 20px"}}/>
+                </div>
+                <div className={"after-registration-opened-teams-container"}>
+                    <div className={"after-registration-opened-teams-container-title"}>
+                        {t("waiting_room_new.teams_list_title")}
+                    </div>
+                    <div className={"after-registration-opened-teams-inner-container"}>
+                        <NewTeamCollection readOnly={true} teams={teams}/>
+                    </div>
+
+                    <div className={"after-registration-opened-start-game-holder"}>
+                        <button className={"competition-form-action-button"} onClick={startCompetition}>{t("waiting_room_new.start_game")}</button>
                     </div>
                 </div>
             </div>
-        );
-    }
+        </div>
+    )
 }
 
-export default withTranslation('translation')(withRedirect(AfterRegistrationOpenedComponent));
+const CompetitionsParamsWrapper = ({formState, setFormState, saveAction}) => {
+    const {t} = useTranslation();
+    return (
+        <div className={"after-registration-opened-competition-form-holder"}>
+            <CompetitionParamsForm initialState={formState} onFormStateUpdated={(newFormState) => setFormState(newFormState)}/>
+            <div className={"after-registration-opened-competition-form-holder-action-button-container"}>
+                <button className={"competition-form-action-button"} onClick={() => saveAction()}>{t("waiting_room_new.save")}</button>
+            </div>
+        </div>
+    )
+}
+
+export default withRedirect(AfterRegistrationOpenedNewComponent);

@@ -127,6 +127,14 @@
     "show_settings": "Show settings",
     "start_game": "Start game"
   },
+  "waiting_room_new": {
+    "save": "Save",
+    "create": "Game ID: ",
+    "registration_opened": "Registration is opened",
+    "show_settings": "Show settings",
+    "start_game": "Start game",
+    "teams_list_title": "Teams list"
+  },
   "create_competition": {
     "create_game": "Create game",
     "save_draft": "Save draft",
