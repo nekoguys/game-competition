@@ -44,8 +44,7 @@ class AuthService(
             email = userDetails.username,
             authorities = userDetails
                 .authorities
-                .map { it.toString() }
-                .map { Authority(it) },
+                .map { Authority(it.toString()) },
             expirationTimestamp = expirationTimestamp,
         )
     }

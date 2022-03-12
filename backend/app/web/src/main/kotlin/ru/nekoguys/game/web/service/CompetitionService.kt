@@ -87,8 +87,8 @@ class CompetitionService(
             ?: error("No such user: $studentEmail")
 
         val sessionId = sessionPinGenerator
-            .decodeIdFromPin(request.pin)
-            ?: return CreateTeamResponse.GameNotFound(request.pin)
+            .decodeIdFromPin(request.gameId)
+            ?: return CreateTeamResponse.GameNotFound(request.gameId)
 
         return try {
             competitionProcessService.acceptCommand(
@@ -191,10 +191,10 @@ private fun CreateCompetitionRequest.extractCompetitionSettings() =
         teamLossLimit = teamLossUpperbound!!,
         instruction = instruction!!,
         showPreviousRoundResults = shouldShowStudentPreviousRoundResults!!,
-        endRoundBeforeAllAnswered = shouldEndRoundBeforeAllAnswered!!,
-        showStudentsResultsTable = shouldShowResultTableInEnd!!,
-        isAutoRoundEnding = isAutoRoundEnding!!,
-        showOtherTeamsMembers = showOtherTeamsMembers!!,
+        endRoundBeforeAllAnswered = shouldEndRoundBeforeAllAnswered ?: false,
+        showStudentsResultsTable = shouldShowResultTableInEnd ?: false,
+        isAutoRoundEnding = isAutoRoundEnding ?: false,
+        showOtherTeamsMembers = showOtherTeamsMembers ?: false,
     )
 
 private fun String?.toCompetitionStage(): CompetitionStage =
@@ -222,7 +222,6 @@ private val CompetitionSettings.demandFormulaString: String
         demandFormula.freeCoefficient.toString(),
         demandFormula.xCoefficient.toString(),
     ).joinToString(";")
-
 
 private val CompetitionSettings.expensesFormulaString: String
     get() = listOf(

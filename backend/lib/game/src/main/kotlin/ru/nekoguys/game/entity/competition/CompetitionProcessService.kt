@@ -1,10 +1,16 @@
 package ru.nekoguys.game.entity.competition
 
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import org.springframework.stereotype.Service
 import ru.nekoguys.game.core.GameMessage
-import ru.nekoguys.game.core.session.*
+import ru.nekoguys.game.core.session.GameSession
+import ru.nekoguys.game.core.session.accept
+import ru.nekoguys.game.core.session.createGameSession
+import ru.nekoguys.game.core.session.getAllMessages
 import ru.nekoguys.game.entity.commongame.model.CommonSession
+import ru.nekoguys.game.entity.commongame.service.GameMessageLogProvider
+import ru.nekoguys.game.entity.commongame.service.createGameLog
 import ru.nekoguys.game.entity.competition.model.CompetitionBasePlayer
 import ru.nekoguys.game.entity.competition.model.CompetitionTeam
 import ru.nekoguys.game.entity.competition.repository.CompetitionPlayerRepository
@@ -21,9 +27,12 @@ typealias CompetitionLaunchedSession =
 class CompetitionProcessService(
     private val competitionPlayerRepository: CompetitionPlayerRepository,
     private val rootRule: CompetitionRootRule,
+    private val gameMessageLogProvider: GameMessageLogProvider,
 ) {
     private val launchedSessions =
         ConcurrentHashMap<CommonSession.Id, CompetitionLaunchedSession>()
+
+    private val sessionsContext = SupervisorJob()
 
     suspend fun acceptCommand(
         sessionId: CommonSession.Id,
@@ -38,14 +47,6 @@ class CompetitionProcessService(
             )
     }
 
-    fun getAllMessagesForTeam(
-        sessionId: CommonSession.Id,
-        teamId: CompetitionTeam.Id,
-    ): Flow<CompetitionMessage> =
-        launchedSessions
-            .getOrPut(sessionId) { launchGameSession(sessionId) }
-            .getMessages(teamId)
-
     fun getAllMessagesForSession(
         sessionId: CommonSession.Id,
     ): Flow<GameMessage<CompetitionTeam.Id, CompetitionMessage>> =
@@ -58,6 +59,8 @@ class CompetitionProcessService(
     ): CompetitionLaunchedSession =
         createGameSession(
             rule = rootRule,
+            parentContext = sessionsContext,
+            messageLog = gameMessageLogProvider.createGameLog(sessionId),
             onClose = { launchedSessions.remove(sessionId) }
         )
 }

@@ -2,8 +2,8 @@ package ru.nekoguys.game.web.security.jwt
 
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.Jws
+import kotlinx.coroutines.reactor.mono
 import org.slf4j.LoggerFactory
-import org.slf4j.MDC
 import org.springframework.http.HttpHeaders
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.Authentication
@@ -14,8 +14,7 @@ import org.springframework.stereotype.Component
 import org.springframework.web.server.ServerWebExchange
 import reactor.core.publisher.Mono
 import ru.nekoguys.game.web.security.GameUserDetailsService
-import ru.nekoguys.game.web.util.REQUEST_ID_CONTEXT_KEY
-import ru.nekoguys.game.web.util.extractRequestId
+import ru.nekoguys.game.web.util.withMDCContext
 
 @Component
 class JwtAuthenticationConverter(
@@ -26,32 +25,30 @@ class JwtAuthenticationConverter(
 
     private val logger = LoggerFactory.getLogger(JwtAuthenticationConverter::class.java)
 
-    override fun convert(exchange: ServerWebExchange): Mono<Authentication> {
-        return convertInternal(exchange)
-            .doOnEach { signal ->
-                val authentication = signal.get()
-                if (authentication != null && logger.isInfoEnabled) {
-                    val requestId = signal.contextView.extractRequestId()
-                    MDC.putCloseable(REQUEST_ID_CONTEXT_KEY, requestId).use {
-                        val username = authentication.principal
-                        val authorities = authentication.authorities.joinToString { it.toString() }
-                        logger.info("Authenticated as $username with authorities $authorities")
-                    }
+    override fun convert(exchange: ServerWebExchange): Mono<Authentication> = mono {
+        withMDCContext {
+            convertInternal(exchange)
+                ?.also { authentication ->
+                    val username = authentication.principal
+                    val authorities = authentication.authorities.joinToString()
+                    logger.info("Authenticated as $username with authorities $authorities")
                 }
-            }
+        }
     }
 
-    private fun convertInternal(exchange: ServerWebExchange): Mono<Authentication> {
+    private suspend fun convertInternal(
+        exchange: ServerWebExchange
+    ): Authentication? {
         val serializedJwt: String =
             exchange
                 .extractAuthHeader()
                 ?.removePrefix(TOKEN_PREFIX)
-                ?: return Mono.empty()
+                ?: return null
 
         val jwt: Jws<Claims> =
             jwtProvider
                 .parseJwt(serializedJwt)
-                ?: return Mono.empty()
+                ?: return null
 
         return if (jwtProperties.fastAuthenticationEnabled) {
             authenticateByJwtClaims(jwt.body)
@@ -60,31 +57,32 @@ class JwtAuthenticationConverter(
         }
     }
 
-    private fun ServerWebExchange.extractAuthHeader(): String? =
-        request
-            .headers
-            .getFirst(HttpHeaders.AUTHORIZATION)
-
-    private fun authenticateByJwtClaims(claims: Claims): Mono<Authentication> {
+    private fun authenticateByJwtClaims(claims: Claims): Authentication {
         val authorities = claims.get("roles", String::class.java)
             .split(';')
             .map { SimpleGrantedAuthority("ROLE_$it") }
 
-        val authentication =
-            UsernamePasswordAuthenticationToken(claims.subject, null, authorities)
-
-        return Mono.just(authentication)
+        return UsernamePasswordAuthenticationToken(
+            claims.subject,
+            null,
+            authorities,
+        )
     }
 
-    private fun authenticateByEmail(email: String): Mono<Authentication> =
+    private suspend fun authenticateByEmail(email: String): Authentication? =
         userDetailsService
-            .findByUsername(email)
-            .map(UserDetails::toAuthentication)
+            .findByUsernameSuspending(email)
+            ?.let(UserDetails::toAuthentication)
 
     companion object {
         private const val TOKEN_PREFIX = "Bearer "
     }
 }
+
+private fun ServerWebExchange.extractAuthHeader(): String? =
+    request
+        .headers
+        .getFirst(HttpHeaders.AUTHORIZATION)
 
 private fun UserDetails.toAuthentication(): Authentication =
     UsernamePasswordAuthenticationToken(this, null, this.authorities)

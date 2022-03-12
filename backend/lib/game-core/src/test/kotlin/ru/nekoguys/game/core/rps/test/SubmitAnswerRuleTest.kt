@@ -25,7 +25,6 @@ class SubmitAnswerRuleTest @Autowired constructor(
     private val gameService: RpsGameService,
 ) {
 
-
     lateinit var session: RpsGameSession
     lateinit var firstPlayer: RpsPlayer
     lateinit var secondPlayer: RpsPlayer

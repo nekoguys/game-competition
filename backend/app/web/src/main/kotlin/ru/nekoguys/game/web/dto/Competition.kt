@@ -1,3 +1,5 @@
+@file:Suppress("MayBeConstant")
+
 package ru.nekoguys.game.web.dto
 
 import com.fasterxml.jackson.annotation.JsonFormat
@@ -6,11 +8,12 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategies
 import com.fasterxml.jackson.databind.annotation.JsonNaming
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer
+import org.springframework.http.HttpStatus
+import ru.nekoguys.game.web.util.WebResponse
 import java.time.LocalDateTime
 import javax.validation.constraints.NotNull
 import javax.validation.constraints.Size
 
-@JsonNaming(PropertyNamingStrategies.LowerCamelCaseStrategy::class)
 data class CreateCompetitionRequest(
     @NotNull
     @Size(min = 2, max = 2, message = "Demand formula should contain 2 values separated by ;")
@@ -37,19 +40,20 @@ data class CreateCompetitionRequest(
     val teamLossUpperbound: Int? = null,
 )
 
-sealed interface CreateCompetitionResponse {
-    object Created : CreateCompetitionResponse {
-        @Suppress("MayBeConstant")
+sealed class CreateCompetitionResponse(
+    status: HttpStatus,
+) : WebResponse(status) {
+
+    object Created : CreateCompetitionResponse(HttpStatus.OK) {
+        @Suppress("unused")
         val message = "Competition created successfully"
     }
 
     data class OpenedRegistration(
         val pin: String,
-    ) : CreateCompetitionResponse
+    ) : CreateCompetitionResponse(HttpStatus.OK)
 }
 
-
-@JsonNaming(PropertyNamingStrategies.LowerCamelCaseStrategy::class)
 data class GetCompetitionResponse(
     val demandFormula: String,
     val expensesFormula: String,
@@ -70,7 +74,7 @@ data class GetCompetitionResponse(
     val showOtherTeamsMembers: Boolean,
     val state: String,
     val teamLossUpperbound: Double,
-)
+) : WebResponse(HttpStatus.OK)
 
 @JsonNaming(PropertyNamingStrategies.LowerCamelCaseStrategy::class)
 data class CompetitionCloneInfoResponse(
@@ -87,35 +91,44 @@ data class CompetitionCloneInfoResponse(
     val shouldShowStudentPreviousRoundResults: Boolean,
     val isAutoRoundEnding: Boolean,
     val showOtherTeamsMembers: Boolean
-)
+) : WebResponse(HttpStatus.OK)
 
 @JsonNaming(PropertyNamingStrategies.LowerCamelCaseStrategy::class)
 data class CreateTeamRequest(
     @JsonProperty("game_id")
-    val pin: String,
+    val gameId: String,
+    @JsonProperty("team_name")
     val teamName: String,
+    @JsonProperty("captain_email")
     val captainEmail: String,
     val password: String,
 )
 
-sealed interface CreateTeamResponse {
-    object Success : CreateTeamResponse {
-        @Suppress("MayBeConstant")
+sealed class CreateTeamResponse(
+    status: HttpStatus,
+) : WebResponse(status) {
+
+    object Success : CreateTeamResponse(HttpStatus.OK) {
+        @Suppress("unused")
         val message = "Team created successfully"
     }
 
     class GameNotFound(
         sessionPin: String,
-    ) : CreateTeamResponse {
+    ) : CreateTeamResponse(HttpStatus.BAD_REQUEST) {
+        @Suppress("unused")
         val message = "Game with pin $sessionPin not found"
     }
 
-    object IncorrectName : CreateTeamResponse {
-        @Suppress("MayBeConstant")
+    object IncorrectName : CreateTeamResponse(HttpStatus.BAD_REQUEST) {
+        @Suppress("unused")
         val message = "Team name is empty or too small"
     }
 
-    class ProcessError(val message: String) : CreateTeamResponse
+    class ProcessError(
+        @Suppress("unused")
+        val message: String,
+    ) : CreateTeamResponse(HttpStatus.BAD_REQUEST)
 }
 
 data class JoinTeamRequest(
@@ -124,18 +137,24 @@ data class JoinTeamRequest(
     val password: String,
 )
 
-sealed interface JoinTeamResponse {
+sealed class JoinTeamResponse(
+    status: HttpStatus,
+) : WebResponse(status) {
+
     data class Success(
         val currentTeamName: String,
-    ) : JoinTeamResponse
+    ) : JoinTeamResponse(HttpStatus.OK)
 
     class GameNotFound(
         sessionPin: String,
-    ) : JoinTeamResponse {
+    ) : JoinTeamResponse(HttpStatus.BAD_REQUEST) {
+        @Suppress("unused")
         val message = "No competition with pin: $sessionPin"
     }
 
-    data class ProcessError(val message: String) : JoinTeamResponse
+    data class ProcessError(
+        val message: String,
+    ) : JoinTeamResponse(HttpStatus.BAD_REQUEST)
 }
 
 data class CheckGamePinRequest(
@@ -144,7 +163,7 @@ data class CheckGamePinRequest(
 
 data class CheckGamePinResponse(
     val exists: Boolean,
-)
+) : WebResponse(HttpStatus.OK)
 
 data class TeamUpdateNotification(
     val teamName: String,

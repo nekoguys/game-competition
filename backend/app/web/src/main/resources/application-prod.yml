@@ -5,8 +5,8 @@ spring:
     password: postgres
 logging:
   level:
-    io.r2dbc.postgresql.QUERY: DEBUG
-    io.r2dbc.postgresql.PARAM: DEBUG
+    io.r2dbc.postgresql.QUERY: INFO
+    io.r2dbc.postgresql.PARAM: INFO
 game:
   app:
     web:

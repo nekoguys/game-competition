@@ -23,6 +23,18 @@ CREATE INDEX game_sessions_creator_id_index
 CREATE INDEX game_sessions_last_modified_date_index
     ON game_sessions (last_modified_date DESC);
 
+CREATE TABLE game_session_logs
+(
+    id         BIGSERIAL PRIMARY KEY,
+    session_id BIGINT  NOT NULL,
+    seq_num    BIGINT  NOT NULL,
+    players    VARCHAR NOT NULL,
+    message    VARCHAR NOT NULL
+);
+
+CREATE UNIQUE INDEX game_session_logs_session_id_seq_num_index
+    ON game_session_logs (session_id, seq_num);
+
 CREATE TABLE competition_game_sessions
 (
     id         BIGINT PRIMARY KEY,
@@ -104,6 +116,10 @@ ALTER TABLE game_sessions
 ALTER TABLE game_sessions
     ADD CONSTRAINT fk_game_sessions_game_type_check
         CHECK (game_type in ('COMPETITION'));
+
+ALTER TABLE game_session_logs
+    ADD CONSTRAINT fk_game_session_logs_session_id
+        FOREIGN KEY (session_id) REFERENCES game_sessions (id);
 
 ALTER TABLE competition_game_sessions
     ADD CONSTRAINT fk_competition_game_sessions_id

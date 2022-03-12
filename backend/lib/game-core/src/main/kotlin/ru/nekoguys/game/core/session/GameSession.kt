@@ -55,7 +55,6 @@ fun <P2, Msg> GameSession<*, *, P2, Msg>.getMessages(player: P2): Flow<Msg> =
         .filter { player in it.players }
         .map { it.body }
 
-
 @Suppress("FunctionName")
 fun <P, Cmd, P2, Msg> createGameSession(
     rule: GameRule<P, Cmd, P2, Msg>,

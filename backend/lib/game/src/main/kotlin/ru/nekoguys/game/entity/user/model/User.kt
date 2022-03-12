@@ -6,7 +6,9 @@ data class User(
     val password: String,
     val role: UserRole,
 ) {
-    data class Id(val number: Long)
+    data class Id(val number: Long) {
+        override fun toString() = number.toString()
+    }
 
     // Методы toString, equals,
     override fun toString(): String {

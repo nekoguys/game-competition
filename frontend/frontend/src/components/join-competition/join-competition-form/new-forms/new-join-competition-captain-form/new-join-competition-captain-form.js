@@ -17,14 +17,14 @@ const NewJoinCompetitionCaptainForm = ({fetchers, captainEmailProvider, showNoti
     const [form, setForm] = useState({teamName: "", password: ""})
     const createButtonDisabled = !(form.teamName.length >= 4 && form.password.length >= 4)
 
-    const createTeam = ({teamName, password}) => {
+    const createTeam = () => {
         const captainEmail = captainEmailProvider.get();
         const teamCreationDTO = {
             game_id: pin,
             captain_email: captainEmail,
-            team_name: teamName,
-            password: password
-        }
+            team_name: form.teamName,
+            password: form.password
+        };
         const notificationTimeout = 2000;
         fetchers.createTeam(teamCreationDTO)
             .then(_ => {

@@ -16,8 +16,11 @@ class GameUserDetailsService(
     private val userRepository: UserRepository,
 ) : ReactiveUserDetailsService {
 
+    suspend fun findByUsernameSuspending(email: String): UserDetails? =
+        userRepository.findByEmail(email)?.toUserDetails()
+
     override fun findByUsername(email: String): Mono<UserDetails> =
-        mono { userRepository.findByEmail(email)?.toUserDetails() }
+        mono { findByUsernameSuspending(email) }
 }
 
 private fun ru.nekoguys.game.entity.user.model.User.toUserDetails(): UserDetails =

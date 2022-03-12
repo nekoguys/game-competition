@@ -11,7 +11,6 @@ import ru.nekoguys.game.core.DeferredCommandRequest
 import ru.nekoguys.game.core.GameCommandRequest
 import ru.nekoguys.game.core.GameMessage
 
-
 internal class GameSessionWithDeferredCommands<in P, in Cmd, P2, Msg>(
     private val innerSession: InternalGameSession<P, Cmd, P2, Msg>,
 ) : InternalGameSession<P, Cmd, P2, Msg> {
@@ -62,7 +61,6 @@ internal class GameSessionWithDeferredCommands<in P, in Cmd, P2, Msg>(
 
     override suspend fun shareMessages(messages: Collection<GameMessage<P2, Msg>>) =
         innerSession.shareMessages(messages)
-
 
     override fun getAllMessagesIndexed(): Flow<IndexedValue<GameMessage<P2, Msg>>> =
         innerSession

@@ -60,13 +60,6 @@ class TestGame(
             .first { it.settings.name == request.name }
     }
 
-    fun createDraftCompetition(
-        teacher: User = createUser(UserRole.Teacher),
-        request: CreateCompetitionRequest = DEFAULT_CREATE_DRAFT_COMPETITION_REQUEST,
-    ): String =
-        createAndLoadCompetition(teacher, request)
-            .let { pinGenerator.convertSessionIdToPin(it.id) }
-
     fun createCompetition(
         teacher: User = createUser(UserRole.Teacher),
         request: CreateCompetitionRequest = DEFAULT_CREATE_COMPETITION_REQUEST,
@@ -81,7 +74,7 @@ class TestGame(
         password: String = DEFAULT_PASSWORD,
     ): TestCreateTeamResult {
         val request = CreateTeamRequest(
-            pin = competitionPin,
+            gameId = competitionPin,
             teamName = teamName,
             captainEmail = captain.email,
             password = password,
@@ -94,7 +87,7 @@ class TestGame(
         }
 
         return TestCreateTeamResult(
-            competitionPin = request.pin,
+            competitionPin = request.gameId,
             teamName = request.teamName,
             password = request.password,
         )
