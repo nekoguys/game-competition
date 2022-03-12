@@ -52,6 +52,11 @@
     width: 15px;
     height: 15px;
     margin-left: 30px;
+    transition: 0.3s ease;
+}
+
+.team-dropdown-img-expanded {
+    transform: rotate(180deg);
 }
 
 .element-content-container {
@@ -84,8 +89,8 @@
 
 @media(max-width: 500px) {
     .new-team-element-holder {
-        padding: 5px;
-        border-radius: 5px;
+        padding: 8px;
+        border-radius: 10px;
         font-size: 15px;
     }
 
@@ -98,5 +103,12 @@
     .team-dropdown-img {
         margin-left: 10px;
         margin-right: 5px;
+    }
+
+    .team-members-collection-holder {
+        margin-top: 12px;
+        border-radius: 10px;
+        padding: 8px 20px;
+        font-size: 16px;
     }
 }

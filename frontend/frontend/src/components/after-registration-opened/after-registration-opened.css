@@ -33,6 +33,7 @@
 
 .after-registration-opened-title-container {
     text-align: center;
+    margin-top: 52px;
 }
 
 .after-registration-opened-title {
@@ -82,4 +83,51 @@
     display: flex;
     justify-content: center;
     margin-top: 20px;
+}
+
+@media (max-width: 500px) {
+    .after-registration-opened-title-container {
+        margin-top: 20px;
+    }
+
+    .after-registration-opened-show-settings-toggle {
+        margin-top: 20px;
+    }
+
+    .after-registration-opened-title {
+        font-size: 26px;
+    }
+
+    .after-registration-opened-subtitle {
+        font-size: 22px;
+    }
+
+    .after-registration-opened-params-teams-spacer {
+        height: 35px;
+    }
+
+    .after-registration-opened-teams-container-title {
+        margin-bottom: 15px;
+        font-size: 22px;
+    }
+
+    .after-registration-opened-teams-container {
+        border-radius: 15px;
+        padding: 10px 10px 10px;
+        margin-left: 15px;
+        margin-right: 15px;
+        width: unset;
+        max-width: unset;
+        min-width: unset;
+    }
+
+    .after-registration-opened-competition-form-holder {
+        border-radius: 15px;
+        margin-left: 15px;
+        margin-right: 15px;
+        padding: 15px;
+        max-width: unset;
+        min-width: unset;
+        width: unset;
+    }
 }

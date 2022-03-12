@@ -31,8 +31,24 @@
     top: 50%;
     right: 17px;
     transform: translateY(-50%);
+    transition: 0.3s ease-in;
 }
 
 .show-settings-toggle-wind {
     transform: translateY(-50%) rotate(180deg);
+}
+
+@media (max-width: 500px) {
+    .show-settings-toggle-container {
+        border-radius: 10px;
+    }
+
+    .show-settings-toggle-text {
+        margin-left: 36px;
+        margin-right: 36px;
+    }
+
+    .show-settings-toggle-unwind {
+        right: 12px;
+    }
 }
