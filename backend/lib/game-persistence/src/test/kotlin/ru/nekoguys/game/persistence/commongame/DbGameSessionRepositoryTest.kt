@@ -22,9 +22,12 @@ internal class DbGameSessionRepositoryTest @Autowired constructor(
     @Test
     fun `insert and retrieval`() = transactionalOperator.runBlockingWithRollback {
         val user = DbUser(
+            id = null,
             email = "email",
             password = "qwerty",
             role = DbUserRole.TEACHER,
+            firstName = null,
+            secondName = null,
         ).let { dbUserRepository.save(it) }
 
         val gameSession = DbGameSession(

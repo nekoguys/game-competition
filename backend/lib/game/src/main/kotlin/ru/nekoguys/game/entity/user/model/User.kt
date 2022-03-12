@@ -5,6 +5,8 @@ data class User(
     val email: String,
     val password: String,
     val role: UserRole,
+    val firstName: String?,
+    val secondName: String?,
 ) {
     data class Id(val number: Long) {
         override fun toString() = number.toString()
@@ -12,7 +14,7 @@ data class User(
 
     // Методы toString, equals,
     override fun toString(): String {
-        return "User(id=$id, email='$email', password='HIDDEN', role=$role)"
+        return "User(id=$id, email=$email, password=HIDDEN, role=$role, firstName=$firstName, secondName=$secondName)"
     }
 }
 

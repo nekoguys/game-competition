@@ -1,9 +1,11 @@
 CREATE TABLE users
 (
-    id       BIGSERIAL PRIMARY KEY,
-    email    VARCHAR NOT NULL,
-    role     VARCHAR NOT NULL,
-    password VARCHAR NOT NULL
+    id          BIGSERIAL PRIMARY KEY,
+    email       VARCHAR NOT NULL,
+    role        VARCHAR NOT NULL,
+    password    VARCHAR NOT NULL,
+    first_name  VARCHAR,
+    second_name VARCHAR
 );
 
 CREATE UNIQUE INDEX users_email_unique_index
@@ -68,7 +70,7 @@ CREATE TABLE competition_teams
     team_number INT     NOT NULL,
     name        VARCHAR NOT NULL,
     password    VARCHAR NOT NULL,
-    ban_round   INT     NULL
+    ban_round INT NULL
 );
 
 CREATE UNIQUE INDEX competition_teams_session_id_name_unique_index

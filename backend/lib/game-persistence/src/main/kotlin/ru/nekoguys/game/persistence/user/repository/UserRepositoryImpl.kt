@@ -29,6 +29,8 @@ class UserRepositoryImpl(
             email = email,
             password = password,
             role = role.toDbUserRole(),
+            firstName = null,
+            secondName = null,
         )
 
         return dbUserRepository.save(dbUser)
