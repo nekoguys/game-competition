@@ -154,6 +154,47 @@ const startCompetitionFetcher = {
     }
 }['mock']
 
+const teamNameAndPasswordFetcher = {
+    mock: (_) => {
+        return new Promise(resolve => {
+            setTimeout(() => resolve({password: "someSeCrEtPaSsWoRd", teamName: "Капитанская дочка"}), 500)
+        })
+    },
+    mockFailed: (_) => {
+        return new Promise(resolve => {
+            setTimeout(() => resolve({password: null, teamName: "Капитанская дочка"}), 500)
+        })
+    }
+}['mock']
+
+const teamMembers = {
+    mock: (_) => {
+        return new EventSourceMock([
+            {
+                name: "Гринев ПА - grinev@edu.hse.ru",
+                isCaptain: false
+            },
+            {
+                name: "Швабрин АИ - shwabrin@edu.hse.ru",
+                isCaptain: false
+            }
+        ], 200)
+    }
+}['mock']
+
+
+const competitionRoundEvents = {
+    mock: (_) => {
+        return new EventSourceMock([])
+    },
+    mockEnding: (_) => {
+        return new EventSourceMock([{}], 3000)
+    },
+    real: (pin) => {
+        return new EventSourceWrapper(ApiHelper.competitionRoundEventsStream(pin));
+    }
+}['mock']
+
 const cloneInfoCompetitionFetcher = {
     mock: (_) => {
         return new Promise(resolve => {
@@ -316,7 +357,16 @@ const paths = [
     },
     {
         path: "/competitions/waiting_room/:pin",
-        component: WaitingRoom
+        component: WaitingRoom,
+        props: {
+            fetchers: {
+                teamNameAndPassword: teamNameAndPasswordFetcher
+            },
+            eventSources: {
+                teamMembers: teamMembers,
+                competitionRoundEvents: competitionRoundEvents
+            }
+        }
     },
     {
         path: "/competitions/process_teacher/:pin",
