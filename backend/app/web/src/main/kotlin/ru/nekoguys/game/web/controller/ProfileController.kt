@@ -19,7 +19,7 @@ import java.security.Principal
 
 @Controller
 @RequestMapping(path = ["/api/profile"], produces = [MediaType.APPLICATION_JSON_VALUE])
-@PreAuthorize("hasRole('TEACHER')")
+@PreAuthorize("hasRole('STUDENT')")
 class ProfileController(
     private val profileService: ProfileService,
 ) {

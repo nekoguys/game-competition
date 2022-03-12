@@ -26,7 +26,7 @@ class ProfileControllerTest @Autowired constructor(
         testUser = game.createUser(email = TestGame.DEFAULT_EMAIL)
     }
 
-    @WithMockUser(username = TestGame.DEFAULT_EMAIL, roles = ["TEACHER"])
+    @WithMockUser(username = TestGame.DEFAULT_EMAIL, roles = ["STUDENT"])
     @Test
     fun `update profile`() {
         webTestClient
