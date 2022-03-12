@@ -118,6 +118,8 @@ suspend fun createCompetitionSession(
         email = userEmail,
         password = "qwerty",
         role = DbUserRole.TEACHER,
+        firstName = null,
+        secondName = null,
     ).let { userRepository.save(it) }
 
     val session = DbGameSession(

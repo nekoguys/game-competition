@@ -19,9 +19,12 @@ internal class DbUserRepositoryTest @Autowired constructor(
     @Test
     fun `simple insertion and retrieval`() = transactionalOperator.runBlockingWithRollback {
         val expectedUser = DbUser(
+            id = null,
             email = "kpbenua@edu.hse.ru",
             password = "qwerty",
             role = DbUserRole.ADMIN,
+            firstName = null,
+            secondName = null,
         ).let { userRepository.save(it) }
 
         assertThat(userRepository.findById(expectedUser.id!!))

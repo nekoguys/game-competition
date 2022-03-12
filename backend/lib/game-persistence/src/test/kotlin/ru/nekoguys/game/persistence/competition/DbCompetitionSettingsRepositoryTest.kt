@@ -33,6 +33,8 @@ internal class DbCompetitionSettingsRepositoryTest @Autowired constructor(
             email = "test-competition-properties@hse.ru",
             password = "897",
             role = DbUserRole.ADMIN,
+            firstName = null,
+            secondName = null,
         ).let { dbUserRepository.save(it) }
         val dbGameSession = DbGameSession(
             id = null,

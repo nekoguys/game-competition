@@ -8,13 +8,17 @@ import ru.nekoguys.game.entity.user.model.UserRole
 @Table("USERS")
 data class DbUser(
     @Id
-    var id: Long? = null,
+    var id: Long?,
 
     var email: String,
 
     var password: String,
 
     var role: DbUserRole,
+
+    var firstName: String?,
+
+    var secondName: String?,
 )
 
 fun User.toDbUser(): DbUser =
@@ -23,6 +27,8 @@ fun User.toDbUser(): DbUser =
         email = email,
         password = password,
         role = role.toDbUserRole(),
+        firstName = firstName,
+        secondName = secondName,
     )
 
 fun DbUser.toUserOrNull(): User? {
@@ -30,7 +36,9 @@ fun DbUser.toUserOrNull(): User? {
         id = User.Id(id!!),
         email = email,
         password = password,
-        role = role.toUserRoleOrNull() ?: return null
+        role = role.toUserRoleOrNull() ?: return null,
+        firstName = firstName,
+        secondName = secondName,
     )
 }
 
