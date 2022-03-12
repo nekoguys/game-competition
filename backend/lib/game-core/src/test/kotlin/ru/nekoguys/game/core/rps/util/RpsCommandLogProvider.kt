@@ -50,5 +50,4 @@ private class RpsCommandLogImpl(
             .toList()
             .asFlow()
             .map { format.decodeFromString(RpsLoggedGameCommandSerializer, it) }
-
 }

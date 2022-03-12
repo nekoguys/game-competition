@@ -52,7 +52,6 @@ private fun <P, Cmd, P2, Msg> ResponseBuilder<P2, Msg>.deferCommandInternal(
     responses += DeferredCommandRequest(request, timeoutMillis)
 }
 
-
 @ResponseBuilderDsl
 class ResponseToRecipientBuilder<P, Msg>(
     private val recipients: Collection<P>,

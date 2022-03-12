@@ -15,7 +15,6 @@ import ru.nekoguys.game.web.util.REQUEST_ID_CONTEXT_KEY
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE)
 class RequestIdFilter : WebFilter {
-
     override fun filter(exchange: ServerWebExchange, chain: WebFilterChain): Mono<Void> {
         val requestId = exchange.attributes[ServerWebExchange.LOG_ID_ATTRIBUTE]
         val requestIdString = " [${requestId}]"

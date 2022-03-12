@@ -10,7 +10,8 @@ class DatabaseCleaner(
 ) {
     @Suppress("SqlResolve", "SqlWithoutWhere")
     suspend fun clearDatabase() {
-        databaseClient.sql("""
+        databaseClient.sql(
+            """
             DELETE FROM competition_round_results;
             DELETE FROM competition_round_answers;
             DELETE FROM competition_round_infos;
@@ -18,8 +19,10 @@ class DatabaseCleaner(
             DELETE FROM competition_teams;
             DELETE FROM competition_game_props;
             DELETE FROM competition_game_sessions;
+            DELETE FROM game_session_logs;
             DELETE FROM game_sessions;
             DELETE FROM users;
-        """.trimIndent()).then().awaitSingleOrNull()
+        """.trimIndent()
+        ).then().awaitSingleOrNull()
     }
 }

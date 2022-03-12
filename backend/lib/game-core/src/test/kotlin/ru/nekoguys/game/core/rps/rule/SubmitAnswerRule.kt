@@ -133,7 +133,7 @@ class RpsSubmitAnswerRule(
     }
 
     private fun findWinner(answers: List<RpsRoundAnswer>): RpsPlayer.Human? {
-        for(currentAnswer in answers) {
+        for (currentAnswer in answers) {
             val (currentPlayer, currentBet) = currentAnswer
             val otherBets = (answers - currentAnswer).map(RpsRoundAnswer::bet)
             if (otherBets.all { bet -> currentBet beats bet }) {

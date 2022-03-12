@@ -1,8 +1,6 @@
 package ru.nekoguys.game.core.rps.rule
 
 import kotlinx.serialization.Serializable
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import ru.nekoguys.game.core.CloseGameSessionRequest
 import ru.nekoguys.game.core.ResourceLocks
@@ -11,7 +9,6 @@ import ru.nekoguys.game.core.rps.RpsGameRule
 import ru.nekoguys.game.core.rps.model.RpsPlayer
 import ru.nekoguys.game.core.rps.model.RpsStage
 import ru.nekoguys.game.core.rps.model.Turn
-
 
 /**
  * Команды в камень-ножницы-бумаге
@@ -96,8 +93,4 @@ class RpsRootRule(
                 changeStageRule.process(player, command)
             }
         }
-
-    companion object {
-        private val logger: Logger = LoggerFactory.getLogger(RpsRootRule::class.java)
-    }
 }

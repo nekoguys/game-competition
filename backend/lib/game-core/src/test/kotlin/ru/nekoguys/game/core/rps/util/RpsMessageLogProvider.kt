@@ -3,7 +3,6 @@ package ru.nekoguys.game.core.rps.util
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.map
-import kotlinx.serialization.StringFormat
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
@@ -30,7 +29,6 @@ class InMemoryRpsMessageLogProvider : RpsMessageLogProvider {
 
     override fun getMessageLog(sessionId: RpsSession.Id): RpsMessageLog =
         RpsMessageLogImpl(
-            format = Json,
             sessionSavedMessages = savedMessages.getOrPut(sessionId) {
                 Collections.synchronizedList(ArrayList())
             }
@@ -38,12 +36,11 @@ class InMemoryRpsMessageLogProvider : RpsMessageLogProvider {
 }
 
 private class RpsMessageLogImpl(
-    private val format: StringFormat,
     private val sessionSavedMessages: MutableList<String>,
 ) : RpsMessageLog {
 
     override suspend fun saveMessages(
-        messages: Collection<LoggedGameMessage<RpsPlayer.Human, RpsMessage>>,
+        messages: List<LoggedGameMessage<RpsPlayer.Human, RpsMessage>>,
     ) {
         sessionSavedMessages += messages.map {
             rpsMessageLogFormat.encodeToString(RpsLoggedGameMessageSerializer, it)

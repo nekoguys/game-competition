@@ -5,4 +5,6 @@ sealed class CompetitionStage(val name: String) {
     object Registration : CompetitionStage("REGISTRATION")
     data class InProgress(val round: Int) : CompetitionStage("IN_PROGRESS")
     object Ended : CompetitionStage("ENDED")
+
+    override fun toString() = name
 }

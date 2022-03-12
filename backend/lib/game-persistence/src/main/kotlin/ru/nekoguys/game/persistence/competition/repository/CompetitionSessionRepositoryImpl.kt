@@ -9,7 +9,6 @@ import org.springframework.transaction.reactive.TransactionalOperator
 import org.springframework.transaction.reactive.executeAndAwait
 import ru.nekoguys.game.entity.commongame.model.CommonSession
 import ru.nekoguys.game.entity.competition.model.*
-import ru.nekoguys.game.entity.competition.repository.CompetitionPlayerRepository
 import ru.nekoguys.game.entity.competition.repository.CompetitionSessionRepository
 import ru.nekoguys.game.entity.competition.repository.CompetitionSettingsRepository
 import ru.nekoguys.game.entity.competition.repository.CompetitionTeamRepository
@@ -25,7 +24,6 @@ import java.time.temporal.ChronoUnit
 
 @Repository
 class CompetitionSessionRepositoryImpl(
-    private val competitionPlayerRepository: CompetitionPlayerRepository,
     private val competitionSettingsRepository: CompetitionSettingsRepository,
     private val competitionTeamRepository: CompetitionTeamRepository,
     @Suppress("SpringJavaInjectionPointsAutowiringInspection")
@@ -59,8 +57,10 @@ class CompetitionSessionRepositoryImpl(
             dbGameSession = dbGameSession,
             settings = savedSettings,
         )
-    } ?: error("Can't create a session with userId = $userId, " +
-            "settings = $settings, stage = $stage")
+    } ?: error(
+        "Can't create a session with userId = $userId, " +
+                "settings = $settings, stage = $stage"
+    )
 
     override suspend fun findAll(
         ids: Collection<Long>,

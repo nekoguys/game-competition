@@ -1,5 +1,7 @@
 package ru.nekoguys.game.entity.competition.rule
 
+import com.fasterxml.jackson.annotation.JsonSubTypes
+import com.fasterxml.jackson.annotation.JsonTypeInfo
 import org.springframework.stereotype.Service
 import ru.nekoguys.game.core.GameMessage
 import ru.nekoguys.game.core.GameRule
@@ -22,6 +24,15 @@ sealed class CompetitionCommand {
     ) : CompetitionCommand()
 }
 
+/**
+ * В теории, с использованием jackson-module-kotlin подтипы указывать не нужно
+ * Но эта фича почему-то не работает
+ */
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME)
+@JsonSubTypes(
+    JsonSubTypes.Type(CompetitionCreateTeamMessage::class),
+    JsonSubTypes.Type(CompetitionJoinTeamMessage::class),
+)
 sealed class CompetitionMessage
 
 typealias CompGameMessage<Msg> = GameMessage<CompetitionTeam.Id, Msg>

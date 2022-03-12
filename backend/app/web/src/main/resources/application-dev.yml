@@ -4,7 +4,7 @@ spring:
     generate-unique-name: true
 logging:
   level:
-    io.r2dbc.h2: DEBUG
+    io.r2dbc.h2: INFO
 game:
   app:
     web:

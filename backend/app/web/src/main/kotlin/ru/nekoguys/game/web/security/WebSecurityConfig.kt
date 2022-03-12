@@ -21,7 +21,6 @@ import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource
 import reactor.core.publisher.Mono
 import ru.nekoguys.game.web.security.jwt.JwtAuthenticationConverter
 
-
 @Configuration
 @EnableReactiveMethodSecurity
 @EnableWebFluxSecurity

@@ -12,7 +12,7 @@ data class LoggedGameMessage<out P, out T>(
 )
 
 interface GameMessageLog<P, T> {
-    suspend fun saveMessages(messages: Collection<LoggedGameMessage<P, T>>)
+    suspend fun saveMessages(messages: List<LoggedGameMessage<P, T>>)
 
     fun readAllMessages(): Flow<LoggedGameMessage<P, T>>
 }

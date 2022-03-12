@@ -8,6 +8,7 @@ import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.web.reactive.server.WebTestClient
 import ru.nekoguys.game.entity.user.model.User
 import ru.nekoguys.game.web.GameWebApplicationIntegrationTest
+import ru.nekoguys.game.web.dto.CheckGamePinRequest
 import ru.nekoguys.game.web.dto.CreateTeamRequest
 import ru.nekoguys.game.web.dto.JoinTeamRequest
 import ru.nekoguys.game.web.util.CleanDatabaseExtension
@@ -26,7 +27,7 @@ class CompetitionControllerTest @Autowired constructor(
 
     @BeforeEach
     fun createUser() {
-        testUser = game.createUser(email = "test@hse.ru")
+        testUser = game.createUser(email = TestGame.DEFAULT_EMAIL)
     }
 
     @WithMockUser(username = TestGame.DEFAULT_EMAIL, roles = ["TEACHER"])
@@ -70,11 +71,47 @@ class CompetitionControllerTest @Autowired constructor(
 
     @WithMockUser(username = TestGame.DEFAULT_EMAIL, roles = ["STUDENT"])
     @Test
+    fun `can check if competition exists`() {
+        val competitionPin = game.createCompetition()
+
+        val request = CheckGamePinRequest(competitionPin)
+
+        webTestClient
+            .post()
+            .uri("/api/competitions/check_pin")
+            .bodyValue(request)
+            .exchange()
+            .expectStatus().isOk
+            .expectBody()
+            .jsonPath("$.exists").isEqualTo(true)
+    }
+
+    @WithMockUser(username = TestGame.DEFAULT_EMAIL, roles = ["STUDENT"])
+    @Test
+    fun `can check if competition doesn't exists`() {
+        val competitionPin = game.createCompetition()
+
+        val request = CheckGamePinRequest(
+            pin = "123$competitionPin",
+        )
+
+        webTestClient
+            .post()
+            .uri("/api/competitions/check_pin")
+            .bodyValue(request)
+            .exchange()
+            .expectStatus().isOk
+            .expectBody()
+            .jsonPath("$.exists").isEqualTo(false)
+    }
+
+    @WithMockUser(username = TestGame.DEFAULT_EMAIL, roles = ["STUDENT"])
+    @Test
     fun `can create a team`() {
         val competitionPin = game.createCompetition()
 
         val request = CreateTeamRequest(
-            pin = competitionPin,
+            gameId = competitionPin,
             teamName = "Test team",
             captainEmail = testUser.email,
             password = TestGame.DEFAULT_PASSWORD,
@@ -96,7 +133,7 @@ class CompetitionControllerTest @Autowired constructor(
         val (competitionPin) = game.createTeam(captain = testUser)
 
         val request = CreateTeamRequest(
-            pin = competitionPin,
+            gameId = competitionPin,
             teamName = "Another test team",
             captainEmail = testUser.email,
             password = TestGame.DEFAULT_PASSWORD,
@@ -118,7 +155,7 @@ class CompetitionControllerTest @Autowired constructor(
         val (competitionPin, teamName) = game.createTeam(captain = testUser)
 
         val request = CreateTeamRequest(
-            pin = competitionPin,
+            gameId = competitionPin,
             teamName = teamName,
             captainEmail = game.createUser().email,
             password = TestGame.DEFAULT_PASSWORD,
@@ -145,7 +182,7 @@ class CompetitionControllerTest @Autowired constructor(
         repeat(2) { game.createTeam(competitionPin) }
 
         val request = CreateTeamRequest(
-            pin = competitionPin,
+            gameId = competitionPin,
             teamName = "Test team name",
             captainEmail = game.createUser().email,
             password = TestGame.DEFAULT_PASSWORD,

@@ -72,6 +72,12 @@
             <groupId>io.projectreactor</groupId>
             <artifactId>reactor-tools</artifactId>
         </dependency>
+        <dependency>
+            <groupId>net.java.dev.jna</groupId>
+            <artifactId>jna</artifactId>
+            <version>5.10.0</version>
+            <scope>runtime</scope>
+        </dependency>
 
         <dependency>
             <groupId>io.jsonwebtoken</groupId>

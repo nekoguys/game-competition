@@ -100,7 +100,7 @@ class CompetitionTeamRepositoryImpl(
         teamsDiff
             .forEach { (from, to) ->
                 val newTeamMembers = to.teamMembers - from.teamMembers.toSet()
-                for(teamMember in newTeamMembers) {
+                for (teamMember in newTeamMembers) {
                     competitionPlayerRepository.save(teamMember)
                 }
             }

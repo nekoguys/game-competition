@@ -19,7 +19,7 @@ const NewJoinCompetitionMemberForm = ({fetchers, eventSources, showNotification}
         let eventSource = eventSources.teams(pin);
         eventSource.subscribe((newTeam) => {
             console.log({newTeam ,teams});
-            setTeams(prevValue => [...prevValue, newTeam]);
+            setTeams(prevValue => [...prevValue, JSON.parse(newTeam.data)]);
         })
 
         return function cleanup() {

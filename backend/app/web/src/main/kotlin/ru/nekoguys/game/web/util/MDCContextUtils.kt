@@ -25,7 +25,7 @@ suspend fun <T> withMDCContext(block: suspend () -> T): T {
     return if (requestId != null) {
         // внешний withContext очистит MDC после своего выполнения
         withContext(MDCContext()) {
-            // во внутреннем withContext в MDC будет лежать
+            // во внутреннем withContext в MDC будет лежать requestId
             val contextMap = mapOf(REQUEST_ID_CONTEXT_KEY to requestId)
             withContext(MDCContext(contextMap)) {
                 block()

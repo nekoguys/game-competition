@@ -9,8 +9,8 @@ import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 import ru.nekoguys.game.web.dto.*
 import ru.nekoguys.game.web.service.CompetitionService
-import ru.nekoguys.game.web.util.toBadRequestResponse
 import ru.nekoguys.game.web.util.toOkResponse
+import ru.nekoguys.game.web.util.toResponseEntity
 import ru.nekoguys.game.web.util.withMDCContext
 import ru.nekoguys.game.web.util.withRequestIdInContext
 import java.security.Principal
@@ -36,12 +36,6 @@ class CompetitionController(
                 userEmail = principal.name,
                 request = request
             ).toResponseEntity()
-        }
-
-    private fun CreateCompetitionResponse.toResponseEntity() =
-        when (this) {
-            is CreateCompetitionResponse.Created -> toOkResponse()
-            is CreateCompetitionResponse.OpenedRegistration -> toOkResponse()
         }
 
     @GetMapping(
@@ -70,20 +64,13 @@ class CompetitionController(
     @PreAuthorize("hasRole('STUDENT')")
     suspend fun createTeam(
         principal: Principal,
-        @RequestBody @Valid request: CreateTeamRequest,
+        @RequestBody request: CreateTeamRequest,
     ): ResponseEntity<out CreateTeamResponse> =
         withMDCContext {
             competitionService.createTeam(
                 studentEmail = principal.name,
                 request = request,
             ).toResponseEntity()
-        }
-
-    private fun CreateTeamResponse.toResponseEntity() =
-        if (this is CreateTeamResponse.Success) {
-            toOkResponse()
-        } else {
-            toBadRequestResponse()
         }
 
     @PostMapping(
@@ -101,13 +88,6 @@ class CompetitionController(
                 studentEmail = principal.name,
                 request = request,
             ).toResponseEntity()
-        }
-
-    private fun JoinTeamResponse.toResponseEntity() =
-        if (this is JoinTeamResponse.Success) {
-            toOkResponse()
-        } else {
-            toBadRequestResponse()
         }
 
     @RequestMapping(
@@ -140,7 +120,7 @@ class CompetitionController(
         competitionService
             .ifSessionCanBeJoined(sessionPin = request.pin)
             .let(::CheckGamePinResponse)
-            .toOkResponse()
+            .toResponseEntity()
 
     @GetMapping(
         "/get_clone_info/{pin}",
@@ -151,8 +131,7 @@ class CompetitionController(
         withMDCContext {
             competitionService
                 .getCompetitionCloneInfo(pin)
-                ?.toOkResponse()
-                ?: toBadRequestResponse()
+                .toResponseEntity()
         }
     }
 }

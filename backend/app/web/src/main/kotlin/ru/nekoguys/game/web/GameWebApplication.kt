@@ -2,6 +2,7 @@ package ru.nekoguys.game.web
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
+import reactor.tools.agent.ReactorDebugAgent
 import java.util.*
 
 @SpringBootApplication(
@@ -10,6 +11,7 @@ import java.util.*
 class GameWebApplication
 
 fun main(args: Array<String>) {
+    ReactorDebugAgent.init()
     TimeZone.setDefault(TimeZone.getTimeZone("UTC"))
     runApplication<GameWebApplication>(*args)
 }

@@ -18,7 +18,7 @@ class JoinMode {
 const JoinCompetitionForm = ({showNotification, pinCheckFetcher, processToCreateTeam, processToJoinTeam}) => {
     const onSubmitGameId = (gameId) => {
         const timeout = 1500;
-        pinCheckFetcher(gameId).then(resp => {
+        pinCheckFetcher({gameId}).then(resp => {
             if (resp.exists) {
                 showNotification().success("Competition found successfully", "Success", timeout);
                 setTimeout(() => {

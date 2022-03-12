@@ -6,13 +6,10 @@ import ru.nekoguys.game.core.ResourceLocks
 import ru.nekoguys.game.core.util.buildResponse
 import ru.nekoguys.game.core.util.defer
 import ru.nekoguys.game.entity.competition.model.InternalPlayer
-import ru.nekoguys.game.entity.competition.repository.CompetitionSessionRepository
-
 
 @Component
-class CompetitionChangeStageRule(
-    val sessionRepository: CompetitionSessionRepository,
-) : CompetitionRule<InternalPlayer, CompetitionCommand.ChangeStageCommand, CompetitionMessage> {
+class CompetitionChangeStageRule :
+    CompetitionRule<InternalPlayer, CompetitionCommand.ChangeStageCommand, CompetitionMessage> {
 
     override suspend fun getLocksFor(
         command: CompetitionCommand.ChangeStageCommand,
