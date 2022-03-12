@@ -10,10 +10,10 @@ open class WebResponse(
 )
 
 fun <T : WebResponse> T?.toResponseEntity(
-    notFoundStatus: HttpStatus = HttpStatus.NOT_FOUND,
+    ifEmpty: HttpStatus = HttpStatus.NOT_FOUND,
 ): ResponseEntity<T> =
     if (this != null) {
         ResponseEntity.status(status).body(this)
     } else {
-        ResponseEntity.status(notFoundStatus).build()
+        ResponseEntity.status(ifEmpty).build()
     }

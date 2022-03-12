@@ -771,7 +771,7 @@ public class GameManagementServiceImpl implements IGameManagementService {
         roundPricesSinks.clear();
         roundPricesStorage.clear();
         teamBanSinks.clear();
-        teamBanStorage.clear();;
+        teamBanStorage.clear();
 
         return Mono.just(1).then();
     }

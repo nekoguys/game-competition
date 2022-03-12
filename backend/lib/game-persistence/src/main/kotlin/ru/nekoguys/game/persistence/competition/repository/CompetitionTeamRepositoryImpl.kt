@@ -183,6 +183,16 @@ class CompetitionTeamRepositoryImpl(
             }
             .toList()
             .groupBy({ CommonSession.Id(it.first) }) { it.second }
+
+    override suspend fun findAllTeamIdsBySessionIds(
+        sessionIds: Collection<Long>,
+    ): Map<CommonSession.Id, List<CompetitionTeam.Id>> =
+        dbCompetitionTeamRepository
+            .findAllBySessionIdIn(sessionIds)
+            .toList()
+            .groupBy({ CommonSession.Id(it.sessionId)} ) {
+                CompetitionTeam.Id(it.id!!)
+            }
 }
 
 private fun createCompetitionTeam(

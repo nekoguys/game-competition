@@ -12,12 +12,14 @@ import ru.nekoguys.game.entity.user.model.User
 import ru.nekoguys.game.entity.user.model.UserRole
 import ru.nekoguys.game.entity.user.repository.UserRepository
 import ru.nekoguys.game.web.dto.*
+import ru.nekoguys.game.web.service.CompetitionProcessService
 import ru.nekoguys.game.web.service.CompetitionService
 import java.util.concurrent.atomic.AtomicLong
 
 @Component
 class TestGame(
     private val competitionService: CompetitionService,
+    private val competitionProcessService: CompetitionProcessService,
     private val competitionSessionRepository: CompetitionSessionRepository,
     private val pinGenerator: SessionPinGenerator,
     private val userRepository: UserRepository,
@@ -82,8 +84,7 @@ class TestGame(
 
         runBlocking {
             val response = competitionService.createTeam(captain.email, request)
-            assertThat(response)
-                .isEqualTo(CreateTeamResponse.Success)
+            check(response is CreateTeamResponse.Success)
         }
 
         return TestCreateTeamResult(
@@ -113,8 +114,7 @@ class TestGame(
 
         runBlocking {
             val response = competitionService.joinTeam(teamMember.email, request)
-            assertThat(response)
-                .isInstanceOf(JoinTeamResponse.Success::class.java)
+            check(response is JoinTeamResponse.Success)
         }
 
         return TestCreateTeamResult(
@@ -136,6 +136,14 @@ class TestGame(
         joinTeam(competitionPin, teamMember = teamMember)
     }
 
+    fun startCompetition(
+        competitionPin: String = createCompetition(),
+    ): Unit = runBlocking {
+        val response = competitionProcessService
+            .startCompetition(competitionPin)
+        check(response == StartCompetitionResponse.Success)
+    }
+
     companion object TestData {
         private val indexCounter = AtomicLong()
 
@@ -148,8 +156,8 @@ class TestGame(
             expensesFormula = listOf(1.0, -3.0, -2.0),
             instruction = "Test instruction",
             isAutoRoundEnding = true,
-            maxTeamSize = 5,
-            maxTeamsAmount = 10,
+            maxTeamSize = 2,
+            maxTeamsAmount = 4,
             name = DEFAULT_COMPETITION_NAME,
             roundLength = 15,
             roundsCount = 3,

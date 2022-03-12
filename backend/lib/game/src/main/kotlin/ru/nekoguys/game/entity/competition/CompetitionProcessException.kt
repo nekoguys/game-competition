@@ -5,5 +5,5 @@ class CompetitionProcessException(
     override val cause: Throwable? = null,
 ) : IllegalStateException()
 
-fun String.toCompetitionProcessException() =
-    CompetitionProcessException(this)
+fun competitionProcessError(message: String): Nothing =
+    throw CompetitionProcessException(message)

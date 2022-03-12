@@ -13,6 +13,7 @@ import ru.nekoguys.game.web.dto.SignUpResponse
 import ru.nekoguys.game.web.service.AuthService
 import ru.nekoguys.game.web.util.toBadRequestResponse
 import ru.nekoguys.game.web.util.toOkResponse
+import ru.nekoguys.game.web.util.toResponseEntity
 import ru.nekoguys.game.web.util.withMDCContext
 
 @RestController
@@ -27,7 +28,7 @@ class AuthController(
         withMDCContext {
             authService
                 .signIn(request)
-                .toOkResponse()
+                .toResponseEntity()
         }
 
     @PostMapping("/signup")
@@ -38,11 +39,5 @@ class AuthController(
             authService
                 .signUp(request)
                 .toResponseEntity()
-        }
-
-    private fun SignUpResponse.toResponseEntity() =
-        when (this) {
-            is SignUpResponse.Success -> toOkResponse()
-            else -> toBadRequestResponse()
         }
 }
