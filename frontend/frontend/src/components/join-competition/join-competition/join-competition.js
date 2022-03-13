@@ -38,7 +38,7 @@ class JoinCompetition extends React.Component {
         const obj = {captain_email: window.localStorage.getItem('user_email'), ...formState};
         console.log(obj);
         const timeout = 2000;
-        ApiHelper.createTeam(obj).then(resp => {
+        ApiHelper.createTeam(formState.gameId, obj).then(resp => {
             console.log(resp);
             resp.clone().text().then(res => console.log(res));
             if (resp.status >= 300) {

@@ -27,13 +27,13 @@ class StartCompetitionServiceTest @Autowired constructor(
 
     @Test
     fun `stage changes when competition starts`() {
-        val session = game.createAndLoadCompetition { pin ->
+        val session = game.createAndLoadSession { pin ->
             repeat(2) { game.createTeam(pin) }
         }
         check(session.stage == CompetitionStage.Registration)
 
         game.startCompetition(session.pin)
-        val sessionAfter = game.loadCompetitionSession(session.pin)
+        val sessionAfter = game.loadSession(session.pin)
 
         assertThat(sessionAfter.stage)
             .isEqualTo(CompetitionStage.InProcess(round = 1))
@@ -42,7 +42,7 @@ class StartCompetitionServiceTest @Autowired constructor(
     @Test
     @Timeout(value = 5, unit = TimeUnit.SECONDS)
     fun `event is sent when competition starts`() {
-        val session = game.createAndLoadCompetition { pin ->
+        val session = game.createAndLoadSession { pin ->
             repeat(2) { game.createTeam(pin) }
         }
         check(session.stage == CompetitionStage.Registration)

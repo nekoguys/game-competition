@@ -105,7 +105,7 @@ const pinFetcher = {
 }["mock"]
 
 const createTeamFetcher = {
-    mock: (_) => {
+    mock: (pin, _) => {
         return new Promise(resolve => setTimeout(() => {
             resolve({})
         }))
@@ -114,7 +114,7 @@ const createTeamFetcher = {
 }["mock"]
 
 const joinTeamFetcher = {
-    mock: ({teamName}) => {
+    mock: (_, {teamName}) => {
         return new Promise(resolve => resolve({currentTeamName: teamName}))
     },
     real: (data) => { return apiFetcher(data, (data) => ApiHelper.joinTeam(data)) }

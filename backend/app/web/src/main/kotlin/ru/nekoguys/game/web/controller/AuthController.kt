@@ -11,8 +11,6 @@ import ru.nekoguys.game.web.dto.SignInResponse
 import ru.nekoguys.game.web.dto.SignUpRequest
 import ru.nekoguys.game.web.dto.SignUpResponse
 import ru.nekoguys.game.web.service.AuthService
-import ru.nekoguys.game.web.util.toBadRequestResponse
-import ru.nekoguys.game.web.util.toOkResponse
 import ru.nekoguys.game.web.util.toResponseEntity
 import ru.nekoguys.game.web.util.withMDCContext
 

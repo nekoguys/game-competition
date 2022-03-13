@@ -9,8 +9,6 @@ import org.springframework.test.web.reactive.server.WebTestClient
 import ru.nekoguys.game.entity.user.model.User
 import ru.nekoguys.game.web.GameWebApplicationIntegrationTest
 import ru.nekoguys.game.web.dto.CheckGamePinRequest
-import ru.nekoguys.game.web.dto.CreateTeamRequest
-import ru.nekoguys.game.web.dto.JoinTeamRequest
 import ru.nekoguys.game.web.util.CleanDatabaseExtension
 import ru.nekoguys.game.web.util.TestGame
 import ru.nekoguys.game.web.util.TestGame.TestData.DEFAULT_CREATE_COMPETITION_REQUEST
@@ -72,9 +70,9 @@ class CompetitionControllerTest @Autowired constructor(
     @WithMockUser(username = TestGame.DEFAULT_EMAIL, roles = ["STUDENT"])
     @Test
     fun `can check if competition exists`() {
-        val competitionPin = game.createCompetition()
+        val sessionPin = game.createSession()
 
-        val request = CheckGamePinRequest(competitionPin)
+        val request = CheckGamePinRequest(sessionPin)
 
         webTestClient
             .post()
@@ -89,10 +87,10 @@ class CompetitionControllerTest @Autowired constructor(
     @WithMockUser(username = TestGame.DEFAULT_EMAIL, roles = ["STUDENT"])
     @Test
     fun `can check if competition doesn't exists`() {
-        val competitionPin = game.createCompetition()
+        val sessionPin = game.createSession()
 
         val request = CheckGamePinRequest(
-            pin = "123$competitionPin",
+            pin = "123$sessionPin",
         )
 
         webTestClient
@@ -103,190 +101,5 @@ class CompetitionControllerTest @Autowired constructor(
             .expectStatus().isOk
             .expectBody()
             .jsonPath("$.exists").isEqualTo(false)
-    }
-
-    @WithMockUser(username = TestGame.DEFAULT_EMAIL, roles = ["STUDENT"])
-    @Test
-    fun `can create a team`() {
-        val competitionPin = game.createCompetition()
-
-        val request = CreateTeamRequest(
-            gameId = competitionPin,
-            teamName = "Test team",
-            captainEmail = testUser.email,
-            password = TestGame.DEFAULT_PASSWORD,
-        )
-
-        webTestClient
-            .post()
-            .uri("/api/competitions/create_team")
-            .bodyValue(request)
-            .exchange()
-            .expectStatus().isOk
-            .expectBody()
-            .jsonPath("$.message").exists()
-    }
-
-    @WithMockUser(username = TestGame.DEFAULT_EMAIL, roles = ["STUDENT"])
-    @Test
-    fun `can't create a team with same captain`() {
-        val (competitionPin) = game.createTeam(captain = testUser)
-
-        val request = CreateTeamRequest(
-            gameId = competitionPin,
-            teamName = "Another test team",
-            captainEmail = testUser.email,
-            password = TestGame.DEFAULT_PASSWORD,
-        )
-
-        webTestClient
-            .post()
-            .uri("/api/competitions/create_team")
-            .bodyValue(request)
-            .exchange()
-            .expectStatus().isBadRequest
-            .expectBody()
-            .jsonPath("$.message").exists()
-    }
-
-    @WithMockUser(username = TestGame.DEFAULT_EMAIL, roles = ["STUDENT"])
-    @Test
-    fun `can't create a team with same name`() {
-        val (competitionPin, teamName) = game.createTeam(captain = testUser)
-
-        val request = CreateTeamRequest(
-            gameId = competitionPin,
-            teamName = teamName,
-            captainEmail = game.createUser().email,
-            password = TestGame.DEFAULT_PASSWORD,
-        )
-
-        webTestClient
-            .post()
-            .uri("/api/competitions/create_team")
-            .bodyValue(request)
-            .exchange()
-            .expectStatus().isBadRequest
-            .expectBody()
-            .jsonPath("$.message").exists()
-    }
-
-    @WithMockUser(username = TestGame.DEFAULT_EMAIL, roles = ["STUDENT"])
-    @Test
-    fun `can't create too many teams`() {
-        val competitionPin = game.createCompetition(
-            request = DEFAULT_CREATE_COMPETITION_REQUEST.copy(
-                maxTeamsAmount = 2,
-            )
-        )
-        repeat(2) { game.createTeam(competitionPin) }
-
-        val request = CreateTeamRequest(
-            gameId = competitionPin,
-            teamName = "Test team name",
-            captainEmail = game.createUser().email,
-            password = TestGame.DEFAULT_PASSWORD,
-        )
-
-        webTestClient
-            .post()
-            .uri("/api/competitions/create_team")
-            .bodyValue(request)
-            .exchange()
-            .expectStatus().isBadRequest
-            .expectBody()
-            .jsonPath("$.message").exists()
-    }
-
-    @WithMockUser(username = TestGame.DEFAULT_EMAIL, roles = ["STUDENT"])
-    @Test
-    fun `can join a team`() {
-        val (competitionPin, teamName, password) = game.createTeam()
-
-        val request = JoinTeamRequest(
-            competitionPin = competitionPin,
-            teamName = teamName,
-            password = password
-        )
-
-        webTestClient
-            .post()
-            .uri("/api/competitions/join_team")
-            .bodyValue(request)
-            .exchange()
-            .expectStatus().isOk
-            .expectBody()
-            .jsonPath("$.currentTeamName").exists()
-    }
-
-    @WithMockUser(username = "test@hse.ru", roles = ["STUDENT"])
-    @Test
-    fun `can't join non-existent team`() {
-        val competitionPin = game.createCompetition()
-
-        val request = JoinTeamRequest(
-            competitionPin = competitionPin,
-            teamName = "Try this",
-            password = TestGame.DEFAULT_PASSWORD,
-        )
-
-        webTestClient
-            .post()
-            .uri("/api/competitions/join_team")
-            .bodyValue(request)
-            .exchange()
-            .expectStatus().isBadRequest
-            .expectBody()
-            .jsonPath("$.message").exists()
-    }
-
-    @WithMockUser(username = "test@hse.ru", roles = ["STUDENT"])
-    @Test
-    fun `can't join same team twice`() {
-        val (competitionPin, teamName, password) =
-            game.createAndJoinTeam(teamMember = testUser)
-
-        val request = JoinTeamRequest(
-            competitionPin = competitionPin,
-            teamName = teamName,
-            password = password
-        )
-
-        webTestClient
-            .post()
-            .uri("/api/competitions/join_team")
-            .bodyValue(request)
-            .exchange()
-            .expectStatus().isBadRequest
-            .expectBody()
-            .jsonPath("$.message").exists()
-    }
-
-    @WithMockUser(username = "test@hse.ru", roles = ["STUDENT"])
-    @Test
-    fun `can't join full team`() {
-        val competitionPin = game.createCompetition(
-            request = DEFAULT_CREATE_COMPETITION_REQUEST.copy(
-                maxTeamSize = 2,
-            )
-        )
-        val (_, teamName, password) = game.createAndJoinTeam(competitionPin)
-        game.joinTeam(competitionPin, teamName)
-        game.joinTeam(competitionPin, teamName)
-
-        val request = JoinTeamRequest(
-            competitionPin = competitionPin,
-            teamName = teamName,
-            password = password
-        )
-
-        webTestClient
-            .post()
-            .uri("/api/competitions/join_team")
-            .bodyValue(request)
-            .exchange()
-            .expectStatus().isBadRequest
-            .expectBody()
-            .jsonPath("$.message").exists()
     }
 }

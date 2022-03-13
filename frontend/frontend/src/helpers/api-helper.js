@@ -7,9 +7,6 @@ class ApiSettings {
     static #signupEndPoint = ApiSettings.#host + "/auth/signup";
     static #createCompetitionEndPoint = ApiSettings.#host + "/competitions/create";
     static #checkPinEndPoint = ApiSettings.#host + "/competitions/check_pin";
-    static #createTeamEndPoint = ApiSettings.#host + "/competitions/create_team";
-    static #teamCreationEvents = ApiSettings.#host + "/competitions/team_join_events/";
-    static #joinTeamEndPoint = ApiSettings.#host + "/competitions/join_team";
     static #getCloneInfoEndPoint = ApiSettings.#host + "/competitions/get_clone_info/";
     static #updateCompetitionParams = ApiSettings.#host + "/competitions/update_competition/";
     static #updateProfile = ApiSettings.#host + "/profile/update";
@@ -22,6 +19,10 @@ class ApiSettings {
 
     static host() {
         return ApiSettings.#host;
+    }
+
+    static teamsEndPoint(pin, method) {
+        return ApiSettings.host() + "/competitions/" + pin + "/teams" + method;
     }
 
     static signinEndPoint() {
@@ -40,16 +41,16 @@ class ApiSettings {
         return ApiSettings.#checkPinEndPoint;
     }
 
-    static createTeamEndPoint() {
-        return ApiSettings.#createTeamEndPoint;
+    static createTeamEndPoint(pin) {
+        return ApiSettings.teamsEndPoint(pin, "/create");
     }
 
     static teamCreationEvents(pin) {
-        return ApiSettings.#teamCreationEvents + pin;
+        return ApiSettings.teamsEndPoint(pin, "/all_join_events");
     }
 
-    static joinTeamEndPoint() {
-        return ApiSettings.#joinTeamEndPoint;
+    static joinTeamEndPoint(pin) {
+        return ApiSettings.teamsEndPoint(pin, "/join");
     }
 
     static getCloneInfoEndPoint(pin) {
@@ -231,16 +232,16 @@ export default class ApiHelper {
         });
     }
 
-    static createTeam(team) {
-        return fetch(ApiSettings.createTeamEndPoint(), {
+    static createTeam(pin, team) {
+        return fetch(ApiSettings.createTeamEndPoint(pin), {
             method: "POST",
             headers: this.authDefaultHeaders(),
             body: JSON.stringify(team)
         });
     }
 
-    static joinTeam(team) {
-        return fetch(ApiSettings.joinTeamEndPoint(), {
+    static joinTeam(pin, team) {
+        return fetch(ApiSettings.joinTeamEndPoint(pin), {
             method: "POST",
             headers: this.authDefaultHeaders(),
             body: JSON.stringify(team)

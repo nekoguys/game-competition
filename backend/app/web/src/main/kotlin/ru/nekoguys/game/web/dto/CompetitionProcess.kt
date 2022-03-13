@@ -25,11 +25,11 @@ sealed class RoundEvent {
         val roundLength: Int,
         val beginTime: Long,
         val roundNumber: Int
-    ): RoundEvent()
+    ) : RoundEvent()
 
     data class EndRound(
         val roundNumber: Int,
         val isEndOfGame: Boolean,
         val roundLength: Int,
-    ): RoundEvent()
+    ) : RoundEvent()
 }

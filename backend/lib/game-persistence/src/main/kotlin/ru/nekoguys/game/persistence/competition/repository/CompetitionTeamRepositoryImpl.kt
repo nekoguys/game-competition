@@ -190,7 +190,7 @@ class CompetitionTeamRepositoryImpl(
         dbCompetitionTeamRepository
             .findAllBySessionIdIn(sessionIds)
             .toList()
-            .groupBy({ CommonSession.Id(it.sessionId)} ) {
+            .groupBy({ CommonSession.Id(it.sessionId) }) {
                 CompetitionTeam.Id(it.id!!)
             }
 }
