@@ -1,9 +1,9 @@
 package ru.nekoguys.game.web.util
 
 import kotlinx.coroutines.runBlocking
-import org.assertj.core.api.Assertions.assertThat
 import org.springframework.stereotype.Component
-import ru.nekoguys.game.entity.commongame.service.SessionPinGenerator
+import ru.nekoguys.game.entity.commongame.service.SessionPinDecoder
+import ru.nekoguys.game.entity.commongame.service.toPin
 import ru.nekoguys.game.entity.competition.model.CompetitionSession
 import ru.nekoguys.game.entity.competition.repository.CompetitionSessionRepository
 import ru.nekoguys.game.entity.competition.repository.findAll
@@ -11,21 +11,27 @@ import ru.nekoguys.game.entity.competition.repository.load
 import ru.nekoguys.game.entity.user.model.User
 import ru.nekoguys.game.entity.user.model.UserRole
 import ru.nekoguys.game.entity.user.repository.UserRepository
+import ru.nekoguys.game.entity.user.repository.load
 import ru.nekoguys.game.web.dto.*
+import ru.nekoguys.game.web.service.CompetitionProcessService
 import ru.nekoguys.game.web.service.CompetitionService
 import java.util.concurrent.atomic.AtomicLong
 
 @Component
 class TestGame(
     private val competitionService: CompetitionService,
+    private val competitionProcessService: CompetitionProcessService,
     private val competitionSessionRepository: CompetitionSessionRepository,
-    private val pinGenerator: SessionPinGenerator,
+    private val pinGenerator: SessionPinDecoder,
     private val userRepository: UserRepository,
 ) {
     private fun nextIndex() = indexCounter.incrementAndGet()
 
     private fun nextEmail(role: UserRole) =
         "${role.toString().lowercase()}-${nextIndex()}@hse.ru"
+
+    private fun nextCompetitionName() =
+        "Competition ${nextIndex()}"
 
     private fun nextTeamName() = "Team ${nextIndex()}"
 
@@ -47,25 +53,34 @@ class TestGame(
 
     fun createAndLoadCompetition(
         teacher: User = createUser(UserRole.Teacher),
-        request: CreateCompetitionRequest = DEFAULT_CREATE_COMPETITION_REQUEST,
+        request: CreateCompetitionRequest = DEFAULT_CREATE_COMPETITION_REQUEST
+            .copy(name = nextCompetitionName()),
+        additionalActions: suspend (String) -> Unit = {},
     ): CompetitionSession.Full = runBlocking {
         competitionService.create(teacher.email, request)
 
-        val sessionIds = competitionSessionRepository
+        val sessionIdsOfTeacher = competitionSessionRepository
             .findIdsByCreatorId(teacher.id.number)
             .map { it.number }
 
-        competitionSessionRepository
-            .findAll(sessionIds, CompetitionSession.Full)
+        val sessionId = competitionSessionRepository
+            .findAll(sessionIdsOfTeacher, CompetitionSession.WithSettings)
             .first { it.settings.name == request.name }
+            .id
+
+        additionalActions(sessionId.toPin())
+
+        competitionSessionRepository.load(sessionId, CompetitionSession.Full)
     }
 
     fun createCompetition(
         teacher: User = createUser(UserRole.Teacher),
-        request: CreateCompetitionRequest = DEFAULT_CREATE_COMPETITION_REQUEST,
+        request: CreateCompetitionRequest = DEFAULT_CREATE_COMPETITION_REQUEST
+            .copy(name = nextCompetitionName()),
     ): String =
         createAndLoadCompetition(teacher, request)
-            .let { pinGenerator.convertSessionIdToPin(it.id) }
+            .id
+            .toPin()
 
     fun createTeam(
         competitionPin: String = createCompetition(),
@@ -82,8 +97,7 @@ class TestGame(
 
         runBlocking {
             val response = competitionService.createTeam(captain.email, request)
-            assertThat(response)
-                .isEqualTo(CreateTeamResponse.Success)
+            check(response is CreateTeamResponse.Success)
         }
 
         return TestCreateTeamResult(
@@ -113,8 +127,7 @@ class TestGame(
 
         runBlocking {
             val response = competitionService.joinTeam(teamMember.email, request)
-            assertThat(response)
-                .isInstanceOf(JoinTeamResponse.Success::class.java)
+            check(response is JoinTeamResponse.Success)
         }
 
         return TestCreateTeamResult(
@@ -136,6 +149,16 @@ class TestGame(
         joinTeam(competitionPin, teamMember = teamMember)
     }
 
+    fun startCompetition(
+        competitionPin: String = createCompetition(),
+    ): Unit = runBlocking {
+        val teacherId = loadCompetitionSession(competitionPin).creatorId
+        val teacher = userRepository.load(teacherId)
+        val response = competitionProcessService
+            .startCompetition(teacher.email, competitionPin)
+        check(response == StartCompetitionResponse.Success)
+    }
+
     companion object TestData {
         private val indexCounter = AtomicLong()
 
@@ -148,8 +171,8 @@ class TestGame(
             expensesFormula = listOf(1.0, -3.0, -2.0),
             instruction = "Test instruction",
             isAutoRoundEnding = true,
-            maxTeamSize = 5,
-            maxTeamsAmount = 10,
+            maxTeamSize = 2,
+            maxTeamsAmount = 4,
             name = DEFAULT_COMPETITION_NAME,
             roundLength = 15,
             roundsCount = 3,

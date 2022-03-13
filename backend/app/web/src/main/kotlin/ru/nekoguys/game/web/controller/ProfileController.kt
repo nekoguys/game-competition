@@ -27,11 +27,11 @@ class ProfileController(
     @GetMapping(value = ["/navbar_info", "/get"])
     suspend fun getUser(
         principal: Principal,
-    ): ResponseEntity<ProfileResponse?> =
+    ): ResponseEntity<ProfileResponse> =
         withMDCContext {
-            profileService.getProfile(
-                email = principal.name
-            ).toOkResponse()
+            profileService
+                .getProfile(email = principal.name)
+                .toResponseEntity()
         }
 
     @PostMapping("/update")
@@ -42,10 +42,10 @@ class ProfileController(
         withMDCContext {
             profileService
                 .updateProfile(
-                    principal.name,
-                    profileUpdateRequest,
+                    email = principal.name,
+                    profileUpdateRequest = profileUpdateRequest,
                 )
-                .toResponseEntity(notFoundStatus = HttpStatus.NOT_FOUND)
+                .toResponseEntity(ifEmpty = HttpStatus.NOT_FOUND)
         }
 }
 

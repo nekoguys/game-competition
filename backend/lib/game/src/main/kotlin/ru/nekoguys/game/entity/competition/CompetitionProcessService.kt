@@ -13,6 +13,7 @@ import ru.nekoguys.game.entity.commongame.service.GameMessageLogProvider
 import ru.nekoguys.game.entity.commongame.service.createGameLog
 import ru.nekoguys.game.entity.competition.model.CompetitionBasePlayer
 import ru.nekoguys.game.entity.competition.model.CompetitionTeam
+import ru.nekoguys.game.entity.competition.model.InternalPlayer
 import ru.nekoguys.game.entity.competition.repository.CompetitionPlayerRepository
 import ru.nekoguys.game.entity.competition.rule.CompetitionCommand
 import ru.nekoguys.game.entity.competition.rule.CompetitionMessage
@@ -39,12 +40,29 @@ class CompetitionProcessService(
         user: User,
         command: CompetitionCommand,
     ) {
+        acceptCommand(
+            player = competitionPlayerRepository.load(sessionId, user),
+            command = command,
+        )
+    }
+
+    suspend fun acceptInternalCommand(
+        sessionId: CommonSession.Id,
+        command: CompetitionCommand,
+    ) {
+        acceptCommand(
+            player = InternalPlayer(sessionId),
+            command = command,
+        )
+    }
+
+    private suspend fun acceptCommand(
+        player: CompetitionBasePlayer,
+        command: CompetitionCommand,
+    ) {
         launchedSessions
-            .getOrPut(sessionId) { launchGameSession(sessionId) }
-            .accept(
-                player = competitionPlayerRepository.load(sessionId, user),
-                command = command,
-            )
+            .getOrPut(player.sessionId) { launchGameSession(player.sessionId) }
+            .accept(player, command)
     }
 
     fun getAllMessagesForSession(

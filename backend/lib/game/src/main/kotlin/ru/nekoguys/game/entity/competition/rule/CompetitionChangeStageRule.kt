@@ -1,27 +1,72 @@
 package ru.nekoguys.game.entity.competition.rule
 
 import org.springframework.stereotype.Component
-import ru.nekoguys.game.core.CloseGameSessionRequest
-import ru.nekoguys.game.core.ResourceLocks
 import ru.nekoguys.game.core.util.buildResponse
-import ru.nekoguys.game.core.util.defer
+import ru.nekoguys.game.entity.competition.competitionProcessError
+import ru.nekoguys.game.entity.competition.model.CompetitionSession
+import ru.nekoguys.game.entity.competition.model.CompetitionStage
 import ru.nekoguys.game.entity.competition.model.InternalPlayer
+import ru.nekoguys.game.entity.competition.repository.CompetitionSessionRepository
+import ru.nekoguys.game.entity.competition.repository.load
+import java.time.LocalDateTime
+
+data class CompetitionStageChangedMessage(
+    val from: CompetitionStage,
+    val to: CompetitionStage,
+    val timeStamp: LocalDateTime,
+    val roundLength: Int,
+) : CompetitionMessage()
 
 @Component
-class CompetitionChangeStageRule :
-    CompetitionRule<InternalPlayer, CompetitionCommand.ChangeStageCommand, CompetitionMessage> {
-
-    override suspend fun getLocksFor(
-        command: CompetitionCommand.ChangeStageCommand,
-    ): ResourceLocks {
-        return super.getLocksFor(command)
-    }
+class CompetitionChangeStageRule(
+    private val competitionSessionRepository: CompetitionSessionRepository,
+) : CompetitionRule<InternalPlayer, CompetitionCommand.ChangeStageCommand, CompetitionMessage> {
 
     override suspend fun process(
         player: InternalPlayer,
         command: CompetitionCommand.ChangeStageCommand,
-    ): List<CompGameMessage<CompetitionMessage>> =
-        buildResponse {
-            defer(CloseGameSessionRequest, timeoutMillis = 50_000)
+    ): List<CompGameMessage<CompetitionMessage>> {
+        val session = competitionSessionRepository
+            .load(
+                player.sessionId,
+                CompetitionSession.WithStage,
+                CompetitionSession.WithTeamIds,
+                CompetitionSession.WithSettings,
+            )
+        checkCurrentStage(session, command)
+
+        competitionSessionRepository.update(
+            from = session,
+            to = session.copy(
+                stage = command.to
+            )
+        )
+
+        val message = CompetitionStageChangedMessage(
+            from = command.from,
+            to = command.to,
+            timeStamp = LocalDateTime.now(),
+            roundLength = session.settings.roundLength,
+        )
+        return buildResponse {
+            session.teamIds {
+                add(message)
+            }
         }
+    }
+
+    private fun checkCurrentStage(
+        session: CompetitionSession.WithStage,
+        command: CompetitionCommand.ChangeStageCommand
+    ) {
+        val currentStage = session.stage
+
+        if (session.stage != command.from) {
+            with(command) {
+                competitionProcessError(
+                    "Illegal Competition State: expected $from, but got $currentStage"
+                )
+            }
+        }
+    }
 }

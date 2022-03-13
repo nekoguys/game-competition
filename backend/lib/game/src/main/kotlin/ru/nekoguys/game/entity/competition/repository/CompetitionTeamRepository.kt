@@ -36,4 +36,8 @@ interface CompetitionTeamRepository {
     suspend fun findAllBySessionIds(
         sessionIds: Iterable<Long>,
     ): Map<CommonSession.Id, List<CompetitionTeam>>
+
+    suspend fun findAllTeamIdsBySessionIds(
+        sessionIds: Collection<Long>,
+    ): Map<CommonSession.Id, List<CompetitionTeam.Id>>
 }

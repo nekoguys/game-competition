@@ -68,10 +68,7 @@ class CompetitionSessionRepositoryImpl(
     ): List<CompetitionSession> = coroutineScope {
         val dbGameSessions = async {
             dbGameSessionRepository
-                .takeIf {
-                    CompetitionSession.WithCommonFields in fieldSelectors ||
-                            CompetitionSession.Full in fieldSelectors
-                }
+                .takeIf { fieldSelectors.has(CompetitionSession.WithCommonFields) }
                 ?.findAllById(ids)
                 ?.toList()
                 ?.associateBy { it.id!! }
@@ -79,21 +76,22 @@ class CompetitionSessionRepositoryImpl(
 
         val settings = async {
             competitionSettingsRepository
-                .takeIf {
-                    CompetitionSession.WithSettings in fieldSelectors ||
-                            CompetitionSession.Full in fieldSelectors
-                }
+                .takeIf { fieldSelectors.has(CompetitionSession.WithSettings) }
                 ?.findAll(ids)
                 ?.mapKeys { (a) -> a.number }
         }
 
         val teams = async {
             competitionTeamRepository
-                .takeIf {
-                    CompetitionSession.WithTeams in fieldSelectors ||
-                            CompetitionSession.Full in fieldSelectors
-                }
+                .takeIf { fieldSelectors.has(CompetitionSession.WithTeams) }
                 ?.findAllBySessionIds(ids)
+                ?.mapKeys { (a) -> a.number }
+        }
+
+        val teamIds = async {
+            competitionTeamRepository
+                .takeIf { fieldSelectors.has(CompetitionSession.WithTeamIds) }
+                ?.findAllTeamIdsBySessionIds(ids)
                 ?.mapKeys { (a) -> a.number }
         }
 
@@ -108,9 +106,15 @@ class CompetitionSessionRepositoryImpl(
                 dbGameSession = dbGameSessions.await()?.getValue(id),
                 settings = settings.await()?.getValue(id),
                 teams = teams.await()?.run { get(id).orEmpty() },
+                teamIds = teamIds.await()?.run { get(id).orEmpty() },
             )
         }
     }
+
+    private fun Set<CompetitionSessionFieldSelector<*>>.has(
+        selector: CompetitionSessionFieldSelector<*>,
+    ): Boolean =
+        contains(CompetitionSession.Full) || contains(selector)
 
     override suspend fun update(
         from: CompetitionSession,
@@ -133,14 +137,14 @@ class CompetitionSessionRepositoryImpl(
                 sessionId = to.id.number,
                 stage = newStage.extractDbCompetitionStage(),
                 lastRound = newStage.extractDbLastRound(),
-            ).let { dbCompetitionSessionRepository.save(it.asNew()) }
+            ).let { dbCompetitionSessionRepository.save(it) }
         }
 
         val oldTeams = from.teamsOrNull.orEmpty().toSet()
         val newTeams = to.teamsOrNull.orEmpty().filter { it !in oldTeams }
         if (newTeams.isNotEmpty()) {
             launch {
-                competitionTeamRepository
+                TODO("Обновление команд ещё не готово")
             }
         }
     }
@@ -161,6 +165,7 @@ private fun createCompetitionSession(
     dbGameSession: DbGameSession? = null,
     settings: CompetitionSettings? = null,
     teams: List<CompetitionTeam>? = null,
+    teamIds: List<CompetitionTeam.Id>? = null,
 ): CompetitionSession =
     CompetitionSession(
         id = CommonSession.Id(dbCompetitionSession.id!!),
@@ -171,4 +176,5 @@ private fun createCompetitionSession(
             ?.truncatedTo(ChronoUnit.MILLIS),
         stage = dbCompetitionSession.extractCompetitionStage(),
         teams = teams,
+        teamIds = teamIds,
     )

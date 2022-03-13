@@ -26,13 +26,17 @@ data class SignUpRequest(
     val password: String,
 )
 
-sealed interface SignUpResponse {
-    object Success : SignUpResponse {
+sealed class SignUpResponse(
+    status: HttpStatus,
+) : WebResponse(status) {
+    object Success : SignUpResponse(HttpStatus.OK) {
         @Suppress("unused")
         val message = "User registered successfully!"
     }
 
-    class InvalidEmailFormat(email: String) : SignUpResponse {
+    class InvalidEmailFormat(
+        email: String,
+    ) : SignUpResponse(HttpStatus.BAD_REQUEST) {
         @Suppress("unused")
         val message = listOf(
             "Invalid email $email",
@@ -40,7 +44,9 @@ sealed interface SignUpResponse {
         ).joinToString(" ")
     }
 
-    class UserAlreadyRegistered(email: String) : SignUpResponse {
+    class UserAlreadyRegistered(
+        email: String,
+    ) : SignUpResponse(HttpStatus.BAD_REQUEST) {
         @Suppress("unused")
         val message = "User with email $email already exists!"
     }

@@ -11,6 +11,10 @@ interface DbCompetitionTeamRepository
         sessionId: Long,
     ): Flow<DbCompetitionTeam>
 
+    fun findAllBySessionIdIn(
+        sessionIds: Collection<Long>,
+    ): Flow<DbCompetitionTeam>
+
     @Suppress("SpringDataRepositoryMethodParametersInspection")
     suspend fun findBySessionIdAndName(
         sessionId: Long,
