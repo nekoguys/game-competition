@@ -29,7 +29,7 @@ class CompetitionTeamController(
         principal: Principal,
         @PathVariable sessionPin: String,
         @RequestBody request: CreateTeamRequest,
-    ): ResponseEntity<out CreateTeamResponse> =
+    ): ResponseEntity<TeamApiResponse<CreateTeamResponse>> =
         withMDCContext {
             competitionTeamService.create(
                 sessionPin = sessionPin,
@@ -47,12 +47,27 @@ class CompetitionTeamController(
         principal: Principal,
         @PathVariable sessionPin: String,
         @RequestBody request: JoinTeamRequest,
-    ): ResponseEntity<out JoinTeamResponse> =
+    ): ResponseEntity<TeamApiResponse<JoinTeamResponse>> =
         withMDCContext {
             competitionTeamService.join(
                 sessionPin = sessionPin,
                 studentEmail = principal.name,
                 request = request,
+            ).toResponseEntity()
+        }
+
+    @GetMapping(
+        "/current",
+        produces = [MediaType.APPLICATION_JSON_VALUE],
+    )
+    suspend fun getCurrentTeamInfo(
+        principal: Principal,
+        @PathVariable sessionPin: String,
+    ): ResponseEntity<TeamApiResponse<GetTeamResponse>> =
+        withMDCContext {
+            competitionTeamService.getTeam(
+                sessionPin = sessionPin,
+                studentEmail = principal.name,
             ).toResponseEntity()
         }
 

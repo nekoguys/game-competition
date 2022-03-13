@@ -53,6 +53,10 @@ class ApiSettings {
         return ApiSettings.teamsEndPoint(pin, "/join");
     }
 
+    static getCurrentTeamEndpoint(pin) {
+        return ApiSettings.teamsEndPoint(pin, "/current");
+    }
+
     static getCloneInfoEndPoint(pin) {
         return ApiSettings.#getCloneInfoEndPoint + pin;
     }
@@ -245,6 +249,13 @@ export default class ApiHelper {
             method: "POST",
             headers: this.authDefaultHeaders(),
             body: JSON.stringify(team)
+        })
+    }
+
+    static getCurrentTeam(pin) {
+        return fetch(ApiSettings.getCurrentTeamEndpoint(pin), {
+            method: "GET",
+            headers: this.authDefaultHeaders()
         })
     }
 

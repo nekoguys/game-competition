@@ -5,6 +5,9 @@ import org.springframework.stereotype.Service
 import ru.nekoguys.game.entity.commongame.service.SessionPinDecoder
 import ru.nekoguys.game.entity.competition.CompetitionProcessException
 import ru.nekoguys.game.entity.competition.CompetitionProcessService
+import ru.nekoguys.game.entity.competition.model.CompetitionPlayer
+import ru.nekoguys.game.entity.competition.repository.CompetitionPlayerRepository
+import ru.nekoguys.game.entity.competition.repository.CompetitionTeamRepository
 import ru.nekoguys.game.entity.competition.rule.CompetitionCommand
 import ru.nekoguys.game.entity.competition.rule.CompetitionCreateTeamMessage
 import ru.nekoguys.game.entity.competition.rule.CompetitionJoinTeamMessage
@@ -16,23 +19,26 @@ class CompetitionTeamService(
     private val competitionProcessService: CompetitionProcessService,
     private val sessionPinDecoder: SessionPinDecoder,
     private val userRepository: UserRepository,
+    private val competitionTeamRepository: CompetitionTeamRepository,
+    private val competitionPlayerRepository: CompetitionPlayerRepository,
 ) {
+
     suspend fun create(
         sessionPin: String,
         studentEmail: String,
         request: CreateTeamRequest,
-    ): CreateTeamResponse {
+    ): TeamApiResponse<CreateTeamResponse> {
         require(request.teamName.length >= 4) {
             return CreateTeamResponse.IncorrectName
         }
 
         val captain = userRepository
             .findByEmail(studentEmail)
-            ?: error("No such user: $studentEmail")
+            ?: return TeamApiResponse.UserIsNotRegistered(studentEmail)
 
         val sessionId = sessionPinDecoder
             .decodeIdFromPin(sessionPin)
-            ?: return CreateTeamResponse.GameNotFound(sessionPin)
+            ?: return TeamApiResponse.SessionNotFound(sessionPin)
 
         return try {
             competitionProcessService.acceptCommand(
@@ -45,7 +51,7 @@ class CompetitionTeamService(
             )
             CreateTeamResponse.Success
         } catch (ex: CompetitionProcessException) {
-            CreateTeamResponse.ProcessError(ex.message)
+            TeamApiResponse.ProcessError(ex.message)
         }
     }
 
@@ -53,14 +59,14 @@ class CompetitionTeamService(
         sessionPin: String,
         studentEmail: String,
         request: JoinTeamRequest,
-    ): JoinTeamResponse {
+    ): TeamApiResponse<JoinTeamResponse> {
         val captain = userRepository
             .findByEmail(studentEmail)
-            ?: error("No such user: studentEmail")
+            ?: return TeamApiResponse.UserIsNotRegistered(studentEmail)
 
         val sessionId = sessionPinDecoder
             .decodeIdFromPin(sessionPin)
-            ?: return JoinTeamResponse.GameNotFound(sessionPin)
+            ?: return TeamApiResponse.SessionNotFound(sessionPin)
 
         return try {
             competitionProcessService.acceptCommand(
@@ -72,8 +78,35 @@ class CompetitionTeamService(
             )
             JoinTeamResponse.Success(request.teamName)
         } catch (ex: CompetitionProcessException) {
-            JoinTeamResponse.ProcessError(ex.message)
+            TeamApiResponse.ProcessError(ex.message)
         }
+    }
+
+    suspend fun getTeam(
+        sessionPin: String,
+        studentEmail: String,
+    ): TeamApiResponse<GetTeamResponse>? {
+        val sessionId = sessionPinDecoder
+            .decodeIdFromPin(sessionPin)
+            ?: return TeamApiResponse.SessionNotFound(sessionPin)
+
+        val user = userRepository
+            .findByEmail(studentEmail)
+            ?: return TeamApiResponse.UserIsNotRegistered(studentEmail)
+
+        val currentPlayerInfo = competitionPlayerRepository
+            .load(sessionId, user)
+            .let { it as? CompetitionPlayer.Student }
+            ?: return TeamApiResponse.UserIsNotRegistered(studentEmail)
+
+        val currentTeam = competitionTeamRepository
+            .load(currentPlayerInfo.teamId)
+
+        return GetTeamResponse(
+            teamName = currentTeam.name,
+            password = currentTeam.password
+                .takeIf { currentPlayerInfo is CompetitionPlayer.TeamCaptain }
+        )
     }
 
     fun allTeamJoinEventsFlow(

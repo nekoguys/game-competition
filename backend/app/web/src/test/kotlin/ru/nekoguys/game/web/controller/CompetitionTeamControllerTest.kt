@@ -137,7 +137,7 @@ class CompetitionTeamControllerTest @Autowired constructor(
             .jsonPath("$.currentTeamName").exists()
     }
 
-    @WithMockUser(username = "test@hse.ru", roles = ["STUDENT"])
+    @WithMockUser(username = TestGame.DEFAULT_EMAIL, roles = ["STUDENT"])
     @Test
     fun `can't join non-existent team`() {
         val sessionPin = game.createSession()
@@ -157,7 +157,7 @@ class CompetitionTeamControllerTest @Autowired constructor(
             .jsonPath("$.message").exists()
     }
 
-    @WithMockUser(username = "test@hse.ru", roles = ["STUDENT"])
+    @WithMockUser(username = TestGame.DEFAULT_EMAIL, roles = ["STUDENT"])
     @Test
     fun `can't join same team twice`() {
         val (sessionPin, teamName, password) =
@@ -178,7 +178,7 @@ class CompetitionTeamControllerTest @Autowired constructor(
             .jsonPath("$.message").exists()
     }
 
-    @WithMockUser(username = "test@hse.ru", roles = ["STUDENT"])
+    @WithMockUser(username = TestGame.DEFAULT_EMAIL, roles = ["STUDENT"])
     @Test
     fun `can't join full team`() {
         val sessionPin = game.createSession(
@@ -199,6 +199,52 @@ class CompetitionTeamControllerTest @Autowired constructor(
             .post()
             .uri("/api/competitions/$sessionPin/teams/join")
             .bodyValue(request)
+            .exchange()
+            .expectStatus().isBadRequest
+            .expectBody()
+            .jsonPath("$.message").exists()
+    }
+
+    @WithMockUser(username = TestGame.DEFAULT_EMAIL, roles = ["STUDENT"])
+    @Test
+    fun `captain can view current team info`() {
+        val (sessionPin, teamName, password) =
+            game.createTeam(captain = testUser)
+
+        webTestClient
+            .get()
+            .uri("/api/competitions/$sessionPin/teams/current")
+            .exchange()
+            .expectStatus().isOk
+            .expectBody()
+            .jsonPath("$.teamName").isEqualTo(teamName)
+            .jsonPath("$.password").isEqualTo(password)
+    }
+
+    @WithMockUser(username = TestGame.DEFAULT_EMAIL, roles = ["STUDENT"])
+    @Test
+    fun `team member can view current team info`() {
+        val (sessionPin, teamName, _) =
+            game.createAndJoinTeam(teamMember = testUser)
+
+        webTestClient
+            .get()
+            .uri("/api/competitions/$sessionPin/teams/current")
+            .exchange()
+            .expectStatus().isOk
+            .expectBody()
+            .jsonPath("$.teamName").isEqualTo(teamName)
+            .jsonPath("$.password").doesNotExist()
+    }
+
+    @WithMockUser(username = TestGame.DEFAULT_EMAIL, roles = ["STUDENT"])
+    @Test
+    fun `not registered player can't view current team info`() {
+        val sessionPin = game.createSession()
+
+        webTestClient
+            .get()
+            .uri("/api/competitions/$sessionPin/teams/current")
             .exchange()
             .expectStatus().isBadRequest
             .expectBody()

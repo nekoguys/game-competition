@@ -8,7 +8,7 @@ import org.springframework.stereotype.Repository
 import org.springframework.transaction.reactive.TransactionalOperator
 import org.springframework.transaction.reactive.executeAndAwait
 import ru.nekoguys.game.entity.commongame.model.CommonSession
-import ru.nekoguys.game.entity.competition.CompetitionProcessException
+import ru.nekoguys.game.entity.competition.competitionProcessError
 import ru.nekoguys.game.entity.competition.model.CompetitionPlayer
 import ru.nekoguys.game.entity.competition.model.CompetitionTeam
 import ru.nekoguys.game.entity.competition.repository.CompetitionPlayerRepository
@@ -61,7 +61,7 @@ class CompetitionTeamRepositoryImpl(
             .countBySessionIdAndIdLessThanEqual(dbTeam.sessionId, dbTeam.id!!)
 
         if (teamNumber > maxTeams) {
-            throw CompetitionProcessException(
+            competitionProcessError(
                 "There are too much teams in competition, max amount: $maxTeams"
             )
         }
@@ -193,6 +193,28 @@ class CompetitionTeamRepositoryImpl(
             .groupBy({ CommonSession.Id(it.sessionId) }) {
                 CompetitionTeam.Id(it.id!!)
             }
+
+    override suspend fun load(
+        teamId: CompetitionTeam.Id
+    ): CompetitionTeam {
+        val dbTeam = dbCompetitionTeamRepository
+            .findById(teamId.number)
+            ?: error("Team with id $teamId must exist")
+
+        val sessionId = CommonSession.Id(dbTeam.sessionId)
+        val members = competitionPlayerRepository
+            .loadAllInTeam(sessionId, CompetitionTeam.Id(dbTeam.id!!))
+            .toList()
+
+        return createCompetitionTeam(
+            dbTeam = dbTeam,
+            captain = members
+                .filterIsInstance<CompetitionPlayer.TeamCaptain>()
+                .single(),
+            teamMembers = members
+                .filterIsInstance<CompetitionPlayer.TeamMember>()
+        )
+    }
 }
 
 private fun createCompetitionTeam(
@@ -208,4 +230,5 @@ private fun createCompetitionTeam(
         captain = captain,
         teamMembers = teamMembers,
         isBanned = dbTeam.banRound != null,
+        password = dbTeam.password,
     )

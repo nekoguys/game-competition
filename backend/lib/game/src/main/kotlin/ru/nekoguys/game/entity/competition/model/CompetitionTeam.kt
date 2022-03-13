@@ -10,6 +10,7 @@ data class CompetitionTeam(
     val captain: CompetitionPlayer.TeamCaptain,
     val teamMembers: List<CompetitionPlayer.TeamMember>,
     val isBanned: Boolean,
+    val password: String,
 ) {
     data class Id(val number: Long) {
         override fun toString() = number.toString()

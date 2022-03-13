@@ -8,6 +8,27 @@ import com.fasterxml.jackson.databind.annotation.JsonNaming
 import org.springframework.http.HttpStatus
 import ru.nekoguys.game.web.util.WebResponse
 
+sealed class TeamApiResponse<out T : TeamApiResponse<T>>(
+    status: HttpStatus
+) : WebResponse(status) {
+
+    class SessionNotFound(
+        sessionPin: String,
+    ) : TeamApiResponse<Nothing>(HttpStatus.NOT_FOUND) {
+        val message = "There is no competition session with pin '$sessionPin'"
+    }
+
+    class UserIsNotRegistered(
+        email: String,
+    ) : TeamApiResponse<Nothing>(HttpStatus.BAD_REQUEST) {
+        val message = "User with email '$email' is not registered"
+    }
+
+    class ProcessError(
+        val message: String
+    ) : TeamApiResponse<Nothing>(HttpStatus.BAD_REQUEST)
+}
+
 @JsonNaming(PropertyNamingStrategies.LowerCamelCaseStrategy::class)
 data class CreateTeamRequest(
     @JsonProperty("team_name")
@@ -19,29 +40,17 @@ data class CreateTeamRequest(
 
 sealed class CreateTeamResponse(
     status: HttpStatus,
-) : WebResponse(status) {
+) : TeamApiResponse<CreateTeamResponse>(status) {
 
     object Success : CreateTeamResponse(HttpStatus.OK) {
         @Suppress("unused")
         val message = "Team created successfully"
     }
 
-    class GameNotFound(
-        sessionPin: String,
-    ) : CreateTeamResponse(HttpStatus.BAD_REQUEST) {
-        @Suppress("unused")
-        val message = "Game with pin $sessionPin not found"
-    }
-
     object IncorrectName : CreateTeamResponse(HttpStatus.BAD_REQUEST) {
         @Suppress("unused")
         val message = "Team name is empty or too small"
     }
-
-    class ProcessError(
-        @Suppress("unused")
-        val message: String,
-    ) : CreateTeamResponse(HttpStatus.BAD_REQUEST)
 }
 
 data class JoinTeamRequest(
@@ -51,23 +60,17 @@ data class JoinTeamRequest(
 
 sealed class JoinTeamResponse(
     status: HttpStatus,
-) : WebResponse(status) {
+) : TeamApiResponse<JoinTeamResponse>(status) {
 
     data class Success(
         val currentTeamName: String,
     ) : JoinTeamResponse(HttpStatus.OK)
-
-    class GameNotFound(
-        sessionPin: String,
-    ) : JoinTeamResponse(HttpStatus.BAD_REQUEST) {
-        @Suppress("unused")
-        val message = "No competition with pin: $sessionPin"
-    }
-
-    data class ProcessError(
-        val message: String,
-    ) : JoinTeamResponse(HttpStatus.BAD_REQUEST)
 }
+
+data class GetTeamResponse(
+    val teamName: String,
+    val password: String?,
+) : TeamApiResponse<GetTeamResponse>(HttpStatus.OK)
 
 data class TeamUpdateNotification(
     val teamName: String,
