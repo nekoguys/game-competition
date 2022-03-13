@@ -199,9 +199,11 @@ private fun CreateCompetitionRequest.extractCompetitionSettings() =
     )
 
 private fun String?.toCompetitionStage(): CompetitionStage =
-    when (val processedStage = this?.trim()?.uppercase()) {
-        CompetitionStage.Draft.name -> CompetitionStage.Draft
-        CompetitionStage.Registration.name -> CompetitionStage.Registration
+    when (val processedStage = this?.trim()?.lowercase()) {
+        CompetitionStage.Draft.name.lowercase() ->
+            CompetitionStage.Draft
+        CompetitionStage.Registration.name.lowercase() ->
+            CompetitionStage.Registration
         else -> error("Unknown or unsupported stage $processedStage")
     }
 
