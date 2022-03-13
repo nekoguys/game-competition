@@ -2,11 +2,10 @@ package ru.nekoguys.game.entity.competition.rule
 
 import kotlinx.coroutines.flow.toList
 import org.springframework.stereotype.Component
+import ru.nekoguys.game.core.GameMessage
 import ru.nekoguys.game.core.util.buildResponse
-import ru.nekoguys.game.entity.competition.CompetitionProcessException
-import ru.nekoguys.game.entity.competition.model.CompetitionPlayer
-import ru.nekoguys.game.entity.competition.model.CompetitionSession
-import ru.nekoguys.game.entity.competition.model.students
+import ru.nekoguys.game.entity.competition.competitionProcessError
+import ru.nekoguys.game.entity.competition.model.*
 import ru.nekoguys.game.entity.competition.repository.CompetitionSessionRepository
 import ru.nekoguys.game.entity.competition.repository.CompetitionTeamRepository
 import ru.nekoguys.game.entity.competition.repository.load
@@ -34,34 +33,74 @@ class CompetitionJoinTeamRule(
                 player.sessionId,
                 CompetitionSession.WithSettings,
                 CompetitionSession.WithTeams,
+                CompetitionSession.WithStage,
             )
 
-        val team = session
-            .teams
+        val oldTeam = findTeamToUpdate(command, session.teams)
+
+        validateCommand(
+            command = command,
+            oldTeam = oldTeam,
+            maxTeamSize = session.settings.maxTeamSize,
+            currentStage = session.stage,
+        )
+
+        val newTeam = doUpdate(player, oldTeam)
+
+        return createResponse(command, newTeam)
+    }
+
+    private fun findTeamToUpdate(
+        command: CompetitionCommand.JoinTeam,
+        teams: List<CompetitionTeam>,
+    ): CompetitionTeam =
+        teams
             .singleOrNull { it.name == command.teamName }
-            ?: throw CompetitionProcessException(
-                "No team in competition with name: ${command.teamName}"
-            )
+            ?: competitionProcessError("No team in competition with name: ${command.teamName}")
 
-        val maxTeamSize = session.settings.maxTeamSize
-        if (team.teamMembers.size > maxTeamSize) {
-            throw CompetitionProcessException(
+    private fun validateCommand(
+        command: CompetitionCommand.JoinTeam,
+        oldTeam: CompetitionTeam,
+        maxTeamSize: Int,
+        currentStage: CompetitionStage,
+    ) {
+        if (command.password != oldTeam.password) {
+            competitionProcessError("Wrong team password")
+        }
+
+        if (oldTeam.teamMembers.size > maxTeamSize) {
+            competitionProcessError(
                 "There are too much team members already, max amount: $maxTeamSize"
             )
         }
 
-        val newStudent = CompetitionPlayer.TeamMember(
+        if (currentStage != CompetitionStage.Registration) {
+            competitionProcessError("Illegal competition state")
+        }
+    }
+
+    private suspend fun doUpdate(
+        player: CompetitionPlayer.Unknown,
+        oldTeam: CompetitionTeam
+    ): CompetitionTeam {
+        val newMember = CompetitionPlayer.TeamMember(
             sessionId = player.sessionId,
             user = player.user,
-            teamId = team.id,
+            teamId = oldTeam.id,
         )
-        val newTeam = team.copy(
-            teamMembers = team.teamMembers + newStudent
+        val newTeam = oldTeam.copy(
+            teamMembers = oldTeam.teamMembers + newMember
         )
-        competitionTeamRepository.update(from = team, to = newTeam)
+        competitionTeamRepository.update(from = oldTeam, to = newTeam)
+        return newTeam
+    }
 
+    private suspend fun createResponse(
+        command: CompetitionCommand.JoinTeam,
+        team: CompetitionTeam,
+    ): List<GameMessage<CompetitionTeam.Id, CompetitionJoinTeamMessage>> {
         val memberEmails = userRepository
-            .findAll(newTeam.students.map { it.user.id.number })
+            .findAll(team.students.map { it.user.id.number })
             .toList()
             .map { it.email }
 
@@ -69,7 +108,7 @@ class CompetitionJoinTeamRule(
             team.id {
                 +CompetitionJoinTeamMessage(
                     teamName = command.teamName,
-                    idInGame = team.numberInGame,
+                    idInGame = team.numberInGame - 1,
                     membersEmails = memberEmails,
                 )
             }

@@ -180,6 +180,27 @@ class CompetitionTeamControllerTest @Autowired constructor(
 
     @WithMockUser(username = TestGame.DEFAULT_EMAIL, roles = ["STUDENT"])
     @Test
+    fun `can't join team using incorrect password`() {
+        val (sessionPin, teamName, password) =
+            game.createAndJoinTeam(teamMember = testUser)
+
+        val request = JoinTeamRequest(
+            teamName = teamName,
+            password = "wrong $password"
+        )
+
+        webTestClient
+            .post()
+            .uri("/api/competitions/$sessionPin/teams/join")
+            .bodyValue(request)
+            .exchange()
+            .expectStatus().isBadRequest
+            .expectBody()
+            .jsonPath("$.message").exists()
+    }
+
+    @WithMockUser(username = TestGame.DEFAULT_EMAIL, roles = ["STUDENT"])
+    @Test
     fun `can't join full team`() {
         val sessionPin = game.createSession(
             request = DEFAULT_CREATE_COMPETITION_REQUEST.copy(
