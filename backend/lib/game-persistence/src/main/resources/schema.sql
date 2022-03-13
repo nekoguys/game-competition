@@ -70,7 +70,7 @@ CREATE TABLE competition_teams
     team_number INT     NOT NULL,
     name        VARCHAR NOT NULL,
     password    VARCHAR NOT NULL,
-    ban_round INT NULL
+    ban_round   INT     NULL
 );
 
 CREATE UNIQUE INDEX competition_teams_session_id_name_unique_index

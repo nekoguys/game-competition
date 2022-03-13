@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.RequestMapping
 import ru.nekoguys.game.web.dto.ProfileResponse
 import ru.nekoguys.game.web.dto.ProfileUpdateRequest
 import ru.nekoguys.game.web.service.ProfileService
-import ru.nekoguys.game.web.util.toOkResponse
 import ru.nekoguys.game.web.util.toResponseEntity
 import ru.nekoguys.game.web.util.withMDCContext
 import java.security.Principal

@@ -3,7 +3,6 @@
 package ru.nekoguys.game.web.dto
 
 import com.fasterxml.jackson.annotation.JsonFormat
-import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.PropertyNamingStrategies
 import com.fasterxml.jackson.databind.annotation.JsonNaming
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
@@ -93,70 +92,6 @@ data class CompetitionCloneInfoResponse(
     val showOtherTeamsMembers: Boolean
 ) : WebResponse(HttpStatus.OK)
 
-@JsonNaming(PropertyNamingStrategies.LowerCamelCaseStrategy::class)
-data class CreateTeamRequest(
-    @JsonProperty("game_id")
-    val gameId: String,
-    @JsonProperty("team_name")
-    val teamName: String,
-    @JsonProperty("captain_email")
-    val captainEmail: String,
-    val password: String,
-)
-
-sealed class CreateTeamResponse(
-    status: HttpStatus,
-) : WebResponse(status) {
-
-    object Success : CreateTeamResponse(HttpStatus.OK) {
-        @Suppress("unused")
-        val message = "Team created successfully"
-    }
-
-    class GameNotFound(
-        sessionPin: String,
-    ) : CreateTeamResponse(HttpStatus.BAD_REQUEST) {
-        @Suppress("unused")
-        val message = "Game with pin $sessionPin not found"
-    }
-
-    object IncorrectName : CreateTeamResponse(HttpStatus.BAD_REQUEST) {
-        @Suppress("unused")
-        val message = "Team name is empty or too small"
-    }
-
-    class ProcessError(
-        @Suppress("unused")
-        val message: String,
-    ) : CreateTeamResponse(HttpStatus.BAD_REQUEST)
-}
-
-data class JoinTeamRequest(
-    val competitionPin: String,
-    val teamName: String,
-    val password: String,
-)
-
-sealed class JoinTeamResponse(
-    status: HttpStatus,
-) : WebResponse(status) {
-
-    data class Success(
-        val currentTeamName: String,
-    ) : JoinTeamResponse(HttpStatus.OK)
-
-    class GameNotFound(
-        sessionPin: String,
-    ) : JoinTeamResponse(HttpStatus.BAD_REQUEST) {
-        @Suppress("unused")
-        val message = "No competition with pin: $sessionPin"
-    }
-
-    data class ProcessError(
-        val message: String,
-    ) : JoinTeamResponse(HttpStatus.BAD_REQUEST)
-}
-
 data class CheckGamePinRequest(
     val pin: String,
 )
@@ -164,22 +99,3 @@ data class CheckGamePinRequest(
 data class CheckGamePinResponse(
     val exists: Boolean,
 ) : WebResponse(HttpStatus.OK)
-
-data class TeamUpdateNotification(
-    val teamName: String,
-    val idInGame: Int,
-    val teamMembers: List<String>,
-)
-
-/*
-public class TeamCreationEventDto implements Serializable {
-    private static final long serialVersionUID = -4502650950386932982L;
-
-    private String teamName;
-
-    private int idInGame;
-
-    private List<String> teamMembers;
-}
-
- */

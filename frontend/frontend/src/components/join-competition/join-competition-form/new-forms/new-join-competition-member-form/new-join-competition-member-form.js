@@ -28,7 +28,7 @@ const NewJoinCompetitionMemberForm = ({fetchers, eventSources, showNotification}
     }, [])
 
     const onSubmit = ({teamName, password}) => {
-        fetchers.joinTeam({competitionPin: pin, teamName, password}).then(_ => {
+        fetchers.joinTeam(pin, {teamName, password}).then(_ => {
             showNotification().success("You joined team " + teamName + "!", "Success", 1500);
             setTimeout(() => {
                 navigate("/competitions/waiting_room/" + pin);

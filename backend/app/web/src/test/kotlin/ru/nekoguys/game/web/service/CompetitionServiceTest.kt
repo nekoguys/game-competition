@@ -5,6 +5,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
+import ru.nekoguys.game.entity.commongame.service.pin
 import ru.nekoguys.game.entity.competition.model.CompetitionStage
 import ru.nekoguys.game.entity.user.model.UserRole
 import ru.nekoguys.game.web.GameWebApplicationTest
@@ -21,7 +22,7 @@ class CompetitionServiceTest @Autowired constructor(
 
     @Test
     fun `can create competition in draft state`() {
-        val session = game.createAndLoadCompetition(
+        val session = game.createAndLoadSession(
             request = TestGame.DEFAULT_CREATE_DRAFT_COMPETITION_REQUEST,
         )
 
@@ -35,7 +36,7 @@ class CompetitionServiceTest @Autowired constructor(
 
     @Test
     fun `can create competition in registration state`() {
-        val session = game.createAndLoadCompetition(
+        val session = game.createAndLoadSession(
             request = TestGame.DEFAULT_CREATE_COMPETITION_REQUEST,
         )
 
@@ -49,11 +50,11 @@ class CompetitionServiceTest @Autowired constructor(
 
     @Test
     fun `can create a team`() {
-        val competitionPin = game.createCompetition()
+        val sessionPin = game.createSession()
         val captain = game.createUser(role = UserRole.Student)
-        game.createTeam(competitionPin = competitionPin, captain = captain)
+        game.createTeam(sessionPin = sessionPin, captain = captain)
 
-        val session = game.loadCompetitionSession(competitionPin)
+        val session = game.loadSession(sessionPin)
 
         assertThat(session.teams).hasSize(1)
         assertThat(session.teams[0].captain.user).isEqualTo(captain)
@@ -61,12 +62,11 @@ class CompetitionServiceTest @Autowired constructor(
 
     @Test
     fun `get clone info for competition`() {
-        val competitionPin = game.createCompetition()
-        val session = game.loadCompetitionSession(competitionPin)
+        val session = game.createAndLoadSession()
         val settings = session.settings
 
         val cloneInfo = runBlocking {
-            competitionService.getCompetitionCloneInfo(competitionPin)
+            competitionService.getCompetitionCloneInfo(session.pin)
         }
 
         assertThat(cloneInfo)
