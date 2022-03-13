@@ -33,33 +33,3 @@ sealed class RoundEvent {
         val roundLength: Int,
     ): RoundEvent()
 }
-
-/*
-public class NewRoundEventDto implements ITypedEvent {
-
-    private static final long serialVersionUID = 2297590174396281095L;
-
-    @Builder.Default
-    private String type = "NewRound";
-
-    private int roundLength;
-
-    private long beginTime;
-
-    private int roundNumber;
-}
-
-public class EndRoundEventDto implements ITypedEvent {
-    private static final long serialVersionUID = 6160337879050418193L;
-
-    @Builder.Default
-    private String type = "EndRound";
-
-    private int roundNumber;
-
-    private boolean isEndOfGame;
-
-    private int roundLength;
-}
-
- */

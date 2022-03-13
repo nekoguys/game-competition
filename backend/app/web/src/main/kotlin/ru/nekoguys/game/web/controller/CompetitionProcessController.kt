@@ -56,15 +56,4 @@ class CompetitionProcessController(
                 ServerSentEvent.builder(event).id("roundStream").build()
             }
             .withRequestIdInContext()
-
-
-    /*
-    @RequestMapping(value = "/rounds_stream", produces = {MediaType.TEXT_EVENT_STREAM_VALUE})
-    @PreAuthorize("hasRole('STUDENT')")
-    public Flux<ServerSentEvent<?>> getCompetitionRoundEvents(@PathVariable String pin) {
-        log.info("REQUEST: /api/competition_process/{}/rounds_stream", pin);
-        return competitionsRepository.findByPin(pin).flatMapMany(comp -> gameManagementService.beginEndRoundEvents(comp))
-                .map(e -> ServerSentEvent.builder().data(e).id("roundStream").build());
-    }
-     */
 }
