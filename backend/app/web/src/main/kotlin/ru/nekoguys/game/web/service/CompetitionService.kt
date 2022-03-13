@@ -159,7 +159,7 @@ class CompetitionService(
         userEmail: String,
         sessionPin: String
     ): Flow<TeamMemberUpdateNotification> = flow {
-        val sessionId = sessionPinGenerator
+        val sessionId = sessionPinDecoder
             .decodeIdFromPin(sessionPin)
             ?: error("Incorrect pin")
         val session = competitionSessionRepository
@@ -171,17 +171,16 @@ class CompetitionService(
             it.students.any { member -> member.user.email == userEmail }
         }
         competitionProcessService.getAllMessagesForSession(sessionId)
-            .map { it.body }
-            .transform { msg ->
-                val notification = when (msg) {
-                    is CompetitionCreateTeamMessage -> Pair(msg.teamName == team.name, msg.toNewTeamMemberNotification())
-                    is CompetitionJoinTeamMessage -> Pair(msg.teamName == team.name, msg.toNewTeamMemberNotification())
-                    else -> return@transform
+            .mapNotNull {
+                val msg = it.body
+                when {
+                    msg is CompetitionCreateTeamMessage && msg.teamName == team.name ->
+                        msg.toNewTeamMemberNotification()
+                    msg is CompetitionJoinTeamMessage && msg.teamName == team.name ->
+                        msg.toNewTeamMemberNotification()
+                    else -> null
                 }
-                emit(notification)
-            }
-            .mapNotNull { if (it.first) it.second else null }
-            .collect(::emit)
+            }.collect(::emit)
     }
 
     suspend fun ifSessionCanBeJoined(
