@@ -225,9 +225,7 @@ export default class ApiHelper {
         return fetch(ApiSettings.checkPinEndPoint(), {
             method: "POST",
             headers: this.authDefaultHeaders(),
-            body: {
-                pin: pin.toString()
-            }
+            body: JSON.stringify({pin: pin})
         });
     }
 
