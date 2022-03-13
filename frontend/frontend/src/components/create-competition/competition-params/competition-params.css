@@ -129,6 +129,13 @@
         margin-top: 24px;
     }
 
+    .game-form__input {
+        padding-top: 4px;
+        padding-bottom: 4px;
+        padding-left: 8px;
+        font-size: 18px;
+    }
+
     .checkmark {
         left: 0;
         height: 20px;

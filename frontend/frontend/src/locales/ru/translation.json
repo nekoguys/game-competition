@@ -125,6 +125,14 @@
     "show_settings": "Показать настройки",
     "start_game": "Начать игру"
   },
+  "waiting_room_new": {
+    "save": "Сохранить",
+    "create": "ID игры: ",
+    "registration_opened": "Регистрация открыта",
+    "show_settings": "Показать настройки",
+    "start_game": "Начать игру",
+    "teams_list_title": "Список команд"
+  },
   "create_competition": {
     "create_game": "Создание Игры",
     "save_draft": "Сохранить черновик",

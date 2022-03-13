@@ -23,6 +23,11 @@
     padding-left: 80px;
     padding-right: 80px;
 }
+.new-team-collection-holder {
+    padding: 25px;
+    border-radius: 30px;
+    background-color: rgba(222, 220, 222, 0.35);
+}
 
 @media (max-width: 500px) {
     .team-collection-root-container {
@@ -38,5 +43,10 @@
 
     .team-name-input-container {
         padding-top: 15px;
+    }
+
+    .new-team-collection-holder {
+        padding: 10px;
+        border-radius: 10px;
     }
 }

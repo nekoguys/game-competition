@@ -130,13 +130,54 @@ const createCompetitionFetcher = {
 }['mock'];
 
 const updateCompetitionFetcher = {
-    mock: (_, __) => {
-        return new Promise(resolve => resolve({}))
+    mock: (_, obj) => {
+        return new Promise(resolve => resolve({
+            ...obj,
+            name: "edited:" + obj.name,
+            demandFormula: obj.demandFormula.join(';'),
+            expensesFormula: obj.expensesFormula.join(';')
+        }
+        )
+        )
     },
     real: (pin, obj) => {
         return apiFetcher({pin, obj}, (data) => ApiHelper.updateCompetition(data.pin, data.obj))
     }
 }['mock'];
+
+const startCompetitionFetcher = {
+    mock: (_) => {
+        return new Promise(resolve => setTimeout(() => resolve({}), 600))
+    },
+    real: (pin) => {
+        return apiFetcher(pin, (pin) => ApiHelper.startCompetition(pin))
+    }
+}['mock']
+
+const cloneInfoCompetitionFetcher = {
+    mock: (_) => {
+        return new Promise(resolve => {
+            setTimeout(() => resolve(
+                {
+                    name: "sampleName",
+                    expensesFormula: "1;2;3",
+                    demandFormula: "1;2",
+                    maxTeamsAmount: 11,
+                    maxTeamSize: 2,
+                    roundsCount: 5,
+                    instruction: "some instruction",
+                    teamLossUpperbound: 1000,
+                    shouldShowStudentPreviousRoundResults: true,
+                    shouldShowResultTableInEnd: true,
+                    isAutoRoundEnding: true
+                }
+            ), 1000)
+        })
+    },
+    real: (pin) => {
+        return apiFetcher(pin, (pin) => ApiHelper.getCompetitionCloneInfo(pin))
+    }
+}['mock']
 
 const teamEventsSource = {
     mock: (_) => {
@@ -260,7 +301,18 @@ const paths = [
     },
     {
         path: "/competitions/after_registration_opened/:pin",
-        component: AfterRegistrationOpenedComponent
+        component: AfterRegistrationOpenedComponent,
+        props: {
+            fetchers: {
+                updateCompetition: updateCompetitionFetcher,
+                startCompetition: startCompetitionFetcher,
+                cloneInfo: cloneInfoCompetitionFetcher,
+            },
+            eventSources: {
+                teams: teamEventsSource,
+
+            }
+        }
     },
     {
         path: "/competitions/waiting_room/:pin",
