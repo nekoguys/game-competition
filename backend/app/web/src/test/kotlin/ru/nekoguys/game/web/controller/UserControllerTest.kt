@@ -79,7 +79,7 @@ class UserControllerTest @Autowired constructor(
             ).isEqualTo(UserRole.Teacher.toString())
     }
 
-    @WithMockUser(username = TestGame.DEFAULT_STUDENT_EMAIL, roles = ["STUDENT"]) // why he is admin? (testUser moment)
+    @WithMockUser(username = TestGame.DEFAULT_STUDENT_EMAIL, roles = ["STUDENT"])
     @Test
     fun `student can't update another user`() {
         val userForUpdate = game.createUser(
@@ -101,7 +101,7 @@ class UserControllerTest @Autowired constructor(
             .expectStatus().isForbidden
     }
 
-    @WithMockUser(username = TestGame.DEFAULT_ADMIN_EMAIL, roles = ["STUDENT"]) // why he is admin? (testUser moment)
+    @WithMockUser(username = TestGame.DEFAULT_ADMIN_EMAIL, roles = ["STUDENT"])
     @Test
     fun `user can't update himself`() {
         webTestClient
