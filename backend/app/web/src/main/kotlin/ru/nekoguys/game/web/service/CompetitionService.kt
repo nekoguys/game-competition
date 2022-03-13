@@ -235,7 +235,7 @@ private fun createCompetitionHistoryResponseItem(
     settings: CompetitionSettings,
     stage: CompetitionStage,
     lastModified: LocalDateTime,
-    isOwned: Boolean,
+    @Suppress("SameParameterValue") isOwned: Boolean,
     pin: String,
 ) =
     GetCompetitionResponse(
@@ -255,7 +255,7 @@ private fun createCompetitionHistoryResponseItem(
         shouldShowResultTableInEnd = settings.showStudentsResultsTable,
         shouldShowStudentPreviousRoundResults = settings.showPreviousRoundResults,
         showOtherTeamsMembers = settings.showOtherTeamsMembers,
-        state = stage.name.lowercase().replaceFirstChar(Char::uppercase),
+        state = stage.name,
         teamLossUpperbound = settings.teamLossLimit.toDouble(),
     )
 

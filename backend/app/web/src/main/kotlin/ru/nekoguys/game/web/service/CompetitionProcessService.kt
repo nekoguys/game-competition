@@ -31,7 +31,7 @@ class CompetitionProcessService(
                     sessionId,
                     CompetitionCommand.ChangeStageCommand(
                         from = CompetitionStage.Registration,
-                        to = CompetitionStage.InProgress(round = 1),
+                        to = CompetitionStage.InProcess(round = 1),
                     ),
                 )
         } catch (ex: CompetitionProcessException) {

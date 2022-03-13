@@ -36,7 +36,7 @@ class StartCompetitionServiceTest @Autowired constructor(
         val sessionAfter = game.loadCompetitionSession(session.pin)
 
         assertThat(sessionAfter.stage)
-            .isEqualTo(CompetitionStage.InProgress(round = 1))
+            .isEqualTo(CompetitionStage.InProcess(round = 1))
     }
 
     @Test
@@ -61,7 +61,7 @@ class StartCompetitionServiceTest @Autowired constructor(
         @Suppress("unused")
         val expectedMessage = object {
             val from = CompetitionStage.Registration
-            val to = CompetitionStage.InProgress(round = 1)
+            val to = CompetitionStage.InProcess(round = 1)
             val timeStamp = LocalDateTime.now()
             val roundLength = session.settings.roundLength
         }

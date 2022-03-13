@@ -8,23 +8,23 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
 // для таких целей лучше использовать kotlinx.serialization, но он не такой гибкий
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME)
 sealed class CompetitionStage(val name: String) {
-    object Draft : CompetitionStage("DRAFT") {
+    object Draft : CompetitionStage("Draft") {
         @JvmStatic
         @JsonCreator
         fun deserialize() = Draft
     }
 
-    object Registration : CompetitionStage("REGISTRATION") {
+    object Registration : CompetitionStage("Registration") {
         @JvmStatic
         @JsonCreator
         fun deserialize() = Registration
     }
 
-    data class InProgress(
+    data class InProcess(
         val round: Int,
-    ) : CompetitionStage("IN_PROGRESS")
+    ) : CompetitionStage("InProcess")
 
-    object Ended : CompetitionStage("ENDED") {
+    object Ended : CompetitionStage("Ended") {
         @JvmStatic
         @JsonCreator
         fun deserialize() = Ended

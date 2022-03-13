@@ -29,13 +29,13 @@ class CompetitionSessionRepositoryTest @Autowired constructor(
         val createdSession = competitionSessionRepository.create(
             userId = user.id,
             settings = DEFAULT_COMPETITION_SETTINGS,
-            stage = CompetitionStage.InProgress(round = 4)
+            stage = CompetitionStage.InProcess(round = 4)
         )
         val expectedSession = CompetitionSession(
             id = createdSession.id,
             settings = DEFAULT_COMPETITION_SETTINGS,
             creatorId = user.id,
-            stage = CompetitionStage.InProgress(round = 4),
+            stage = CompetitionStage.InProcess(round = 4),
             teams = emptyList(),
         )
 

@@ -41,12 +41,12 @@ fun CompetitionStage.extractDbCompetitionStage() =
     when (this) {
         is CompetitionStage.Draft -> DbCompetitionStage.DRAFT
         is CompetitionStage.Registration -> DbCompetitionStage.REGISTRATION
-        is CompetitionStage.InProgress -> DbCompetitionStage.IN_PROGRESS
+        is CompetitionStage.InProcess -> DbCompetitionStage.IN_PROGRESS
         is CompetitionStage.Ended -> DbCompetitionStage.ENDED
     }
 
 fun CompetitionStage.extractDbLastRound(): Int? =
-    if (this is CompetitionStage.InProgress) {
+    if (this is CompetitionStage.InProcess) {
         round
     } else {
         null
@@ -56,7 +56,7 @@ fun DbCompetitionSession.extractCompetitionStage() =
     when (stage) {
         DbCompetitionStage.DRAFT -> CompetitionStage.Draft
         DbCompetitionStage.REGISTRATION -> CompetitionStage.Registration
-        DbCompetitionStage.IN_PROGRESS -> CompetitionStage.InProgress(lastRound!!)
+        DbCompetitionStage.IN_PROGRESS -> CompetitionStage.InProcess(lastRound!!)
         DbCompetitionStage.ENDED -> CompetitionStage.Ended
         DbCompetitionStage.UNKNOWN -> error("Got unknown competition stage")
     }
