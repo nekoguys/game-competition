@@ -2,7 +2,6 @@ package ru.nekoguys.game.entity.competition
 
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
-import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Service
 import ru.nekoguys.game.core.GameMessage
 import ru.nekoguys.game.core.session.GameSession
@@ -13,7 +12,6 @@ import ru.nekoguys.game.entity.commongame.model.CommonSession
 import ru.nekoguys.game.entity.commongame.service.GameMessageLogProvider
 import ru.nekoguys.game.entity.commongame.service.createGameLog
 import ru.nekoguys.game.entity.competition.model.CompetitionBasePlayer
-import ru.nekoguys.game.entity.competition.model.CompetitionPlayer
 import ru.nekoguys.game.entity.competition.model.CompetitionTeam
 import ru.nekoguys.game.entity.competition.model.InternalPlayer
 import ru.nekoguys.game.entity.competition.repository.CompetitionPlayerRepository

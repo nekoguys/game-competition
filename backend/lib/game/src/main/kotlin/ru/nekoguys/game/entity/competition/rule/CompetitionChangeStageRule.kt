@@ -8,10 +8,13 @@ import ru.nekoguys.game.entity.competition.model.CompetitionStage
 import ru.nekoguys.game.entity.competition.model.InternalPlayer
 import ru.nekoguys.game.entity.competition.repository.CompetitionSessionRepository
 import ru.nekoguys.game.entity.competition.repository.load
+import java.time.LocalDateTime
 
 data class CompetitionStageChangedMessage(
     val from: CompetitionStage,
     val to: CompetitionStage,
+    val timeStamp: LocalDateTime,
+    val roundLength: Int,
 ) : CompetitionMessage()
 
 @Component
@@ -28,6 +31,7 @@ class CompetitionChangeStageRule(
                 player.sessionId,
                 CompetitionSession.WithStage,
                 CompetitionSession.WithTeamIds,
+                CompetitionSession.WithSettings,
             )
         checkCurrentStage(session, command)
 
@@ -38,12 +42,15 @@ class CompetitionChangeStageRule(
             )
         )
 
+        val message = CompetitionStageChangedMessage(
+            from = command.from,
+            to = command.to,
+            timeStamp = LocalDateTime.now(),
+            roundLength = session.settings.roundLength,
+        )
         return buildResponse {
-            (session.teamIds) {
-                CompetitionStageChangedMessage(
-                    from = command.from,
-                    to = command.to,
-                )
+            session.teamIds {
+                add(message)
             }
         }
     }

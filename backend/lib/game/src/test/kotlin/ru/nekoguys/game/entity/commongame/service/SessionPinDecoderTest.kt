@@ -15,12 +15,12 @@ import ru.nekoguys.game.entity.competition.repository.CompetitionSessionReposito
 
 @ExtendWith(MockKExtension::class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class SessionPinGeneratorTest {
+class SessionPinDecoderTest {
 
     @MockK
     private lateinit var competitionSessionRepository: CompetitionSessionRepository
 
-    private lateinit var sessionPinGenerator: SessionPinGenerator
+    private lateinit var sessionPinDecoder: SessionPinDecoder
 
     @BeforeAll
     fun before() {
@@ -31,7 +31,7 @@ class SessionPinGeneratorTest {
                 .map { CompetitionSession(id = CommonSession.Id(it)) }
         }
 
-        sessionPinGenerator = SessionPinGenerator(competitionSessionRepository)
+        sessionPinDecoder = SessionPinDecoder(competitionSessionRepository)
     }
 
     @Test
@@ -39,7 +39,7 @@ class SessionPinGeneratorTest {
         val sessionIds = (0..20_000L).map { CommonSession.Id(it) }
 
         val pins = sessionIds
-            .map { sessionPinGenerator.convertSessionIdToPin(it) }
+            .map { it.toPin() }
             .toSet()
 
         assertThat(pins)
@@ -51,8 +51,8 @@ class SessionPinGeneratorTest {
         val sessionIds = (0..20_000L).map { CommonSession.Id(it) }
 
         val encodedSessionIds = sessionIds
-            .associateWith { sessionPinGenerator.convertSessionIdToPin(it) }
-            .mapValues { (_, pin) -> sessionPinGenerator.decodeIdFromPin(pin) }
+            .associateWith { it.toPin() }
+            .mapValues { (_, pin) -> sessionPinDecoder.decodeIdFromPin(pin) }
 
         val isAllEquals = encodedSessionIds
             .all { (id, encodedIds) -> id == encodedIds!! }

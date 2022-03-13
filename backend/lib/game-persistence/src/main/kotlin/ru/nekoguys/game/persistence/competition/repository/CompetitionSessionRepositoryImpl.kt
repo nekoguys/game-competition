@@ -76,7 +76,7 @@ class CompetitionSessionRepositoryImpl(
 
         val settings = async {
             competitionSettingsRepository
-                .takeIf { fieldSelectors.has(CompetitionSession.WithTeams) }
+                .takeIf { fieldSelectors.has(CompetitionSession.WithSettings) }
                 ?.findAll(ids)
                 ?.mapKeys { (a) -> a.number }
         }
@@ -137,7 +137,7 @@ class CompetitionSessionRepositoryImpl(
                 sessionId = to.id.number,
                 stage = newStage.extractDbCompetitionStage(),
                 lastRound = newStage.extractDbLastRound(),
-            ).let { dbCompetitionSessionRepository.save(it.asNew()) }
+            ).let { dbCompetitionSessionRepository.save(it) }
         }
 
         val oldTeams = from.teamsOrNull.orEmpty().toSet()

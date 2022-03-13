@@ -2,7 +2,8 @@ package ru.nekoguys.game.web.service
 
 import kotlinx.coroutines.flow.*
 import org.springframework.stereotype.Service
-import ru.nekoguys.game.entity.commongame.service.SessionPinGenerator
+import ru.nekoguys.game.entity.commongame.service.SessionPinDecoder
+import ru.nekoguys.game.entity.commongame.service.pin
 import ru.nekoguys.game.entity.competition.CompetitionProcessException
 import ru.nekoguys.game.entity.competition.CompetitionProcessService
 import ru.nekoguys.game.entity.competition.model.*
@@ -18,7 +19,7 @@ import java.time.LocalDateTime
 @Service
 class CompetitionService(
     private val competitionProcessService: CompetitionProcessService,
-    private val sessionPinGenerator: SessionPinGenerator,
+    private val sessionPinDecoder: SessionPinDecoder,
     private val competitionSessionRepository: CompetitionSessionRepository,
     private val userRepository: UserRepository,
 ) {
@@ -36,8 +37,7 @@ class CompetitionService(
         )
 
         return if (request.state?.lowercase() == "registration") {
-            val pin = sessionPinGenerator.convertSessionIdToPin(session.id)
-            CreateCompetitionResponse.OpenedRegistration(pin)
+            CreateCompetitionResponse.OpenedRegistration(session.pin)
         } else {
             CreateCompetitionResponse.Created
         }
@@ -68,7 +68,7 @@ class CompetitionService(
                     stage = it.stage,
                     lastModified = it.lastModified,
                     isOwned = true,
-                    pin = sessionPinGenerator.convertSessionIdToPin(it.id)
+                    pin = it.pin
                 )
             }
             .toList()
@@ -86,7 +86,7 @@ class CompetitionService(
             .findByEmail(studentEmail)
             ?: error("No such user: $studentEmail")
 
-        val sessionId = sessionPinGenerator
+        val sessionId = sessionPinDecoder
             .decodeIdFromPin(request.gameId)
             ?: return CreateTeamResponse.GameNotFound(request.gameId)
 
@@ -113,7 +113,7 @@ class CompetitionService(
             .findByEmail(studentEmail)
             ?: error("No such user: studentEmail")
 
-        val sessionId = sessionPinGenerator
+        val sessionId = sessionPinDecoder
             .decodeIdFromPin(request.competitionPin)
             ?: return JoinTeamResponse.GameNotFound(request.competitionPin)
 
@@ -135,7 +135,7 @@ class CompetitionService(
         userEmail: String,
         sessionPin: String,
     ): Flow<TeamUpdateNotification> = flow {
-        val sessionId = sessionPinGenerator
+        val sessionId = sessionPinDecoder
             .decodeIdFromPin(sessionPin)
             ?: error("Incorrect pin")
 
@@ -143,12 +143,13 @@ class CompetitionService(
             .getAllMessagesForSession(sessionId)
             .map { it.body } // не смотрим, каким командам отправлено сообщение
             .transform { msg ->
-                val notification = when (msg) {
-                    is CompetitionCreateTeamMessage -> msg.toUpdateNotification()
-                    is CompetitionJoinTeamMessage -> msg.toUpdateNotification()
-                    else -> return@transform
+                when (msg) {
+                    is CompetitionCreateTeamMessage ->
+                        emit(msg.toUpdateNotification())
+                    is CompetitionJoinTeamMessage ->
+                        emit(msg.toUpdateNotification())
+                    else -> Unit
                 }
-                emit(notification)
             }
             .collect(::emit)
     }
@@ -156,7 +157,7 @@ class CompetitionService(
     suspend fun ifSessionCanBeJoined(
         sessionPin: String,
     ): Boolean {
-        val sessionId = sessionPinGenerator
+        val sessionId = sessionPinDecoder
             .decodeIdFromPinUnsafe(sessionPin)
             ?: return false
 
@@ -168,7 +169,7 @@ class CompetitionService(
     }
 
     suspend fun getCompetitionCloneInfo(sessionPin: String): CompetitionCloneInfoResponse? {
-        val id = sessionPinGenerator
+        val id = sessionPinDecoder
             .decodeIdFromPinUnsafe(sessionPin)
             ?: return null
 

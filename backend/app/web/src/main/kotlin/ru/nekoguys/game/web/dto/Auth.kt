@@ -44,7 +44,9 @@ sealed class SignUpResponse(
         ).joinToString(" ")
     }
 
-    class UserAlreadyRegistered(email: String) : SignUpResponse {
+    class UserAlreadyRegistered(
+        email: String,
+    ) : SignUpResponse(HttpStatus.BAD_REQUEST) {
         @Suppress("unused")
         val message = "User with email $email already exists!"
     }

@@ -1,13 +1,8 @@
 package ru.nekoguys.game.web.service
 
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.transform
-import org.springframework.beans.factory.annotation.Qualifier
+import kotlinx.coroutines.flow.*
 import org.springframework.stereotype.Service
-import reactor.core.publisher.Flux
-import ru.nekoguys.game.entity.commongame.service.SessionPinGenerator
+import ru.nekoguys.game.entity.commongame.service.SessionPinDecoder
 import ru.nekoguys.game.entity.competition.CompetitionProcessException
 import ru.nekoguys.game.entity.competition.model.CompetitionStage
 import ru.nekoguys.game.entity.competition.rule.CompetitionCommand
@@ -16,18 +11,18 @@ import ru.nekoguys.game.web.dto.RoundEvent
 import ru.nekoguys.game.web.dto.StartCompetitionResponse
 import ru.nekoguys.game.entity.competition.CompetitionProcessService as CoreCompetitionProcessService
 
-@Service
-@Qualifier("webCompetitionProcessService")
+@Service("webCompetitionProcessService")
 class CompetitionProcessService(
-    // одноимённый класс, поэтому такое странное название
+    // одноимённый класс уже есть в lib-game, здесь используется import alias
     private val coreCompetitionProcessService: CoreCompetitionProcessService,
-    private val sessionPinGenerator: SessionPinGenerator,
+    private val sessionPinDecoder: SessionPinDecoder,
 ) {
     suspend fun startCompetition(
-        pin: String
+        teacherEmail: String,
+        sessionPin: String
     ): StartCompetitionResponse? {
-        val sessionId = sessionPinGenerator
-            .decodeIdFromPin(pin)
+        val sessionId = sessionPinDecoder
+            .decodeIdFromPin(sessionPin)
             ?: return null
 
         try {
@@ -48,8 +43,8 @@ class CompetitionProcessService(
 
     fun competitionRoundEventsFlow(
         sessionPin: String,
-    ): Flux<RoundEvent> = flow {
-        val sessionId = sessionPinGenerator
+    ): Flow<RoundEvent> = flow {
+        val sessionId = sessionPinDecoder
             .decodeIdFromPin(sessionPin)
             ?: error("Incorrect pin")
 
@@ -57,20 +52,18 @@ class CompetitionProcessService(
             .getAllMessagesForSession(sessionId)
             .map { it.body } // не смотрим, каким командам отправлено сообщение
             .transform { msg ->
-                val notification = when (msg) {
-                    is CompetitionStageChangedMessage -> msg.toRoundEvent()
-                    else -> return@transform
+                if (msg is CompetitionStageChangedMessage) {
+                    emit(msg.toRoundEvent())
                 }
-                emit(notification)
             }
-            .map { error("") }
-//            .collect(::emit)
-        TODO()
+            .collect(::emit)
     }
 
-    private fun CompetitionStageChangedMessage.toRoundEvent(): RoundEvent =
-        RoundEvent.NewRound(
-            roundLength =
+    private fun CompetitionStageChangedMessage.toRoundEvent(): RoundEvent.EndRound =
+        RoundEvent.EndRound(
+            roundNumber = 0,
+            isEndOfGame = false,
+            roundLength = roundLength,
         )
 
 
@@ -79,8 +72,14 @@ class CompetitionProcessService(
     @PreAuthorize("hasRole('STUDENT')")
     public Flux<ServerSentEvent<?>> getCompetitionRoundEvents(@PathVariable String pin) {
         log.info("REQUEST: /api/competition_process/{}/rounds_stream", pin);
-        return competitionsRepository.findByPin(pin).flatMapMany(comp -> gameManagementService.beginEndRoundEvents(comp))
-                .map(e -> ServerSentEvent.builder().data(e).id("roundStream").build());
+        return competitionsRepository
+            .findByPin(pin)
+            .flatMapMany(comp -> gameManagementService.beginEndRoundEvents(comp))
+            .map(e -> ServerSentEvent.builder()
+                    .data(e)
+                    .id("roundStream")
+                    .build()
+            );
     }
      */
 

@@ -9,15 +9,9 @@ import ru.nekoguys.game.entity.competition.repository.CompetitionSessionReposito
  * Генерация пин-кода игры по ID сессии c использованием модульной арифметики
  */
 @Component
-class SessionPinGenerator(
+class SessionPinDecoder(
     private val sessionRepository: CompetitionSessionRepository,
 ) {
-    fun convertSessionIdToPin(sessionId: CommonSession.Id): String {
-        val id = sessionId.number.toBigInteger()
-        val idModulo = id % MODULO
-        val pinModulo = idModulo * MULTIPLIER % MODULO
-        return (id - idModulo + pinModulo).toString()
-    }
 
     suspend fun decodeIdFromPin(sessionPin: String): CommonSession.Id? =
         decodeIdFromPinUnsafe(sessionPin)
@@ -41,3 +35,13 @@ class SessionPinGenerator(
         val MULTIPLIER_INVERT = 2983.toBigInteger()
     }
 }
+
+fun CommonSession.Id.toPin(): String {
+    val id = this.number.toBigInteger()
+    val idModulo = id % SessionPinDecoder.MODULO
+    val pinModulo = idModulo * SessionPinDecoder.MULTIPLIER % SessionPinDecoder.MODULO
+    return (id - idModulo + pinModulo).toString()
+}
+
+val CompetitionSession.pin: String
+    get() = id.toPin()

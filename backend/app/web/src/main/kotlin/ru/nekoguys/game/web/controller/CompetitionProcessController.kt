@@ -1,5 +1,7 @@
 package ru.nekoguys.game.web.controller
 
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -9,12 +11,13 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import reactor.core.publisher.Flux
 import ru.nekoguys.game.web.dto.RoundEvent
 import ru.nekoguys.game.web.dto.StartCompetitionResponse
 import ru.nekoguys.game.web.service.CompetitionProcessService
 import ru.nekoguys.game.web.util.toResponseEntity
 import ru.nekoguys.game.web.util.withMDCContext
+import ru.nekoguys.game.web.util.withRequestIdInContext
+import java.security.Principal
 
 @RestController
 @RequestMapping("/api/competition_process/{pin}")
@@ -27,11 +30,15 @@ class CompetitionProcessController(
     ) // TODO: это же должен быть POST, а не GET
     @PreAuthorize("hasRole('TEACHER')")
     suspend fun startCompetition(
+        principal: Principal,
         @PathVariable pin: String,
     ): ResponseEntity<StartCompetitionResponse> =
         withMDCContext {
             competitionProcessService
-                .startCompetition(pin)
+                .startCompetition(
+                    teacherEmail = principal.name,
+                    sessionPin = pin,
+                )
                 .toResponseEntity(ifEmpty = HttpStatus.BAD_REQUEST)
         }
 
@@ -42,9 +49,13 @@ class CompetitionProcessController(
     @PreAuthorize("hasRole('STUDENT')")
     fun competitionRoundEventsFlow(
         @PathVariable pin: String,
-    ): Flux<ServerSentEvent<RoundEvent>> =
+    ): Flow<ServerSentEvent<RoundEvent>> =
         competitionProcessService
             .competitionRoundEventsFlow(pin)
+            .map { event ->
+                ServerSentEvent.builder(event).id("roundStream").build()
+            }
+            .withRequestIdInContext()
 
 
     /*
