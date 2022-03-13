@@ -13,6 +13,7 @@ import ru.nekoguys.game.web.dto.CreateTeamRequest
 import ru.nekoguys.game.web.dto.JoinTeamRequest
 import ru.nekoguys.game.web.util.CleanDatabaseExtension
 import ru.nekoguys.game.web.util.TestGame
+import ru.nekoguys.game.web.util.TestGame.TestData.DEFAULT_ADMIN_EMAIL
 import ru.nekoguys.game.web.util.TestGame.TestData.DEFAULT_CREATE_COMPETITION_REQUEST
 import ru.nekoguys.game.web.util.TestGame.TestData.DEFAULT_CREATE_DRAFT_COMPETITION_REQUEST
 
@@ -27,10 +28,10 @@ class CompetitionControllerTest @Autowired constructor(
 
     @BeforeEach
     fun createUser() {
-        testUser = game.createUser(email = TestGame.DEFAULT_EMAIL)
+        testUser = game.createUser(email = TestGame.DEFAULT_ADMIN_EMAIL)
     }
 
-    @WithMockUser(username = TestGame.DEFAULT_EMAIL, roles = ["TEACHER"])
+    @WithMockUser(username = TestGame.DEFAULT_ADMIN_EMAIL, roles = ["TEACHER"])
     @Test
     fun `create competition in draft stage`() {
         webTestClient
@@ -43,7 +44,7 @@ class CompetitionControllerTest @Autowired constructor(
             .jsonPath("message").exists()
     }
 
-    @WithMockUser(username = TestGame.DEFAULT_EMAIL, roles = ["TEACHER"])
+    @WithMockUser(username = TestGame.DEFAULT_ADMIN_EMAIL, roles = ["TEACHER"])
     @Test
     fun `can create competition in draft state`() {
         webTestClient
@@ -56,7 +57,7 @@ class CompetitionControllerTest @Autowired constructor(
             .jsonPath("$.message").exists()
     }
 
-    @WithMockUser(username = TestGame.DEFAULT_EMAIL, roles = ["TEACHER"])
+    @WithMockUser(username = TestGame.DEFAULT_ADMIN_EMAIL, roles = ["TEACHER"])
     @Test
     fun `can create competition in registration state`() {
         webTestClient
@@ -69,7 +70,7 @@ class CompetitionControllerTest @Autowired constructor(
             .jsonPath("$.pin").exists()
     }
 
-    @WithMockUser(username = TestGame.DEFAULT_EMAIL, roles = ["STUDENT"])
+    @WithMockUser(username = TestGame.DEFAULT_ADMIN_EMAIL, roles = ["STUDENT"])
     @Test
     fun `can check if competition exists`() {
         val competitionPin = game.createCompetition()
@@ -86,7 +87,7 @@ class CompetitionControllerTest @Autowired constructor(
             .jsonPath("$.exists").isEqualTo(true)
     }
 
-    @WithMockUser(username = TestGame.DEFAULT_EMAIL, roles = ["STUDENT"])
+    @WithMockUser(username = TestGame.DEFAULT_ADMIN_EMAIL, roles = ["STUDENT"])
     @Test
     fun `can check if competition doesn't exists`() {
         val competitionPin = game.createCompetition()
@@ -105,7 +106,7 @@ class CompetitionControllerTest @Autowired constructor(
             .jsonPath("$.exists").isEqualTo(false)
     }
 
-    @WithMockUser(username = TestGame.DEFAULT_EMAIL, roles = ["STUDENT"])
+    @WithMockUser(username = TestGame.DEFAULT_ADMIN_EMAIL, roles = ["STUDENT"])
     @Test
     fun `can create a team`() {
         val competitionPin = game.createCompetition()
@@ -127,7 +128,7 @@ class CompetitionControllerTest @Autowired constructor(
             .jsonPath("$.message").exists()
     }
 
-    @WithMockUser(username = TestGame.DEFAULT_EMAIL, roles = ["STUDENT"])
+    @WithMockUser(username = TestGame.DEFAULT_ADMIN_EMAIL, roles = ["STUDENT"])
     @Test
     fun `can't create a team with same captain`() {
         val (competitionPin) = game.createTeam(captain = testUser)
@@ -149,7 +150,7 @@ class CompetitionControllerTest @Autowired constructor(
             .jsonPath("$.message").exists()
     }
 
-    @WithMockUser(username = TestGame.DEFAULT_EMAIL, roles = ["STUDENT"])
+    @WithMockUser(username = TestGame.DEFAULT_ADMIN_EMAIL, roles = ["STUDENT"])
     @Test
     fun `can't create a team with same name`() {
         val (competitionPin, teamName) = game.createTeam(captain = testUser)
@@ -171,7 +172,7 @@ class CompetitionControllerTest @Autowired constructor(
             .jsonPath("$.message").exists()
     }
 
-    @WithMockUser(username = TestGame.DEFAULT_EMAIL, roles = ["STUDENT"])
+    @WithMockUser(username = TestGame.DEFAULT_ADMIN_EMAIL, roles = ["STUDENT"])
     @Test
     fun `can't create too many teams`() {
         val competitionPin = game.createCompetition(
@@ -198,7 +199,7 @@ class CompetitionControllerTest @Autowired constructor(
             .jsonPath("$.message").exists()
     }
 
-    @WithMockUser(username = TestGame.DEFAULT_EMAIL, roles = ["STUDENT"])
+    @WithMockUser(username = TestGame.DEFAULT_ADMIN_EMAIL, roles = ["STUDENT"])
     @Test
     fun `can join a team`() {
         val (competitionPin, teamName, password) = game.createTeam()
@@ -219,7 +220,7 @@ class CompetitionControllerTest @Autowired constructor(
             .jsonPath("$.currentTeamName").exists()
     }
 
-    @WithMockUser(username = "test@hse.ru", roles = ["STUDENT"])
+    @WithMockUser(username = DEFAULT_ADMIN_EMAIL, roles = ["STUDENT"])
     @Test
     fun `can't join non-existent team`() {
         val competitionPin = game.createCompetition()
@@ -240,7 +241,7 @@ class CompetitionControllerTest @Autowired constructor(
             .jsonPath("$.message").exists()
     }
 
-    @WithMockUser(username = "test@hse.ru", roles = ["STUDENT"])
+    @WithMockUser(username = DEFAULT_ADMIN_EMAIL, roles = ["STUDENT"])
     @Test
     fun `can't join same team twice`() {
         val (competitionPin, teamName, password) =
@@ -262,7 +263,7 @@ class CompetitionControllerTest @Autowired constructor(
             .jsonPath("$.message").exists()
     }
 
-    @WithMockUser(username = "test@hse.ru", roles = ["STUDENT"])
+    @WithMockUser(username = DEFAULT_ADMIN_EMAIL, roles = ["STUDENT"])
     @Test
     fun `can't join full team`() {
         val competitionPin = game.createCompetition(
