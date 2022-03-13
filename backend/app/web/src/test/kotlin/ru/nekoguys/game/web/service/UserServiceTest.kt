@@ -82,7 +82,7 @@ class UserServiceTest @Autowired constructor(
             .usingRecursiveComparison()
             .isEqualTo(object {
                 val email = searchUser.email
-                val role = searchUser.role
+                val role = searchUser.role.toString()
             })
     }
 }

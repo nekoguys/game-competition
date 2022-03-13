@@ -13,6 +13,7 @@ import ru.nekoguys.game.web.dto.CreateTeamRequest
 import ru.nekoguys.game.web.dto.JoinTeamRequest
 import ru.nekoguys.game.web.util.CleanDatabaseExtension
 import ru.nekoguys.game.web.util.TestGame
+import ru.nekoguys.game.web.util.TestGame.TestData.DEFAULT_ADMIN_EMAIL
 import ru.nekoguys.game.web.util.TestGame.TestData.DEFAULT_CREATE_COMPETITION_REQUEST
 import ru.nekoguys.game.web.util.TestGame.TestData.DEFAULT_CREATE_DRAFT_COMPETITION_REQUEST
 
@@ -219,7 +220,7 @@ class CompetitionControllerTest @Autowired constructor(
             .jsonPath("$.currentTeamName").exists()
     }
 
-    @WithMockUser(username = "test@hse.ru", roles = ["STUDENT"])
+    @WithMockUser(username = DEFAULT_ADMIN_EMAIL, roles = ["STUDENT"])
     @Test
     fun `can't join non-existent team`() {
         val competitionPin = game.createCompetition()
@@ -240,7 +241,7 @@ class CompetitionControllerTest @Autowired constructor(
             .jsonPath("$.message").exists()
     }
 
-    @WithMockUser(username = "test@hse.ru", roles = ["STUDENT"])
+    @WithMockUser(username = DEFAULT_ADMIN_EMAIL, roles = ["STUDENT"])
     @Test
     fun `can't join same team twice`() {
         val (competitionPin, teamName, password) =
@@ -262,7 +263,7 @@ class CompetitionControllerTest @Autowired constructor(
             .jsonPath("$.message").exists()
     }
 
-    @WithMockUser(username = "test@hse.ru", roles = ["STUDENT"])
+    @WithMockUser(username = DEFAULT_ADMIN_EMAIL, roles = ["STUDENT"])
     @Test
     fun `can't join full team`() {
         val competitionPin = game.createCompetition(
