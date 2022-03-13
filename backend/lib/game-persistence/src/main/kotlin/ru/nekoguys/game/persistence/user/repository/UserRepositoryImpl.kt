@@ -1,7 +1,6 @@
 package ru.nekoguys.game.persistence.user.repository
 
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.*
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Repository
 import ru.nekoguys.game.entity.user.model.User
@@ -67,5 +66,20 @@ class UserRepositoryImpl(
         dbUserRepository.deleteById(userId.number)
         logger.info("Deleted user with id $userId from DB")
     }
+
+    override fun searchUser(query: String, offset: Int, limit: Int): Flow<User> {
+        var counter = 0
+        return dbUserRepository
+            .findByQuery(
+                query = query,
+                offset = offset,
+                limit = limit,
+            )
+            .map { it.toUserOrNull() ?: error("can't parse user $it") }
+            .onStart { logger.info("Find users by query $query in DB") }
+            .onEach { counter++ }
+            .onCompletion { logger.info("Found $counter users by query $query") }
+    }
+
 }
 
