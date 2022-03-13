@@ -1,13 +1,11 @@
 package ru.nekoguys.game.web.util
 
 import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.emitAll
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.reactor.ReactorContext
 import kotlinx.coroutines.slf4j.MDCContext
 import kotlinx.coroutines.withContext
+import org.springframework.http.codec.ServerSentEvent
 import reactor.util.context.ContextView
 import kotlin.coroutines.coroutineContext
 
@@ -35,6 +33,10 @@ suspend fun <T> withMDCContext(block: suspend () -> T): T {
         block()
     }
 }
+
+fun <T> Flow<T>.wrapToServerSentEvent(streamName: String): Flow<ServerSentEvent<T>> =
+    this.map { ServerSentEvent.builder(it).id(streamName).build() } //TODO почему ругается?
+//Warning:(38, 40) Type mismatch: value of a nullable type T is used where non-nullable type is expected. This warning will become an error soon. See https://youtrack.jetbrains.com/issue/KT-36770 for details
 
 fun <T> Flow<T>.withRequestIdInContext(): Flow<T> =
     flow {
