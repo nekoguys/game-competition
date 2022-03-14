@@ -11,7 +11,6 @@ import ru.nekoguys.game.web.GameWebApplicationIntegrationTest
 import ru.nekoguys.game.web.dto.CheckGamePinRequest
 import ru.nekoguys.game.web.util.CleanDatabaseExtension
 import ru.nekoguys.game.web.util.TestGame
-import ru.nekoguys.game.web.util.TestGame.TestData.DEFAULT_ADMIN_EMAIL
 import ru.nekoguys.game.web.util.TestGame.TestData.DEFAULT_CREATE_COMPETITION_REQUEST
 import ru.nekoguys.game.web.util.TestGame.TestData.DEFAULT_CREATE_DRAFT_COMPETITION_REQUEST
 

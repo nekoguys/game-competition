@@ -6,8 +6,12 @@ import ru.nekoguys.game.entity.commongame.service.SessionPinDecoder
 import ru.nekoguys.game.entity.competition.CompetitionProcessException
 import ru.nekoguys.game.entity.competition.CompetitionProcessService
 import ru.nekoguys.game.entity.competition.model.CompetitionPlayer
+import ru.nekoguys.game.entity.competition.model.CompetitionSession
+import ru.nekoguys.game.entity.competition.model.students
 import ru.nekoguys.game.entity.competition.repository.CompetitionPlayerRepository
+import ru.nekoguys.game.entity.competition.repository.CompetitionSessionRepository
 import ru.nekoguys.game.entity.competition.repository.CompetitionTeamRepository
+import ru.nekoguys.game.entity.competition.repository.load
 import ru.nekoguys.game.entity.competition.rule.CompetitionCommand
 import ru.nekoguys.game.entity.competition.rule.CompetitionCreateTeamMessage
 import ru.nekoguys.game.entity.competition.rule.CompetitionJoinTeamMessage
@@ -21,6 +25,7 @@ class CompetitionTeamService(
     private val userRepository: UserRepository,
     private val competitionTeamRepository: CompetitionTeamRepository,
     private val competitionPlayerRepository: CompetitionPlayerRepository,
+    private val competitionSessionRepository: CompetitionSessionRepository,
 ) {
 
     suspend fun create(
@@ -130,6 +135,34 @@ class CompetitionTeamService(
             }
             .collect(::emit)
     }
+
+    fun myTeamJoinMessageFlow(
+        userEmail: String,
+        sessionPin: String
+    ): Flow<TeamMemberUpdateNotification> = flow {
+        val sessionId = sessionPinDecoder
+            .decodeIdFromPin(sessionPin)
+            ?: error("Incorrect pin")
+        val session = competitionSessionRepository
+            .load(
+                sessionId,
+                CompetitionSession.WithTeams,
+            )
+        val team = session.teams.first {
+            it.students.any { member -> member.user.email == userEmail }
+        }
+        competitionProcessService.getAllMessagesForSession(sessionId)
+            .mapNotNull {
+                val msg = it.body
+                when {
+                    msg is CompetitionCreateTeamMessage && msg.teamName == team.name ->
+                        msg.toNewTeamMemberNotification()
+                    msg is CompetitionJoinTeamMessage && msg.teamName == team.name ->
+                        msg.toNewTeamMemberNotification()
+                    else -> null
+                }
+            }.collect(::emit)
+    }
 }
 
 private fun CompetitionCreateTeamMessage.toUpdateNotification() =
@@ -144,4 +177,17 @@ private fun CompetitionJoinTeamMessage.toUpdateNotification() =
         teamName = teamName,
         idInGame = idInGame,
         teamMembers = membersEmails,
+    )
+
+
+private fun CompetitionCreateTeamMessage.toNewTeamMemberNotification() =
+    TeamMemberUpdateNotification(
+        name = captainEmail,
+        isCaptain = true
+    )
+
+private fun CompetitionJoinTeamMessage.toNewTeamMemberNotification() =
+    TeamMemberUpdateNotification(
+        name = membersEmails.last(),
+        isCaptain = false
     )

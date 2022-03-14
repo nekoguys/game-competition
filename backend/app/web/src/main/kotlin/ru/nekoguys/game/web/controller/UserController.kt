@@ -13,8 +13,7 @@ import ru.nekoguys.game.web.dto.UserSearchRequest
 import ru.nekoguys.game.web.dto.UserSearchResponse
 import ru.nekoguys.game.web.dto.UserUpdateRequest
 import ru.nekoguys.game.web.service.UserService
-import ru.nekoguys.game.web.util.toResponseEntity
-import ru.nekoguys.game.web.util.withMDCContext
+import ru.nekoguys.game.web.util.wrapServiceCall
 import java.security.Principal
 
 @Controller
@@ -28,10 +27,11 @@ class UserController(
     suspend fun currentUser(
         principal: Principal,
     ): ResponseEntity<UserResponse> =
-        withMDCContext {
+        wrapServiceCall {
             userService
-                .getUser(email = principal.name)
-                .toResponseEntity()
+                .getUser(
+                    email = principal.name,
+                )
         }
 
     @PostMapping("/get")
@@ -39,12 +39,11 @@ class UserController(
         principal: Principal,
         @RequestBody targetEmail: String, // TODO: findUserRequest (because json)
     ): ResponseEntity<UserResponse> =
-        withMDCContext {
+        wrapServiceCall {
             userService
                 .getUser(
-                    email = targetEmail
+                    email = targetEmail,
                 )
-                .toResponseEntity()
         }
 
     @PostMapping(value = ["/update", "/update_role"])
@@ -52,13 +51,12 @@ class UserController(
         principal: Principal,
         @RequestBody userUpdateRequest: UserUpdateRequest,
     ): ResponseEntity<UserResponse> =
-        withMDCContext {
+        wrapServiceCall {
             userService
                 .updateUser(
                     operatorEmail = principal.name,
                     userUpdateRequest = userUpdateRequest,
                 )
-                .toResponseEntity()
         }
 
     @PostMapping(value = ["/search"])
@@ -66,11 +64,10 @@ class UserController(
         principal: Principal,
         @RequestBody userSearchRequest: UserSearchRequest,
     ): ResponseEntity<UserSearchResponse> =
-        withMDCContext {
+        wrapServiceCall {
             userService
                 .findUsers(
                     userSearchRequest = userSearchRequest
                 )
-                .toResponseEntity()
         }
 }

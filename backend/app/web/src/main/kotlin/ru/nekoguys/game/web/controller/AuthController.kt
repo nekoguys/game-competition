@@ -11,8 +11,7 @@ import ru.nekoguys.game.web.dto.SignInResponse
 import ru.nekoguys.game.web.dto.SignUpRequest
 import ru.nekoguys.game.web.dto.SignUpResponse
 import ru.nekoguys.game.web.service.AuthService
-import ru.nekoguys.game.web.util.toResponseEntity
-import ru.nekoguys.game.web.util.withMDCContext
+import ru.nekoguys.game.web.util.wrapServiceCall
 
 @RestController
 @RequestMapping(path = ["/api/auth"], produces = [MediaType.APPLICATION_JSON_VALUE])
@@ -23,19 +22,17 @@ class AuthController(
     suspend fun signIn(
         @RequestBody request: SignInRequest,
     ): ResponseEntity<SignInResponse> =
-        withMDCContext {
+        wrapServiceCall {
             authService
                 .signIn(request)
-                .toResponseEntity()
         }
 
     @PostMapping("/signup")
     suspend fun signUp(
         @RequestBody request: SignUpRequest,
     ): ResponseEntity<out SignUpResponse> =
-        withMDCContext {
+        wrapServiceCall {
             authService
                 .signUp(request)
-                .toResponseEntity()
         }
 }

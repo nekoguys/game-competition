@@ -12,9 +12,24 @@ open class WebResponse(
     val status: HttpStatus
 )
 
-fun <T: Any> Flow<T>.wrapToServerSentEvent(streamName: String): Flow<ServerSentEvent<T>> =
+fun <T : Any> Flow<T>.asServerSentEventStream(
+    streamName: String,
+): Flow<ServerSentEvent<T>> =
     map { ServerSentEvent.builder(it).id(streamName).build() }
+        .withRequestIdInContext()
 
+suspend fun <T : WebResponse> wrapServiceCall(block: suspend () -> T?): ResponseEntity<T> {
+    return withMDCContext {
+        @Suppress("DEPRECATION")
+        block().toResponseEntity()
+    }
+}
+
+@Deprecated(
+    message = "It's probably better to use `wrapServiceCall` there",
+    replaceWith = ReplaceWith(""),
+    level = DeprecationLevel.WARNING,
+)
 fun <T : WebResponse> T?.toResponseEntity(
     ifEmpty: HttpStatus = HttpStatus.NOT_FOUND,
 ): ResponseEntity<T> =

@@ -1,7 +1,6 @@
 package ru.nekoguys.game.web.controller
 
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.http.codec.ServerSentEvent
@@ -9,9 +8,8 @@ import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 import ru.nekoguys.game.web.dto.*
 import ru.nekoguys.game.web.service.CompetitionTeamService
-import ru.nekoguys.game.web.util.toResponseEntity
-import ru.nekoguys.game.web.util.withMDCContext
-import ru.nekoguys.game.web.util.withRequestIdInContext
+import ru.nekoguys.game.web.util.asServerSentEventStream
+import ru.nekoguys.game.web.util.wrapServiceCall
 import java.security.Principal
 
 @RestController
@@ -30,12 +28,12 @@ class CompetitionTeamController(
         @PathVariable sessionPin: String,
         @RequestBody request: CreateTeamRequest,
     ): ResponseEntity<TeamApiResponse<CreateTeamResponse>> =
-        withMDCContext {
+        wrapServiceCall {
             competitionTeamService.create(
                 sessionPin = sessionPin,
                 studentEmail = principal.name,
                 request = request,
-            ).toResponseEntity()
+            )
         }
 
     @PostMapping(
@@ -48,12 +46,12 @@ class CompetitionTeamController(
         @PathVariable sessionPin: String,
         @RequestBody request: JoinTeamRequest,
     ): ResponseEntity<TeamApiResponse<JoinTeamResponse>> =
-        withMDCContext {
+        wrapServiceCall {
             competitionTeamService.join(
                 sessionPin = sessionPin,
                 studentEmail = principal.name,
                 request = request,
-            ).toResponseEntity()
+            )
         }
 
     @GetMapping(
@@ -64,11 +62,11 @@ class CompetitionTeamController(
         principal: Principal,
         @PathVariable sessionPin: String,
     ): ResponseEntity<TeamApiResponse<GetTeamResponse>> =
-        withMDCContext {
+        wrapServiceCall {
             competitionTeamService.getTeam(
                 sessionPin = sessionPin,
                 studentEmail = principal.name,
-            ).toResponseEntity()
+            )
         }
 
     @RequestMapping(
@@ -80,11 +78,19 @@ class CompetitionTeamController(
         @PathVariable sessionPin: String,
     ): Flow<ServerSentEvent<TeamUpdateNotification>> =
         competitionTeamService
-            .allTeamJoinEventsFlow(
-                sessionPin = sessionPin,
-            )
-            .map { message ->
-                ServerSentEvent.builder(message).id("teamStream").build()
-            }
-            .withRequestIdInContext()
+            .allTeamJoinEventsFlow(sessionPin = sessionPin)
+            .asServerSentEventStream("teamStream")
+
+    @GetMapping(
+        "/my_team_new_members",
+        produces = [MediaType.TEXT_EVENT_STREAM_VALUE]
+    )
+    @PreAuthorize("hasRole('STUDENT')")
+    fun myTeamNewMembers(
+        principal: Principal,
+        @PathVariable sessionPin: String
+    ): Flow<ServerSentEvent<TeamMemberUpdateNotification>> =
+        competitionTeamService
+            .myTeamJoinMessageFlow(userEmail = principal.name, sessionPin = sessionPin)
+            .asServerSentEventStream("myTeamStream")
 }

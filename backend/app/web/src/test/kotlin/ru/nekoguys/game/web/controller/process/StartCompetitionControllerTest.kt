@@ -35,7 +35,7 @@ class StartCompetitionControllerTest @Autowired constructor(
         repeat(2) { game.createTeam(sessionPin) }
 
         webTestClient
-            .get()
+            .post()
             .uri("/api/competition_process/$sessionPin/start_competition")
             .exchange()
             .expectStatus().isOk
@@ -50,7 +50,7 @@ class StartCompetitionControllerTest @Autowired constructor(
         repeat(2) { game.createTeam(sessionPin) }
 
         webTestClient
-            .get()
+            .post()
             .uri("/api/competition_process/$sessionPin/start_competition")
             .exchange()
             .expectStatus().isForbidden
@@ -64,7 +64,7 @@ class StartCompetitionControllerTest @Autowired constructor(
         )
 
         webTestClient
-            .get()
+            .post()
             .uri("/api/competition_process/$sessionPin/start_competition")
             .exchange()
             .expectStatus().isBadRequest
@@ -80,7 +80,7 @@ class StartCompetitionControllerTest @Autowired constructor(
         game.startCompetition(sessionPin)
 
         webTestClient
-            .get()
+            .post()
             .uri("/api/competition_process/$sessionPin/start_competition")
             .exchange()
             .expectStatus().isBadRequest

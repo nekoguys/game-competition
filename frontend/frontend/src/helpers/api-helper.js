@@ -49,6 +49,10 @@ class ApiSettings {
         return ApiSettings.teamsEndPoint(pin, "/all_join_events");
     }
 
+    static myTeamNewMembersEvents(pin) {
+        return ApiSettings.teamsEndPoint(pin, "/my_team_new_members");
+    }
+
     static joinTeamEndPoint(pin) {
         return ApiSettings.teamsEndPoint(pin, "/join");
     }
@@ -298,7 +302,7 @@ export default class ApiHelper {
 
     static startCompetition(pin) {
         return fetch(ApiSettings.startCompetitionEndPoint(pin), {
-            method: "GET",
+            method: "POST",
             headers: this.authDefaultHeaders(),
         })
     }

@@ -45,10 +45,12 @@ class TestGame(
         secondName: String? = null,
     ): User = runBlocking {
         val user = userRepository.create(email, "{noop}$password", role)
-        userRepository.updateUser(user.copy(
-            firstName = firstName,
-            secondName = secondName,
-        ))
+        userRepository.updateUser(
+            user.copy(
+                firstName = firstName,
+                secondName = secondName,
+            )
+        )
         userRepository.findByEmail(email)!!
     }
 
@@ -170,7 +172,6 @@ class TestGame(
         private val indexCounter = AtomicLong()
 
         const val DEFAULT_ADMIN_EMAIL = "admin@hse.ru"
-        const val DEFAULT_TEACHER_EMAIL = "teacher@hse.ru"
         const val DEFAULT_STUDENT_EMAIL = "student@edu.hse.ru"
         const val DEFAULT_PASSWORD = "password"
         const val DEFAULT_COMPETITION_NAME = "Test Competition"

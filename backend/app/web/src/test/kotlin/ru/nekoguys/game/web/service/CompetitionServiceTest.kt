@@ -1,8 +1,5 @@
 package ru.nekoguys.game.web.service
 
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.take
-import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -12,7 +9,6 @@ import ru.nekoguys.game.entity.commongame.service.pin
 import ru.nekoguys.game.entity.competition.model.CompetitionStage
 import ru.nekoguys.game.entity.user.model.UserRole
 import ru.nekoguys.game.web.GameWebApplicationTest
-import ru.nekoguys.game.web.dto.TeamMemberUpdateNotification
 import ru.nekoguys.game.web.util.CleanDatabaseExtension
 import ru.nekoguys.game.web.util.TestGame
 import java.time.LocalDateTime
@@ -62,29 +58,6 @@ class CompetitionServiceTest @Autowired constructor(
 
         assertThat(session.teams).hasSize(1)
         assertThat(session.teams[0].captain.user).isEqualTo(captain)
-    }
-
-    @Test
-    fun `valid my team members flow`() {
-        val competitionPin = game.createCompetition()
-        val captain = game.createUser(role = UserRole.Student)
-        val sampleMember = game.createUser(role = UserRole.Student)
-
-        val captain2 = game.createUser(role = UserRole.Student)
-        game.createTeam(competitionPin = competitionPin, captain = captain2)
-        val team = game.createTeam(competitionPin = competitionPin, captain = captain)
-        game.joinTeam(competitionPin, team.teamName, sampleMember, team.password)
-
-        fun checkValidFlow(flow: Flow<TeamMemberUpdateNotification>) {
-            runBlocking {
-                val flowResult = flow.take(2).toList()
-                assertThat(flowResult[0].name).isEqualTo(captain.email)
-                assertThat(flowResult[0].isCaptain).isTrue()
-                assertThat(flowResult[1].name).isEqualTo(sampleMember.email)
-            }
-        }
-        checkValidFlow(competitionService.myTeamJoinMessageFlow(captain.email, competitionPin))
-        checkValidFlow(competitionService.myTeamJoinMessageFlow(sampleMember.email, competitionPin))
     }
 
     @Test

@@ -25,10 +25,10 @@ class CompetitionTeamControllerTest @Autowired constructor(
 
     @BeforeEach
     fun createUser() {
-        testUser = game.createUser(email = TestGame.DEFAULT_EMAIL)
+        testUser = game.createUser(email = TestGame.DEFAULT_ADMIN_EMAIL)
     }
 
-    @WithMockUser(username = TestGame.DEFAULT_EMAIL, roles = ["STUDENT"])
+    @WithMockUser(username = TestGame.DEFAULT_ADMIN_EMAIL, roles = ["STUDENT"])
     @Test
     fun `can create a team`() {
         val sessionPin = game.createSession()
@@ -49,7 +49,7 @@ class CompetitionTeamControllerTest @Autowired constructor(
             .jsonPath("$.message").exists()
     }
 
-    @WithMockUser(username = TestGame.DEFAULT_EMAIL, roles = ["STUDENT"])
+    @WithMockUser(username = TestGame.DEFAULT_ADMIN_EMAIL, roles = ["STUDENT"])
     @Test
     fun `can't create a team with same captain`() {
         val (sessionPin) = game.createTeam(captain = testUser)
@@ -70,7 +70,7 @@ class CompetitionTeamControllerTest @Autowired constructor(
             .jsonPath("$.message").exists()
     }
 
-    @WithMockUser(username = TestGame.DEFAULT_EMAIL, roles = ["STUDENT"])
+    @WithMockUser(username = TestGame.DEFAULT_ADMIN_EMAIL, roles = ["STUDENT"])
     @Test
     fun `can't create a team with same name`() {
         val (sessionPin, teamName) = game.createTeam(captain = testUser)
@@ -91,7 +91,7 @@ class CompetitionTeamControllerTest @Autowired constructor(
             .jsonPath("$.message").exists()
     }
 
-    @WithMockUser(username = TestGame.DEFAULT_EMAIL, roles = ["STUDENT"])
+    @WithMockUser(username = TestGame.DEFAULT_ADMIN_EMAIL, roles = ["STUDENT"])
     @Test
     fun `can't create too many teams`() {
         val sessionPin = game.createSession(
@@ -117,7 +117,7 @@ class CompetitionTeamControllerTest @Autowired constructor(
             .jsonPath("$.message").exists()
     }
 
-    @WithMockUser(username = TestGame.DEFAULT_EMAIL, roles = ["STUDENT"])
+    @WithMockUser(username = TestGame.DEFAULT_ADMIN_EMAIL, roles = ["STUDENT"])
     @Test
     fun `can join a team`() {
         val (sessionPin, teamName, password) = game.createTeam()
@@ -137,7 +137,7 @@ class CompetitionTeamControllerTest @Autowired constructor(
             .jsonPath("$.currentTeamName").exists()
     }
 
-    @WithMockUser(username = TestGame.DEFAULT_EMAIL, roles = ["STUDENT"])
+    @WithMockUser(username = TestGame.DEFAULT_ADMIN_EMAIL, roles = ["STUDENT"])
     @Test
     fun `can't join non-existent team`() {
         val sessionPin = game.createSession()
@@ -157,7 +157,7 @@ class CompetitionTeamControllerTest @Autowired constructor(
             .jsonPath("$.message").exists()
     }
 
-    @WithMockUser(username = TestGame.DEFAULT_EMAIL, roles = ["STUDENT"])
+    @WithMockUser(username = TestGame.DEFAULT_ADMIN_EMAIL, roles = ["STUDENT"])
     @Test
     fun `can't join same team twice`() {
         val (sessionPin, teamName, password) =
@@ -178,7 +178,7 @@ class CompetitionTeamControllerTest @Autowired constructor(
             .jsonPath("$.message").exists()
     }
 
-    @WithMockUser(username = TestGame.DEFAULT_EMAIL, roles = ["STUDENT"])
+    @WithMockUser(username = TestGame.DEFAULT_ADMIN_EMAIL, roles = ["STUDENT"])
     @Test
     fun `can't join full team`() {
         val sessionPin = game.createSession(
@@ -205,7 +205,7 @@ class CompetitionTeamControllerTest @Autowired constructor(
             .jsonPath("$.message").exists()
     }
 
-    @WithMockUser(username = TestGame.DEFAULT_EMAIL, roles = ["STUDENT"])
+    @WithMockUser(username = TestGame.DEFAULT_ADMIN_EMAIL, roles = ["STUDENT"])
     @Test
     fun `captain can view current team info`() {
         val (sessionPin, teamName, password) =
@@ -221,7 +221,7 @@ class CompetitionTeamControllerTest @Autowired constructor(
             .jsonPath("$.password").isEqualTo(password)
     }
 
-    @WithMockUser(username = TestGame.DEFAULT_EMAIL, roles = ["STUDENT"])
+    @WithMockUser(username = TestGame.DEFAULT_ADMIN_EMAIL, roles = ["STUDENT"])
     @Test
     fun `team member can view current team info`() {
         val (sessionPin, teamName, _) =
@@ -237,7 +237,7 @@ class CompetitionTeamControllerTest @Autowired constructor(
             .jsonPath("$.password").doesNotExist()
     }
 
-    @WithMockUser(username = TestGame.DEFAULT_EMAIL, roles = ["STUDENT"])
+    @WithMockUser(username = TestGame.DEFAULT_ADMIN_EMAIL, roles = ["STUDENT"])
     @Test
     fun `not registered player can't view current team info`() {
         val sessionPin = game.createSession()
