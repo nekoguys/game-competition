@@ -114,7 +114,7 @@ class UserControllerTest @Autowired constructor(
             .bodyValue(
                 UserUpdateRequest(
                     email = userForUpdate.email,
-                    role = UserRole.Teacher.toString(),
+                    role = UserRole.Teacher.topRoleName,
                     name = null,
                     surname = null,
                     newPassword = null,
@@ -140,7 +140,7 @@ class UserControllerTest @Autowired constructor(
             .bodyValue(
                 UserUpdateRequest(
                     email = userForUpdate.email,
-                    role = UserRole.Teacher.toString(),
+                    role = UserRole.Teacher.topRoleName,
                     name = null,
                     surname = null,
                     newPassword = null,
@@ -159,7 +159,7 @@ class UserControllerTest @Autowired constructor(
             .bodyValue(
                 UserUpdateRequest(
                     email = TestGame.DEFAULT_ADMIN_EMAIL,
-                    role = UserRole.Teacher.toString(),
+                    role = UserRole.Teacher.topRoleName,
                     name = null,
                     surname = null,
                     newPassword = null,
