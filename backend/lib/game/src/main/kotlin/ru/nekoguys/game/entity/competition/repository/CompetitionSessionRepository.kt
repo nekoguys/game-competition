@@ -29,6 +29,12 @@ interface CompetitionSessionRepository {
         limit: Int = Int.MAX_VALUE,
         offset: Int = 0,
     ): List<CommonSession.Id>
+
+    suspend fun findIdsByParticipantId(
+        participantId: Long,
+        limit: Int = Int.MAX_VALUE,
+        offset: Int = 0,
+    ): List<CommonSession.Id>
 }
 
 suspend fun CompetitionSessionRepository.load(

@@ -1,6 +1,7 @@
 package ru.nekoguys.game.web.util
 
 import kotlinx.coroutines.runBlocking
+import org.assertj.core.api.Assertions.assertThat
 import org.springframework.stereotype.Component
 import ru.nekoguys.game.entity.commongame.service.SessionPinDecoder
 import ru.nekoguys.game.entity.commongame.service.toPin
@@ -107,7 +108,7 @@ class TestGame(
 
         runBlocking {
             val response = competitionTeamService.create(sessionPin, captain.email, request)
-            check(response is CreateTeamResponse.Success)
+            assertThat(response).isInstanceOf(CreateTeamResponse.Success::class.java)
         }
 
         return TestCreateTeamResult(

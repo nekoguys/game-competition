@@ -158,6 +158,21 @@ class CompetitionSessionRepositoryImpl(
             .findIdsByCreatorId(creatorId, limit, offset)
             .toList()
             .map(CommonSession::Id)
+
+    override suspend fun findIdsByParticipantId(
+        participantId: Long,
+        limit: Int,
+        offset: Int,
+    ): List<CommonSession.Id> =
+        dbGameSessionRepository
+            .findIdsByParticipantId(
+                participantId = participantId,
+                limit = limit,
+                offset = offset,
+            )
+            .toList()
+            .map(CommonSession::Id)
+
 }
 
 private fun createCompetitionSession(

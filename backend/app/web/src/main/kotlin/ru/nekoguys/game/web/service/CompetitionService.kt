@@ -6,6 +6,7 @@ import ru.nekoguys.game.entity.commongame.service.pin
 import ru.nekoguys.game.entity.competition.model.*
 import ru.nekoguys.game.entity.competition.repository.CompetitionSessionRepository
 import ru.nekoguys.game.entity.competition.repository.findAll
+import ru.nekoguys.game.entity.user.model.UserRole
 import ru.nekoguys.game.entity.user.repository.UserRepository
 import ru.nekoguys.game.web.dto.CompetitionCloneInfoResponse
 import ru.nekoguys.game.web.dto.CreateCompetitionRequest
@@ -47,9 +48,20 @@ class CompetitionService(
         val user = userRepository.findByEmail(userEmail)
         checkNotNull(user)
 
-        val sessionIds = competitionSessionRepository
-            .findIdsByCreatorId(user.id.number, limit, offset)
-            .toList()
+        val participantSessionIds =
+            competitionSessionRepository
+                .findIdsByParticipantId(user.id.number, limit, offset)
+                .toList()
+
+        val creatorSessionIds =
+            if (user.role != UserRole.Student)
+                competitionSessionRepository
+                    .findIdsByCreatorId(user.id.number, limit, offset)
+                    .toList()
+            else
+                emptyList()
+
+        val sessionIds = participantSessionIds.plus(creatorSessionIds)
 
         return competitionSessionRepository
             .findAll(
