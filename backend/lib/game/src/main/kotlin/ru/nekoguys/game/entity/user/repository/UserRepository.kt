@@ -20,6 +20,8 @@ interface UserRepository {
     suspend fun updateUser(user: User)
 
     suspend fun deleteUser(userId: User.Id)
+
+    fun searchUser(query: String, offset: Int, limit: Int): Flow<User>
 }
 
 suspend fun UserRepository.load(userId: User.Id): User =

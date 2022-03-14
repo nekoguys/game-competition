@@ -38,3 +38,10 @@ sealed interface UserRole {
     }
 }
 
+fun String.toUserRole(): UserRole =
+    when (this) {
+        UserRole.Student.toString() -> UserRole.Student
+        UserRole.Teacher.toString() -> UserRole.Teacher
+        UserRole.Admin.toString() -> UserRole.Admin
+        else -> error("unknown role")
+    }

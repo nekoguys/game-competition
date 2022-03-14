@@ -7,6 +7,6 @@ import org.springframework.test.context.ActiveProfiles
 
 @SpringBootTest
 @ActiveProfiles("dev")
-@AutoConfigureWebTestClient
+@AutoConfigureWebTestClient(timeout = "PT1H")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 annotation class GameWebApplicationIntegrationTest

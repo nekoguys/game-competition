@@ -99,3 +99,27 @@ data class CheckGamePinRequest(
 data class CheckGamePinResponse(
     val exists: Boolean,
 ) : WebResponse(HttpStatus.OK)
+
+data class TeamUpdateNotification(
+    val teamName: String,
+    val idInGame: Int,
+    val teamMembers: List<String>,
+)
+
+data class TeamMemberUpdateNotification(
+    val name: String,
+    val isCaptain: Boolean
+)
+
+/*
+public class TeamCreationEventDto implements Serializable {
+    private static final long serialVersionUID = -4502650950386932982L;
+
+    private String teamName;
+
+    private int idInGame;
+
+    private List<String> teamMembers;
+}
+
+ */

@@ -6,6 +6,10 @@ import ru.nekoguys.game.entity.commongame.service.pin
 import ru.nekoguys.game.entity.competition.model.*
 import ru.nekoguys.game.entity.competition.repository.CompetitionSessionRepository
 import ru.nekoguys.game.entity.competition.repository.findAll
+import ru.nekoguys.game.entity.competition.repository.load
+import ru.nekoguys.game.entity.competition.rule.CompetitionCommand
+import ru.nekoguys.game.entity.competition.rule.CompetitionCreateTeamMessage
+import ru.nekoguys.game.entity.competition.rule.CompetitionJoinTeamMessage
 import ru.nekoguys.game.entity.user.repository.UserRepository
 import ru.nekoguys.game.web.dto.CompetitionCloneInfoResponse
 import ru.nekoguys.game.web.dto.CreateCompetitionRequest
@@ -175,6 +179,20 @@ private fun createCompetitionHistoryResponseItem(
         showOtherTeamsMembers = settings.showOtherTeamsMembers,
         state = stage.name,
         teamLossUpperbound = settings.teamLossLimit.toDouble(),
+    )
+
+private fun CompetitionCreateTeamMessage.toUpdateNotification() =
+    TeamUpdateNotification(
+        teamName = teamName,
+        idInGame = idInGame,
+        teamMembers = listOf(captainEmail)
+    )
+
+private fun CompetitionJoinTeamMessage.toUpdateNotification() =
+    TeamUpdateNotification(
+        teamName = teamName,
+        idInGame = idInGame,
+        teamMembers = membersEmails,
     )
 
 private fun CompetitionSession.Full.toCompetitionCloneInfo() =

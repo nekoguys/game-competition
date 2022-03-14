@@ -10,8 +10,8 @@ class ApiSettings {
     static #getCloneInfoEndPoint = ApiSettings.#host + "/competitions/get_clone_info/";
     static #updateCompetitionParams = ApiSettings.#host + "/competitions/update_competition/";
     static #updateProfile = ApiSettings.#host + "/profile/update";
-    static #getProfile = ApiSettings.#host + "/profile/get";
-    static #navBarInfo = ApiSettings.#host + "/profile/navbar_info";
+    static #getProfile = ApiSettings.#host + "/user/get";
+    static #navBarInfo = ApiSettings.#host + "/user/navbar_info";
 
     static trueHost() {
         return ApiSettings.#truehost;
@@ -166,15 +166,15 @@ class ApiSettings {
     }
 
     static changeRoleEndPoint(email) {
-        return ApiSettings.#host + "/roles/" + email;
+        return ApiSettings.#host + "/roles/" + email; // TODO: get email from body
     }
 
     static adminkaSearchUsersEndPoint() {
-        return ApiSettings.#host + "/admin/search"
+        return ApiSettings.#host + "/user/search"
     }
 
     static adminkaChangePassword() {
-        return ApiSettings.#host + "/users/change_pwd"
+        return ApiSettings.#host + "/user/update"
     }
 
     static submitStrategyEndPoint(pin) {
@@ -230,9 +230,7 @@ export default class ApiHelper {
         return fetch(ApiSettings.checkPinEndPoint(), {
             method: "POST",
             headers: this.authDefaultHeaders(),
-            body: {
-                pin: pin.toString()
-            }
+            body: JSON.stringify({pin: pin})
         });
     }
 

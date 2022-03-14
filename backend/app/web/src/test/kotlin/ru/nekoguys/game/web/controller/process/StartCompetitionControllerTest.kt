@@ -29,7 +29,7 @@ class StartCompetitionControllerTest @Autowired constructor(
     }
 
     @Test
-    @WithMockUser(username = TestGame.DEFAULT_EMAIL, roles = ["TEACHER"])
+    @WithMockUser(username = TestGame.DEFAULT_ADMIN_EMAIL, roles = ["TEACHER"])
     fun `can start competition`() {
         val sessionPin = game.createSession()
         repeat(2) { game.createTeam(sessionPin) }
@@ -57,7 +57,7 @@ class StartCompetitionControllerTest @Autowired constructor(
     }
 
     @Test
-    @WithMockUser(username = TestGame.DEFAULT_EMAIL, roles = ["TEACHER"])
+    @WithMockUser(username = TestGame.DEFAULT_ADMIN_EMAIL, roles = ["TEACHER"])
     fun `can't start draft competition`() {
         val sessionPin = game.createSession(
             request = TestGame.DEFAULT_CREATE_DRAFT_COMPETITION_REQUEST
@@ -73,7 +73,7 @@ class StartCompetitionControllerTest @Autowired constructor(
     }
 
     @Test
-    @WithMockUser(username = TestGame.DEFAULT_EMAIL, roles = ["TEACHER"])
+    @WithMockUser(username = TestGame.DEFAULT_ADMIN_EMAIL, roles = ["TEACHER"])
     fun `can start competition twice`() {
         val sessionPin = game.createSession()
         repeat(2) { game.createTeam(sessionPin) }
