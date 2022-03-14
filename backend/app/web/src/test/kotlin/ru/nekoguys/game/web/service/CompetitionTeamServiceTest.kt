@@ -39,7 +39,7 @@ class CompetitionTeamServiceTest @Autowired constructor(
                 assertThat(flowResult[1].name).isEqualTo(sampleMember.email)
             }
         }
-        checkValidFlow(competitionTeamService.myTeamJoinMessageFlow(captain.email, sessionPin))
-        checkValidFlow(competitionTeamService.myTeamJoinMessageFlow(sampleMember.email, sessionPin))
+        checkValidFlow(competitionTeamService.joinUserTeamEventsFlow(captain.email, sessionPin))
+        checkValidFlow(competitionTeamService.joinUserTeamEventsFlow(sampleMember.email, sessionPin))
     }
 }

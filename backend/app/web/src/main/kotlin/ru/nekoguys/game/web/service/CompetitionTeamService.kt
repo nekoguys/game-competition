@@ -6,12 +6,8 @@ import ru.nekoguys.game.entity.commongame.service.SessionPinDecoder
 import ru.nekoguys.game.entity.competition.CompetitionProcessException
 import ru.nekoguys.game.entity.competition.CompetitionProcessService
 import ru.nekoguys.game.entity.competition.model.CompetitionPlayer
-import ru.nekoguys.game.entity.competition.model.CompetitionSession
-import ru.nekoguys.game.entity.competition.model.students
 import ru.nekoguys.game.entity.competition.repository.CompetitionPlayerRepository
-import ru.nekoguys.game.entity.competition.repository.CompetitionSessionRepository
 import ru.nekoguys.game.entity.competition.repository.CompetitionTeamRepository
-import ru.nekoguys.game.entity.competition.repository.load
 import ru.nekoguys.game.entity.competition.rule.CompetitionCommand
 import ru.nekoguys.game.entity.competition.rule.CompetitionCreateTeamMessage
 import ru.nekoguys.game.entity.competition.rule.CompetitionJoinTeamMessage
@@ -25,7 +21,6 @@ class CompetitionTeamService(
     private val userRepository: UserRepository,
     private val competitionTeamRepository: CompetitionTeamRepository,
     private val competitionPlayerRepository: CompetitionPlayerRepository,
-    private val competitionSessionRepository: CompetitionSessionRepository,
 ) {
 
     suspend fun create(
@@ -104,12 +99,12 @@ class CompetitionTeamService(
             .let { it as? CompetitionPlayer.Student }
             ?: return TeamApiResponse.UserIsNotRegistered(studentEmail)
 
-        val currentTeam = competitionTeamRepository
+        val team = competitionTeamRepository
             .load(currentPlayerInfo.teamId)
 
         return GetTeamResponse(
-            teamName = currentTeam.name,
-            password = currentTeam.password
+            teamName = team.name,
+            password = team.password
                 .takeIf { currentPlayerInfo is CompetitionPlayer.TeamCaptain }
         )
     }
@@ -136,21 +131,26 @@ class CompetitionTeamService(
             .collect(::emit)
     }
 
-    fun myTeamJoinMessageFlow(
-        userEmail: String,
+    fun joinUserTeamEventsFlow(
+        studentEmail: String,
         sessionPin: String
     ): Flow<TeamMemberUpdateNotification> = flow {
         val sessionId = sessionPinDecoder
             .decodeIdFromPin(sessionPin)
-            ?: error("Incorrect pin")
-        val session = competitionSessionRepository
-            .load(
-                sessionId,
-                CompetitionSession.WithTeams,
-            )
-        val team = session.teams.first {
-            it.students.any { member -> member.user.email == userEmail }
-        }
+            ?: error("There is no competition session with pin '$sessionPin'")
+
+        val user = userRepository
+            .findByEmail(studentEmail)
+            ?: error("User with email '$studentEmail' is not registered")
+
+        val teamId = competitionPlayerRepository
+            .load(sessionId, user)
+            .let { it as? CompetitionPlayer.Student }
+            ?.teamId
+            ?: error("User with email '$studentEmail' is not associated with session '$sessionId'")
+
+        val team = competitionTeamRepository.load(teamId)
+
         competitionProcessService.getAllMessagesForSession(sessionId)
             .mapNotNull {
                 val msg = it.body
@@ -178,7 +178,6 @@ private fun CompetitionJoinTeamMessage.toUpdateNotification() =
         idInGame = idInGame,
         teamMembers = membersEmails,
     )
-
 
 private fun CompetitionCreateTeamMessage.toNewTeamMemberNotification() =
     TeamMemberUpdateNotification(

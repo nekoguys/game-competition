@@ -91,6 +91,6 @@ class CompetitionTeamController(
         @PathVariable sessionPin: String
     ): Flow<ServerSentEvent<TeamMemberUpdateNotification>> =
         competitionTeamService
-            .myTeamJoinMessageFlow(userEmail = principal.name, sessionPin = sessionPin)
+            .joinUserTeamEventsFlow(studentEmail = principal.name, sessionPin = sessionPin)
             .asServerSentEventStream("myTeamStream")
 }
