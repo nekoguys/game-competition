@@ -199,7 +199,7 @@ class CompetitionTeamControllerTest @Autowired constructor(
             .jsonPath("$.message").exists()
     }
 
-    @WithMockUser(username = TestGame.DEFAULT_EMAIL, roles = ["STUDENT"])
+    @WithMockUser(username = TestGame.DEFAULT_ADMIN_EMAIL, roles = ["STUDENT"])
     @Test
     fun `can't join full team`() {
         val sessionPin = game.createSession(
