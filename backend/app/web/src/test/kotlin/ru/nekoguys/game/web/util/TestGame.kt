@@ -41,8 +41,17 @@ class TestGame(
         role: UserRole = UserRole.Admin,
         email: String = nextEmail(role),
         password: String = DEFAULT_PASSWORD,
+        firstName: String? = null,
+        secondName: String? = null,
     ): User = runBlocking {
-        userRepository.create(email, "{noop}$password", role)
+        val user = userRepository.create(email, "{noop}$password", role)
+        userRepository.updateUser(
+            user.copy(
+                firstName = firstName,
+                secondName = secondName,
+            )
+        )
+        userRepository.findByEmail(email)!!
     }
 
     fun loadSession(
@@ -162,7 +171,8 @@ class TestGame(
     companion object TestData {
         private val indexCounter = AtomicLong()
 
-        const val DEFAULT_EMAIL = "test@hse.ru"
+        const val DEFAULT_ADMIN_EMAIL = "admin@hse.ru"
+        const val DEFAULT_STUDENT_EMAIL = "student@edu.hse.ru"
         const val DEFAULT_PASSWORD = "password"
         const val DEFAULT_COMPETITION_NAME = "Test Competition"
 

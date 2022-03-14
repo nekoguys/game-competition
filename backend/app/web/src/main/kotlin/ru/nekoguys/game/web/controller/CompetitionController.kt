@@ -6,8 +6,8 @@ import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 import ru.nekoguys.game.web.dto.*
 import ru.nekoguys.game.web.service.CompetitionService
-import ru.nekoguys.game.web.util.toResponseEntity
 import ru.nekoguys.game.web.util.withMDCContext
+import ru.nekoguys.game.web.util.wrapServiceCall
 import java.security.Principal
 import javax.validation.Valid
 
@@ -26,11 +26,11 @@ class CompetitionController(
         principal: Principal,
         @RequestBody @Valid request: CreateCompetitionRequest,
     ): ResponseEntity<out CreateCompetitionResponse> =
-        withMDCContext {
+        wrapServiceCall {
             competitionService.create(
                 userEmail = principal.name,
                 request = request
-            ).toResponseEntity()
+            )
         }
 
     @GetMapping(
@@ -44,11 +44,13 @@ class CompetitionController(
         @PathVariable amount: Int,
     ): ResponseEntity<List<GetCompetitionResponse>> =
         withMDCContext {
-            competitionService.getCompetitionHistory(
-                userEmail = principal.name,
-                limit = amount,
-                offset = start,
-            ).let { ResponseEntity.ok(it) }
+            competitionService
+                .getCompetitionHistory(
+                    userEmail = principal.name,
+                    limit = amount,
+                    offset = start,
+                )
+                .let { ResponseEntity.ok(it) }
         }
 
     @PostMapping(
@@ -60,10 +62,11 @@ class CompetitionController(
     suspend fun checkIfSessionCanBeJoined(
         @RequestBody request: CheckGamePinRequest,
     ): ResponseEntity<CheckGamePinResponse> =
-        competitionService
-            .ifSessionCanBeJoined(sessionPin = request.pin)
-            .let(::CheckGamePinResponse)
-            .toResponseEntity()
+        wrapServiceCall {
+            competitionService
+                .ifSessionCanBeJoined(sessionPin = request.pin)
+                .let(::CheckGamePinResponse)
+        }
 
     @GetMapping(
         "/get_clone_info/{sessionPin}",
@@ -73,10 +76,9 @@ class CompetitionController(
     suspend fun getCompetitionInfo(
         @PathVariable sessionPin: String,
     ) {
-        withMDCContext {
+        wrapServiceCall {
             competitionService
                 .getCompetitionCloneInfo(sessionPin)
-                .toResponseEntity()
         }
     }
 }

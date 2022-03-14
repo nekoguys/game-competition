@@ -29,13 +29,13 @@ class StartCompetitionControllerTest @Autowired constructor(
     }
 
     @Test
-    @WithMockUser(username = TestGame.DEFAULT_EMAIL, roles = ["TEACHER"])
+    @WithMockUser(username = TestGame.DEFAULT_ADMIN_EMAIL, roles = ["TEACHER"])
     fun `can start competition`() {
         val sessionPin = game.createSession()
         repeat(2) { game.createTeam(sessionPin) }
 
         webTestClient
-            .get()
+            .post()
             .uri("/api/competition_process/$sessionPin/start_competition")
             .exchange()
             .expectStatus().isOk
@@ -50,21 +50,21 @@ class StartCompetitionControllerTest @Autowired constructor(
         repeat(2) { game.createTeam(sessionPin) }
 
         webTestClient
-            .get()
+            .post()
             .uri("/api/competition_process/$sessionPin/start_competition")
             .exchange()
             .expectStatus().isForbidden
     }
 
     @Test
-    @WithMockUser(username = TestGame.DEFAULT_EMAIL, roles = ["TEACHER"])
+    @WithMockUser(username = TestGame.DEFAULT_ADMIN_EMAIL, roles = ["TEACHER"])
     fun `can't start draft competition`() {
         val sessionPin = game.createSession(
             request = TestGame.DEFAULT_CREATE_DRAFT_COMPETITION_REQUEST
         )
 
         webTestClient
-            .get()
+            .post()
             .uri("/api/competition_process/$sessionPin/start_competition")
             .exchange()
             .expectStatus().isBadRequest
@@ -73,14 +73,14 @@ class StartCompetitionControllerTest @Autowired constructor(
     }
 
     @Test
-    @WithMockUser(username = TestGame.DEFAULT_EMAIL, roles = ["TEACHER"])
+    @WithMockUser(username = TestGame.DEFAULT_ADMIN_EMAIL, roles = ["TEACHER"])
     fun `can start competition twice`() {
         val sessionPin = game.createSession()
         repeat(2) { game.createTeam(sessionPin) }
         game.startCompetition(sessionPin)
 
         webTestClient
-            .get()
+            .post()
             .uri("/api/competition_process/$sessionPin/start_competition")
             .exchange()
             .expectStatus().isBadRequest

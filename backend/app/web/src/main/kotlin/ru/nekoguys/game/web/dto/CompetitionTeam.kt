@@ -77,3 +77,8 @@ data class TeamUpdateNotification(
     val idInGame: Int,
     val teamMembers: List<String>,
 )
+
+data class TeamMemberUpdateNotification(
+    val name: String,
+    val isCaptain: Boolean
+)

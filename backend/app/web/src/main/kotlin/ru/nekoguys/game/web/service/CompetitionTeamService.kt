@@ -100,12 +100,12 @@ class CompetitionTeamService(
             .let { it as? CompetitionPlayer.Student }
             ?: return TeamApiResponse.UserIsNotRegistered(studentEmail)
 
-        val currentTeam = competitionTeamRepository
+        val team = competitionTeamRepository
             .load(currentPlayerInfo.teamId)
 
         return GetTeamResponse(
-            teamName = currentTeam.name,
-            password = currentTeam.password
+            teamName = team.name,
+            password = team.password
                 .takeIf { currentPlayerInfo is CompetitionPlayer.TeamCaptain }
         )
     }
@@ -131,6 +131,39 @@ class CompetitionTeamService(
             }
             .collect(::emit)
     }
+
+    fun joinUserTeamEventsFlow(
+        studentEmail: String,
+        sessionPin: String
+    ): Flow<TeamMemberUpdateNotification> = flow {
+        val sessionId = sessionPinDecoder
+            .decodeIdFromPin(sessionPin)
+            ?: error("There is no competition session with pin '$sessionPin'")
+
+        val user = userRepository
+            .findByEmail(studentEmail)
+            ?: error("User with email '$studentEmail' is not registered")
+
+        val teamId = competitionPlayerRepository
+            .load(sessionId, user)
+            .let { it as? CompetitionPlayer.Student }
+            ?.teamId
+            ?: error("User with email '$studentEmail' is not associated with session '$sessionId'")
+
+        val team = competitionTeamRepository.load(teamId)
+
+        competitionProcessService.getAllMessagesForSession(sessionId)
+            .mapNotNull {
+                val msg = it.body
+                when {
+                    msg is CompetitionCreateTeamMessage && msg.teamName == team.name ->
+                        msg.toNewTeamMemberNotification()
+                    msg is CompetitionJoinTeamMessage && msg.teamName == team.name ->
+                        msg.toNewTeamMemberNotification()
+                    else -> null
+                }
+            }.collect(::emit)
+    }
 }
 
 private fun CompetitionCreateTeamMessage.toUpdateNotification() =
@@ -145,4 +178,16 @@ private fun CompetitionJoinTeamMessage.toUpdateNotification() =
         teamName = teamName,
         idInGame = idInGame,
         teamMembers = membersEmails,
+    )
+
+private fun CompetitionCreateTeamMessage.toNewTeamMemberNotification() =
+    TeamMemberUpdateNotification(
+        name = captainEmail,
+        isCaptain = true
+    )
+
+private fun CompetitionJoinTeamMessage.toNewTeamMemberNotification() =
+    TeamMemberUpdateNotification(
+        name = membersEmails.last(),
+        isCaptain = false
     )
