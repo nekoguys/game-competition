@@ -10,7 +10,6 @@ interface CompetitionTeamRepository {
         creator: CompetitionPlayer.Unknown,
         name: String,
         password: String,
-        maxTeams: Int,
     ): CompetitionTeam
 
     suspend fun update(

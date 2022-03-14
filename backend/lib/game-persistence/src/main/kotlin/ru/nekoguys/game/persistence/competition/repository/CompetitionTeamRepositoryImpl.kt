@@ -8,7 +8,6 @@ import org.springframework.stereotype.Repository
 import org.springframework.transaction.reactive.TransactionalOperator
 import org.springframework.transaction.reactive.executeAndAwait
 import ru.nekoguys.game.entity.commongame.model.CommonSession
-import ru.nekoguys.game.entity.competition.competitionProcessError
 import ru.nekoguys.game.entity.competition.model.CompetitionPlayer
 import ru.nekoguys.game.entity.competition.model.CompetitionTeam
 import ru.nekoguys.game.entity.competition.repository.CompetitionPlayerRepository
@@ -27,7 +26,6 @@ class CompetitionTeamRepositoryImpl(
         creator: CompetitionPlayer.Unknown,
         name: String,
         password: String,
-        maxTeams: Int,
     ): CompetitionTeam = transactionalOperator.executeAndAwait {
         val dbTeam = DbCompetitionTeam(
             id = null,
@@ -38,7 +36,7 @@ class CompetitionTeamRepositoryImpl(
             banRound = null,
         )
             .let { dbCompetitionTeamRepository.save(it) }
-            .let { generateAndSaveTeamNumber(it, maxTeams) }
+            .let { generateAndSaveTeamNumber(it) }
 
         val captain = CompetitionPlayer.TeamCaptain(
             sessionId = creator.sessionId,
@@ -55,16 +53,9 @@ class CompetitionTeamRepositoryImpl(
 
     private suspend fun generateAndSaveTeamNumber(
         dbTeam: DbCompetitionTeam,
-        maxTeams: Int,
     ): DbCompetitionTeam {
         val teamNumber = dbCompetitionTeamRepository
             .countBySessionIdAndIdLessThanEqual(dbTeam.sessionId, dbTeam.id!!)
-
-        if (teamNumber > maxTeams) {
-            competitionProcessError(
-                "There are too much teams in competition, max amount: $maxTeams"
-            )
-        }
 
         return dbCompetitionTeamRepository.save(dbTeam.copy(teamNumber = teamNumber))
     }
@@ -90,7 +81,7 @@ class CompetitionTeamRepositoryImpl(
                     sessionId = team.sessionId.number,
                     teamNumber = team.numberInGame,
                     name = team.name,
-                    password = "1234",
+                    password = team.password,
                     banRound = null,
                 )
             }

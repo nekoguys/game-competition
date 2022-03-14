@@ -46,7 +46,7 @@ class CompetitionTeamService(
                 user = captain,
                 command = CompetitionCommand.CreateTeam(
                     teamName = request.teamName,
-                    password = request.password,
+                    password = request.password.trim(),
                 ),
             )
             CreateTeamResponse.Success
@@ -74,6 +74,7 @@ class CompetitionTeamService(
                 user = captain,
                 command = CompetitionCommand.JoinTeam(
                     teamName = request.teamName,
+                    password = request.password.trim(),
                 ),
             )
             JoinTeamResponse.Success(request.teamName)

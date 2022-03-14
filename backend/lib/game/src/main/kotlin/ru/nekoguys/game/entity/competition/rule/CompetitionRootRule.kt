@@ -16,6 +16,7 @@ sealed class CompetitionCommand {
 
     data class JoinTeam(
         val teamName: String,
+        val password: String,
     ) : CompetitionCommand()
 
     data class ChangeStageCommand(
