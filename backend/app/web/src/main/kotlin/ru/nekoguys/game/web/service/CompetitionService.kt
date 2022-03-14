@@ -1,25 +1,20 @@
 package ru.nekoguys.game.web.service
 
-import kotlinx.coroutines.flow.*
 import org.springframework.stereotype.Service
 import ru.nekoguys.game.entity.commongame.service.SessionPinDecoder
 import ru.nekoguys.game.entity.commongame.service.pin
-import ru.nekoguys.game.entity.competition.CompetitionProcessException
-import ru.nekoguys.game.entity.competition.CompetitionProcessService
 import ru.nekoguys.game.entity.competition.model.*
 import ru.nekoguys.game.entity.competition.repository.CompetitionSessionRepository
 import ru.nekoguys.game.entity.competition.repository.findAll
-import ru.nekoguys.game.entity.competition.repository.load
-import ru.nekoguys.game.entity.competition.rule.CompetitionCommand
-import ru.nekoguys.game.entity.competition.rule.CompetitionCreateTeamMessage
-import ru.nekoguys.game.entity.competition.rule.CompetitionJoinTeamMessage
 import ru.nekoguys.game.entity.user.repository.UserRepository
-import ru.nekoguys.game.web.dto.*
+import ru.nekoguys.game.web.dto.CompetitionCloneInfoResponse
+import ru.nekoguys.game.web.dto.CreateCompetitionRequest
+import ru.nekoguys.game.web.dto.CreateCompetitionResponse
+import ru.nekoguys.game.web.dto.GetCompetitionResponse
 import java.time.LocalDateTime
 
 @Service
 class CompetitionService(
-    private val competitionProcessService: CompetitionProcessService,
     private val sessionPinDecoder: SessionPinDecoder,
     private val competitionSessionRepository: CompetitionSessionRepository,
     private val userRepository: UserRepository,
@@ -73,114 +68,6 @@ class CompetitionService(
                 )
             }
             .toList()
-    }
-
-    suspend fun createTeam(
-        studentEmail: String,
-        request: CreateTeamRequest,
-    ): CreateTeamResponse {
-        require(request.teamName.length >= 4) {
-            return CreateTeamResponse.IncorrectName
-        }
-
-        val captain = userRepository
-            .findByEmail(studentEmail)
-            ?: error("No such user: $studentEmail")
-
-        val sessionId = sessionPinDecoder
-            .decodeIdFromPin(request.gameId)
-            ?: return CreateTeamResponse.GameNotFound(request.gameId)
-
-        return try {
-            competitionProcessService.acceptCommand(
-                sessionId = sessionId,
-                user = captain,
-                command = CompetitionCommand.CreateTeam(
-                    teamName = request.teamName,
-                    password = request.password,
-                ),
-            )
-            CreateTeamResponse.Success
-        } catch (ex: CompetitionProcessException) {
-            CreateTeamResponse.ProcessError(ex.message)
-        }
-    }
-
-    suspend fun joinTeam(
-        studentEmail: String,
-        request: JoinTeamRequest,
-    ): JoinTeamResponse {
-        val captain = userRepository
-            .findByEmail(studentEmail)
-            ?: error("No such user: studentEmail")
-
-        val sessionId = sessionPinDecoder
-            .decodeIdFromPin(request.competitionPin)
-            ?: return JoinTeamResponse.GameNotFound(request.competitionPin)
-
-        return try {
-            competitionProcessService.acceptCommand(
-                sessionId = sessionId,
-                user = captain,
-                command = CompetitionCommand.JoinTeam(
-                    teamName = request.teamName,
-                ),
-            )
-            JoinTeamResponse.Success(request.teamName)
-        } catch (ex: CompetitionProcessException) {
-            JoinTeamResponse.ProcessError(ex.message)
-        }
-    }
-
-    fun teamJoinMessageFlow(
-        userEmail: String,
-        sessionPin: String,
-    ): Flow<TeamUpdateNotification> = flow {
-        val sessionId = sessionPinDecoder
-            .decodeIdFromPin(sessionPin)
-            ?: error("Incorrect pin")
-
-        competitionProcessService
-            .getAllMessagesForSession(sessionId)
-            .map { it.body } // не смотрим, каким командам отправлено сообщение
-            .transform { msg ->
-                when (msg) {
-                    is CompetitionCreateTeamMessage ->
-                        emit(msg.toUpdateNotification())
-                    is CompetitionJoinTeamMessage ->
-                        emit(msg.toUpdateNotification())
-                    else -> Unit
-                }
-            }
-            .collect(::emit)
-    }
-
-    fun myTeamJoinMessageFlow(
-        userEmail: String,
-        sessionPin: String
-    ): Flow<TeamMemberUpdateNotification> = flow {
-        val sessionId = sessionPinDecoder
-            .decodeIdFromPin(sessionPin)
-            ?: error("Incorrect pin")
-        val session = competitionSessionRepository
-            .load(
-                sessionId,
-                CompetitionSession.WithTeams,
-            )
-        val team = session.teams.first {
-            it.students.any { member -> member.user.email == userEmail }
-        }
-        competitionProcessService.getAllMessagesForSession(sessionId)
-            .mapNotNull {
-                val msg = it.body
-                when {
-                    msg is CompetitionCreateTeamMessage && msg.teamName == team.name ->
-                        msg.toNewTeamMemberNotification()
-                    msg is CompetitionJoinTeamMessage && msg.teamName == team.name ->
-                        msg.toNewTeamMemberNotification()
-                    else -> null
-                }
-            }.collect(::emit)
     }
 
     suspend fun ifSessionCanBeJoined(
@@ -288,32 +175,6 @@ private fun createCompetitionHistoryResponseItem(
         showOtherTeamsMembers = settings.showOtherTeamsMembers,
         state = stage.name,
         teamLossUpperbound = settings.teamLossLimit.toDouble(),
-    )
-
-private fun CompetitionCreateTeamMessage.toUpdateNotification() =
-    TeamUpdateNotification(
-        teamName = teamName,
-        idInGame = idInGame,
-        teamMembers = listOf(captainEmail)
-    )
-
-private fun CompetitionJoinTeamMessage.toUpdateNotification() =
-    TeamUpdateNotification(
-        teamName = teamName,
-        idInGame = idInGame,
-        teamMembers = membersEmails,
-    )
-
-private fun CompetitionCreateTeamMessage.toNewTeamMemberNotification() =
-    TeamMemberUpdateNotification(
-        name = captainEmail,
-        isCaptain = true
-    )
-
-private fun CompetitionJoinTeamMessage.toNewTeamMemberNotification() =
-    TeamMemberUpdateNotification(
-        name = membersEmails.last(),
-        isCaptain = false
     )
 
 private fun CompetitionSession.Full.toCompetitionCloneInfo() =

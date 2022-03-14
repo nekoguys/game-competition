@@ -20,13 +20,12 @@ const NewJoinCompetitionCaptainForm = ({fetchers, captainEmailProvider, showNoti
     const createTeam = () => {
         const captainEmail = captainEmailProvider.get();
         const teamCreationDTO = {
-            game_id: pin,
             captain_email: captainEmail,
             team_name: form.teamName,
             password: form.password
         };
         const notificationTimeout = 2000;
-        fetchers.createTeam(teamCreationDTO)
+        fetchers.createTeam(pin, teamCreationDTO)
             .then(_ => {
                 showNotification().success("Team created successfully", "Success", notificationTimeout);
                 navigate("/competitions/waiting_room/" + pin)

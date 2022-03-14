@@ -40,4 +40,8 @@ interface CompetitionTeamRepository {
     suspend fun findAllTeamIdsBySessionIds(
         sessionIds: Collection<Long>,
     ): Map<CommonSession.Id, List<CompetitionTeam.Id>>
+
+    suspend fun load(
+        teamId: CompetitionTeam.Id,
+    ): CompetitionTeam
 }

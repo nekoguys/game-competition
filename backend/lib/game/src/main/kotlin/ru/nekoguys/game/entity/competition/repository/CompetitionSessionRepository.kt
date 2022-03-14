@@ -6,7 +6,6 @@ import ru.nekoguys.game.entity.competition.model.CompetitionSessionFieldSelector
 import ru.nekoguys.game.entity.competition.model.CompetitionSettings
 import ru.nekoguys.game.entity.competition.model.CompetitionStage
 import ru.nekoguys.game.entity.user.model.User
-import kotlin.experimental.ExperimentalTypeInference
 
 interface CompetitionSessionRepository {
     suspend fun create(

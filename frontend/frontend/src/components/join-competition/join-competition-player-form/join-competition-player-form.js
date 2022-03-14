@@ -176,14 +176,13 @@ class JoinCompetitionPlayerForm extends React.Component {
     onSubmit = (teamName, password) => {
         console.log({teamName, password, props: this.gameId});
         const obj = {
-            competitionPin: this.gameId,
             teamName: teamName,
             password: password
         };
 
         const timeout = 2200;
 
-        ApiHelper.joinTeam(obj).then(resp => {
+        ApiHelper.joinTeam(this.gameId, obj).then(resp => {
             if (resp.status >= 300) {
                 return {success: false, json: resp.json()};
             } else {

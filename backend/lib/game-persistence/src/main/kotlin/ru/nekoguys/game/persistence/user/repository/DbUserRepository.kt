@@ -8,9 +8,11 @@ import ru.nekoguys.game.persistence.user.model.DbUser
 
 @Repository
 interface DbUserRepository : CoroutineCrudRepository<DbUser, Long> {
+    @Suppress("SpringDataRepositoryMethodReturnTypeInspection")
     suspend fun findByEmail(email: String): DbUser?
 
-    @Query("""
+    @Query(
+        """
         SELECT * 
         FROM users AS u
         WHERE u.email ILIKE '%' || :query || '%'
@@ -19,7 +21,8 @@ interface DbUserRepository : CoroutineCrudRepository<DbUser, Long> {
         ORDER BY u.email
         LIMIT :limit
         OFFSET :offset
-    """)
+    """
+    )
     fun findByQuery(
         query: String,
         offset: Int,

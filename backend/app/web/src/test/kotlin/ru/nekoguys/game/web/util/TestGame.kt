@@ -15,11 +15,13 @@ import ru.nekoguys.game.entity.user.repository.load
 import ru.nekoguys.game.web.dto.*
 import ru.nekoguys.game.web.service.CompetitionProcessService
 import ru.nekoguys.game.web.service.CompetitionService
+import ru.nekoguys.game.web.service.CompetitionTeamService
 import java.util.concurrent.atomic.AtomicLong
 
 @Component
 class TestGame(
     private val competitionService: CompetitionService,
+    private val competitionTeamService: CompetitionTeamService,
     private val competitionProcessService: CompetitionProcessService,
     private val competitionSessionRepository: CompetitionSessionRepository,
     private val pinGenerator: SessionPinDecoder,
@@ -30,7 +32,7 @@ class TestGame(
     private fun nextEmail(role: UserRole) =
         "${role.toString().lowercase()}-${nextIndex()}@hse.ru"
 
-    private fun nextCompetitionName() =
+    private fun nextSessionName() =
         "Competition ${nextIndex()}"
 
     private fun nextTeamName() = "Team ${nextIndex()}"
@@ -43,25 +45,27 @@ class TestGame(
         secondName: String? = null,
     ): User = runBlocking {
         val user = userRepository.create(email, "{noop}$password", role)
-        userRepository.updateUser(user.copy(
-            firstName = firstName,
-            secondName = secondName,
-        ))
+        userRepository.updateUser(
+            user.copy(
+                firstName = firstName,
+                secondName = secondName,
+            )
+        )
         userRepository.findByEmail(email)!!
     }
 
-    fun loadCompetitionSession(
-        pin: String = createCompetition(),
+    fun loadSession(
+        pin: String = createSession(),
     ): CompetitionSession.Full = runBlocking {
         val sessionId = pinGenerator.decodeIdFromPin(pin)
         competitionSessionRepository
             .load(sessionId!!, CompetitionSession.Full)
     }
 
-    fun createAndLoadCompetition(
+    fun createAndLoadSession(
         teacher: User = createUser(UserRole.Teacher),
         request: CreateCompetitionRequest = DEFAULT_CREATE_COMPETITION_REQUEST
-            .copy(name = nextCompetitionName()),
+            .copy(name = nextSessionName()),
         additionalActions: suspend (String) -> Unit = {},
     ): CompetitionSession.Full = runBlocking {
         competitionService.create(teacher.email, request)
@@ -80,65 +84,63 @@ class TestGame(
         competitionSessionRepository.load(sessionId, CompetitionSession.Full)
     }
 
-    fun createCompetition(
+    fun createSession(
         teacher: User = createUser(UserRole.Teacher),
         request: CreateCompetitionRequest = DEFAULT_CREATE_COMPETITION_REQUEST
-            .copy(name = nextCompetitionName()),
+            .copy(name = nextSessionName()),
     ): String =
-        createAndLoadCompetition(teacher, request)
+        createAndLoadSession(teacher, request)
             .id
             .toPin()
 
     fun createTeam(
-        competitionPin: String = createCompetition(),
+        sessionPin: String = createSession(),
         captain: User = createUser(UserRole.Student),
         teamName: String = nextTeamName(),
         password: String = DEFAULT_PASSWORD,
     ): TestCreateTeamResult {
         val request = CreateTeamRequest(
-            gameId = competitionPin,
             teamName = teamName,
             captainEmail = captain.email,
             password = password,
         )
 
         runBlocking {
-            val response = competitionService.createTeam(captain.email, request)
+            val response = competitionTeamService.create(sessionPin, captain.email, request)
             check(response is CreateTeamResponse.Success)
         }
 
         return TestCreateTeamResult(
-            competitionPin = request.gameId,
+            sessionPin = sessionPin,
             teamName = request.teamName,
             password = request.password,
         )
     }
 
     data class TestCreateTeamResult(
-        val competitionPin: String,
+        val sessionPin: String,
         val teamName: String,
         val password: String,
     )
 
     fun joinTeam(
-        competitionPin: String = createCompetition(),
-        teamName: String = createTeam(competitionPin = competitionPin).teamName,
+        sessionPin: String = createSession(),
+        teamName: String = createTeam(sessionPin = sessionPin).teamName,
         teamMember: User = createUser(role = UserRole.Student),
         password: String = DEFAULT_PASSWORD,
     ): TestCreateTeamResult {
         val request = JoinTeamRequest(
-            competitionPin = competitionPin,
             teamName = teamName,
             password = password,
         )
 
         runBlocking {
-            val response = competitionService.joinTeam(teamMember.email, request)
+            val response = competitionTeamService.join(sessionPin, teamMember.email, request)
             check(response is JoinTeamResponse.Success)
         }
 
         return TestCreateTeamResult(
-            competitionPin = request.competitionPin,
+            sessionPin = sessionPin,
             teamName = request.teamName,
             password = request.password,
         )
@@ -150,19 +152,19 @@ class TestGame(
      * С ним тесты иногда проще читать
      */
     fun createAndJoinTeam(
-        competitionPin: String = createCompetition(),
+        sessionPin: String = createSession(),
         teamMember: User = createUser(role = UserRole.Student),
     ): TestCreateTeamResult = runBlocking {
-        joinTeam(competitionPin, teamMember = teamMember)
+        joinTeam(sessionPin, teamMember = teamMember)
     }
 
     fun startCompetition(
-        competitionPin: String = createCompetition(),
+        sessionPin: String = createSession(),
     ): Unit = runBlocking {
-        val teacherId = loadCompetitionSession(competitionPin).creatorId
+        val teacherId = loadSession(sessionPin).creatorId
         val teacher = userRepository.load(teacherId)
         val response = competitionProcessService
-            .startCompetition(teacher.email, competitionPin)
+            .startCompetition(teacher.email, sessionPin)
         check(response == StartCompetitionResponse.Success)
     }
 
@@ -170,7 +172,6 @@ class TestGame(
         private val indexCounter = AtomicLong()
 
         const val DEFAULT_ADMIN_EMAIL = "admin@hse.ru"
-        const val DEFAULT_TEACHER_EMAIL = "teacher@hse.ru"
         const val DEFAULT_STUDENT_EMAIL = "student@edu.hse.ru"
         const val DEFAULT_PASSWORD = "password"
         const val DEFAULT_COMPETITION_NAME = "Test Competition"
