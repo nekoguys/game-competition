@@ -1,7 +1,6 @@
 package ru.nekoguys.game.web.controller
 
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.http.codec.ServerSentEvent
@@ -9,10 +8,7 @@ import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 import ru.nekoguys.game.web.dto.*
 import ru.nekoguys.game.web.service.CompetitionService
-import ru.nekoguys.game.web.util.toOkResponse
-import ru.nekoguys.game.web.util.toResponseEntity
-import ru.nekoguys.game.web.util.withMDCContext
-import ru.nekoguys.game.web.util.withRequestIdInContext
+import ru.nekoguys.game.web.util.*
 import java.security.Principal
 import javax.validation.Valid
 
@@ -103,9 +99,7 @@ class CompetitionController(
                 userEmail = principal.name,
                 sessionPin = pin,
             )
-            .map { message ->
-                ServerSentEvent.builder(message).id("teamStream").build()
-            }
+            .wrapToServerSentEvent("teamStream")
             .withRequestIdInContext()
 
     @PostMapping(
@@ -121,6 +115,20 @@ class CompetitionController(
             .ifSessionCanBeJoined(sessionPin = request.pin)
             .let(::CheckGamePinResponse)
             .toResponseEntity()
+
+    @GetMapping(
+        "/new_my_team_members/{pin}",
+        produces = [MediaType.TEXT_EVENT_STREAM_VALUE]
+    )
+    @PreAuthorize("hasRole('STUDENT')")
+    fun myTeamNewMembers(
+        principal: Principal,
+        @PathVariable pin: String
+    ): Flow<ServerSentEvent<TeamMemberUpdateNotification>> =
+        competitionService
+            .myTeamJoinMessageFlow(userEmail = principal.name, sessionPin = pin)
+            .wrapToServerSentEvent("myTeamStream")
+            .withRequestIdInContext()
 
     @GetMapping(
         "/get_clone_info/{pin}",

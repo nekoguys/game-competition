@@ -9,6 +9,7 @@ import ru.nekoguys.game.entity.competition.CompetitionProcessService
 import ru.nekoguys.game.entity.competition.model.*
 import ru.nekoguys.game.entity.competition.repository.CompetitionSessionRepository
 import ru.nekoguys.game.entity.competition.repository.findAll
+import ru.nekoguys.game.entity.competition.repository.load
 import ru.nekoguys.game.entity.competition.rule.CompetitionCommand
 import ru.nekoguys.game.entity.competition.rule.CompetitionCreateTeamMessage
 import ru.nekoguys.game.entity.competition.rule.CompetitionJoinTeamMessage
@@ -154,6 +155,34 @@ class CompetitionService(
             .collect(::emit)
     }
 
+    fun myTeamJoinMessageFlow(
+        userEmail: String,
+        sessionPin: String
+    ): Flow<TeamMemberUpdateNotification> = flow {
+        val sessionId = sessionPinDecoder
+            .decodeIdFromPin(sessionPin)
+            ?: error("Incorrect pin")
+        val session = competitionSessionRepository
+            .load(
+                sessionId,
+                CompetitionSession.WithTeams,
+            )
+        val team = session.teams.first {
+            it.students.any { member -> member.user.email == userEmail }
+        }
+        competitionProcessService.getAllMessagesForSession(sessionId)
+            .mapNotNull {
+                val msg = it.body
+                when {
+                    msg is CompetitionCreateTeamMessage && msg.teamName == team.name ->
+                        msg.toNewTeamMemberNotification()
+                    msg is CompetitionJoinTeamMessage && msg.teamName == team.name ->
+                        msg.toNewTeamMemberNotification()
+                    else -> null
+                }
+            }.collect(::emit)
+    }
+
     suspend fun ifSessionCanBeJoined(
         sessionPin: String,
     ): Boolean {
@@ -273,6 +302,18 @@ private fun CompetitionJoinTeamMessage.toUpdateNotification() =
         teamName = teamName,
         idInGame = idInGame,
         teamMembers = membersEmails,
+    )
+
+private fun CompetitionCreateTeamMessage.toNewTeamMemberNotification() =
+    TeamMemberUpdateNotification(
+        name = captainEmail,
+        isCaptain = true
+    )
+
+private fun CompetitionJoinTeamMessage.toNewTeamMemberNotification() =
+    TeamMemberUpdateNotification(
+        name = membersEmails.last(),
+        isCaptain = false
     )
 
 private fun CompetitionSession.Full.toCompetitionCloneInfo() =

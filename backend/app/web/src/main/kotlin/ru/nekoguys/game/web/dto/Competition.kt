@@ -171,6 +171,11 @@ data class TeamUpdateNotification(
     val teamMembers: List<String>,
 )
 
+data class TeamMemberUpdateNotification(
+    val name: String,
+    val isCaptain: Boolean
+)
+
 /*
 public class TeamCreationEventDto implements Serializable {
     private static final long serialVersionUID = -4502650950386932982L;
