@@ -19,20 +19,28 @@ data class User(
 }
 
 sealed interface UserRole {
+    val topRoleName: String
+
     sealed interface Student : UserRole {
         companion object Implementation : Student {
+            override val topRoleName = "ROLE_STUDENT"
+
             override fun toString() = "Student"
         }
     }
 
     sealed interface Teacher : UserRole {
         companion object Implementation : Student, Teacher {
+            override val topRoleName = "ROLE_TEACHER"
+
             override fun toString() = "Teacher"
         }
     }
 
     sealed interface Admin : UserRole {
         companion object Implementation : Student, Teacher, Admin {
+            override val topRoleName = "ROLE_ADMIN"
+
             override fun toString() = "Admin"
         }
     }
@@ -40,8 +48,8 @@ sealed interface UserRole {
 
 fun String.toUserRole(): UserRole =
     when (this) {
-        UserRole.Student.toString() -> UserRole.Student
-        UserRole.Teacher.toString() -> UserRole.Teacher
-        UserRole.Admin.toString() -> UserRole.Admin
-        else -> error("unknown role")
+        UserRole.Student.topRoleName -> UserRole.Student
+        UserRole.Teacher.topRoleName -> UserRole.Teacher
+        UserRole.Admin.topRoleName -> UserRole.Admin
+        else -> error("Unknown role $this")
     }

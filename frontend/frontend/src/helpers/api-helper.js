@@ -9,9 +9,6 @@ class ApiSettings {
     static #checkPinEndPoint = ApiSettings.#host + "/competitions/check_pin";
     static #getCloneInfoEndPoint = ApiSettings.#host + "/competitions/get_clone_info/";
     static #updateCompetitionParams = ApiSettings.#host + "/competitions/update_competition/";
-    static #updateProfile = ApiSettings.#host + "/profile/update";
-    static #getProfile = ApiSettings.#host + "/user/get";
-    static #navBarInfo = ApiSettings.#host + "/user/navbar_info";
 
     static trueHost() {
         return ApiSettings.#truehost;
@@ -21,24 +18,10 @@ class ApiSettings {
         return ApiSettings.#host;
     }
 
+    // --- START TEAMS API ---
+
     static teamsEndPoint(pin, method) {
         return ApiSettings.host() + "/competitions/" + pin + "/teams" + method;
-    }
-
-    static signinEndPoint() {
-        return ApiSettings.#signinEndPoint;
-    }
-
-    static signupEndPoint() {
-        return ApiSettings.#signupEndPoint;
-    }
-
-    static createCompetitionEndPoint() {
-        return ApiSettings.#createCompetitionEndPoint;
-    }
-
-    static checkPinEndPoint() {
-        return ApiSettings.#checkPinEndPoint;
     }
 
     static createTeamEndPoint(pin) {
@@ -55,6 +38,48 @@ class ApiSettings {
 
     static joinTeamEndPoint(pin) {
         return ApiSettings.teamsEndPoint(pin, "/join");
+    }
+
+    // --- END TEAMS API ---
+
+    // --- START USERS API ---
+
+    static usersEndPoint(method) {
+        return ApiSettings.host() + "/users" + method;
+    }
+
+    static getCurrentUserEndPoint() {
+        return ApiSettings.usersEndPoint("")
+    }
+
+    static updateUserEndPoint() {
+        return ApiSettings.usersEndPoint("/update")
+    }
+
+    static findUserByEmailEndPoint() {
+        return ApiSettings.usersEndPoint("/find_by_email")
+    }
+
+    static findUsersByFilterEndPoint() {
+        return ApiSettings.usersEndPoint("/find_by_filter")
+    }
+
+    // --- END USERS API ---
+
+    static signinEndPoint() {
+        return ApiSettings.#signinEndPoint;
+    }
+
+    static signupEndPoint() {
+        return ApiSettings.#signupEndPoint;
+    }
+
+    static createCompetitionEndPoint() {
+        return ApiSettings.#createCompetitionEndPoint;
+    }
+
+    static checkPinEndPoint() {
+        return ApiSettings.#checkPinEndPoint;
     }
 
     static getCurrentTeamEndpoint(pin) {
@@ -155,30 +180,6 @@ class ApiSettings {
 
     static verificationEndPoint(token) {
         return ApiSettings.host() + "/auth/verification/" + token;
-    }
-
-    static updateProfileEndPoint() {
-        return ApiSettings.#updateProfile;
-    }
-
-    static getProfileEndPoint() {
-        return ApiSettings.#getProfile;
-    }
-
-    static getNavBarInfoEndPoint() {
-        return ApiSettings.#navBarInfo;
-    }
-
-    static changeRoleEndPoint(email) {
-        return ApiSettings.#host + "/roles/" + email; // TODO: get email from body
-    }
-
-    static adminkaSearchUsersEndPoint() {
-        return ApiSettings.#host + "/user/search"
-    }
-
-    static adminkaChangePassword() {
-        return ApiSettings.#host + "/user/update"
     }
 
     static submitStrategyEndPoint(pin) {
@@ -435,7 +436,7 @@ export default class ApiHelper {
     }
 
     static updateProfile(params) {
-        return fetch(ApiSettings.updateProfileEndPoint(), {
+        return fetch(ApiSettings.updateUserEndPoint(), {
             method: "POST",
             headers: this.authDefaultHeaders(),
             body: JSON.stringify(params)
@@ -443,24 +444,24 @@ export default class ApiHelper {
     }
 
     static getProfile() {
-        return fetch(ApiSettings.getProfileEndPoint(), {
+        return fetch(ApiSettings.getCurrentUserEndPoint(), {
             method: "GET",
             headers: this.authDefaultHeaders(),
         })
     }
 
     static getNavBarInfo() {
-        return fetch(ApiSettings.getNavBarInfoEndPoint(), {
+        return fetch(ApiSettings.getCurrentUserEndPoint(), {
             method: "GET",
             headers: this.authDefaultHeaders()
         })
     }
 
     static changeRole(email, role) {
-        return fetch(ApiSettings.changeRoleEndPoint(email), {
+        return fetch(ApiSettings.updateUserEndPoint(), {
             method: "POST",
             headers: this.authDefaultHeaders(),
-            body: JSON.stringify({role})
+            body: JSON.stringify({email, role})
         })
     };
 
@@ -473,7 +474,7 @@ export default class ApiHelper {
     }
 
     static adminkaSearchUsers(params) {
-        return fetch(ApiSettings.adminkaSearchUsersEndPoint(), {
+        return fetch(ApiSettings.findUsersByFilterEndPoint(), {
             method: "POST",
             headers: this.authDefaultHeaders(),
             body: JSON.stringify(params)
@@ -481,7 +482,7 @@ export default class ApiHelper {
     }
 
     static adminkaChangePassword(params) {
-        return fetch(ApiSettings.adminkaChangePassword(), {
+        return fetch(ApiSettings.updateUserEndPoint(), {
             method: "POST",
             headers: this.authDefaultHeaders(),
             body: JSON.stringify(params)

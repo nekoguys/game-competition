@@ -11,7 +11,6 @@ import ru.nekoguys.game.entity.user.model.UserRole
 import ru.nekoguys.game.entity.user.model.UserRole.Teacher
 import ru.nekoguys.game.entity.user.repository.UserRepository
 import ru.nekoguys.game.web.GameWebApplicationTest
-import ru.nekoguys.game.web.dto.UserSearchRequest
 import ru.nekoguys.game.web.dto.UserUpdateRequest
 import ru.nekoguys.game.web.util.CleanDatabaseExtension
 import ru.nekoguys.game.web.util.TestGame
@@ -38,7 +37,7 @@ class UserServiceTest @Autowired constructor(
         runBlocking {
             userService.updateUser(
                 operatorEmail = user.email,
-                userUpdateRequest = userUpdateRequest,
+                request = userUpdateRequest,
             )
         }
 
@@ -68,11 +67,9 @@ class UserServiceTest @Autowired constructor(
 
         val users = runBlocking {
             userService.findUsers(
-                UserSearchRequest(
-                    query = query,
-                    page = 0,
-                    pageSize = 100,
-                )
+                query = query,
+                page = 0,
+                pageSize = 100,
             )
         }
 
@@ -80,7 +77,7 @@ class UserServiceTest @Autowired constructor(
             .isEqualTo(1)
         assertThat(users.results.first())
             .usingRecursiveComparison()
-            .isEqualTo(object {
+            .isEqualTo(@Suppress("unused") object {
                 val email = searchUser.email
                 val role = searchUser.role.toString()
             })

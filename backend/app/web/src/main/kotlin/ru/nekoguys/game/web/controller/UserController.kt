@@ -8,66 +8,67 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
-import ru.nekoguys.game.web.dto.UserResponse
-import ru.nekoguys.game.web.dto.UserSearchRequest
-import ru.nekoguys.game.web.dto.UserSearchResponse
-import ru.nekoguys.game.web.dto.UserUpdateRequest
+import ru.nekoguys.game.web.dto.*
 import ru.nekoguys.game.web.service.UserService
 import ru.nekoguys.game.web.util.wrapServiceCall
 import java.security.Principal
 
 @Controller
-@RequestMapping(path = ["/api/user"], produces = [MediaType.APPLICATION_JSON_VALUE])
+@RequestMapping(path = ["/api/users"], produces = [MediaType.APPLICATION_JSON_VALUE])
 @PreAuthorize("hasRole('STUDENT')")
 class UserController(
     private val userService: UserService,
 ) {
-
-    @GetMapping(value = ["/navbar_info", "/current"])
-    suspend fun currentUser(
+    @GetMapping
+    suspend fun getCurrent(
         principal: Principal,
-    ): ResponseEntity<UserResponse> =
+    ): ResponseEntity<UserApiResponse<UserResponse>> =
         wrapServiceCall {
             userService
                 .getUser(
-                    email = principal.name,
+                    operatorEmail = principal.name,
+                    targetEmail = principal.name,
                 )
         }
 
-    @PostMapping("/get")
-    suspend fun findUser(
+    @PostMapping("/find_by_email")
+    suspend fun findByEmail(
         principal: Principal,
-        @RequestBody targetEmail: String, // TODO: findUserRequest (because json)
-    ): ResponseEntity<UserResponse> =
+        @RequestBody request: FindUserByEmailRequest,
+    ): ResponseEntity<UserApiResponse<UserResponse>> =
         wrapServiceCall {
             userService
                 .getUser(
-                    email = targetEmail,
+                    operatorEmail = principal.name,
+                    targetEmail = request.email,
                 )
         }
 
-    @PostMapping(value = ["/update", "/update_role"])
-    suspend fun updateUser(
+    @PostMapping("/update")
+    suspend fun update(
         principal: Principal,
         @RequestBody userUpdateRequest: UserUpdateRequest,
-    ): ResponseEntity<UserResponse> =
+    ): ResponseEntity<UserApiResponse<UserResponse>> =
         wrapServiceCall {
             userService
                 .updateUser(
                     operatorEmail = principal.name,
-                    userUpdateRequest = userUpdateRequest,
+                    request = userUpdateRequest,
                 )
         }
 
-    @PostMapping(value = ["/search"])
-    suspend fun searchUser(
+    @PostMapping("/find_by_filter")
+    @PreAuthorize("hasRole('ADMIN')")
+    suspend fun findByFilter(
         principal: Principal,
-        @RequestBody userSearchRequest: UserSearchRequest,
+        @RequestBody request: FindUsersByFilterRequest,
     ): ResponseEntity<UserSearchResponse> =
         wrapServiceCall {
             userService
                 .findUsers(
-                    userSearchRequest = userSearchRequest
+                    query = request.query,
+                    page = request.page,
+                    pageSize = request.pageSize,
                 )
         }
 }

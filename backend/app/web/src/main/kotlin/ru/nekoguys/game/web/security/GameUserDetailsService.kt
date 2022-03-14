@@ -37,13 +37,13 @@ private fun UserRole.toAuthoritiesList(): List<GrantedAuthority> {
     val role = this
     return buildList {
         if (role is UserRole.Admin) {
-            add(SimpleGrantedAuthority("ROLE_ADMIN"))
+            add(SimpleGrantedAuthority(UserRole.Admin.topRoleName))
         }
         if (role is UserRole.Teacher) {
-            add(SimpleGrantedAuthority("ROLE_TEACHER"))
+            add(SimpleGrantedAuthority(UserRole.Teacher.topRoleName))
         }
         if (role is UserRole.Student) {
-            add(SimpleGrantedAuthority("ROLE_STUDENT"))
+            add(SimpleGrantedAuthority(UserRole.Student.topRoleName))
         }
     }
 }

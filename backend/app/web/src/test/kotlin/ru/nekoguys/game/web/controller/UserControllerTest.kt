@@ -9,6 +9,7 @@ import org.springframework.test.web.reactive.server.WebTestClient
 import ru.nekoguys.game.entity.user.model.User
 import ru.nekoguys.game.entity.user.model.UserRole
 import ru.nekoguys.game.web.GameWebApplicationIntegrationTest
+import ru.nekoguys.game.web.dto.FindUserByEmailRequest
 import ru.nekoguys.game.web.dto.UserUpdateRequest
 import ru.nekoguys.game.web.util.CleanDatabaseExtension
 import ru.nekoguys.game.web.util.TestGame
@@ -25,16 +26,64 @@ class UserControllerTest @Autowired constructor(
 
     @BeforeEach
     fun createUser() {
-        testStudent = game.createUser(email = TestGame.DEFAULT_STUDENT_EMAIL, role = UserRole.Student)
-        testAdmin = game.createUser(email = TestGame.DEFAULT_ADMIN_EMAIL)
+        testStudent = game.createUser(
+            role = UserRole.Student,
+            email = TestGame.DEFAULT_STUDENT_EMAIL,
+        )
+        testAdmin = game.createUser(
+            role = UserRole.Admin,
+            email = TestGame.DEFAULT_ADMIN_EMAIL
+        )
     }
 
     @WithMockUser(username = TestGame.DEFAULT_ADMIN_EMAIL, roles = ["STUDENT"])
     @Test
-    fun `update profile`() {
+    fun `can get current user`() {
+        webTestClient
+            .get()
+            .uri("/api/users")
+            .exchange()
+            .expectStatus().isOk
+            .expectBody()
+            .jsonPath("$.email").isEqualTo(testAdmin.email)
+            .jsonPath("$..['role', 'name', 'surname', 'userDescription']").exists()
+    }
+
+    @WithMockUser(username = TestGame.DEFAULT_STUDENT_EMAIL, roles = ["STUDENT"])
+    @Test
+    fun `student can't get other user`() {
         webTestClient
             .post()
-            .uri("/api/user/update")
+            .uri("/api/users/find_by_email")
+            .bodyValue(
+                FindUserByEmailRequest(email = testAdmin.email)
+            )
+            .exchange()
+            .expectStatus().isForbidden
+    }
+
+    @WithMockUser(username = TestGame.DEFAULT_ADMIN_EMAIL, roles = ["STUDENT"])
+    @Test
+    fun `admin can get other user`() {
+        webTestClient
+            .post()
+            .uri("/api/users/find_by_email")
+            .bodyValue(
+                FindUserByEmailRequest(email = testStudent.email)
+            )
+            .exchange()
+            .expectStatus().isOk
+            .expectBody()
+            .jsonPath("$.email").isEqualTo(testStudent.email)
+            .jsonPath("$..['role', 'name', 'surname', 'userDescription']").exists()
+    }
+
+    @WithMockUser(username = TestGame.DEFAULT_ADMIN_EMAIL, roles = ["STUDENT"])
+    @Test
+    fun `can update user`() {
+        webTestClient
+            .post()
+            .uri("/api/users/update")
             .bodyValue(
                 UserUpdateRequest(
                     email = null,
@@ -52,16 +101,16 @@ class UserControllerTest @Autowired constructor(
             ).exists()
     }
 
-    @WithMockUser(username = TestGame.DEFAULT_ADMIN_EMAIL, roles = ["STUDENT", "TEACHER", "ADMIN"])
+    @WithMockUser(username = TestGame.DEFAULT_ADMIN_EMAIL, roles = ["STUDENT"])
     @Test
-    fun `update user role`() {
+    fun `can update user role`() {
         val userForUpdate = game.createUser(
             role = UserRole.Student
         )
 
         webTestClient
             .post()
-            .uri("/api/user/update_role")
+            .uri("/api/users/update")
             .bodyValue(
                 UserUpdateRequest(
                     email = userForUpdate.email,
@@ -87,7 +136,7 @@ class UserControllerTest @Autowired constructor(
         )
         webTestClient
             .post()
-            .uri("/api/user/update_role")
+            .uri("/api/users/update")
             .bodyValue(
                 UserUpdateRequest(
                     email = userForUpdate.email,
@@ -106,7 +155,7 @@ class UserControllerTest @Autowired constructor(
     fun `user can't update himself`() {
         webTestClient
             .post()
-            .uri("/api/user/update_role")
+            .uri("/api/users/update")
             .bodyValue(
                 UserUpdateRequest(
                     email = TestGame.DEFAULT_ADMIN_EMAIL,
