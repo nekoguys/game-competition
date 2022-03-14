@@ -3,6 +3,22 @@ package ru.nekoguys.game.web.dto
 import org.springframework.http.HttpStatus
 import ru.nekoguys.game.web.util.WebResponse
 
+sealed class UserApiResponse<out T : UserApiResponse<T>>(
+    status: HttpStatus,
+) : WebResponse(status) {
+    data class UserNotFound(
+        val email: String
+    ) : UserApiResponse<Nothing>(HttpStatus.BAD_REQUEST)
+
+    data class AccessForbidden(
+        val operatorEmail: String,
+        val targetEmail: String,
+    ) : UserApiResponse<Nothing>(HttpStatus.FORBIDDEN) {
+        val message = "User '$operatorEmail' attempted to access user '$targetEmail', " +
+                "it is forbidden"
+    }
+}
+
 data class UserUpdateRequest(
     val email: String?,
     val role: String?,
@@ -13,7 +29,7 @@ data class UserUpdateRequest(
 
 sealed class UserResponse(
     status: HttpStatus,
-) : WebResponse(status) {
+) : UserApiResponse<UserResponse>(status) {
 
     data class Success(
         val email: String,
@@ -23,12 +39,6 @@ sealed class UserResponse(
         val userDescription: String,
     ) : UserResponse(HttpStatus.OK)
 
-    data class ChangeAnotherUserForbidden(
-        val email: String,
-    ) : UserResponse(HttpStatus.FORBIDDEN) {
-        val message = "User $email attempted to edit another user, but he is not Admin"
-    }
-
     class ChangeSelfRoleForbidden(
         val email: String,
     ) : UserResponse(HttpStatus.FORBIDDEN) {
@@ -36,7 +46,11 @@ sealed class UserResponse(
     }
 }
 
-data class UserSearchRequest(
+data class FindUserByEmailRequest(
+    val email: String,
+)
+
+data class FindUsersByFilterRequest(
     val query: String,
     val page: Int,
     val pageSize: Int,
@@ -44,7 +58,7 @@ data class UserSearchRequest(
 
 class UserSearchResponse(
     val results: List<Info>,
-) : WebResponse(HttpStatus.OK) {
+) : UserApiResponse<UserSearchResponse>(HttpStatus.OK) {
     data class Info(
         val email: String,
         val role: String,
