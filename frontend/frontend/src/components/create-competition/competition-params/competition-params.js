@@ -4,8 +4,8 @@ import "./competition-params.css"
 import {makeStartingCompetitionForm} from "../../../helpers/competition-params-helper";
 
 
-const CompetitionParamsForm = ({onFormStateUpdated, initialState=makeStartingCompetitionForm()}) => {
-    const formState = initialState;
+const CompetitionParamsForm = ({onFormStateUpdated, state = makeStartingCompetitionForm()}) => {
+    const formState = state;
     useEffect(() => {
         onFormStateUpdated(formState);
     }, [])

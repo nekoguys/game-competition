@@ -85,7 +85,7 @@ const CreateCompetition = ({isUpdateMode, fetchers, showNotification}) => {
                         {t('create_competition.create_game')}
                     </div>
                     <CompetitionParamsForm onFormStateUpdated={(formState) => onFormStateUpdated(formState)}
-                                           initialState={initialState}/>
+                                           state={formState}/>
                     <ActionsButtons t={t} actions={[onSaveAsDraftClick, onOpenRegistrationClick]}/>
                 </div>
             </div>
