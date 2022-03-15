@@ -1,0 +1,121 @@
+.waiting-room-page-title {
+    color: #CFA856;
+    margin-top: 42px;
+    text-align: center;
+}
+
+.waiting-room-title-content-spacer {
+    height: 54px;
+}
+
+.waiting-room-main-content {
+    border-radius: 30px;
+    background-color: rgba(223, 220, 223, 0.4);
+    margin-left: auto;
+    margin-right: auto;
+    width: 500px;
+    padding: 23px 33px 31px;
+}
+
+.waiting-room-main-content-team-name {
+    color: rgba(0, 0, 0, 0.6);
+    font-size: 20px;
+    text-align: center;
+    margin-bottom: 11px;
+}
+
+.waiting-room-main-content-members-title {
+    color: rgba(0, 0, 0, 0.6);
+    font-size: 20px;
+    text-align: center;
+}
+
+.waiting-room-password-field-members-spacer {
+    height: 50px;
+}
+
+.waiting-room-members-container {
+    background-color: #F4F4F4;
+    border-radius: 30px;
+    padding: 9px 24px;
+    list-style-position: inside;
+    margin-bottom: 0;
+}
+
+.waiting-room-members-container > li {
+    font-size: 18px;
+    color: rgba(0, 0, 0, 0.6);
+    font-weight: 300;
+}
+
+.waiting-room-members-container > li:not(:last-child) {
+    margin-bottom: 9px;
+}
+
+.waiting-room-members-container-wrapper {
+    margin-top: 11px;
+}
+
+.waiting-room-team-password-container {
+    background-color: #F4F4F4;
+    border-radius: 30px;
+    position: relative;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.waiting-room-team-password-show-text {
+    text-align: center;
+    user-select: none;
+    color: rgba(0, 0, 0, 0.2);
+}
+
+.waiting-room-team-password-shown-password {
+    text-align: center;
+    color: rgba(0, 0, 0, 0.6);
+    font-size: 1.1rem;
+}
+
+.waiting-room-show-button-container {
+    position: absolute;
+    top: 50%;
+    right: 21px;
+    transform: translateY(-50%);
+    width: 22px;
+    height: 22px;
+    padding: 0 10px;
+}
+
+.waiting-room-show-button {
+    opacity: 0.4;
+    content: url("data:image/svg+xml,%3C%3Fxml version='1.0' %3F%3E%3C!DOCTYPE svg PUBLIC '-//W3C//DTD SVG 1.1//EN' 'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'%3E%3Csvg enable-background='new -0.709 -32.081 141.732 141.732' height='141.732px' id='Livello_1' version='1.1' viewBox='-0.709 -32.081 141.732 141.732' width='141.732px' xml:space='preserve' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink'%3E%3Cg id='Livello_80'%3E%3Cpath d='M89.668,38.786c0-10.773-8.731-19.512-19.51-19.512S50.646,28.01,50.646,38.786c0,10.774,8.732,19.511,19.512,19.511 C80.934,58.297,89.668,49.561,89.668,38.786 M128.352,38.727c-13.315,17.599-34.426,28.972-58.193,28.972 c-23.77,0-44.879-11.373-58.194-28.972C25.279,21.129,46.389,9.756,70.158,9.756C93.927,9.756,115.036,21.129,128.352,38.727 M140.314,38.76C125.666,15.478,99.725,0,70.158,0S14.648,15.478,0,38.76c14.648,23.312,40.591,38.81,70.158,38.81 S125.666,62.072,140.314,38.76'/%3E%3C/g%3E%3Cg id='Livello_1_1_'/%3E%3C/svg%3E");
+}
+
+.waiting-room-show-button-shown {
+    opacity: 0.4;
+    content: url("data:image/svg+xml,%3C%3Fxml version='1.0' encoding='utf-8'%3F%3E%3C!-- Generator: Adobe Illustrator 23.0.1, SVG Export Plug-In . SVG Version: 6.00 Build 0) --%3E%3Csvg version='1.1' id='Livello_1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' x='0px' y='0px' viewBox='0 0 141.7 141.7' style='enable-background:new 0 0 141.7 141.7;' xml:space='preserve'%3E%3Cstyle type='text/css'%3E .st0%7Bfill:none;stroke:%23FFFFFF;stroke-width:13;stroke-linecap:round;stroke-miterlimit:10;%7D .st1%7Bfill:none;stroke:%23000000;stroke-width:9;stroke-linecap:round;stroke-miterlimit:10;%7D%0A%3C/style%3E%3Cg id='Livello_80'%3E%3Cpath d='M68.4,51.5c-9.6,1.2-17.1,9.4-17.1,19.4c0,10.8,8.7,19.5,19.5,19.5c10.8,0,19.5-8.7,19.5-19.5 M90.4,70.9 c0-10.8-8.7-19.5-19.5-19.5c-0.8,0-1.6,0.1-2.4,0.2 M129.1,70.8c-13.3,17.6-34.4,29-58.2,29c-23.8,0-44.9-11.4-58.2-29 c13.3-17.6,34.4-29,58.2-29S115.7,53.2,129.1,70.8 M141,70.8c-14.6-23.3-40.6-38.8-70.2-38.8S15.4,47.6,0.7,70.8 c14.6,23.3,40.6,38.8,70.2,38.8S126.4,94.2,141,70.8'/%3E%3C/g%3E%3Cg id='Livello_1_1_'%3E%3C/g%3E%3Cline class='st0' x1='19.2' y1='10' x2='131.7' y2='122.4'/%3E%3Cline class='st0' x1='68.4' y1='49.8' x2='97' y2='78.4'/%3E%3Cline class='st1' x1='22.7' y1='22.6' x2='119.3' y2='119.3'/%3E%3C/svg%3E%0A");
+}
+
+@media (max-width: 500px) {
+    .waiting-room-main-content {
+        width: unset;
+        margin-right: 15px;
+        margin-left: 15px;
+        border-radius: 15px;
+        padding: 20px 20px 20px;
+    }
+
+    .waiting-room-team-password-container {
+        border-radius: 10px;
+    }
+
+    .waiting-room-members-container {
+        border-radius: 10px;
+    }
+
+    .waiting-room-password-field-members-spacer {
+        height: 20px;
+    }
+}

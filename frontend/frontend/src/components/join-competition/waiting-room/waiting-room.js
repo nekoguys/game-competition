@@ -1,139 +1,130 @@
-import React from "react";
+import React, {useEffect, useState} from "react";
 import "./waiting-room.css";
-import ApiHelper from "../../../helpers/api-helper";
 
 import {NavbarHeaderWithFetcher as NavbarHeader} from "../../app/app";
-import RoomTeammatesCollection from "./room-teammates-collection";
 import withAuthenticated from "../../../helpers/with-authenticated";
 
-import showNotification from "../../../helpers/notification-helper";
+import {useNavigate, useParams} from "react-router";
+import {useTranslation} from "react-i18next";
 
 
-class WaitingRoom extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            items: [],
-            showTeamMembers: true
+const NewStudentsWaitingRoom = ({eventSources, fetchers, showNotification}) => {
+    const {t} = useTranslation();
+    const [teamMembers, setTeamMembers] = useState([]);
+    const [teamPassword, setTeamPassword] = useState();
+    const [teamName, setTeamName] = useState("Капитанская дочка");
+    const {pin} = useParams();
+    const navigate = useNavigate()
+
+    useEffect(() => {
+        const eventSource = eventSources.teamMembers(pin);
+        eventSource.subscribe((newTeamMember) => {
+            setTeamMembers(prevValues => [...prevValues, newTeamMember]);
+        })
+
+        return function cleanup() {
+            eventSource.close();
         }
-    }
+    }, [])
 
-    componentDidMount() {
-        this.setupTeamEventConnection();
-        this.setupGameStartListener();
-        this.fetchCompetitionInfo();
-    }
+    useEffect(() => {
+        const eventSource = eventSources.competitionRoundEvents(pin);
+        const timeout = 1500
+        eventSource.subscribe((_) => {
+            showNotification().warning("Game started!", "Attention", timeout);
 
-    componentWillUnmount() {
-        if (this.eventSource !== undefined) {
-            this.eventSource.close();
+            setTimeout(() => {
+                navigate("/competitions/process_captain/" + pin);
+            }, timeout + 100);
+        })
+
+        return function cleanup() {
+            eventSource.close();
         }
-        this.closeGameStartListener();
-    }
+    }, [])
 
-    closeGameStartListener = () => {
-        if (this.gameStartListener !== undefined) {
-            this.gameStartListener.close();
-        }
-    };
+    useEffect(() => {
+        fetchers.teamNameAndPassword(pin).then(resp => {
+            if (!Object.is(resp.password, null)) {
+                setTeamPassword(resp.password);
+            }
+            setTeamName(resp.teamName)
+        })
+    }, [])
 
-    render() {
-        const items = this.state.items;
-        return (
+    const passwordAndSpacer = teamPassword !== undefined
+        ? (<div>
             <div>
-                <div>
-                    <NavbarHeader/>
+                <TeamPasswordContainer password={teamPassword}/>
+            </div>
+            <div className={"waiting-room-password-field-members-spacer"}/>
+        </div>)
+        : null;
+
+    return (
+        <div>
+            <div>
+                <NavbarHeader/>
+            </div>
+            <div className={"below-navbar"}>
+                <div className={"waiting-room-page-title page-title"}>
+                    {t("waiting_room_new.students_page_title") + pin}
                 </div>
-                <div>
-                    <div style={{paddingTop: "120px"}}>
-                        <div style={{fontSize: "28px", margin: "0 auto", textAlign: "center"}}>
-                            {"Комната ожидания"}
-                        </div>
+                <div className={"waiting-room-title-content-spacer"}/>
+                <div className={"waiting-room-main-content"}>
+                    <div className={"waiting-room-main-content-team-name"}>
+                        {teamName}
                     </div>
-                    <div style={{paddingTop: "40px"}}>
-                    <RoomTeammatesCollection items={items}
-                                             style={{paddingTop: "100px", fontSize: "20px"}}
-                                             ulstyle={{listStyle: "none", MarginTop: "-10px"}}
-                                             showTeamMembers={this.state.showTeamMembers}
-                    />
+                    {passwordAndSpacer}
+                    <div>
+                        <div className={"waiting-room-main-content-members-title"}>
+                            {t("waiting_room_new.students_team_members")}
+                        </div>
+                        <div className={"waiting-room-members-container-wrapper"}>
+                            <MembersContainer members={teamMembers}/>
+                        </div>
                     </div>
                 </div>
             </div>
-        )
-    }
-
-    setupGameStartListener() {
-        const {pin} = this.props.match.params;
-
-        this.gameStartListener = ApiHelper.competitionRoundEventsStream(pin);
-
-        this.gameStartListener.addEventListener("message", (message) => {
-            this.closeGameStartListener();
-            console.log("game started");
-            const timeout = 1500;
-
-            showNotification(this).warning("Game started!", "Attention", timeout);
-
-            setTimeout(() => {
-                this.props.history("/competitions/process_captain/" + pin);
-            }, timeout + 100);
-        });
-    }
-
-    fetchCompetitionInfo() {
-        const {pin} = this.props.match.params;
-        ApiHelper.competitionInfoForTeams(pin).then(resp => {
-            if (resp.status >= 300) {
-                return {success: false, json: resp.text()}
-            } else {
-                return {success: true, json: resp.json()}
-            }
-        }).then(resp => {
-            resp.json.then(jsonBody => {
-                if (resp.success) {
-                    console.log("ShowTeamMembers", jsonBody.showTeamMembers, jsonBody);
-                    this.setState(prevState => {
-                        return {
-                            showTeamMembers: jsonBody.showTeamMembers ?? true
-                        }
-                    })
-                }
-            })
-        })
-    }
-
-    setupTeamEventConnection() {
-        if (this.eventSource === undefined) {
-
-            const {pin} = this.props.match.params;
-
-            this.eventSource = ApiHelper.teamCreationEventSource(pin);
-            this.eventSource.addEventListener("error",
-                (err) => {
-                    console.log("EventSource failed: ", err)
-                });
-            this.eventSource.addEventListener("message", (event) => {
-                console.log({data: event.data});
-                this.setState((prevState) => {
-
-                    let arr = prevState.items.slice(0);
-
-                    console.log(prevState.items);
-                    const elem = JSON.parse(event.data);
-                    let index = arr.findIndex(el => {
-                        return el.teamName === elem.teamName
-                    });
-                    if (index === -1) {
-                        arr.push(elem);
-                    } else {
-                        arr[index] = elem;
-                    }
-
-                    return {items: arr}
-                });
-            });
-        }
-    }
+        </div>
+    )
 }
 
-export default withAuthenticated(WaitingRoom);
+const MembersContainer = ({members}) => {
+    const membersElements = members.map((el, ind) => {
+        return (
+            <li key={ind}>{el.name}</li>
+        )
+    })
+    return (
+        <div>
+            <ul className={"waiting-room-members-container"}>
+                {membersElements}
+            </ul>
+        </div>
+    )
+}
+
+const TeamPasswordContainer = ({password = ""}) => {
+    const [shown, setShow] = useState(false)
+
+    const togglePasswordVisibility = (event) => {
+        setShow(!shown);
+        event.stopPropagation()
+    }
+
+    return (
+        <div className={"waiting-room-team-password-container"}>
+            {shown
+                ? <div className={"waiting-room-team-password-shown-password"}>{password}</div>
+                : <div className={"waiting-room-team-password-show-text"}>{"Показать пароль для входа"}</div>
+            }
+            <div className={"waiting-room-show-button-container"} onClick={togglePasswordVisibility}>
+                <img alt={"show password"}
+                     className={shown ? "waiting-room-show-button-shown" : "waiting-room-show-button"}/>
+            </div>
+        </div>
+    )
+}
+
+export default withAuthenticated(NewStudentsWaitingRoom);

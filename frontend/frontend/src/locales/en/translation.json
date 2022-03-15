@@ -133,7 +133,9 @@
     "registration_opened": "Registration is opened",
     "show_settings": "Show settings",
     "start_game": "Start game",
-    "teams_list_title": "Teams list"
+    "teams_list_title": "Teams list",
+    "students_page_title": "Waiting for the game to start №",
+    "students_team_members": "Team Members"
   },
   "create_competition": {
     "create_game": "Create game",

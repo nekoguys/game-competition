@@ -131,7 +131,9 @@
     "registration_opened": "Регистрация открыта",
     "show_settings": "Показать настройки",
     "start_game": "Начать игру",
-    "teams_list_title": "Список команд"
+    "teams_list_title": "Список команд",
+    "students_page_title": "Ожидание начала игры №",
+    "students_team_members": "Участники"
   },
   "create_competition": {
     "create_game": "Создание Игры",
