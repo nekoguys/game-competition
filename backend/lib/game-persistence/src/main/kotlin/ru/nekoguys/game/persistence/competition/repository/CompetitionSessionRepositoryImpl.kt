@@ -16,6 +16,7 @@ import ru.nekoguys.game.entity.user.model.User
 import ru.nekoguys.game.persistence.commongame.model.DbGameSession
 import ru.nekoguys.game.persistence.commongame.model.DbGameType
 import ru.nekoguys.game.persistence.commongame.repository.DbGameSessionRepository
+import ru.nekoguys.game.persistence.commongame.repository.findIdsByParticipantId
 import ru.nekoguys.game.persistence.competition.model.DbCompetitionSession
 import ru.nekoguys.game.persistence.competition.model.extractCompetitionStage
 import ru.nekoguys.game.persistence.competition.model.extractDbCompetitionStage

@@ -13,7 +13,6 @@ import ru.nekoguys.game.web.util.CleanDatabaseExtension
 import ru.nekoguys.game.web.util.TestGame
 import java.time.LocalDateTime
 
-@Suppress("LocalVariableName")
 @ExtendWith(CleanDatabaseExtension::class)
 @GameWebApplicationTest
 class CompetitionServiceTest @Autowired constructor(
@@ -89,13 +88,13 @@ class CompetitionServiceTest @Autowired constructor(
     fun `get competition list`() {
         val testUser = game.createUser(role = UserRole.Teacher)
 
-        val `❌` = List(2) {
+        repeat(2) {
             game.createAndLoadSession { pin ->
                 repeat(1) { game.createTeam(pin) }
             }
-        }.map { it.pin }
+        }
 
-        val `✅` = List(2) {
+        val participatedSessions = List(2) {
             game.createAndLoadSession { pin ->
                 repeat(1) { game.createTeam(pin) }
                 game.createAndJoinTeam(
@@ -103,15 +102,15 @@ class CompetitionServiceTest @Autowired constructor(
                     teamMember = testUser,
                 )
             }
-        }.map { it.pin }
+        }
 
-        val `✔` = List(2) {
+        val createdSessions = List(2) {
             game.createAndLoadSession(
                 teacher = testUser
             ) { pin ->
                 repeat(1) { game.createTeam(pin) }
             }
-        }.map { it.pin }
+        }
 
         val result = runBlocking {
             competitionService.getCompetitionHistory(
@@ -122,8 +121,10 @@ class CompetitionServiceTest @Autowired constructor(
         }.map { it.pin }
 
         assertThat(result)
-            .containsAll(`✅`)
-            .containsAll(`✔`)
-            .doesNotContainAnyElementsOf(`❌`)
+            .containsExactlyElementsOf(
+                (participatedSessions + createdSessions)
+                    .sortedByDescending { it.lastModified }
+                    .map { it.pin }
+            )
     }
 }
