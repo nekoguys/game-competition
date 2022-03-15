@@ -1,4 +1,4 @@
-import React, {useRef} from "react";
+import React, {useState} from "react";
 import {NavbarHeaderWithFetcher as NavbarHeader} from "../../app/app";
 import CompetitionParamsForm from "../competition-params";
 import "../competition-params/competition-params.css";
@@ -14,12 +14,12 @@ const CreateCompetition = ({isUpdateMode, fetchers, showNotification}) => {
     const {t} = useTranslation();
     const location = useLocation();
     const initialState = location?.state?.initialState || makeStartingCompetitionForm();
-    const formState = useRef(initialState);
+    const [formState, setFormState] = useState(initialState);
     const params = useParams();
     const navigate = useNavigate();
 
     const onSaveAsDraftClick = () => {
-        const obj = {...toCompetitionFormJsonObject(formState.current), state: "Draft"};
+        const obj = {...toCompetitionFormJsonObject(formState), state: "Draft"};
         if (isUpdateMode) {
             onUpdateDraftCompetition(obj, () => {
                 navigate("/competitions/history")
@@ -32,7 +32,7 @@ const CreateCompetition = ({isUpdateMode, fetchers, showNotification}) => {
     }
 
     const onOpenRegistrationClick = () => {
-        let obj = {...toCompetitionFormJsonObject(formState.current), state: "Registration"};
+        let obj = {...toCompetitionFormJsonObject(formState), state: "Registration"};
 
         if (isUpdateMode) {
             onUpdateDraftCompetition(obj, () => {
@@ -70,7 +70,8 @@ const CreateCompetition = ({isUpdateMode, fetchers, showNotification}) => {
     }
 
     const onFormStateUpdated = (newFormState) => {
-        formState.current = newFormState;
+        setFormState(newFormState)
+        console.log(newFormState)
     };
 
     return (
