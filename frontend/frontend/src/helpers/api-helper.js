@@ -24,6 +24,10 @@ class ApiSettings {
         return ApiSettings.host() + "/competitions/" + pin + "/teams" + method;
     }
 
+    static getCurrentTeamEndpoint(pin) {
+        return ApiSettings.teamsEndPoint(pin, "/current");
+    }
+
     static createTeamEndPoint(pin) {
         return ApiSettings.teamsEndPoint(pin, "/create");
     }
@@ -80,10 +84,6 @@ class ApiSettings {
 
     static checkPinEndPoint() {
         return ApiSettings.#checkPinEndPoint;
-    }
-
-    static getCurrentTeamEndpoint(pin) {
-        return ApiSettings.teamsEndPoint(pin, "/current");
     }
 
     static getCloneInfoEndPoint(pin) {
@@ -264,6 +264,14 @@ export default class ApiHelper {
 
     static teamCreationEventSource(pin) {
         return new EventSourcePolyfill(ApiSettings.teamCreationEvents(pin),
+            {
+                headers: this.authDefaultHeaders(),
+                heartbeatTimeout: 1000*60*60
+            });
+    }
+
+    static myTeamsNewMembersEventSource(pin) {
+        return new EventSourcePolyfill(ApiSettings.myTeamNewMembersEvents(pin),
             {
                 headers: this.authDefaultHeaders(),
                 heartbeatTimeout: 1000*60*60

@@ -164,6 +164,9 @@ const teamNameAndPasswordFetcher = {
         return new Promise(resolve => {
             setTimeout(() => resolve({password: null, teamName: "Капитанская дочка"}), 500)
         })
+    },
+    real: (pin) => {
+        return apiFetcher(pin, (pin) => ApiHelper.getCurrentTeam(pin))
     }
 }['mock']
 
@@ -179,6 +182,9 @@ const teamMembers = {
                 isCaptain: false
             }
         ], 200)
+    },
+    real: (pin) => {
+        return new EventSourceWrapper(ApiHelper.myTeamsNewMembersEventSource(pin));
     }
 }['mock']
 
