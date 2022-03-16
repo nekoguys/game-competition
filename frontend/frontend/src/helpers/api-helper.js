@@ -18,6 +18,11 @@ class ApiSettings {
         return ApiSettings.#host;
     }
 
+    static isMockedEnvironment() {
+        // Возвращает true, если ApiSettings.#truehost не определён
+        return !ApiSettings.#truehost;
+    }
+
     // --- START TEAMS API ---
 
     static teamsEndPoint(pin, method) {
@@ -192,6 +197,10 @@ class ApiSettings {
 }
 
 export default class ApiHelper {
+
+    static fetcherType() {
+        return ApiSettings.isMockedEnvironment() ? "mock" : "real";
+    }
 
     static defaultHeaders() {
         return {
