@@ -16,6 +16,7 @@ import ru.nekoguys.game.entity.user.model.User
 import ru.nekoguys.game.persistence.commongame.model.DbGameSession
 import ru.nekoguys.game.persistence.commongame.model.DbGameType
 import ru.nekoguys.game.persistence.commongame.repository.DbGameSessionRepository
+import ru.nekoguys.game.persistence.commongame.repository.findIdsByParticipantId
 import ru.nekoguys.game.persistence.competition.model.DbCompetitionSession
 import ru.nekoguys.game.persistence.competition.model.extractCompetitionStage
 import ru.nekoguys.game.persistence.competition.model.extractDbCompetitionStage
@@ -158,6 +159,21 @@ class CompetitionSessionRepositoryImpl(
             .findIdsByCreatorId(creatorId, limit, offset)
             .toList()
             .map(CommonSession::Id)
+
+    override suspend fun findIdsByParticipantId(
+        participantId: Long,
+        limit: Int,
+        offset: Int,
+    ): List<CommonSession.Id> =
+        dbGameSessionRepository
+            .findIdsByParticipantId(
+                participantId = participantId,
+                limit = limit,
+                offset = offset,
+            )
+            .toList()
+            .map(CommonSession::Id)
+
 }
 
 private fun createCompetitionSession(

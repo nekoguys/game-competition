@@ -47,9 +47,10 @@ class CompetitionService(
         val user = userRepository.findByEmail(userEmail)
         checkNotNull(user)
 
-        val sessionIds = competitionSessionRepository
-            .findIdsByCreatorId(user.id.number, limit, offset)
-            .toList()
+        val sessionIds =
+            competitionSessionRepository
+                .findIdsByParticipantId(user.id.number, limit, offset)
+                .toList()
 
         return competitionSessionRepository
             .findAll(
@@ -58,16 +59,16 @@ class CompetitionService(
                 CompetitionSession.WithStage,
                 CompetitionSession.WithCommonFields,
             )
+            .sortedByDescending { it.lastModified }
             .map {
                 createCompetitionHistoryResponseItem(
                     settings = it.settings,
                     stage = it.stage,
                     lastModified = it.lastModified,
-                    isOwned = true,
+                    isOwned = it.creatorId == user.id,
                     pin = it.pin
                 )
             }
-            .toList()
     }
 
     suspend fun ifSessionCanBeJoined(

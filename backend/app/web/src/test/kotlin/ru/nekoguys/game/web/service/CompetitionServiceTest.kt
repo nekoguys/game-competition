@@ -83,4 +83,48 @@ class CompetitionServiceTest @Autowired constructor(
                 val isAutoRoundEnding = settings.isAutoRoundEnding
             })
     }
+
+    @Test
+    fun `get competition list`() {
+        val testUser = game.createUser(role = UserRole.Teacher)
+
+        repeat(2) {
+            game.createAndLoadSession { pin ->
+                repeat(1) { game.createTeam(pin) }
+            }
+        }
+
+        val participatedSessions = List(2) {
+            game.createAndLoadSession { pin ->
+                repeat(1) { game.createTeam(pin) }
+                game.createAndJoinTeam(
+                    sessionPin = pin,
+                    teamMember = testUser,
+                )
+            }
+        }
+
+        val createdSessions = List(2) {
+            game.createAndLoadSession(
+                teacher = testUser
+            ) { pin ->
+                repeat(1) { game.createTeam(pin) }
+            }
+        }
+
+        val result = runBlocking {
+            competitionService.getCompetitionHistory(
+                userEmail = testUser.email,
+                limit = Int.MAX_VALUE,
+                offset = 0,
+            )
+        }.map { it.pin }
+
+        assertThat(result)
+            .containsExactlyElementsOf(
+                (participatedSessions + createdSessions)
+                    .sortedByDescending { it.lastModified }
+                    .map { it.pin }
+            )
+    }
 }

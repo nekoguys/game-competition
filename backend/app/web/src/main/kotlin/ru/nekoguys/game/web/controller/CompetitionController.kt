@@ -34,21 +34,21 @@ class CompetitionController(
         }
 
     @GetMapping(
-        "/competitions_history/{start}/{amount}",
+        "/competitions_history/{page}/{pageSize}",
         produces = [MediaType.APPLICATION_JSON_VALUE],
     )
     @PreAuthorize("hasRole('STUDENT')")
     suspend fun competitionsHistory(
         principal: Principal,
-        @PathVariable start: Int,
-        @PathVariable amount: Int,
+        @PathVariable page: Int,
+        @PathVariable pageSize: Int,
     ): ResponseEntity<List<GetCompetitionResponse>> =
         withMDCContext {
             competitionService
                 .getCompetitionHistory(
                     userEmail = principal.name,
-                    limit = amount,
-                    offset = start,
+                    limit = pageSize,
+                    offset = page * pageSize, // TODO: modify front page => page * pageSize
                 )
                 .let { ResponseEntity.ok(it) }
         }
