@@ -92,7 +92,8 @@ const historyFetcher = {
             ])
         }))
     },
-    real: (start, count) => { return apiFetcher([start, count], (params) => ApiHelper.competitionsHistory(params[0], params[1])) }
+    real: (start, count) => { return apiFetcher([start, count],
+        ([start, count]) => ApiHelper.competitionsHistory(start / count, count)) }
 }["mock"]
 
 const pinFetcher = {
