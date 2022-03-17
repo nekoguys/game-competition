@@ -12,4 +12,5 @@ data class DbCompetitionTeam(
     var name: String,
     var password: String,
     var banRound: Int?,
+    var strategy: String?,
 )

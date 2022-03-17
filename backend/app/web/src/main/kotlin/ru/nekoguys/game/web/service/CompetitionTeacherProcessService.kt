@@ -3,23 +3,62 @@ package ru.nekoguys.game.web.service
 import kotlinx.coroutines.flow.*
 import org.springframework.stereotype.Service
 import ru.nekoguys.game.entity.commongame.service.SessionPinDecoder
+import ru.nekoguys.game.entity.competition.CompetitionProcessException
+import ru.nekoguys.game.entity.competition.CompetitionProcessService
 import ru.nekoguys.game.entity.competition.model.CompetitionPlayer
 import ru.nekoguys.game.entity.competition.model.CompetitionSession
+import ru.nekoguys.game.entity.competition.model.CompetitionStage
 import ru.nekoguys.game.entity.competition.model.students
 import ru.nekoguys.game.entity.competition.repository.CompetitionSessionRepository
 import ru.nekoguys.game.entity.competition.repository.load
+import ru.nekoguys.game.entity.competition.rule.CompetitionCommand
 import ru.nekoguys.game.entity.competition.rule.CompetitionStageChangedMessage
-import ru.nekoguys.game.web.dto.CompetitionInfoForStudentResultsTableResponse
-import ru.nekoguys.game.web.dto.RoundEvent
-import ru.nekoguys.game.entity.competition.CompetitionProcessService as CoreCompetitionProcessService
+import ru.nekoguys.game.web.dto.*
 
-@Service("webCompetitionProcessService")
-class CompetitionProcessService(
-    // одноимённый класс уже есть в lib-game, здесь используется import alias
-    private val coreCompetitionProcessService: CoreCompetitionProcessService,
+@Service
+class CompetitionTeacherProcessService(
+    private val competitionProcessService: CompetitionProcessService,
     private val sessionPinDecoder: SessionPinDecoder,
     private val competitionSessionRepository: CompetitionSessionRepository,
 ) {
+    suspend fun startCompetition(
+        teacherEmail: String,
+        sessionPin: String
+    ): ProcessApiResponse<StartCompetitionResponse>? {
+        val sessionId = sessionPinDecoder
+            .decodeIdFromPin(sessionPin)
+            ?: return null
+
+        try {
+            competitionProcessService
+                .acceptInternalCommand(
+                    sessionId,
+                    CompetitionCommand.ChangeStageCommand(
+                        from = CompetitionStage.Registration,
+                        to = CompetitionStage.InProcess(round = 1),
+                    ),
+                )
+        } catch (ex: CompetitionProcessException) {
+            return ProcessApiResponse.ProcessError(ex.message)
+        }
+
+        return StartCompetitionResponse
+    }
+
+    suspend fun startRound(
+        teacherEmail: String,
+        sessionPin: String,
+    ): ProcessApiResponse<StartRoundResponse>? {
+        TODO()
+    }
+
+    suspend fun changeRoundLength(
+        teacherEmail: String,
+        sessionPin: String,
+        newLength: Int,
+    ): ChangeRoundLengthResponse? {
+        TODO()
+    }
 
     fun competitionRoundEventsFlow(
         sessionPin: String,
@@ -28,7 +67,7 @@ class CompetitionProcessService(
             .decodeIdFromPin(sessionPin)
             ?: error("Incorrect pin")
 
-        coreCompetitionProcessService
+        competitionProcessService
             .getAllMessagesForSession(sessionId)
             .map { it.body } // не смотрим, каким командам отправлено сообщение
             .transform { msg ->
@@ -45,6 +84,28 @@ class CompetitionProcessService(
             isEndOfGame = false,
             roundLength = roundLength,
         )
+
+    suspend fun getTeacherCompInfo(
+        sessionPin: String,
+    ): CompetitionInfoForResultsTableResponse? {
+        val id = sessionPinDecoder
+            .decodeIdFromPin(sessionPin)
+            ?: return null
+
+        val session = competitionSessionRepository
+            .load(
+                id,
+                CompetitionSession.WithSettings,
+                CompetitionSession.WithTeamIds,
+            )
+
+        return CompetitionInfoForResultsTableResponse(
+            connectedTeamsCount = session.teamIds.size,
+            roundsCount = session.settings.roundsCount,
+            name = session.settings.name,
+            isAutoRoundEnding = session.settings.isAutoRoundEnding,
+        )
+    }
 
     suspend fun getStudentCompInfo(
         studentEmail: String,

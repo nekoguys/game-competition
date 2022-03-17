@@ -8,22 +8,17 @@ import ru.nekoguys.game.persistence.GamePersistenceTest
 import ru.nekoguys.game.persistence.commongame.model.DbGameSession
 import ru.nekoguys.game.persistence.commongame.model.DbGameType
 import ru.nekoguys.game.persistence.commongame.repository.DbGameSessionRepository
-import ru.nekoguys.game.persistence.competition.model.*
-import ru.nekoguys.game.persistence.competition.repository.*
+import ru.nekoguys.game.persistence.competition.model.DbCompetitionSession
+import ru.nekoguys.game.persistence.competition.model.DbCompetitionStage
+import ru.nekoguys.game.persistence.competition.repository.DbCompetitionSessionRepository
 import ru.nekoguys.game.persistence.user.model.DbUser
 import ru.nekoguys.game.persistence.user.model.DbUserRole
 import ru.nekoguys.game.persistence.user.repository.DbUserRepository
 import ru.nekoguys.game.persistence.utils.runBlockingWithRollback
-import java.time.LocalDateTime
-import java.time.temporal.ChronoUnit
 
 @GamePersistenceTest
 internal class DbCompetitionSessionRepositoryTest @Autowired constructor(
-    private val dbCompetitionRoundAnswerRepository: DbCompetitionRoundAnswerRepository,
-    private val dbCompetitionRoundInfoRepository: DbCompetitionRoundInfoRepository,
-    private val dbCompetitionRoundResultRepository: DbCompetitionRoundResultRepository,
     private val dbCompetitionSessionRepository: DbCompetitionSessionRepository,
-    private val dbCompetitionTeamRepository: DbCompetitionTeamRepository,
     private val dbGameSessionRepository: DbGameSessionRepository,
     private val dbUserRepository: DbUserRepository,
     private val transactionalOperator: TransactionalOperator,
@@ -36,64 +31,6 @@ internal class DbCompetitionSessionRepositoryTest @Autowired constructor(
 
         assertThat(retrievedSession)
             .isEqualTo(createdSession)
-    }
-
-    @Test
-    fun `round info insertion and retrieval`() = transactionalOperator.runBlockingWithRollback {
-        val competitionSession = createCompetitionSession("email")
-
-        val roundInfo = DbCompetitionRoundInfo(
-            id = null,
-            sessionId = competitionSession.sessionId!!,
-            roundNumber = 1,
-            startTime = LocalDateTime.now().truncatedTo(ChronoUnit.MILLIS),
-            endTime = null,
-        ).let { dbCompetitionRoundInfoRepository.save(it) }
-
-        val retrievedRoundInfo = dbCompetitionRoundInfoRepository.findById(roundInfo.id!!)
-
-        assertThat(retrievedRoundInfo)
-            .isEqualTo(roundInfo)
-    }
-
-    @Test
-    fun `check answers submission`() = transactionalOperator.runBlockingWithRollback {
-        val competitionSession = createCompetitionSession("email")
-
-        val roundInfo = DbCompetitionRoundInfo(
-            id = null,
-            sessionId = competitionSession.sessionId!!,
-            roundNumber = 1,
-            startTime = LocalDateTime.now(),
-            endTime = null,
-        ).let { dbCompetitionRoundInfoRepository.save(it) }
-
-        val team = DbCompetitionTeam(
-            id = null,
-            sessionId = competitionSession.sessionId!!,
-            teamNumber = 1,
-            name = "Test Team",
-            password = "a",
-            banRound = null,
-        ).let { dbCompetitionTeamRepository.save(it) }
-
-        val answer = DbCompetitionRoundAnswer(
-            roundInfoId = roundInfo.id!!,
-            teamId = team.id!!,
-            value = 10,
-        ).let { dbCompetitionRoundAnswerRepository.save(it) }
-
-        val teamRoundResult = DbCompetitionRoundResult(
-            roundInfoId = roundInfo.id!!,
-            teamId = team.id!!,
-            income = 20.0,
-        ).let { dbCompetitionRoundResultRepository.save(it) }
-
-        assertThat(dbCompetitionRoundAnswerRepository.findById(answer.id!!))
-            .isEqualTo(answer)
-
-        assertThat(dbCompetitionRoundResultRepository.findById(teamRoundResult.id!!))
-            .isEqualTo(teamRoundResult)
     }
 
     private suspend fun createCompetitionSession(userEmail: String): DbCompetitionSession {

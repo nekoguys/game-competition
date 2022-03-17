@@ -38,7 +38,8 @@ internal class DbCompetitionTeamRepositoryTest @Autowired constructor(
             teamNumber = 0,
             name = "Test Team",
             password = "a",
-            banRound = null
+            banRound = null,
+            strategy = null,
         ).let { dbCompetitionTeamRepository.save(it) }
 
         val teamMembers: List<DbCompetitionTeamMember> =

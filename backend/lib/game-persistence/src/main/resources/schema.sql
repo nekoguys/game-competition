@@ -70,7 +70,8 @@ CREATE TABLE competition_teams
     team_number INT     NOT NULL,
     name        VARCHAR NOT NULL,
     password    VARCHAR NOT NULL,
-    ban_round   INT     NULL
+    ban_round   INT     NULL,
+    strategy    VARCHAR NULL
 );
 
 CREATE UNIQUE INDEX competition_teams_session_id_name_unique_index
@@ -86,29 +87,29 @@ CREATE TABLE competition_team_members
 
 CREATE TABLE competition_round_infos
 (
-    id           BIGSERIAL PRIMARY KEY,
     session_id   BIGINT NOT NULL,
-    round_number INT,
-    start_time   TIMESTAMP,
-    end_time     TIMESTAMP,
-    is_ended     BOOLEAN,
-    UNIQUE (id, round_number)
+    round_number INT NOT NULL,
+    start_time   TIMESTAMP NOT NULL,
+    end_time     TIMESTAMP NULL,
+    PRIMARY KEY (session_id, round_number)
 );
 
 CREATE TABLE competition_round_answers
 (
-    id       BIGSERIAL PRIMARY KEY,
-    round_id BIGINT NOT NULL,
-    value    INT,
-    team_id  BIGINT
+    session_id BIGINT NOT NULL,
+    round_number INT NOT NULL,
+    team_id  BIGINT NOT NULL,
+    value    INT NOT NULL,
+    PRIMARY KEY (session_id, round_number)
 );
 
 CREATE TABLE competition_round_results
 (
-    id       BIGSERIAL PRIMARY KEY,
-    round_id BIGINT NOT NUll,
-    income   decimal,
-    team_id  BIGINT
+    session_id BIGINT NOT NULL,
+    round_number INT NOT NULL,
+    team_id  BIGINT NOT NULL,
+    income   INT NOT NULL,
+    PRIMARY KEY (session_id, round_number, team_id)
 );
 
 ALTER TABLE game_sessions
@@ -152,16 +153,16 @@ ALTER TABLE competition_round_infos
         FOREIGN KEY (session_id) REFERENCES competition_game_sessions (id);
 
 ALTER TABLE competition_round_answers
-    ADD CONSTRAINT fk_competition_round_answers_round_id
-        FOREIGN KEY (round_id) REFERENCES competition_round_infos (id);
+    ADD CONSTRAINT fk_competition_round_answers_session_id_round_number
+        FOREIGN KEY (session_id, round_number) REFERENCES competition_round_infos (session_id, round_number);
 
 ALTER TABLE competition_round_answers
     ADD CONSTRAINT fk_competition_round_answers_team_id
         FOREIGN KEY (team_id) REFERENCES competition_teams (id);
 
 ALTER TABLE competition_round_results
-    ADD CONSTRAINT fk_competition_round_results_round_id
-        FOREIGN KEY (round_id) REFERENCES competition_round_infos (id);
+    ADD CONSTRAINT fk_competition_round_results_session_id_round_number
+        FOREIGN KEY (session_id, round_number) REFERENCES competition_round_infos (session_id, round_number);
 
 ALTER TABLE competition_round_results
     ADD CONSTRAINT fk_competition_round_results_team_id

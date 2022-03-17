@@ -5,17 +5,36 @@ package ru.nekoguys.game.web.dto
 import org.springframework.http.HttpStatus
 import ru.nekoguys.game.web.util.WebResponse
 
-sealed class StartCompetitionResponse(
-    status: HttpStatus
+sealed class ProcessApiResponse<out T : ProcessApiResponse<T>>(
+    status: HttpStatus,
 ) : WebResponse(status) {
-    object Success : StartCompetitionResponse(HttpStatus.OK) {
-        @Suppress("unused")
-        val message = "Competition started successfully"
+    class SessionNotFound(
+        sessionPin: String,
+    ) : ProcessApiResponse<Nothing>(HttpStatus.NOT_FOUND) {
+        val message = "There is no competition session with pin '$sessionPin'"
     }
 
     data class ProcessError(
         val message: String,
-    ) : StartCompetitionResponse(HttpStatus.BAD_REQUEST)
+    ) : ProcessApiResponse<Nothing>(HttpStatus.BAD_REQUEST)
+}
+
+object StartCompetitionResponse : ProcessApiResponse<StartCompetitionResponse>(HttpStatus.OK) {
+    @Suppress("unused")
+    val message = "Competition started successfully"
+}
+
+object StartRoundResponse : ProcessApiResponse<StartRoundResponse>(HttpStatus.OK) {
+    @Suppress("unused")
+    val message = "Round has started successfully"
+}
+
+data class ChangeRoundLengthRequest(
+    val newRoundLength: Int,
+)
+
+object ChangeRoundLengthResponse : ProcessApiResponse<ChangeRoundLengthResponse>(HttpStatus.OK) {
+    val message = "Round length changed successfully"
 }
 
 sealed class RoundEvent {
@@ -33,3 +52,22 @@ sealed class RoundEvent {
         val roundLength: Int,
     ) : RoundEvent()
 }
+
+data class CompetitionInfoForResultsTableResponse(
+    val connectedTeamsCount: Int,
+    val roundsCount: Int,
+    val name: String,
+    val isAutoRoundEnding: Boolean,
+) : ProcessApiResponse<CompetitionInfoForResultsTableResponse>(HttpStatus.OK)
+
+data class CompetitionInfoForStudentResultsTableResponse(
+    val name: String,
+    val description: String,
+    val teamName: String,
+    val teamIdInGame: Int,
+    val shouldShowResultTable: Boolean,
+    val shouldShowResultTableInEnd: Boolean,
+    val isCaptain: Boolean,
+    val roundsCount: Int,
+    val strategy: String,
+) : ProcessApiResponse<CompetitionInfoForResultsTableResponse>(HttpStatus.OK)

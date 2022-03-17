@@ -44,12 +44,26 @@ sealed interface UserRole {
             override fun toString() = "Admin"
         }
     }
+
+    companion object {
+        fun fromAuthoritiesList(authorities: List<String>): UserRole =
+            when {
+                Admin.topRoleName in authorities -> Admin
+                Teacher.topRoleName in authorities -> Teacher
+                Student.topRoleName in authorities -> Student
+                else -> error("Unknown authorities list $authorities")
+            }
+
+        fun fromString(authority: String): UserRole =
+            when (authority) {
+                Student.topRoleName -> Student
+                Teacher.topRoleName -> Teacher
+                Admin.topRoleName -> Admin
+                else -> error("Unknown role $authority")
+            }
+    }
 }
 
 fun String.toUserRole(): UserRole =
-    when (this) {
-        UserRole.Student.topRoleName -> UserRole.Student
-        UserRole.Teacher.topRoleName -> UserRole.Teacher
-        UserRole.Admin.topRoleName -> UserRole.Admin
-        else -> error("Unknown role $this")
-    }
+    UserRole.fromString(this)
+

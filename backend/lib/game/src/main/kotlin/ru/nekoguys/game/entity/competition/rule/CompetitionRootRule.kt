@@ -33,7 +33,7 @@ sealed class CompetitionCommand {
 @JsonSubTypes(
     JsonSubTypes.Type(CompetitionCreateTeamMessage::class),
     JsonSubTypes.Type(CompetitionJoinTeamMessage::class),
-    JsonSubTypes.Type(CompetitionChangeStageRule::class),
+    JsonSubTypes.Type(CompetitionStageChangedMessage::class),
 )
 sealed class CompetitionMessage
 
