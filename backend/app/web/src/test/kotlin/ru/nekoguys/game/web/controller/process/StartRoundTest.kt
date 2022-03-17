@@ -36,7 +36,7 @@ class StartRoundTest @Autowired constructor(
         game.startCompetition(sessionPin)
 
         webTestClient
-            .post()
+            .get()
             .uri("/api/competition_process/$sessionPin/start_round")
             .exchange()
             .expectStatus().isOk

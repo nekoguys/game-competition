@@ -38,7 +38,7 @@ class CompetitionTeacherProcessController(
                 )
         }
 
-    @PostMapping(
+    @GetMapping(
         "/start_round",
         produces = [MediaType.APPLICATION_JSON_VALUE],
     )
@@ -115,4 +115,7 @@ class CompetitionTeacherProcessController(
                 getBanEvents(pin)
         );
      */
+
+    // TODO: send_message
+    // TODO: restart_game
 }

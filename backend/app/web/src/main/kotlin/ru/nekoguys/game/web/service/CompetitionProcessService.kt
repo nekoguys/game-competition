@@ -12,6 +12,7 @@ import ru.nekoguys.game.entity.competition.repository.load
 import ru.nekoguys.game.entity.competition.rule.CompetitionStageChangedMessage
 import ru.nekoguys.game.web.dto.CompetitionInfoForStudentResultsTableResponse
 import ru.nekoguys.game.web.dto.RoundEvent
+import java.time.ZoneOffset
 import ru.nekoguys.game.entity.competition.CompetitionProcessService as CoreCompetitionProcessService
 
 @Service("webCompetitionProcessService")
@@ -32,27 +33,29 @@ class CompetitionProcessService(
         coreCompetitionProcessService
             .getAllMessagesForSession(sessionId)
             .map { it.body } // не смотрим, каким командам отправлено сообщение
-            .transform { msg ->
-                if (msg is CompetitionStageChangedMessage) {
-                    emit(msg.toRoundEvent())
-                }
+            .mapNotNull { msg ->
+                (msg as? CompetitionStageChangedMessage)?.toRoundEvent()
             }
             .collect(::emit)
     }
 
-    private fun CompetitionStageChangedMessage.toRoundEvent(): RoundEvent =
-        if (from is CompetitionStage.InProcess) {
-            RoundEvent.EndRound(
-                roundNumber = 0,
-                isEndOfGame = false,
-                roundLength = roundLength,
-            )
-        } else {
-            RoundEvent.NewRound(
-                roundLength = 0,
-                beginTime = 0,
-                roundNumber = 0,
-            )
+    private fun CompetitionStageChangedMessage.toRoundEvent(): RoundEvent? =
+        when {
+            from is CompetitionStage.InProcess ->
+                RoundEvent.EndRound(
+                    roundNumber = (from as CompetitionStage.InProcess).round,
+                    isEndOfGame = false,
+                    roundLength = roundLength,
+                )
+
+            to is CompetitionStage.InProcess ->
+                RoundEvent.NewRound(
+                    roundLength = roundLength,
+                    beginTime = timeStamp.toEpochSecond(ZoneOffset.UTC),
+                    roundNumber = (to as CompetitionStage.InProcess).round,
+                )
+
+            else -> null
         }
 
     suspend fun getStudentCompInfo(

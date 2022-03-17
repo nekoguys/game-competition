@@ -80,4 +80,8 @@ class CompetitionProcessController(
         );
     }
      */
+
+    // TODO: submit_answer
+    // TODO: submit_strategy
+
 }

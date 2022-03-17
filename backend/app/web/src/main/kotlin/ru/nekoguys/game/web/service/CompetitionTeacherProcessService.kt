@@ -80,13 +80,12 @@ class CompetitionTeacherProcessService(
     suspend fun getTeacherCompInfo(
         sessionPin: String,
     ): CompetitionInfoForResultsTableResponse? {
-        val id = sessionPinDecoder
-            .decodeIdFromPin(sessionPin)
-            ?: return null
 
         val session = competitionSessionRepository
             .load(
-                id,
+                id = sessionPinDecoder
+                    .decodeIdFromPin(sessionPin)
+                    ?: return null,
                 CompetitionSession.WithSettings,
                 CompetitionSession.WithTeamIds,
             )
