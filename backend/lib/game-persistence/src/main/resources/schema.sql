@@ -41,7 +41,7 @@ CREATE TABLE competition_game_sessions
 (
     id         BIGINT PRIMARY KEY,
     stage      VARCHAR NOT NULL,
-    last_round INT
+    last_round INT     NULL
 );
 
 CREATE TABLE competition_game_props
@@ -87,8 +87,8 @@ CREATE TABLE competition_team_members
 
 CREATE TABLE competition_round_infos
 (
-    session_id   BIGINT NOT NULL,
-    round_number INT NOT NULL,
+    session_id   BIGINT    NOT NULL,
+    round_number INT       NOT NULL,
     start_time   TIMESTAMP NOT NULL,
     end_time     TIMESTAMP NULL,
     PRIMARY KEY (session_id, round_number)
@@ -96,19 +96,19 @@ CREATE TABLE competition_round_infos
 
 CREATE TABLE competition_round_answers
 (
-    session_id BIGINT NOT NULL,
-    round_number INT NOT NULL,
-    team_id  BIGINT NOT NULL,
-    value    INT NOT NULL,
+    session_id   BIGINT NOT NULL,
+    round_number INT    NOT NULL,
+    team_id      BIGINT NOT NULL,
+    value        INT    NOT NULL,
     PRIMARY KEY (session_id, round_number)
 );
 
 CREATE TABLE competition_round_results
 (
-    session_id BIGINT NOT NULL,
-    round_number INT NOT NULL,
-    team_id  BIGINT NOT NULL,
-    income   INT NOT NULL,
+    session_id   BIGINT NOT NULL,
+    round_number INT    NOT NULL,
+    team_id      BIGINT NOT NULL,
+    income       INT    NOT NULL,
     PRIMARY KEY (session_id, round_number, team_id)
 );
 
@@ -130,7 +130,7 @@ ALTER TABLE competition_game_sessions
 
 ALTER TABLE competition_game_sessions
     ADD CONSTRAINT competition_game_sessions_stage_check
-        CHECK (stage in ('DRAFT', 'REGISTRATION', 'IN_PROGRESS', 'ENDED'));
+        CHECK (stage in ('DRAFT', 'REGISTRATION', 'IN_PROGRESS', 'WAITING_ROUND_START', 'ENDED'));
 
 ALTER TABLE competition_game_props
     ADD CONSTRAINT fk_competition_game_props_id

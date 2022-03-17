@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service
 import ru.nekoguys.game.entity.commongame.service.SessionPinDecoder
 import ru.nekoguys.game.entity.competition.model.CompetitionPlayer
 import ru.nekoguys.game.entity.competition.model.CompetitionSession
+import ru.nekoguys.game.entity.competition.model.CompetitionStage
 import ru.nekoguys.game.entity.competition.model.students
 import ru.nekoguys.game.entity.competition.repository.CompetitionSessionRepository
 import ru.nekoguys.game.entity.competition.repository.load
@@ -39,12 +40,20 @@ class CompetitionProcessService(
             .collect(::emit)
     }
 
-    private fun CompetitionStageChangedMessage.toRoundEvent(): RoundEvent.EndRound =
-        RoundEvent.EndRound(
-            roundNumber = 0,
-            isEndOfGame = false,
-            roundLength = roundLength,
-        )
+    private fun CompetitionStageChangedMessage.toRoundEvent(): RoundEvent =
+        if (from is CompetitionStage.InProcess) {
+            RoundEvent.EndRound(
+                roundNumber = 0,
+                isEndOfGame = false,
+                roundLength = roundLength,
+            )
+        } else {
+            RoundEvent.NewRound(
+                roundLength = 0,
+                beginTime = 0,
+                roundNumber = 0,
+            )
+        }
 
     suspend fun getStudentCompInfo(
         studentEmail: String,

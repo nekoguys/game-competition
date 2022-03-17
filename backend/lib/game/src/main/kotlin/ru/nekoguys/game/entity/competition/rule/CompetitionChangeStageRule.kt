@@ -45,7 +45,7 @@ class CompetitionChangeStageRule(
         )
 
         if (command.from is CompetitionStage.InProcess) {
-            competitionRoundRepository.startRound(
+            competitionRoundRepository.endRound(
                 sessionId = session.id,
                 roundNumber = command.from.round
             )

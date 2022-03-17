@@ -12,6 +12,7 @@ import ru.nekoguys.game.entity.commongame.model.CommonSession
 import ru.nekoguys.game.entity.commongame.service.GameMessageLogProvider
 import ru.nekoguys.game.entity.commongame.service.createGameLog
 import ru.nekoguys.game.entity.competition.model.CompetitionBasePlayer
+import ru.nekoguys.game.entity.competition.model.CompetitionStage
 import ru.nekoguys.game.entity.competition.model.CompetitionTeam
 import ru.nekoguys.game.entity.competition.model.InternalPlayer
 import ru.nekoguys.game.entity.competition.repository.CompetitionPlayerRepository
@@ -81,4 +82,19 @@ class CompetitionProcessService(
             messageLog = gameMessageLogProvider.createGameLog(sessionId),
             onClose = { launchedSessions.remove(sessionId) }
         )
+
+}
+
+suspend fun CompetitionProcessService.changeStage(
+    sessionId: CommonSession.Id,
+    from: CompetitionStage,
+    to: CompetitionStage,
+) {
+    acceptInternalCommand(
+        sessionId,
+        CompetitionCommand.ChangeStageCommand(
+            from = from,
+            to = to,
+        ),
+    )
 }

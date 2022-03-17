@@ -12,9 +12,7 @@ data class DbCompetitionSession(
     @Id
     @Column("id")
     var sessionId: Long?,
-
     var stage: DbCompetitionStage,
-
     var lastRound: Int?,
 ) : Persistable<Long> {
 
@@ -32,6 +30,7 @@ data class DbCompetitionSession(
 enum class DbCompetitionStage {
     DRAFT,
     REGISTRATION,
+    WAITING_ROUND_START,
     IN_PROGRESS,
     ENDED,
     UNKNOWN,
@@ -41,22 +40,26 @@ fun CompetitionStage.extractDbCompetitionStage() =
     when (this) {
         is CompetitionStage.Draft -> DbCompetitionStage.DRAFT
         is CompetitionStage.Registration -> DbCompetitionStage.REGISTRATION
+        is CompetitionStage.WaitingStart -> DbCompetitionStage.WAITING_ROUND_START
         is CompetitionStage.InProcess -> DbCompetitionStage.IN_PROGRESS
         is CompetitionStage.Ended -> DbCompetitionStage.ENDED
     }
 
 fun CompetitionStage.extractDbLastRound(): Int? =
-    if (this is CompetitionStage.InProcess) {
-        round
-    } else {
-        null
+    when (this) {
+        is CompetitionStage.InProcess -> round
+        is CompetitionStage.WaitingStart -> round
+        else -> null
     }
 
 fun DbCompetitionSession.extractCompetitionStage() =
     when (stage) {
         DbCompetitionStage.DRAFT -> CompetitionStage.Draft
         DbCompetitionStage.REGISTRATION -> CompetitionStage.Registration
-        DbCompetitionStage.IN_PROGRESS -> CompetitionStage.InProcess(lastRound!!)
+        DbCompetitionStage.WAITING_ROUND_START ->
+            CompetitionStage.WaitingStart(lastRound!!)
+        DbCompetitionStage.IN_PROGRESS ->
+            CompetitionStage.InProcess(lastRound!!)
         DbCompetitionStage.ENDED -> CompetitionStage.Ended
         DbCompetitionStage.UNKNOWN -> error("Got unknown competition stage")
     }

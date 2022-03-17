@@ -166,7 +166,21 @@ class TestGame(
         val teacher = userRepository.load(teacherId)
         val response = competitionTeacherProcessService
             .startCompetition(teacher.email, sessionPin)
-        check(response == StartCompetitionResponse)
+        assertThat(response)
+            .usingRecursiveComparison()
+            .isEqualTo(StartCompetitionResponse)
+    }
+
+    fun startRound(
+        sessionPin: String = createSession(),
+    ): Unit = runBlocking {
+        val teacherId = loadSession(sessionPin).creatorId
+        val teacher = userRepository.load(teacherId)
+        val response = competitionTeacherProcessService
+            .startRound(teacher.email, sessionPin)
+        assertThat(response)
+            .usingRecursiveComparison()
+            .isEqualTo(StartRoundResponse)
     }
 
     companion object TestData {

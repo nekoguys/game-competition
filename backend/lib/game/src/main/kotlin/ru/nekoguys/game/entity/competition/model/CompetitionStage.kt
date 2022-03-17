@@ -20,6 +20,10 @@ sealed class CompetitionStage(val name: String) {
         fun deserialize() = Registration
     }
 
+    data class WaitingStart(
+        val round: Int,
+    ) : CompetitionStage("WaitingStart")
+
     data class InProcess(
         val round: Int,
     ) : CompetitionStage("InProcess")

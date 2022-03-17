@@ -14,7 +14,7 @@ import ru.nekoguys.game.web.util.TestGame
 
 @ExtendWith(CleanDatabaseExtension::class)
 @GameWebApplicationIntegrationTest
-class StartCompetitionControllerTest @Autowired constructor(
+class StartCompetitionTest @Autowired constructor(
     private val webTestClient: WebTestClient,
     private val game: TestGame,
 ) {
