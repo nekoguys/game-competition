@@ -14,8 +14,8 @@ import ru.nekoguys.game.entity.user.model.UserRole
 import ru.nekoguys.game.entity.user.repository.UserRepository
 import ru.nekoguys.game.entity.user.repository.load
 import ru.nekoguys.game.web.dto.*
-import ru.nekoguys.game.web.service.CompetitionProcessService
 import ru.nekoguys.game.web.service.CompetitionService
+import ru.nekoguys.game.web.service.CompetitionTeacherProcessService
 import ru.nekoguys.game.web.service.CompetitionTeamService
 import java.util.concurrent.atomic.AtomicLong
 
@@ -23,7 +23,7 @@ import java.util.concurrent.atomic.AtomicLong
 class TestGame(
     private val competitionService: CompetitionService,
     private val competitionTeamService: CompetitionTeamService,
-    private val competitionProcessService: CompetitionProcessService,
+    private val competitionTeacherProcessService: CompetitionTeacherProcessService,
     private val competitionSessionRepository: CompetitionSessionRepository,
     private val pinGenerator: SessionPinDecoder,
     private val userRepository: UserRepository,
@@ -164,9 +164,23 @@ class TestGame(
     ): Unit = runBlocking {
         val teacherId = loadSession(sessionPin).creatorId
         val teacher = userRepository.load(teacherId)
-        val response = competitionProcessService
+        val response = competitionTeacherProcessService
             .startCompetition(teacher.email, sessionPin)
-        check(response == StartCompetitionResponse.Success)
+        assertThat(response)
+            .usingRecursiveComparison()
+            .isEqualTo(StartCompetitionResponse)
+    }
+
+    fun startRound(
+        sessionPin: String = createSession(),
+    ): Unit = runBlocking {
+        val teacherId = loadSession(sessionPin).creatorId
+        val teacher = userRepository.load(teacherId)
+        val response = competitionTeacherProcessService
+            .startRound(teacher.email, sessionPin)
+        assertThat(response)
+            .usingRecursiveComparison()
+            .isEqualTo(StartRoundResponse)
     }
 
     companion object TestData {

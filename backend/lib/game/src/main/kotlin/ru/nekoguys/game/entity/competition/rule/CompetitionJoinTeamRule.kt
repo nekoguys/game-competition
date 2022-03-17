@@ -108,7 +108,7 @@ class CompetitionJoinTeamRule(
             team.id {
                 +CompetitionJoinTeamMessage(
                     teamName = command.teamName,
-                    idInGame = team.numberInGame - 1,
+                    idInGame = team.numberInGame,
                     membersEmails = memberEmails,
                 )
             }

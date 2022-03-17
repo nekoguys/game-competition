@@ -34,6 +34,7 @@ class CompetitionTeamRepositoryImpl(
             name = name,
             password = password,
             banRound = null,
+            strategy = null,
         )
             .let { dbCompetitionTeamRepository.save(it) }
             .let { generateAndSaveTeamNumber(it) }
@@ -74,6 +75,7 @@ class CompetitionTeamRepositoryImpl(
                         || from.captain != to.captain
                         || from.teamMembers != to.teamMembers
                         || from.isBanned != to.isBanned
+                        || from.strategy != to.strategy
             }
             .map { (_, team) ->
                 DbCompetitionTeam(
@@ -83,6 +85,7 @@ class CompetitionTeamRepositoryImpl(
                     name = team.name,
                     password = team.password,
                     banRound = null,
+                    strategy = team.strategy,
                 )
             }
             .let { dbCompetitionTeamRepository.saveAll(it) }
@@ -222,4 +225,5 @@ private fun createCompetitionTeam(
         teamMembers = teamMembers,
         isBanned = dbTeam.banRound != null,
         password = dbTeam.password,
+        strategy = dbTeam.strategy,
     )

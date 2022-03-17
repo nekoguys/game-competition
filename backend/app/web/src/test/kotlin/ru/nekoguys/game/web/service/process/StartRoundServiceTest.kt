@@ -1,5 +1,6 @@
 package ru.nekoguys.game.web.service.process
 
+import kotlinx.coroutines.flow.dropWhile
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.runBlocking
@@ -14,40 +15,43 @@ import ru.nekoguys.game.entity.competition.rule.CompetitionStageChangedMessage
 import ru.nekoguys.game.web.GameWebApplicationTest
 import ru.nekoguys.game.web.util.CleanDatabaseExtension
 import ru.nekoguys.game.web.util.TestGame
-import java.time.LocalDateTime
 import java.util.concurrent.TimeUnit
 import ru.nekoguys.game.entity.competition.CompetitionProcessService as CoreCompetitionProcessService
 
 @ExtendWith(CleanDatabaseExtension::class)
 @GameWebApplicationTest
-class StartCompetitionServiceTest @Autowired constructor(
+class StartRoundServiceTest @Autowired constructor(
     private val coreCompetitionProcessService: CoreCompetitionProcessService,
     private val game: TestGame,
 ) {
 
     @Test
-    fun `stage changes when competition starts`() {
+    fun `stage changes when round starts`() {
         val session = game.createAndLoadSession { pin ->
             repeat(2) { game.createTeam(pin) }
+            game.startCompetition(pin)
         }
-        check(session.stage == CompetitionStage.Registration)
+        assertThat(session.stage)
+            .isEqualTo(CompetitionStage.WaitingStart(1))
 
-        game.startCompetition(session.pin)
+        game.startRound(session.pin)
+
         val sessionAfter = game.loadSession(session.pin)
-
         assertThat(sessionAfter.stage)
-            .isEqualTo(CompetitionStage.WaitingStart(round = 1))
+            .isEqualTo(CompetitionStage.InProcess(round = 1))
     }
 
     @Test
     @Timeout(value = 5, unit = TimeUnit.SECONDS)
-    fun `event is sent when competition starts`() {
+    fun `event is sent when round starts`() {
         val session = game.createAndLoadSession { pin ->
             repeat(2) { game.createTeam(pin) }
+            game.startCompetition(pin)
         }
-        check(session.stage == CompetitionStage.Registration)
+        assertThat(session.stage)
+            .isEqualTo(CompetitionStage.WaitingStart(1))
 
-        game.startCompetition(session.pin)
+        game.startRound(session.pin)
         val generatedMessage = runBlocking {
             // если что-то пойдёт не так при получении ивента,
             // тест может зависнуть намертво
@@ -55,20 +59,20 @@ class StartCompetitionServiceTest @Autowired constructor(
             coreCompetitionProcessService
                 .getAllMessagesForSession(session.id)
                 .mapNotNull { it.body as? CompetitionStageChangedMessage }
+                .dropWhile { it.to is CompetitionStage.WaitingStart }
                 .firstOrNull()
         }
 
         @Suppress("unused")
         val expectedMessage = object {
-            val from = CompetitionStage.Registration
-            val to = CompetitionStage.WaitingStart(round = 1)
-            val timeStamp = LocalDateTime.now()
+            val from = CompetitionStage.WaitingStart(round = 1)
+            val to = CompetitionStage.InProcess(round = 1)
             val roundLength = session.settings.roundLength
         }
 
         assertThat(generatedMessage)
             .usingRecursiveComparison()
-            .ignoringFields("timeStamp")
+            .ignoringExpectedNullFields()
             .isEqualTo(expectedMessage)
         assertThat(generatedMessage?.timeStamp)
             .isNotNull

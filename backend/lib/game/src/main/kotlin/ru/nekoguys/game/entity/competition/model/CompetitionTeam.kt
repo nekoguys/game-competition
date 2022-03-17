@@ -11,6 +11,7 @@ data class CompetitionTeam(
     val teamMembers: List<CompetitionPlayer.TeamMember>,
     val isBanned: Boolean,
     val password: String,
+    val strategy: String?,
 ) {
     data class Id(val number: Long) {
         override fun toString() = number.toString()

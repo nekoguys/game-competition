@@ -33,6 +33,8 @@ import EventSourceMock from "../../helpers/mocks/event-source-mock";
 import EventSourceWrapper from "../../helpers/event-source-wrapper";
 import {isTeacher} from "../../helpers/role-helper";
 
+const fetcherType = ApiHelper.fetcherType();
+
 const signinFetcher = {
     mock: (_) => {
         return new Promise(resolve =>
@@ -40,7 +42,7 @@ const signinFetcher = {
         )
     },
     real: (params) => { return apiFetcher(params, (credentials) => ApiHelper.signin(credentials)) }
-}[ApiHelper.fetcherType()];
+}[fetcherType];
 
 const signupFetcher = {
     mock: (_) => {
@@ -49,7 +51,7 @@ const signupFetcher = {
         )
     },
     real: (params) => { return apiFetcher(params, (credentials) => { return ApiHelper.signup(credentials) }) }
-}[ApiHelper.fetcherType()];
+}[fetcherType];
 
 const verificationFetcher = {
     mock: (_) => {
@@ -58,7 +60,7 @@ const verificationFetcher = {
         }, 2500) )
     },
     real: (token) => { return apiFetcher(token, (token) => ApiHelper.accountVerification(token)) }
-}[ApiHelper.fetcherType()];
+}[fetcherType];
 
 const userInfoFetcher = {
     mock: (_) => {
@@ -67,7 +69,7 @@ const userInfoFetcher = {
         }))
     },
     real: () => { return apiFetcher({}, (_) => ApiHelper.getNavBarInfo()) }
-}[ApiHelper.fetcherType()]
+}[fetcherType]
 
 export const NavbarHeaderWithFetcher = (props) => {
     return <NavbarHeader userInfoFetcher={userInfoFetcher} {...props}/>
@@ -94,7 +96,7 @@ const historyFetcher = {
     },
     real: (start, count) => { return apiFetcher([start, count],
         ([start, count]) => ApiHelper.competitionsHistory(start / count, count)) }
-}[ApiHelper.fetcherType()]
+}[fetcherType]
 
 const pinFetcher = {
     mock: (_) => {
@@ -103,7 +105,7 @@ const pinFetcher = {
         }))
     },
     real: (pin) => { return apiFetcher(pin, (pin) => ApiHelper.checkPin(pin)) }
-}[ApiHelper.fetcherType()]
+}[fetcherType]
 
 const createTeamFetcher = {
     mock: (pin, _) => {
@@ -112,14 +114,14 @@ const createTeamFetcher = {
         }))
     },
     real: (pin, data) => { return apiFetcher(data, (teamData) => ApiHelper.createTeam(pin, teamData)) }
-}[ApiHelper.fetcherType()]
+}[fetcherType]
 
 const joinTeamFetcher = {
     mock: (_, {teamName}) => {
         return new Promise(resolve => resolve({currentTeamName: teamName}))
     },
     real: (pin, data) => { return apiFetcher(data, (data) => ApiHelper.joinTeam(pin, data)) }
-}[ApiHelper.fetcherType()]
+}[fetcherType]
 
 const createCompetitionFetcher = {
     mock: (_) => {
@@ -128,7 +130,7 @@ const createCompetitionFetcher = {
     real: (obj) => {
         return apiFetcher(obj, (data) => ApiHelper.createCompetition(data))
     }
-}[ApiHelper.fetcherType()];
+}[fetcherType];
 
 const updateCompetitionFetcher = {
     mock: (_, obj) => {
@@ -144,7 +146,7 @@ const updateCompetitionFetcher = {
     real: (pin, obj) => {
         return apiFetcher({pin, obj}, (data) => ApiHelper.updateCompetition(data.pin, data.obj))
     }
-}[ApiHelper.fetcherType()];
+}[fetcherType];
 
 const startCompetitionFetcher = {
     mock: (_) => {
@@ -153,7 +155,7 @@ const startCompetitionFetcher = {
     real: (pin) => {
         return apiFetcher(pin, (pin) => ApiHelper.startCompetition(pin))
     }
-}[ApiHelper.fetcherType()]
+}[fetcherType]
 
 const teamNameAndPasswordFetcher = {
     mock: (_) => {
@@ -169,7 +171,7 @@ const teamNameAndPasswordFetcher = {
     real: (pin) => {
         return apiFetcher(pin, (pin) => ApiHelper.getCurrentTeam(pin))
     }
-}[ApiHelper.fetcherType()]
+}[fetcherType]
 
 const teamMembers = {
     mock: (_) => {
@@ -187,7 +189,7 @@ const teamMembers = {
     real: (pin) => {
         return new EventSourceWrapper(ApiHelper.myTeamsNewMembersEventSource(pin));
     }
-}[ApiHelper.fetcherType()]
+}[fetcherType]
 
 
 const competitionRoundEvents = {
@@ -200,7 +202,7 @@ const competitionRoundEvents = {
     real: (pin) => {
         return new EventSourceWrapper(ApiHelper.competitionRoundEventsStream(pin));
     }
-}[ApiHelper.fetcherType()]
+}[fetcherType]
 
 const cloneInfoCompetitionFetcher = {
     mock: (_) => {
@@ -225,7 +227,7 @@ const cloneInfoCompetitionFetcher = {
     real: (pin) => {
         return apiFetcher(pin, (pin) => ApiHelper.getCompetitionCloneInfo(pin))
     }
-}[ApiHelper.fetcherType()]
+}[fetcherType]
 
 const teamEventsSource = {
     mock: (_) => {
@@ -250,7 +252,7 @@ const teamEventsSource = {
     real: (pin) => {
         return new EventSourceWrapper(ApiHelper.teamCreationEventSource(pin));
     }
-}[ApiHelper.fetcherType()]
+}[fetcherType]
 
 const paths = [
     {

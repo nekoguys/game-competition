@@ -7,20 +7,23 @@ import org.springframework.data.repository.kotlin.CoroutineCrudRepository
 import ru.nekoguys.game.persistence.commongame.model.DbGameSession
 
 interface DbGameSessionRepository : CoroutineCrudRepository<DbGameSession, Long> {
-    @Query("""
+    @Query(
+        """
         SELECT s.id
         FROM game_sessions AS s
         WHERE s.creator_id = :creatorId
         ORDER BY s.last_modified_date DESC
         LIMIT :limit OFFSET :offset
-    """)
+    """
+    )
     fun findIdsByCreatorId(
         creatorId: Long,
         limit: Int,
         offset: Int,
     ): Flow<Long>
 
-    @Query("""
+    @Query(
+        """
         SELECT DISTINCT gs.*
         FROM game_sessions AS gs
         LEFT JOIN competition_teams as ct ON ct.session_id = gs.id
@@ -30,7 +33,8 @@ interface DbGameSessionRepository : CoroutineCrudRepository<DbGameSession, Long>
         ORDER BY gs.last_modified_date DESC
         LIMIT :limit
         OFFSET :offset
-     """)
+     """
+    )
     fun findByParticipantId(
         participantId: Long,
         limit: Int,
