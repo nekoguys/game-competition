@@ -71,3 +71,11 @@ data class CompetitionInfoForStudentResultsTableResponse(
     val roundsCount: Int,
     val strategy: String,
 ) : ProcessApiResponse<CompetitionInfoForResultsTableResponse>(HttpStatus.OK)
+
+data class SubmitAnswerRequest(
+    val answer: Long,
+    val roundNumber: Int,
+)
+
+object SubmitAnswerResponse
+    : ProcessApiResponse<SubmitAnswerResponse>(HttpStatus.OK)

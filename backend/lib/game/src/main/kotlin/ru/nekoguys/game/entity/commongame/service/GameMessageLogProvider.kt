@@ -1,6 +1,8 @@
 package ru.nekoguys.game.entity.commongame.service
 
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.toList
 import org.springframework.stereotype.Service
 import ru.nekoguys.game.core.session.GameMessageLog
 import ru.nekoguys.game.core.session.LoggedGameMessage
@@ -14,7 +16,7 @@ import ru.nekoguys.game.entity.commongame.repository.CommonLogMessageRepository
 class GameMessageLogProvider(
     private val commonLogMessageRepository: CommonLogMessageRepository,
 ) {
-    fun <P, Msg> createGameLog(
+    suspend fun <P, Msg> createGameLog(
         sessionId: CommonSession.Id,
         playerClass: Class<P>,
         messageClass: Class<Msg>,
@@ -22,12 +24,13 @@ class GameMessageLogProvider(
         GameMessageLogImpl(
             commonLogMessageRepository = commonLogMessageRepository,
             sessionId = sessionId,
-            playerClass = playerClass,
-            messageClass = messageClass
+            oldMessages = commonLogMessageRepository
+                .readAllMessages(sessionId, playerClass, messageClass)
+                .toList(),
         )
 }
 
-inline fun <reified P, reified Msg> GameMessageLogProvider.createGameLog(
+suspend inline fun <reified P, reified Msg> GameMessageLogProvider.createGameLog(
     sessionId: CommonSession.Id,
 ): GameMessageLog<P, Msg> =
     createGameLog(sessionId, P::class.java, Msg::class.java)
@@ -35,8 +38,7 @@ inline fun <reified P, reified Msg> GameMessageLogProvider.createGameLog(
 private class GameMessageLogImpl<P, Msg>(
     private val commonLogMessageRepository: CommonLogMessageRepository,
     private val sessionId: CommonSession.Id,
-    private val playerClass: Class<P>,
-    private val messageClass: Class<Msg>,
+    private val oldMessages: List<LoggedGameMessage<P, Msg>>,
 ) : GameMessageLog<P, Msg> {
     override suspend fun saveMessages(
         messages: List<LoggedGameMessage<P, Msg>>
@@ -45,6 +47,5 @@ private class GameMessageLogImpl<P, Msg>(
             .saveMessages(sessionId, messages)
 
     override fun readAllMessages(): Flow<LoggedGameMessage<P, Msg>> =
-        commonLogMessageRepository
-            .readAllMessages(sessionId, playerClass, messageClass)
+        oldMessages.asFlow()
 }

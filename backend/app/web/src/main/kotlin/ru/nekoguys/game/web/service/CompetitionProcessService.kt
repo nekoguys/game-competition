@@ -3,15 +3,20 @@ package ru.nekoguys.game.web.service
 import kotlinx.coroutines.flow.*
 import org.springframework.stereotype.Service
 import ru.nekoguys.game.entity.commongame.service.SessionPinDecoder
+import ru.nekoguys.game.entity.competition.CompetitionProcessException
 import ru.nekoguys.game.entity.competition.model.CompetitionPlayer
 import ru.nekoguys.game.entity.competition.model.CompetitionSession
 import ru.nekoguys.game.entity.competition.model.CompetitionStage
 import ru.nekoguys.game.entity.competition.model.students
 import ru.nekoguys.game.entity.competition.repository.CompetitionSessionRepository
 import ru.nekoguys.game.entity.competition.repository.load
+import ru.nekoguys.game.entity.competition.rule.CompetitionCommand
 import ru.nekoguys.game.entity.competition.rule.CompetitionStageChangedMessage
+import ru.nekoguys.game.entity.user.repository.UserRepository
 import ru.nekoguys.game.web.dto.CompetitionInfoForStudentResultsTableResponse
+import ru.nekoguys.game.web.dto.ProcessApiResponse
 import ru.nekoguys.game.web.dto.RoundEvent
+import ru.nekoguys.game.web.dto.SubmitAnswerResponse
 import java.time.ZoneOffset
 import ru.nekoguys.game.entity.competition.CompetitionProcessService as CoreCompetitionProcessService
 
@@ -19,6 +24,7 @@ import ru.nekoguys.game.entity.competition.CompetitionProcessService as CoreComp
 class CompetitionProcessService(
     // одноимённый класс уже есть в lib-game, здесь используется import alias
     private val coreCompetitionProcessService: CoreCompetitionProcessService,
+    private val userRepository: UserRepository,
     private val sessionPinDecoder: SessionPinDecoder,
     private val competitionSessionRepository: CompetitionSessionRepository,
 ) {
@@ -97,5 +103,36 @@ class CompetitionProcessService(
             roundsCount = settings.roundsCount,
             strategy = team.strategy.orEmpty(),
         )
+    }
+
+    suspend fun submitAnswer(
+        studentEmail: String,
+        sessionPin: String,
+        roundNumber: Int,
+        answer: Long,
+    ): ProcessApiResponse<SubmitAnswerResponse> {
+        val sessionId = sessionPinDecoder
+            .decodeIdFromPin(sessionPin)
+            ?: return ProcessApiResponse.SessionNotFound(sessionPin)
+
+        val user = userRepository
+            .findByEmail(studentEmail)
+            ?: error("Unknown user email: $studentEmail")
+
+        return try {
+            coreCompetitionProcessService
+                .acceptCommand(
+                    sessionId = sessionId,
+                    user = user,
+                    command = CompetitionCommand.SubmitAnswer(
+                        answer = answer,
+                        currentRound = roundNumber,
+                    )
+                )
+
+            SubmitAnswerResponse
+        } catch (ex: CompetitionProcessException) {
+            return ProcessApiResponse.ProcessError(ex.message)
+        }
     }
 }

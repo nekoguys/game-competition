@@ -19,23 +19,42 @@ sealed interface CompetitionRound {
     data class Ended(
         override val sessionId: CommonSession.Id,
         override val roundNumber: Int,
-        override val answers: List<CompetitionRoundAnswer>,
-        val result: List<CompetitionRoundResult>,
+        override val answers: List<CompetitionRoundAnswer.WithIncome>,
         override val startTime: LocalDateTime,
         val endTime: LocalDateTime,
     ) : CompetitionRound
 }
 
-data class CompetitionRoundAnswer(
-    val sessionId: CommonSession.Id,
-    val teamId: CompetitionTeam.Id,
-    val roundNumber: Long,
-    val income: Long,
-)
+sealed interface CompetitionRoundAnswer {
+    val sessionId: CommonSession.Id
+    val teamId: CompetitionTeam.Id
+    val roundNumber: Int
+    val value: Long
 
-data class CompetitionRoundResult(
-    val sessionId: CommonSession.Id,
-    val teamId: CompetitionTeam.Id,
-    val roundNumber: Long,
-    val income: Long,
-)
+    data class Impl(
+        override val sessionId: CommonSession.Id,
+        override val teamId: CompetitionTeam.Id,
+        override val roundNumber: Int,
+        override val value: Long,
+    ) : CompetitionRoundAnswer
+
+    data class WithIncome(
+        override val sessionId: CommonSession.Id,
+        override val teamId: CompetitionTeam.Id,
+        override val roundNumber: Int,
+        override val value: Long,
+        val income: Long,
+    ) : CompetitionRoundAnswer
+}
+
+fun CompetitionRoundAnswer.withoutIncome() =
+    if (this is CompetitionRoundAnswer.Impl) {
+        this
+    } else {
+        CompetitionRoundAnswer.Impl(
+            sessionId = sessionId,
+            teamId = teamId,
+            roundNumber = roundNumber,
+            value = value,
+        )
+    }

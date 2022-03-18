@@ -2,10 +2,10 @@ package ru.nekoguys.game.entity.competition.rule
 
 import org.springframework.stereotype.Component
 import ru.nekoguys.game.core.util.buildResponse
-import ru.nekoguys.game.entity.competition.competitionProcessError
 import ru.nekoguys.game.entity.competition.model.CompetitionSession
 import ru.nekoguys.game.entity.competition.model.CompetitionStage
 import ru.nekoguys.game.entity.competition.model.InternalPlayer
+import ru.nekoguys.game.entity.competition.processError
 import ru.nekoguys.game.entity.competition.repository.CompetitionRoundRepository
 import ru.nekoguys.game.entity.competition.repository.CompetitionSessionRepository
 import ru.nekoguys.game.entity.competition.repository.load
@@ -22,11 +22,11 @@ data class CompetitionStageChangedMessage(
 class CompetitionChangeStageRule(
     private val competitionSessionRepository: CompetitionSessionRepository,
     private val competitionRoundRepository: CompetitionRoundRepository,
-) : CompetitionRule<InternalPlayer, CompetitionCommand.ChangeStageCommand, CompetitionMessage> {
+) : CompetitionRule<InternalPlayer, CompetitionCommand.ChangeStage, CompetitionMessage> {
 
     override suspend fun process(
         player: InternalPlayer,
-        command: CompetitionCommand.ChangeStageCommand,
+        command: CompetitionCommand.ChangeStage,
     ): List<CompGameMessage<CompetitionMessage>> {
         val session = competitionSessionRepository
             .load(
@@ -73,13 +73,13 @@ class CompetitionChangeStageRule(
 
     private fun checkCurrentStage(
         session: CompetitionSession.WithStage,
-        command: CompetitionCommand.ChangeStageCommand
+        command: CompetitionCommand.ChangeStage
     ) {
         val currentStage = session.stage
 
         if (session.stage != command.from) {
             with(command) {
-                competitionProcessError(
+                processError(
                     "Illegal Competition State: expected $from, but got $currentStage"
                 )
             }

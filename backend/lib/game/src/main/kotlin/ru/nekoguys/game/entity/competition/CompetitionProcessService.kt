@@ -2,6 +2,8 @@ package ru.nekoguys.game.entity.competition
 
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.flow
 import org.springframework.stereotype.Service
 import ru.nekoguys.game.core.GameMessage
 import ru.nekoguys.game.core.session.GameSession
@@ -69,18 +71,22 @@ class CompetitionProcessService(
     fun getAllMessagesForSession(
         sessionId: CommonSession.Id,
     ): Flow<GameMessage<CompetitionTeam.Id, CompetitionMessage>> =
-        launchedSessions
-            .getOrPut(sessionId) { launchGameSession(sessionId) }
-            .getAllMessages()
+        flow {
+            launchedSessions
+                .getOrPut(sessionId) { launchGameSession(sessionId) }
+                .getAllMessages()
+                .collect(this::emit)
+        }
 
-    private fun launchGameSession(
+    private suspend fun launchGameSession(
         sessionId: CommonSession.Id,
     ): CompetitionLaunchedSession =
         createGameSession(
             rule = rootRule,
             parentContext = sessionsContext,
             messageLog = gameMessageLogProvider.createGameLog(sessionId),
-            onClose = { launchedSessions.remove(sessionId) }
+            onClose = { launchedSessions.remove(sessionId) },
+            replay = Int.MAX_VALUE,
         )
 
 }
@@ -92,7 +98,7 @@ suspend fun CompetitionProcessService.changeStage(
 ) {
     acceptInternalCommand(
         sessionId,
-        CompetitionCommand.ChangeStageCommand(
+        CompetitionCommand.ChangeStage(
             from = from,
             to = to,
         ),

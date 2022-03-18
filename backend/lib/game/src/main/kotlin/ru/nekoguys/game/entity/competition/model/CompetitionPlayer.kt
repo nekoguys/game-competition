@@ -16,6 +16,7 @@ import ru.nekoguys.game.entity.user.model.User
  * |   |   [CompetitionPlayer.Student]
  * |   |   |   [CompetitionPlayer.TeamCaptain]
  * |   |   |   [CompetitionPlayer.TeamMember]
+ * |   [BannedCompetitionPlayer]
  */
 sealed interface CompetitionBasePlayer {
     val sessionId: CommonSession.Id
@@ -58,5 +59,10 @@ sealed interface CompetitionPlayer : CompetitionBasePlayer {
     ) : Student
 }
 
+data class BannedCompetitionPlayer(
+    override val sessionId: CommonSession.Id,
+    val user: User,
+    val banRound: Int,
+) : CompetitionBasePlayer
 
 
