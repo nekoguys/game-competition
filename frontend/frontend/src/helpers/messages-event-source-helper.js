@@ -26,3 +26,31 @@ export default function processMessagesEvents(newMessage, messages) {
 
     return {messages: messages};
 }
+
+export function processMessageParsedEvent(newMessage, messages) {
+    const date = new Date(newMessage.sendTime * 1000);
+    const dateStr = date.toLocaleDateString("en-US", {
+        hour: 'numeric',
+        minute: 'numeric',
+        day: 'numeric',
+        month: 'short',
+    });
+
+    const messageElem = {
+        message: newMessage.message,
+        dateStr: dateStr,
+        timestamp: newMessage.sendTime
+    };
+
+    const index = messages.findIndex(el => {
+        return el.message === messageElem.message && el.timestamp === messageElem.timestamp;
+    });
+
+    if (index === -1) {
+        messages = [messageElem].concat(messages);
+    } else {
+        messages[index] = messageElem;
+    }
+
+    return {messages: messages};
+}

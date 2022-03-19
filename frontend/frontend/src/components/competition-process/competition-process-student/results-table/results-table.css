@@ -1,0 +1,11 @@
+.competition-process-student-results-table {
+    border-collapse: collapse;
+    caption-side: top;
+    border: 1px solid black;
+    width: 100%;
+}
+
+table.competition-process-student-results-table th, table.competition-process-student-results-table td {
+    border: 1px solid black;
+    text-align: center;
+}

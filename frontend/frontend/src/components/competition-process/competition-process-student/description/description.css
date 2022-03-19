@@ -13,11 +13,11 @@
 }
 
 .instruction-holder {
-    background-color: #CACACA;
-    border-radius: 20px;
+    background-color: #DFDCDF;
+    border-radius: 10px;
     word-break: break-all;
     text-align: center;
-    width: 70%;
     margin: 0 auto;
     padding: 10px;
+    color: rgba(0, 0, 0, 0.6);
 }

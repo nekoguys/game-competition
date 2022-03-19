@@ -230,7 +230,7 @@ class CompetitionResultsTable extends React.Component {
                 <div style={{textAlign: "center", fontSize: "23px", paddingBottom: "10px"}}>
                     {this.props.i18n.t("competition_process.teacher.table.stats")}
                 </div>
-                <table style={{width: "100%"}}>
+                <table style={{width: "100%"}} className={"competition-process-teacher-table"}>
                     <tbody>
                     {this.firstRow(teamsCount, bannedTeams)}
                     {this.roundRows(teamsCount, roundsCount, bannedTeams)}

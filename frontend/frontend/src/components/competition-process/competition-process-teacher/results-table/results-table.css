@@ -1,14 +1,13 @@
-table {
+.competition-process-teacher-table {
     border-collapse: collapse;
     caption-side: top;
-}
-
-table, th, td {
     border: 1px solid black;
 }
 
-td {
+table.competition-process-teacher-table th, table.competition-process-teacher-table td {
+    border: 1px solid black;
     text-align: center;
+
 }
 
 .popup {
