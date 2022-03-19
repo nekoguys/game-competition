@@ -26,6 +26,10 @@ interface CompetitionRoundAnswerRepository {
         roundNumber: Int,
     ): Flow<CompetitionRoundAnswer>
 
+    fun findAll(
+        sessionIds: Collection<Long>,
+    ): Flow<CompetitionRoundAnswer>
+
     suspend fun delete(
         sessionId: CommonSession.Id,
         teamId: CompetitionTeam.Id,

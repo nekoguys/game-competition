@@ -9,6 +9,10 @@ interface CompetitionRoundRepository {
         roundNumber: Int
     ): CompetitionRound?
 
+    suspend fun findAll(
+        sessionIds: Collection<Long>,
+    ): List<CompetitionRound>
+
     suspend fun startRound(
         sessionId: CommonSession.Id,
         roundNumber: Int,

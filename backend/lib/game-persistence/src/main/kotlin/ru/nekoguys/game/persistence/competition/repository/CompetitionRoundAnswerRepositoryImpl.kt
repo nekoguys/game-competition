@@ -91,6 +91,19 @@ class CompetitionRoundAnswerRepositoryImpl(
             .map { db -> createCompetitionRoundAnswer(db, sessionId) }
     }
 
+    override fun findAll(
+        sessionIds: Collection<Long>
+    ): Flow<CompetitionRoundAnswer> {
+        val query = Query.query(
+            where("session_id").`in`(sessionIds)
+        )
+
+        return createSelectOperation(query)
+            .all()
+            .asFlow()
+            .map { db -> createCompetitionRoundAnswer(db) }
+    }
+
     private fun createSelectOperation(
         query: Query
     ): ReactiveSelectOperation.TerminatingSelect<DbCompetitionRoundAnswer> =

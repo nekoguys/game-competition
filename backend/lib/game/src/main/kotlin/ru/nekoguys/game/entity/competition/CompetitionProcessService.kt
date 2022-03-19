@@ -104,3 +104,19 @@ suspend fun CompetitionProcessService.changeStage(
         ),
     )
 }
+
+suspend fun CompetitionProcessService.submitAnswer(
+    sessionId: CommonSession.Id,
+    user: User,
+    roundNumber: Int,
+    answer: Long,
+) {
+    acceptCommand(
+        sessionId,
+        user,
+        CompetitionCommand.SubmitAnswer(
+            currentRound = roundNumber,
+            answer = answer,
+        ),
+    )
+}

@@ -1,8 +1,13 @@
 package ru.nekoguys.game.persistence.competition.repository
 
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactor.awaitSingleOrNull
 import org.springframework.data.r2dbc.core.R2dbcEntityTemplate
+import org.springframework.data.r2dbc.core.ReactiveSelectOperation
+import org.springframework.data.r2dbc.core.awaitOneOrNull
 import org.springframework.data.r2dbc.core.select
 import org.springframework.data.relational.core.query.Criteria.where
 import org.springframework.data.relational.core.query.Query
@@ -27,35 +32,72 @@ class CompetitionRoundRepositoryImpl(
         sessionId: CommonSession.Id,
         roundNumber: Int
     ): CompetitionRound? {
+        val query = Query.query(
+            where("session_id").`is`(sessionId.number)
+                .and(where("roundNumber").`is`(roundNumber))
+        )
         val dbCompetitionRound =
-            findDbCompetitionRound(sessionId, roundNumber)
-                ?: return null
+            createSelectOperation(query)
+                .awaitOneOrNull() ?: return null
 
         val answers = competitionRoundAnswerRepository
             .findAll(sessionId, roundNumber)
+            .toList()
 
         return createCompetitionRound(
-            sessionId,
             dbCompetitionRound,
-            answers.toList(),
+            sessionId,
+            answers,
         )
     }
 
-    private suspend fun findDbCompetitionRound(
-        sessionId: CommonSession.Id,
-        roundNumber: Int
-    ): DbCompetitionRoundInfo? =
+    override suspend fun findAll(
+        sessionIds: Collection<Long>
+    ): List<CompetitionRound> = coroutineScope {
+        val answers = async {
+            competitionRoundAnswerRepository
+                .findAll(sessionIds)
+                .toList()
+        }
+
+        val query = Query.query(
+            where("session_id").`in`(sessionIds),
+        )
+        val dbCompetitionRounds =
+            createSelectOperation(query)
+                .all()
+                .asFlow()
+                .toList()
+
+        if (dbCompetitionRounds.isEmpty()) {
+            answers.cancel()
+            emptyList()
+        } else {
+            val answersBySessionAndRound = answers
+                .await()
+                .groupBy { Pair(it.sessionId, it.roundNumber) }
+                .withDefault { emptyList() }
+
+            dbCompetitionRounds
+                .map { roundInfo ->
+                    val sessionId = CommonSession.Id(roundInfo.sessionId)
+                    createCompetitionRound(
+                        dbCompetitionRound = roundInfo,
+                        sessionId = sessionId,
+                        answers = answersBySessionAndRound
+                            .getValue(Pair(sessionId, roundInfo.roundNumber))
+                    )
+                }
+        }
+    }
+
+    private suspend fun createSelectOperation(
+        query: Query,
+    ): ReactiveSelectOperation.TerminatingSelect<DbCompetitionRoundInfo> =
         r2dbcEntityTemplate
             .select<DbCompetitionRoundInfo>()
             .from("competition_round_infos")
-            .matching(
-                Query.query(
-                    where("session_id").`is`(sessionId.number)
-                        .and(where("roundNumber").`is`(roundNumber))
-                )
-            )
-            .one()
-            .awaitSingleOrNull()
+            .matching(query)
 
     override suspend fun startRound(
         sessionId: CommonSession.Id,
@@ -113,8 +155,8 @@ class CompetitionRoundRepositoryImpl(
 
 
 private fun createCompetitionRound(
-    sessionId: CommonSession.Id,
     dbCompetitionRound: DbCompetitionRoundInfo,
+    sessionId: CommonSession.Id = CommonSession.Id(dbCompetitionRound.sessionId),
     answers: List<CompetitionRoundAnswer> = emptyList(),
 ): CompetitionRound =
     if (dbCompetitionRound.endTime == null) {

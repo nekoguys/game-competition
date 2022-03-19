@@ -9,6 +9,7 @@ import org.springframework.transaction.reactive.TransactionalOperator
 import org.springframework.transaction.reactive.executeAndAwait
 import ru.nekoguys.game.entity.commongame.model.CommonSession
 import ru.nekoguys.game.entity.competition.model.*
+import ru.nekoguys.game.entity.competition.repository.CompetitionRoundRepository
 import ru.nekoguys.game.entity.competition.repository.CompetitionSessionRepository
 import ru.nekoguys.game.entity.competition.repository.CompetitionSettingsRepository
 import ru.nekoguys.game.entity.competition.repository.CompetitionTeamRepository
@@ -27,6 +28,7 @@ import java.time.temporal.ChronoUnit
 class CompetitionSessionRepositoryImpl(
     private val competitionSettingsRepository: CompetitionSettingsRepository,
     private val competitionTeamRepository: CompetitionTeamRepository,
+    private val competitionRoundRepository: CompetitionRoundRepository,
     @Suppress("SpringJavaInjectionPointsAutowiringInspection")
     private val transactionalOperator: TransactionalOperator,
     private val dbGameSessionRepository: DbGameSessionRepository,
@@ -87,6 +89,7 @@ class CompetitionSessionRepositoryImpl(
                 .takeIf { fieldSelectors.has(CompetitionSession.WithTeams) }
                 ?.findAllBySessionIds(ids)
                 ?.mapKeys { (a) -> a.number }
+                ?.withDefault { emptyList() }
         }
 
         val teamIds = async {
@@ -94,6 +97,15 @@ class CompetitionSessionRepositoryImpl(
                 .takeIf { fieldSelectors.has(CompetitionSession.WithTeamIds) }
                 ?.findAllTeamIdsBySessionIds(ids)
                 ?.mapKeys { (a) -> a.number }
+                ?.withDefault { emptyList() }
+        }
+
+        val rounds = async {
+            competitionRoundRepository
+                .takeIf { fieldSelectors.has(CompetitionSession.WithRounds) }
+                ?.findAll(ids)
+                ?.groupBy { it.sessionId.number }
+                ?.withDefault { emptyList() }
         }
 
         val dbCompetitionSessions = dbCompetitionSessionRepository
@@ -106,8 +118,9 @@ class CompetitionSessionRepositoryImpl(
                 dbCompetitionSession = dbCompetitionSession,
                 dbGameSession = dbGameSessions.await()?.getValue(id),
                 settings = settings.await()?.getValue(id),
-                teams = teams.await()?.run { get(id).orEmpty() },
-                teamIds = teamIds.await()?.run { get(id).orEmpty() },
+                teams = teams.await()?.getValue(id),
+                teamIds = teamIds.await()?.getValue(id),
+                rounds = rounds.await()?.getValue(id)
             )
         }
     }
@@ -182,6 +195,7 @@ private fun createCompetitionSession(
     settings: CompetitionSettings? = null,
     teams: List<CompetitionTeam>? = null,
     teamIds: List<CompetitionTeam.Id>? = null,
+    rounds: List<CompetitionRound>? = null,
 ): CompetitionSession =
     CompetitionSession(
         id = CommonSession.Id(dbCompetitionSession.id!!),
@@ -193,4 +207,5 @@ private fun createCompetitionSession(
         stage = dbCompetitionSession.extractCompetitionStage(),
         teams = teams,
         teamIds = teamIds,
+        rounds = rounds,
     )

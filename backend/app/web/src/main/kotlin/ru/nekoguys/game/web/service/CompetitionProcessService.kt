@@ -10,8 +10,8 @@ import ru.nekoguys.game.entity.competition.model.CompetitionStage
 import ru.nekoguys.game.entity.competition.model.students
 import ru.nekoguys.game.entity.competition.repository.CompetitionSessionRepository
 import ru.nekoguys.game.entity.competition.repository.load
-import ru.nekoguys.game.entity.competition.rule.CompetitionCommand
 import ru.nekoguys.game.entity.competition.rule.CompetitionStageChangedMessage
+import ru.nekoguys.game.entity.competition.submitAnswer
 import ru.nekoguys.game.entity.user.repository.UserRepository
 import ru.nekoguys.game.web.dto.CompetitionInfoForStudentResultsTableResponse
 import ru.nekoguys.game.web.dto.ProcessApiResponse
@@ -121,13 +121,11 @@ class CompetitionProcessService(
 
         return try {
             coreCompetitionProcessService
-                .acceptCommand(
+                .submitAnswer(
                     sessionId = sessionId,
                     user = user,
-                    command = CompetitionCommand.SubmitAnswer(
-                        answer = answer,
-                        currentRound = roundNumber,
-                    )
+                    roundNumber = roundNumber,
+                    answer = answer,
                 )
 
             SubmitAnswerResponse
