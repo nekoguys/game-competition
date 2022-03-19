@@ -3,11 +3,14 @@ package ru.nekoguys.game.web.service
 import org.springframework.stereotype.Service
 import ru.nekoguys.game.entity.commongame.service.SessionPinDecoder
 import ru.nekoguys.game.entity.commongame.service.pin
+import ru.nekoguys.game.entity.competition.CompetitionProcessException
+import ru.nekoguys.game.entity.competition.CompetitionProcessService
 import ru.nekoguys.game.entity.competition.model.*
 import ru.nekoguys.game.entity.competition.repository.CompetitionSessionRepository
 import ru.nekoguys.game.entity.competition.repository.findAll
+import ru.nekoguys.game.entity.competition.repository.load
+import ru.nekoguys.game.entity.competition.rule.CompetitionCommand
 import ru.nekoguys.game.entity.user.repository.UserRepository
-import ru.nekoguys.game.web.dto.CompetitionCloneInfoResponse
 import ru.nekoguys.game.web.dto.CreateCompetitionRequest
 import ru.nekoguys.game.web.dto.CreateCompetitionResponse
 import ru.nekoguys.game.web.dto.GetCompetitionResponse
@@ -17,6 +20,7 @@ import java.time.LocalDateTime
 class CompetitionService(
     private val sessionPinDecoder: SessionPinDecoder,
     private val competitionSessionRepository: CompetitionSessionRepository,
+    private val competitionProcessService: CompetitionProcessService,
     private val userRepository: UserRepository,
 ) {
     suspend fun create(
@@ -85,7 +89,12 @@ class CompetitionService(
         return session.stage == CompetitionStage.Registration
     }
 
-    suspend fun getCompetitionCloneInfo(sessionPin: String): CompetitionCloneInfoResponse? {
+    suspend fun getCompetitionCloneInfo(
+        userEmail: String,
+        sessionPin: String,
+    ): GetCompetitionResponse? {
+        val user = userRepository.findByEmail(userEmail) ?: error("can't find user")
+
         val id = sessionPinDecoder
             .decodeIdFromPinUnsafe(sessionPin)
             ?: return null
@@ -93,27 +102,53 @@ class CompetitionService(
         return competitionSessionRepository
             .findAll(listOf(id), CompetitionSession.Full)
             .singleOrNull()
-            ?.toCompetitionCloneInfo()
+            ?.run {
+                createCompetitionHistoryResponseItem(
+                    settings = this.settings,
+                    stage = this.stage,
+                    lastModified = this.lastModified,
+                    isOwned = this.creatorId == user.id,
+                    pin = this.pin
+                )
+            }
+    }
+
+    suspend fun changeCompetitionSettings(
+        userEmail: String,
+        sessionPin: String,
+        competitionSettings: CompetitionSettings,
+    ): GetCompetitionResponse {
+        val user = userRepository.findByEmail(userEmail)
+        checkNotNull(user)
+
+        return try {
+            val sessionId = sessionPinDecoder.decodeIdFromPin(sessionPin)
+                ?: error("No competition with pin $sessionPin")
+            competitionProcessService.acceptCommand(
+                sessionId = sessionId,
+                user = user,
+                command = CompetitionCommand.ChangeCompetitionSettings(
+                    newSettings = competitionSettings
+                )
+            )
+
+            competitionSessionRepository.load(
+                id = sessionId,
+                CompetitionSession.Full
+            ).run {
+                createCompetitionHistoryResponseItem(
+                    settings = this.settings,
+                    stage = this.stage,
+                    lastModified = this.lastModified,
+                    isOwned = this.creatorId == user.id,
+                    pin = this.pin
+                )
+            }
+        } catch (ex: CompetitionProcessException) {
+            error("Can't change competition settings")
+        }
     }
 }
-
-private fun CreateCompetitionRequest.extractCompetitionSettings() =
-    CompetitionSettings(
-        name = name,
-        expensesFormula = expensesFormula.toCompetitionExpensesFormula(),
-        demandFormula = demandFormula.toCompetitionDemandFormula(),
-        maxTeamsAmount = maxTeamsAmount!!,
-        maxTeamSize = maxTeamSize!!,
-        roundsCount = roundsCount!!,
-        roundLength = roundLength!!,
-        teamLossLimit = teamLossUpperbound!!,
-        instruction = instruction!!,
-        showPreviousRoundResults = shouldShowStudentPreviousRoundResults!!,
-        endRoundBeforeAllAnswered = shouldEndRoundBeforeAllAnswered ?: false,
-        showStudentsResultsTable = shouldShowResultTableInEnd ?: false,
-        isAutoRoundEnding = isAutoRoundEnding ?: false,
-        showOtherTeamsMembers = showOtherTeamsMembers ?: false,
-    )
 
 private fun String?.toCompetitionStage(): CompetitionStage =
     when (val processedStage = this?.trim()?.lowercase()) {
@@ -124,14 +159,33 @@ private fun String?.toCompetitionStage(): CompetitionStage =
         else -> error("Unknown or unsupported stage $processedStage")
     }
 
-private fun List<Double>.toCompetitionExpensesFormula() =
+
+fun CreateCompetitionRequest.extractCompetitionSettings() =
+    CompetitionSettings(
+        name = name,
+        expensesFormula = expensesFormula.toCompetitionExpensesFormula(),
+        demandFormula = demandFormula.toCompetitionDemandFormula(),
+        maxTeamsAmount = maxTeamsAmount!!,
+        maxTeamSize = maxTeamSize!!,
+        roundsCount = roundsCount!!,
+        roundLength = roundLength!!,
+        teamLossLimit = teamLossUpperbound!!,
+        instruction = instruction!!,
+        showPreviousRoundResults = shouldShowStudentPreviousRoundResults ?: false,
+        endRoundBeforeAllAnswered = shouldEndRoundBeforeAllAnswered ?: false,
+        showStudentsResultsTable = shouldShowResultTableInEnd ?: false,
+        isAutoRoundEnding = isAutoRoundEnding ?: false,
+        showOtherTeamsMembers = showOtherTeamsMembers ?: false,
+    )
+
+fun List<Double>.toCompetitionExpensesFormula() =
     CompetitionExpensesFormula(
         xSquareCoefficient = get(0),
         xCoefficient = get(1),
         freeCoefficient = get(2),
     )
 
-private fun List<Double>.toCompetitionDemandFormula() =
+fun List<Double>.toCompetitionDemandFormula() =
     CompetitionDemandFormula(
         freeCoefficient = get(0),
         xCoefficient = get(1),
@@ -179,21 +233,4 @@ private fun createCompetitionHistoryResponseItem(
             else -> stage.name
         },
         teamLossUpperbound = settings.teamLossLimit.toDouble(),
-    )
-
-private fun CompetitionSession.Full.toCompetitionCloneInfo() =
-    CompetitionCloneInfoResponse(
-        name = settings.name,
-        expensesFormula = settings.expensesFormulaString,
-        demandFormula = settings.demandFormulaString,
-        instruction = settings.instruction,
-        isAutoRoundEnding = settings.isAutoRoundEnding,
-        maxTeamSize = settings.maxTeamSize,
-        maxTeamsAmount = settings.maxTeamsAmount,
-        roundLength = settings.roundLength,
-        roundsCount = settings.roundsCount,
-        shouldShowResultsTableInEnd = settings.showStudentsResultsTable,
-        shouldShowStudentPreviousRoundResults = settings.showPreviousRoundResults,
-        showOtherTeamsMembers = settings.showOtherTeamsMembers,
-        teamLossUpperbound = settings.teamLossLimit.toDouble()
     )

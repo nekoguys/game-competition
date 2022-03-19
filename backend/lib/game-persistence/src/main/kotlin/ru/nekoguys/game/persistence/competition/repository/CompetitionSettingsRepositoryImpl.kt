@@ -24,6 +24,15 @@ class CompetitionSettingsRepositoryImpl(
         return dbCompetitionGameProperties.toCompetitionSettings()
     }
 
+    override suspend fun update(
+        sessionId: CommonSession.Id,
+        settings: CompetitionSettings,
+    ) {
+        settings
+            .toDbCompetitionProperties(sessionId = sessionId.number)
+            .let { dbCompetitionPropertiesRepository.save(it) }
+    }
+
     override suspend fun load(
         sessionId: CommonSession.Id,
     ): CompetitionSettings =

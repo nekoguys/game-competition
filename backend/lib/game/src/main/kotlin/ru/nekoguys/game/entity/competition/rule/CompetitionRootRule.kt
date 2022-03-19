@@ -6,10 +6,7 @@ import org.springframework.stereotype.Service
 import ru.nekoguys.game.core.GameMessage
 import ru.nekoguys.game.core.GameRule
 import ru.nekoguys.game.entity.commongame.repository.CommonSessionRepository
-import ru.nekoguys.game.entity.competition.model.BannedCompetitionPlayer
-import ru.nekoguys.game.entity.competition.model.CompetitionBasePlayer
-import ru.nekoguys.game.entity.competition.model.CompetitionStage
-import ru.nekoguys.game.entity.competition.model.CompetitionTeam
+import ru.nekoguys.game.entity.competition.model.*
 import ru.nekoguys.game.entity.competition.service.processError
 
 sealed class CompetitionCommand {
@@ -26,6 +23,10 @@ sealed class CompetitionCommand {
     data class ChangeStage(
         val from: CompetitionStage,
         val to: CompetitionStage,
+    ) : CompetitionCommand()
+
+    data class ChangeCompetitionSettings(
+        val newSettings: CompetitionSettings,
     ) : CompetitionCommand()
 
     object Start : CompetitionCommand()
@@ -72,6 +73,7 @@ class CompetitionRootRule(
     private val changeStageRule: CompetitionChangeStageRule,
     private val joinTeamRule: CompetitionJoinTeamRule,
     private val submitAnswerRule: CompetitionSubmitAnswerRule,
+    private val changeSettingsRule: CompetitionChangeSettingsRule,
     private val startRoundRule: CompetitionStartRoundRule,
     private val endRoundRule: CompetitionEndRoundRule,
     private val startRule: CompetitionStartRule,
@@ -103,6 +105,8 @@ class CompetitionRootRule(
                 submitAnswerRule.submitAnswer(player, command)
             is CompetitionCommand.BanTeams ->
                 banTeamRule.banTeam(player, command)
+            is CompetitionCommand.ChangeCompetitionSettings ->
+                changeSettingsRule.changeSettings(player, command)
         }
 
         commonSessionRepository

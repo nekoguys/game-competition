@@ -6,6 +6,7 @@ import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 import ru.nekoguys.game.web.dto.*
 import ru.nekoguys.game.web.service.CompetitionService
+import ru.nekoguys.game.web.service.extractCompetitionSettings
 import ru.nekoguys.game.web.util.withMDCContext
 import ru.nekoguys.game.web.util.wrapServiceCall
 import java.security.Principal
@@ -48,7 +49,7 @@ class CompetitionController(
                 .getCompetitionHistory(
                     userEmail = principal.name,
                     limit = pageSize,
-                    offset = page * pageSize, // TODO: modify front page => page * pageSize
+                    offset = page * pageSize,
                 )
                 .let { ResponseEntity.ok(it) }
         }
@@ -74,10 +75,27 @@ class CompetitionController(
     )
     @PreAuthorize("hasRole('TEACHER')")
     suspend fun getCompetitionInfo(
+        principal: Principal,
         @PathVariable sessionPin: String,
-    ): ResponseEntity<CompetitionCloneInfoResponse> =
+    ): ResponseEntity<GetCompetitionResponse> =
         wrapServiceCall {
             competitionService
-                .getCompetitionCloneInfo(sessionPin)
+                .getCompetitionCloneInfo(principal.name, sessionPin)
+        }
+
+
+    @PostMapping("/update_competition/{sessionPin}")
+    @PreAuthorize("hasRole('TEACHER')")
+    suspend fun changeCompetitionInfo(
+        principal: Principal,
+        @PathVariable sessionPin: String,
+        @RequestBody @Valid request: CreateCompetitionRequest,
+    ): ResponseEntity<GetCompetitionResponse> =
+        wrapServiceCall {
+            competitionService.changeCompetitionSettings(
+                userEmail = principal.name,
+                sessionPin = sessionPin,
+                competitionSettings = request.extractCompetitionSettings(),
+            )
         }
 }

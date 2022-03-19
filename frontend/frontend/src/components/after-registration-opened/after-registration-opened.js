@@ -103,9 +103,10 @@ const CompetitionsParamsWrapper = ({formState, setFormState, saveAction}) => {
     const {t} = useTranslation();
     return (
         <div className={"after-registration-opened-competition-form-holder"}>
-            <CompetitionParamsForm initialState={formState} onFormStateUpdated={(newFormState) => setFormState(newFormState)}/>
+            <CompetitionParamsForm state={formState} onFormStateUpdated={(newFormState) => setFormState(newFormState)}/>
             <div className={"after-registration-opened-competition-form-holder-action-button-container"}>
-                <button className={"competition-form-action-button"} onClick={() => saveAction()}>{t("waiting_room_new.save")}</button>
+                <button className={"competition-form-action-button"}
+                        onClick={() => saveAction()}>{t("waiting_room_new.save")}</button>
             </div>
         </div>
     )

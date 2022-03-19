@@ -1,0 +1,33 @@
+package ru.nekoguys.game.entity.competition.rule
+
+import org.springframework.stereotype.Component
+import ru.nekoguys.game.core.GameMessage
+import ru.nekoguys.game.entity.competition.model.CompetitionPlayer
+import ru.nekoguys.game.entity.competition.model.CompetitionSession
+import ru.nekoguys.game.entity.competition.model.CompetitionTeam
+import ru.nekoguys.game.entity.competition.repository.CompetitionSessionRepository
+import ru.nekoguys.game.entity.competition.repository.CompetitionSettingsRepository
+import ru.nekoguys.game.entity.competition.repository.load
+
+@Component
+class CompetitionChangeSettingsRule(
+    private val competitionSettingsRepository: CompetitionSettingsRepository,
+    private val competitionSessionRepository: CompetitionSessionRepository,
+) : CompetitionRule<CompetitionPlayer.Teacher, CompetitionCommand.ChangeCompetitionSettings, CompetitionMessage> {
+
+    override suspend fun process(
+        player: CompetitionPlayer.Teacher,
+        command: CompetitionCommand.ChangeCompetitionSettings,
+    ): List<GameMessage<CompetitionTeam.Id, CompetitionMessage>> {
+
+        val competition = competitionSessionRepository.load(
+            id = player.sessionId,
+            CompetitionSession.WithCommonFields
+        )
+        require(player.user.id == competition.creatorId)
+
+        competitionSettingsRepository
+            .update(player.sessionId, command.newSettings)
+        return emptyList()
+    }
+}

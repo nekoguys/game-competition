@@ -6,6 +6,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.web.reactive.server.WebTestClient
+import ru.nekoguys.game.entity.commongame.service.pin
 import ru.nekoguys.game.entity.user.model.User
 import ru.nekoguys.game.web.GameWebApplicationIntegrationTest
 import ru.nekoguys.game.web.dto.CheckGamePinRequest
@@ -101,5 +102,24 @@ class CompetitionControllerTest @Autowired constructor(
             .expectStatus().isOk
             .expectBody()
             .jsonPath("$.exists").isEqualTo(false)
+    }
+
+    @WithMockUser(username = TestGame.DEFAULT_ADMIN_EMAIL, roles = ["TEACHER"])
+    @Test
+    fun `can update competition settings`() {
+        val session = game.createAndLoadSession(
+            teacher = testUser
+        )
+        val request = DEFAULT_CREATE_COMPETITION_REQUEST.copy(
+            roundLength = 30,
+        )
+        webTestClient
+            .post()
+            .uri("/api/competitions/update_competition/${session.pin}")
+            .bodyValue(request)
+            .exchange()
+            .expectStatus().isOk
+            .expectBody()
+            .jsonPath("$.name").exists()
     }
 }
