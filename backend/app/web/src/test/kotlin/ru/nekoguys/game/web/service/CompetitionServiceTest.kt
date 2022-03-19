@@ -5,14 +5,11 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
-import ru.nekoguys.game.entity.commongame.service.SessionPinDecoder
 import ru.nekoguys.game.entity.commongame.service.pin
 import ru.nekoguys.game.entity.competition.model.CompetitionStage
-import ru.nekoguys.game.entity.competition.repository.CompetitionSessionRepository
 import ru.nekoguys.game.entity.user.model.UserRole
 import ru.nekoguys.game.web.GameWebApplicationTest
 import ru.nekoguys.game.web.dto.CreateCompetitionRequest
-import ru.nekoguys.game.web.dto.CreateCompetitionResponse
 import ru.nekoguys.game.web.util.CleanDatabaseExtension
 import ru.nekoguys.game.web.util.TestGame
 import java.time.LocalDateTime
@@ -22,9 +19,6 @@ import java.time.LocalDateTime
 class CompetitionServiceTest @Autowired constructor(
     private val game: TestGame,
     private val competitionService: CompetitionService,
-    private val userService: UserService,
-    private val competitionSessionRepository: CompetitionSessionRepository,
-    private val sessionPinDecoder: SessionPinDecoder,
 ) {
 
     @Test
@@ -69,11 +63,12 @@ class CompetitionServiceTest @Autowired constructor(
 
     @Test
     fun `get clone info for competition`() {
-        val session = game.createAndLoadSession()
+        val teacher = game.createUser(role = UserRole.Teacher)
+        val session = game.createAndLoadSession(teacher = teacher)
         val settings = session.settings
 
         val cloneInfo = runBlocking {
-            competitionService.getCompetitionCloneInfo(session.pin)
+            competitionService.getCompetitionCloneInfo(teacher.email, session.pin)
         }
 
         assertThat(cloneInfo)
@@ -169,8 +164,6 @@ class CompetitionServiceTest @Autowired constructor(
                 competitionSettings = newSettings,
             )
         }
-        assertThat(response)
-            .isInstanceOf(CreateCompetitionResponse.Created::class.java)
 
         val savedSettings = game.loadSession(session.pin).settings
 

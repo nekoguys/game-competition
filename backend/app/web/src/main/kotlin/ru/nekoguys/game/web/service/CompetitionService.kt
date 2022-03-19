@@ -8,9 +8,9 @@ import ru.nekoguys.game.entity.competition.CompetitionProcessService
 import ru.nekoguys.game.entity.competition.model.*
 import ru.nekoguys.game.entity.competition.repository.CompetitionSessionRepository
 import ru.nekoguys.game.entity.competition.repository.findAll
+import ru.nekoguys.game.entity.competition.repository.load
 import ru.nekoguys.game.entity.competition.rule.CompetitionCommand
 import ru.nekoguys.game.entity.user.repository.UserRepository
-import ru.nekoguys.game.web.dto.CompetitionCloneInfoResponse
 import ru.nekoguys.game.web.dto.CreateCompetitionRequest
 import ru.nekoguys.game.web.dto.CreateCompetitionResponse
 import ru.nekoguys.game.web.dto.GetCompetitionResponse
@@ -89,7 +89,12 @@ class CompetitionService(
         return session.stage == CompetitionStage.Registration
     }
 
-    suspend fun getCompetitionCloneInfo(sessionPin: String): CompetitionCloneInfoResponse? {
+    suspend fun getCompetitionCloneInfo(
+        userEmail: String,
+        sessionPin: String,
+    ): GetCompetitionResponse? {
+        val user = userRepository.findByEmail(userEmail) ?: error("can't find user")
+
         val id = sessionPinDecoder
             .decodeIdFromPinUnsafe(sessionPin)
             ?: return null
@@ -97,27 +102,48 @@ class CompetitionService(
         return competitionSessionRepository
             .findAll(listOf(id), CompetitionSession.Full)
             .singleOrNull()
-            ?.toCompetitionCloneInfo()
+            ?.run {
+                createCompetitionHistoryResponseItem(
+                    settings = this.settings,
+                    stage = this.stage,
+                    lastModified = this.lastModified,
+                    isOwned = this.creatorId == user.id,
+                    pin = this.pin
+                )
+            }
     }
 
     suspend fun changeCompetitionSettings(
         userEmail: String,
         sessionPin: String,
         competitionSettings: CompetitionSettings,
-    ): CreateCompetitionResponse {
+    ): GetCompetitionResponse {
         val user = userRepository.findByEmail(userEmail)
         checkNotNull(user)
 
         return try {
+            val sessionId = sessionPinDecoder.decodeIdFromPin(sessionPin)
+                ?: error("No competition with pin $sessionPin")
             competitionProcessService.acceptCommand(
-                sessionId = sessionPinDecoder.decodeIdFromPin(sessionPin)
-                    ?: error("No competition with pin $sessionPin"),
+                sessionId = sessionId,
                 user = user,
                 command = CompetitionCommand.ChangeCompetitionSettings(
                     newSettings = competitionSettings
                 )
             )
-            CreateCompetitionResponse.Created
+
+            competitionSessionRepository.load(
+                id = sessionId,
+                CompetitionSession.Full
+            ).run {
+                createCompetitionHistoryResponseItem(
+                    settings = this.settings,
+                    stage = this.stage,
+                    lastModified = this.lastModified,
+                    isOwned = this.creatorId == user.id,
+                    pin = this.pin
+                )
+            }
         } catch (ex: CompetitionProcessException) {
             error("Can't change competition settings")
         }
@@ -207,21 +233,4 @@ private fun createCompetitionHistoryResponseItem(
             else -> stage.name
         },
         teamLossUpperbound = settings.teamLossLimit.toDouble(),
-    )
-
-private fun CompetitionSession.Full.toCompetitionCloneInfo() =
-    CompetitionCloneInfoResponse(
-        name = settings.name,
-        expensesFormula = settings.expensesFormulaString,
-        demandFormula = settings.demandFormulaString,
-        instruction = settings.instruction,
-        isAutoRoundEnding = settings.isAutoRoundEnding,
-        maxTeamSize = settings.maxTeamSize,
-        maxTeamsAmount = settings.maxTeamsAmount,
-        roundLength = settings.roundLength,
-        roundsCount = settings.roundsCount,
-        shouldShowResultsTableInEnd = settings.showStudentsResultsTable,
-        shouldShowStudentPreviousRoundResults = settings.showPreviousRoundResults,
-        showOtherTeamsMembers = settings.showOtherTeamsMembers,
-        teamLossUpperbound = settings.teamLossLimit.toDouble()
     )

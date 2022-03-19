@@ -3,8 +3,6 @@
 package ru.nekoguys.game.web.dto
 
 import com.fasterxml.jackson.annotation.JsonFormat
-import com.fasterxml.jackson.databind.PropertyNamingStrategies
-import com.fasterxml.jackson.databind.annotation.JsonNaming
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer
 import org.springframework.http.HttpStatus
@@ -73,23 +71,6 @@ data class GetCompetitionResponse(
     val showOtherTeamsMembers: Boolean,
     val state: String,
     val teamLossUpperbound: Double,
-) : WebResponse(HttpStatus.OK)
-
-@JsonNaming(PropertyNamingStrategies.LowerCamelCaseStrategy::class)
-data class CompetitionCloneInfoResponse(
-    val name: String,
-    val demandFormula: String,
-    val expensesFormula: String,
-    val maxTeamsAmount: Int,
-    val maxTeamSize: Int,
-    val roundsCount: Int,
-    val roundLength: Int,
-    val teamLossUpperbound: Double,
-    val instruction: String,
-    val shouldShowResultsTableInEnd: Boolean,
-    val shouldShowStudentPreviousRoundResults: Boolean,
-    val isAutoRoundEnding: Boolean,
-    val showOtherTeamsMembers: Boolean
 ) : WebResponse(HttpStatus.OK)
 
 data class CheckGamePinRequest(

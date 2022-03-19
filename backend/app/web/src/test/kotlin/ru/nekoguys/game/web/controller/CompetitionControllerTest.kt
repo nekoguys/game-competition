@@ -120,6 +120,6 @@ class CompetitionControllerTest @Autowired constructor(
             .exchange()
             .expectStatus().isOk
             .expectBody()
-            .jsonPath("$.message").exists()
+            .jsonPath("$.name").exists()
     }
 }

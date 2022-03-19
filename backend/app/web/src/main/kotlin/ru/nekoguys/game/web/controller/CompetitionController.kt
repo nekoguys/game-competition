@@ -75,11 +75,12 @@ class CompetitionController(
     )
     @PreAuthorize("hasRole('TEACHER')")
     suspend fun getCompetitionInfo(
+        principal: Principal,
         @PathVariable sessionPin: String,
-    ): ResponseEntity<CompetitionCloneInfoResponse> =
+    ): ResponseEntity<GetCompetitionResponse> =
         wrapServiceCall {
             competitionService
-                .getCompetitionCloneInfo(sessionPin)
+                .getCompetitionCloneInfo(principal.name, sessionPin)
         }
 
 
@@ -89,7 +90,7 @@ class CompetitionController(
         principal: Principal,
         @PathVariable sessionPin: String,
         @RequestBody @Valid request: CreateCompetitionRequest,
-    ): ResponseEntity<CreateCompetitionResponse> =
+    ): ResponseEntity<GetCompetitionResponse> =
         wrapServiceCall {
             competitionService.changeCompetitionSettings(
                 userEmail = principal.name,
