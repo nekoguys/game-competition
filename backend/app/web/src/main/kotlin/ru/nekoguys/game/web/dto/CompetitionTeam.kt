@@ -24,7 +24,7 @@ sealed class TeamApiResponse<out T : TeamApiResponse<T>>(
         val message = "User with email '$email' is not registered"
     }
 
-    class ProcessError(
+    data class ProcessError(
         val message: String
     ) : TeamApiResponse<Nothing>(HttpStatus.BAD_REQUEST)
 }

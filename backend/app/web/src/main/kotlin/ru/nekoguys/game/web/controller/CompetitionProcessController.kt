@@ -62,6 +62,9 @@ class CompetitionProcessController(
             competitionProcessService
                 .competitionRoundEventsFlow(sessionPin)
                 .asServerSentEventStream("roundStream"),
+            competitionProcessService
+                .myAnswersEventsFlow(sessionPin, principal.name)
+                .asServerSentEventStream("answerStream")
         )
     /*
     @RequestMapping(value = "/student_all_in_one", produces = {MediaType.TEXT_EVENT_STREAM_VALUE})
@@ -96,4 +99,42 @@ class CompetitionProcessController(
                     answer = request.answer,
                 )
         }
+
+    @RequestMapping(
+        "/my_results_stream",
+        produces = [MediaType.TEXT_EVENT_STREAM_VALUE]
+    )
+    @PreAuthorize("hasRole('STUDENT')")
+    fun myAnswersEventStream(
+        principal: Principal,
+        @PathVariable sessionPin: String,
+    ): Flow<ServerSentEvent<Any>> =
+        competitionProcessService
+            .myAnswersEventsFlow(
+                sessionPin = sessionPin,
+                studentEmail = principal.name,
+            )
+            .asServerSentEventStream("answerStream")
+
+    /*
+    @RequestMapping(value = "/my_answers_stream", produces = {MediaType.TEXT_EVENT_STREAM_VALUE})
+    @PreAuthorize("hasRole('STUDENT')")
+    public Flux<ServerSentEvent<?>> getMyTeamAnswersEvents(Mono<Principal> principalMono, @PathVariable String pin) {
+        return Mono.zip(principalMono, competitionsRepository.findByPin(pin))
+                .flatMapMany(tuple -> {
+                    var comp = tuple.getT2();
+                    var email = tuple.getT1().getName();
+                    var team = this.teamFinder.findTeamForStudent(comp, email);
+                    log.info("REQUEST: /api/competition_process/{}/my_answers_stream, email: {}", pin, email);
+
+                    if (team.isEmpty()) {
+                        return Flux.empty();
+                    }
+
+                    return gameManagementService.teamsAnswersEvents(comp).filter(roundTeamAnswerDto -> {
+                        return roundTeamAnswerDto.getTeamIdInGame() == team.get().getIdInGame() || roundTeamAnswerDto.getTeamIdInGame() == -1;
+                    });
+                }).map(e -> ServerSentEvent.builder().data(e).id("answerStream").build());
+    }
+     */
 }

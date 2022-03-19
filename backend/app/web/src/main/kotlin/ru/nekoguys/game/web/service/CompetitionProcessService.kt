@@ -8,15 +8,15 @@ import ru.nekoguys.game.entity.competition.model.CompetitionPlayer
 import ru.nekoguys.game.entity.competition.model.CompetitionSession
 import ru.nekoguys.game.entity.competition.model.CompetitionStage
 import ru.nekoguys.game.entity.competition.model.students
+import ru.nekoguys.game.entity.competition.repository.CompetitionPlayerRepository
 import ru.nekoguys.game.entity.competition.repository.CompetitionSessionRepository
+import ru.nekoguys.game.entity.competition.repository.CompetitionTeamRepository
 import ru.nekoguys.game.entity.competition.repository.load
+import ru.nekoguys.game.entity.competition.rule.CompetitionAnswerSubmittedMessage
 import ru.nekoguys.game.entity.competition.rule.CompetitionStageChangedMessage
 import ru.nekoguys.game.entity.competition.submitAnswer
 import ru.nekoguys.game.entity.user.repository.UserRepository
-import ru.nekoguys.game.web.dto.CompetitionInfoForStudentResultsTableResponse
-import ru.nekoguys.game.web.dto.ProcessApiResponse
-import ru.nekoguys.game.web.dto.RoundEvent
-import ru.nekoguys.game.web.dto.SubmitAnswerResponse
+import ru.nekoguys.game.web.dto.*
 import java.time.ZoneOffset
 import ru.nekoguys.game.entity.competition.CompetitionProcessService as CoreCompetitionProcessService
 
@@ -27,6 +27,8 @@ class CompetitionProcessService(
     private val userRepository: UserRepository,
     private val sessionPinDecoder: SessionPinDecoder,
     private val competitionSessionRepository: CompetitionSessionRepository,
+    private val competitionPlayerRepository: CompetitionPlayerRepository,
+    private val competitionTeamRepository: CompetitionTeamRepository,
 ) {
 
     fun competitionRoundEventsFlow(
@@ -38,9 +40,8 @@ class CompetitionProcessService(
 
         coreCompetitionProcessService
             .getAllMessagesForSession(sessionId)
-            .map { it.body } // не смотрим, каким командам отправлено сообщение
             .mapNotNull { msg ->
-                (msg as? CompetitionStageChangedMessage)?.toRoundEvent()
+                (msg.body as? CompetitionStageChangedMessage)?.toRoundEvent()
             }
             .collect(::emit)
     }
@@ -132,5 +133,37 @@ class CompetitionProcessService(
         } catch (ex: CompetitionProcessException) {
             return ProcessApiResponse.ProcessError(ex.message)
         }
+    }
+
+    fun myAnswersEventsFlow(
+        sessionPin: String,
+        studentEmail: String,
+    ): Flow<SubmittedAnswerEvent> = flow {
+        val sessionId = sessionPinDecoder
+            .decodeIdFromPin(sessionPin)
+            ?: error("Incorrect pin")
+
+        val student = userRepository
+            .findByEmail(studentEmail)
+            ?: error("No student with email $studentEmail")
+        val studentPlayerInfo = competitionPlayerRepository.load(
+            sessionId = sessionId,
+            user = student,
+        ) as CompetitionPlayer.Student
+        val studentTeam = competitionTeamRepository.load(studentPlayerInfo.teamId)
+
+        coreCompetitionProcessService
+            .getAllMessagesForSession(sessionId)
+            .map { it.body }
+            .filterIsInstance<CompetitionAnswerSubmittedMessage>()
+            .filter { it.teamId == studentTeam.id }
+            .mapNotNull { msg ->
+                SubmittedAnswerEvent(
+                    teamIdInGame = studentTeam.numberInGame,
+                    roundNumber = msg.roundNumber,
+                    teamAnswer = msg.answer,
+                )
+            }
+            .collect(::emit)
     }
 }

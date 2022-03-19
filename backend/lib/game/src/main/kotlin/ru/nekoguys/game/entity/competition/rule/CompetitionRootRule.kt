@@ -39,6 +39,7 @@ sealed class CompetitionCommand {
     JsonSubTypes.Type(CompetitionCreateTeamMessage::class),
     JsonSubTypes.Type(CompetitionJoinTeamMessage::class),
     JsonSubTypes.Type(CompetitionStageChangedMessage::class),
+    JsonSubTypes.Type(CompetitionAnswerSubmittedMessage::class),
 )
 sealed class CompetitionMessage
 

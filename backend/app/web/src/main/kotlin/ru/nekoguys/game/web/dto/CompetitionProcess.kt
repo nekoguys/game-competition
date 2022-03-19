@@ -79,3 +79,9 @@ data class SubmitAnswerRequest(
 
 object SubmitAnswerResponse
     : ProcessApiResponse<SubmitAnswerResponse>(HttpStatus.OK)
+
+data class SubmittedAnswerEvent(
+    val teamIdInGame: Int,
+    val roundNumber: Int,
+    val teamAnswer: Long,
+)
