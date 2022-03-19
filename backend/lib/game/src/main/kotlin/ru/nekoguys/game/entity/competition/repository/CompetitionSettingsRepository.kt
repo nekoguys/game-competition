@@ -9,6 +9,11 @@ interface CompetitionSettingsRepository {
         settings: CompetitionSettings,
     ): CompetitionSettings
 
+    suspend fun update(
+        sessionId: CommonSession.Id,
+        settings: CompetitionSettings,
+    )
+
     suspend fun load(
         sessionId: CommonSession.Id,
     ): CompetitionSettings
