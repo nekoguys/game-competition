@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component
 import ru.nekoguys.game.entity.commongame.service.SessionPinDecoder
 import ru.nekoguys.game.entity.commongame.service.toPin
 import ru.nekoguys.game.entity.competition.model.CompetitionSession
+import ru.nekoguys.game.entity.competition.model.CompetitionStage
 import ru.nekoguys.game.entity.competition.repository.CompetitionSessionRepository
 import ru.nekoguys.game.entity.competition.repository.findAll
 import ru.nekoguys.game.entity.competition.repository.load
@@ -14,6 +15,7 @@ import ru.nekoguys.game.entity.user.model.UserRole
 import ru.nekoguys.game.entity.user.repository.UserRepository
 import ru.nekoguys.game.entity.user.repository.load
 import ru.nekoguys.game.web.dto.*
+import ru.nekoguys.game.web.service.CompetitionProcessService
 import ru.nekoguys.game.web.service.CompetitionService
 import ru.nekoguys.game.web.service.CompetitionTeacherProcessService
 import ru.nekoguys.game.web.service.CompetitionTeamService
@@ -24,6 +26,7 @@ class TestGame(
     private val competitionService: CompetitionService,
     private val competitionTeamService: CompetitionTeamService,
     private val competitionTeacherProcessService: CompetitionTeacherProcessService,
+    private val competitionProcessService: CompetitionProcessService,
     private val competitionSessionRepository: CompetitionSessionRepository,
     private val pinGenerator: SessionPinDecoder,
     private val userRepository: UserRepository,
@@ -89,8 +92,9 @@ class TestGame(
         teacher: User = createUser(UserRole.Teacher),
         request: CreateCompetitionRequest = DEFAULT_CREATE_COMPETITION_REQUEST
             .copy(name = nextSessionName()),
+        additionalActions: suspend (String) -> Unit = {},
     ): String =
-        createAndLoadSession(teacher, request)
+        createAndLoadSession(teacher, request, additionalActions)
             .id
             .toPin()
 
@@ -161,7 +165,12 @@ class TestGame(
 
     fun startCompetition(
         sessionPin: String = createSession(),
-    ): Unit = runBlocking {
+        vararg captains: User,
+    ): String = runBlocking {
+        for (captain in captains) {
+            createTeam(sessionPin, captain)
+        }
+
         val teacherId = loadSession(sessionPin).creatorId
         val teacher = userRepository.load(teacherId)
         val response = competitionTeacherProcessService
@@ -169,11 +178,13 @@ class TestGame(
         assertThat(response)
             .usingRecursiveComparison()
             .isEqualTo(StartCompetitionResponse)
+
+        sessionPin
     }
 
     fun startRound(
-        sessionPin: String = createSession(),
-    ): Unit = runBlocking {
+        sessionPin: String = startCompetition(),
+    ): String = runBlocking {
         val teacherId = loadSession(sessionPin).creatorId
         val teacher = userRepository.load(teacherId)
         val response = competitionTeacherProcessService
@@ -181,12 +192,32 @@ class TestGame(
         assertThat(response)
             .usingRecursiveComparison()
             .isEqualTo(StartRoundResponse)
+        sessionPin
+    }
+
+    fun submitAnswer(
+        sessionPin: String = createSession(),
+        captain: User,
+        answer: Long,
+    ): Unit = runBlocking {
+        val session = loadSession(sessionPin)
+        val response = competitionProcessService
+            .submitAnswer(
+                studentEmail = captain.email,
+                sessionPin = sessionPin,
+                roundNumber = (session.stage as CompetitionStage.InProcess).round,
+                answer = answer,
+            )
+        assertThat(response)
+            .usingRecursiveComparison()
+            .isEqualTo(SubmitAnswerResponse)
     }
 
     companion object TestData {
         private val indexCounter = AtomicLong()
 
         const val DEFAULT_ADMIN_EMAIL = "admin@hse.ru"
+        const val DEFAULT_TEACHER_EMAIL = "admin@hse.ru"
         const val DEFAULT_STUDENT_EMAIL = "student@edu.hse.ru"
         const val DEFAULT_PASSWORD = "password"
         const val DEFAULT_COMPETITION_NAME = "Test Competition"

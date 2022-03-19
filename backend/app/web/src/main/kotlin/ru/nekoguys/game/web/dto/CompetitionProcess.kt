@@ -71,3 +71,20 @@ data class CompetitionInfoForStudentResultsTableResponse(
     val roundsCount: Int,
     val strategy: String,
 ) : ProcessApiResponse<CompetitionInfoForResultsTableResponse>(HttpStatus.OK)
+
+data class SubmitAnswerRequest(
+    val answer: Long,
+    val roundNumber: Int,
+)
+
+object SubmitAnswerResponse
+    : ProcessApiResponse<SubmitAnswerResponse>(HttpStatus.OK) {
+    @Suppress("unused")
+    val message = "Answer submitted successfully"
+}
+
+data class SubmittedAnswerEvent(
+    val teamIdInGame: Int,
+    val roundNumber: Int,
+    val teamAnswer: Long,
+)

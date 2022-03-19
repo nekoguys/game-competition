@@ -30,7 +30,7 @@ class StartRoundTest @Autowired constructor(
 
     @Test
     @WithMockUser(username = TestGame.DEFAULT_ADMIN_EMAIL, roles = ["TEACHER"])
-    fun `can start round`() {
+    fun `teacher can start round`() {
         val sessionPin = game.createSession()
         repeat(2) { game.createTeam(sessionPin) }
         game.startCompetition(sessionPin)

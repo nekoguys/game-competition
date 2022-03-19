@@ -2,11 +2,11 @@ package ru.nekoguys.game.entity.competition.rule
 
 import org.springframework.stereotype.Component
 import ru.nekoguys.game.core.util.buildResponse
-import ru.nekoguys.game.entity.competition.competitionProcessError
 import ru.nekoguys.game.entity.competition.model.CompetitionPlayer
 import ru.nekoguys.game.entity.competition.model.CompetitionSession
 import ru.nekoguys.game.entity.competition.model.CompetitionStage
 import ru.nekoguys.game.entity.competition.model.CompetitionTeam
+import ru.nekoguys.game.entity.competition.processError
 import ru.nekoguys.game.entity.competition.repository.CompetitionSessionRepository
 import ru.nekoguys.game.entity.competition.repository.CompetitionTeamRepository
 import ru.nekoguys.game.entity.competition.repository.load
@@ -58,17 +58,17 @@ class CompetitionCreateTeamRule(
         currentStage: CompetitionStage,
     ) {
         if (existingTeams.any { it.name == command.teamName }) {
-            competitionProcessError("There is team with same name already")
+            processError("There is team with same name already")
         }
 
         if (existingTeams.size >= maxTeamsAmount) {
-            competitionProcessError(
+            processError(
                 "There are too much teams in competition, max amount: $maxTeamsAmount"
             )
         }
 
         if (currentStage != CompetitionStage.Registration) {
-            competitionProcessError("Illegal competition state")
+            processError("Illegal competition state")
         }
     }
 

@@ -9,7 +9,6 @@ interface DbCompetitionTeamMemberRepository : CoroutineCrudRepository<DbCompetit
     @Suppress("SpringDataRepositoryMethodParametersInspection")
     fun findAllByTeamId(teamId: Long): Flow<DbCompetitionTeamMember>
 
-    @Suppress("SqlResolve")
     @Query(
         "SELECT ctm.* " +
                 "FROM competition_team_members AS ctm " +
@@ -22,7 +21,6 @@ interface DbCompetitionTeamMemberRepository : CoroutineCrudRepository<DbCompetit
         userId: Long,
     ): DbCompetitionTeamMember?
 
-    @Suppress("SqlResolve")
     @Query(
         "SELECT ctm.* " +
                 "FROM competition_team_members AS ctm " +

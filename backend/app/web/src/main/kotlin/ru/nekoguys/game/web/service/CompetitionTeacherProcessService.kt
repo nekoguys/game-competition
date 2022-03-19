@@ -1,5 +1,6 @@
 package ru.nekoguys.game.web.service
 
+import kotlinx.coroutines.flow.*
 import org.springframework.stereotype.Service
 import ru.nekoguys.game.entity.commongame.service.SessionPinDecoder
 import ru.nekoguys.game.entity.competition.CompetitionProcessException
@@ -7,9 +8,11 @@ import ru.nekoguys.game.entity.competition.CompetitionProcessService
 import ru.nekoguys.game.entity.competition.changeStage
 import ru.nekoguys.game.entity.competition.model.CompetitionSession
 import ru.nekoguys.game.entity.competition.model.CompetitionStage
+import ru.nekoguys.game.entity.competition.model.CompetitionTeam
 import ru.nekoguys.game.entity.competition.repository.CompetitionSessionRepository
 import ru.nekoguys.game.entity.competition.repository.findAll
 import ru.nekoguys.game.entity.competition.repository.load
+import ru.nekoguys.game.entity.competition.rule.CompetitionAnswerSubmittedMessage
 import ru.nekoguys.game.web.dto.*
 
 @Service
@@ -96,5 +99,31 @@ class CompetitionTeacherProcessService(
             name = session.settings.name,
             isAutoRoundEnding = session.settings.isAutoRoundEnding,
         )
+    }
+
+    fun allTeamAnswersFlow(
+        sessionPin: String,
+    ): Flow<SubmittedAnswerEvent> = flow {
+        val sessionId = sessionPinDecoder
+            .decodeIdFromPin(sessionPin)
+            ?: error("Incorrect pin")
+
+        val teamNumberById = competitionSessionRepository
+            .load(sessionId, CompetitionSession.WithTeams)
+            .teams
+            .associateBy(CompetitionTeam::id, CompetitionTeam::numberInGame)
+
+        competitionProcessService
+            .getAllMessagesForSession(sessionId)
+            .map { it.body }
+            .filterIsInstance<CompetitionAnswerSubmittedMessage>()
+            .mapNotNull { msg ->
+                SubmittedAnswerEvent(
+                    teamIdInGame = teamNumberById.getValue(msg.teamId),
+                    roundNumber = msg.roundNumber,
+                    teamAnswer = msg.answer,
+                )
+            }
+            .collect(::emit)
     }
 }

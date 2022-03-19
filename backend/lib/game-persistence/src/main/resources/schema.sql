@@ -100,16 +100,8 @@ CREATE TABLE competition_round_answers
     round_number INT    NOT NULL,
     team_id      BIGINT NOT NULL,
     value        INT    NOT NULL,
+    income       INT    NULL,
     PRIMARY KEY (session_id, round_number)
-);
-
-CREATE TABLE competition_round_results
-(
-    session_id   BIGINT NOT NULL,
-    round_number INT    NOT NULL,
-    team_id      BIGINT NOT NULL,
-    income       INT    NOT NULL,
-    PRIMARY KEY (session_id, round_number, team_id)
 );
 
 ALTER TABLE game_sessions
@@ -158,12 +150,4 @@ ALTER TABLE competition_round_answers
 
 ALTER TABLE competition_round_answers
     ADD CONSTRAINT fk_competition_round_answers_team_id
-        FOREIGN KEY (team_id) REFERENCES competition_teams (id);
-
-ALTER TABLE competition_round_results
-    ADD CONSTRAINT fk_competition_round_results_session_id_round_number
-        FOREIGN KEY (session_id, round_number) REFERENCES competition_round_infos (session_id, round_number);
-
-ALTER TABLE competition_round_results
-    ADD CONSTRAINT fk_competition_round_results_team_id
         FOREIGN KEY (team_id) REFERENCES competition_teams (id);

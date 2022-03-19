@@ -4,8 +4,8 @@ import kotlinx.coroutines.flow.toList
 import org.springframework.stereotype.Component
 import ru.nekoguys.game.core.GameMessage
 import ru.nekoguys.game.core.util.buildResponse
-import ru.nekoguys.game.entity.competition.competitionProcessError
 import ru.nekoguys.game.entity.competition.model.*
+import ru.nekoguys.game.entity.competition.processError
 import ru.nekoguys.game.entity.competition.repository.CompetitionSessionRepository
 import ru.nekoguys.game.entity.competition.repository.CompetitionTeamRepository
 import ru.nekoguys.game.entity.competition.repository.load
@@ -56,7 +56,7 @@ class CompetitionJoinTeamRule(
     ): CompetitionTeam =
         teams
             .singleOrNull { it.name == command.teamName }
-            ?: competitionProcessError("No team in competition with name: ${command.teamName}")
+            ?: processError("No team in competition with name: ${command.teamName}")
 
     private fun validateCommand(
         command: CompetitionCommand.JoinTeam,
@@ -65,17 +65,17 @@ class CompetitionJoinTeamRule(
         currentStage: CompetitionStage,
     ) {
         if (command.password != oldTeam.password) {
-            competitionProcessError("Wrong team password")
+            processError("Wrong team password")
         }
 
         if (oldTeam.teamMembers.size > maxTeamSize) {
-            competitionProcessError(
+            processError(
                 "There are too much team members already, max amount: $maxTeamSize"
             )
         }
 
         if (currentStage != CompetitionStage.Registration) {
-            competitionProcessError("Illegal competition state")
+            processError("Illegal competition state")
         }
     }
 

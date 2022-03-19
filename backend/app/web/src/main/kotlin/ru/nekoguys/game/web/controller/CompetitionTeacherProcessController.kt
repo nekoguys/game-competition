@@ -103,6 +103,9 @@ class CompetitionTeacherProcessController(
             competitionProcessService
                 .competitionRoundEventsFlow(sessionPin)
                 .asServerSentEventStream("roundStream"),
+            competitionTeacherProcessService
+                .allTeamAnswersFlow(sessionPin)
+                .asServerSentEventStream("answerStream")
         )
 
     /*
@@ -118,4 +121,16 @@ class CompetitionTeacherProcessController(
 
     // TODO: send_message
     // TODO: restart_game
+
+    @RequestMapping(
+        "/answers_stream",
+        produces = [MediaType.TEXT_EVENT_STREAM_VALUE]
+    )
+    @PreAuthorize("hasRole('TEACHER')")
+    fun getTeamsAnswers(
+        @PathVariable sessionPin: String,
+    ): Flow<ServerSentEvent<SubmittedAnswerEvent>> =
+        competitionTeacherProcessService
+            .allTeamAnswersFlow(sessionPin)
+            .asServerSentEventStream("answerStream")
 }

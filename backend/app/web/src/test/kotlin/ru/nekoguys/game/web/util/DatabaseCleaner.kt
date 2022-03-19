@@ -8,11 +8,9 @@ import org.springframework.stereotype.Component
 class DatabaseCleaner(
     private val databaseClient: DatabaseClient,
 ) {
-    @Suppress("SqlResolve", "SqlWithoutWhere")
     suspend fun clearDatabase() {
         databaseClient.sql(
             """
-            DELETE FROM competition_round_results;
             DELETE FROM competition_round_answers;
             DELETE FROM competition_round_infos;
             DELETE FROM competition_team_members;

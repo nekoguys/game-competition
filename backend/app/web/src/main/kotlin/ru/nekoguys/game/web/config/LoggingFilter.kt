@@ -70,7 +70,7 @@ class LoggingFilter : WebFilter {
         millisecondsElapsed: Long,
     ) {
         logger.info(
-            "Finished processing  {} {} with response {} in {} ms",
+            "Finished processing {} {} with response {} in {} ms",
             exchange.request.method,
             exchange.request.uri.rawPath,
             exchange.response.statusCode,

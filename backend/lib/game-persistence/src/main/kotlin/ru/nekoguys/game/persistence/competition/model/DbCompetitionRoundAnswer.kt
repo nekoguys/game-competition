@@ -4,5 +4,6 @@ data class DbCompetitionRoundAnswer(
     var sessionId: Long,
     var roundNumber: Int,
     var teamId: Long,
-    var value: Int,
+    var value: Long,
+    var income: Long?,
 )

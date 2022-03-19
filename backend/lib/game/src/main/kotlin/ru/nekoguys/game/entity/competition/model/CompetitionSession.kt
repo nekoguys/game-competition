@@ -74,12 +74,19 @@ sealed interface CompetitionSession {
         companion object Selector : CompetitionSessionFieldSelector<WithTeamIds>
     }
 
+    sealed interface WithRounds : CompetitionSession {
+        val rounds: List<CompetitionRound>
+
+        companion object Selector : CompetitionSessionFieldSelector<WithRounds>
+    }
+
     sealed interface Full
         : WithTeams,
         WithSettings,
         WithStage,
         WithCommonFields,
-        WithTeamIds {
+        WithTeamIds,
+        WithRounds {
         companion object : CompetitionSessionFieldSelector<Full>
     }
 }
@@ -89,7 +96,6 @@ sealed interface CompetitionSessionFieldSelector<in T : CompetitionSession>
 /**
  * Фабричная функция для создания модели игровой сессии
  */
-@Suppress("FunctionName")
 fun CompetitionSession(
     id: CommonSession.Id,
     creatorId: User.Id? = null,
@@ -98,6 +104,7 @@ fun CompetitionSession(
     stage: CompetitionStage? = null,
     teams: List<CompetitionTeam>? = null,
     teamIds: List<CompetitionTeam.Id>? = null,
+    rounds: List<CompetitionRound>? = null,
 ): CompetitionSession =
     CompetitionSessionImpl(
         idOrNull = id,
@@ -107,6 +114,7 @@ fun CompetitionSession(
         stageOrNull = stage,
         teamsOrNull = teams,
         teamIdsOrNull = teamIds,
+        roundsOrNull = rounds,
     )
 
 data class CompetitionSessionImpl(
@@ -117,6 +125,7 @@ data class CompetitionSessionImpl(
     val stageOrNull: CompetitionStage? = null,
     val teamsOrNull: List<CompetitionTeam>? = null,
     val teamIdsOrNull: List<CompetitionTeam.Id>? = null,
+    val roundsOrNull: List<CompetitionRound>? = null
 ) : CompetitionSession.Full {
 
     @Deprecated(
@@ -169,11 +178,19 @@ data class CompetitionSessionImpl(
 
     @Deprecated(
         "This property may throw if field is not set",
-        ReplaceWith("teamsOrNull"),
+        ReplaceWith("teamsIdsOrNull"),
         DeprecationLevel.HIDDEN,
     )
     override val teamIds: List<CompetitionTeam.Id>
         get() = teamIdsOrNull ?: error("")
+
+    @Deprecated(
+        "This property may throw if field is not set",
+        ReplaceWith("roundsOrNull"),
+        DeprecationLevel.HIDDEN,
+    )
+    override val rounds: List<CompetitionRound>
+        get() = roundsOrNull ?: error("")
 
     override fun copy(
         creatorId: User.Id?,
