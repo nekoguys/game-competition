@@ -209,11 +209,10 @@ class CompetitionTeamControllerTest @Autowired constructor(
         )
         val (_, teamName, password) = game.createAndJoinTeam(sessionPin)
         game.joinTeam(sessionPin, teamName)
-        game.joinTeam(sessionPin, teamName)
 
         val request = JoinTeamRequest(
             teamName = teamName,
-            password = password
+            password = password,
         )
 
         webTestClient
