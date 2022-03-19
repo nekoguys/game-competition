@@ -1,18 +1,20 @@
 package ru.nekoguys.game.web.service
 
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.flow
 import org.springframework.stereotype.Service
 import ru.nekoguys.game.entity.commongame.service.SessionPinDecoder
-import ru.nekoguys.game.entity.competition.CompetitionProcessException
-import ru.nekoguys.game.entity.competition.CompetitionProcessService
-import ru.nekoguys.game.entity.competition.changeStage
 import ru.nekoguys.game.entity.competition.model.CompetitionSession
-import ru.nekoguys.game.entity.competition.model.CompetitionStage
 import ru.nekoguys.game.entity.competition.model.CompetitionTeam
 import ru.nekoguys.game.entity.competition.repository.CompetitionSessionRepository
-import ru.nekoguys.game.entity.competition.repository.findAll
 import ru.nekoguys.game.entity.competition.repository.load
 import ru.nekoguys.game.entity.competition.rule.CompetitionAnswerSubmittedMessage
+import ru.nekoguys.game.entity.competition.rule.CompetitionCommand
+import ru.nekoguys.game.entity.competition.rule.CompetitionRoundResultsMessage
+import ru.nekoguys.game.entity.competition.service.CompetitionProcessException
+import ru.nekoguys.game.entity.competition.service.CompetitionProcessService
+import ru.nekoguys.game.entity.user.repository.UserRepository
 import ru.nekoguys.game.web.dto.*
 
 @Service
@@ -20,57 +22,40 @@ class CompetitionTeacherProcessService(
     private val competitionProcessService: CompetitionProcessService,
     private val sessionPinDecoder: SessionPinDecoder,
     private val competitionSessionRepository: CompetitionSessionRepository,
+    private val userRepository: UserRepository,
 ) {
     suspend fun startCompetition(
         teacherEmail: String,
-        sessionPin: String
-    ): ProcessApiResponse<StartCompetitionResponse>? {
-        val sessionId = sessionPinDecoder
-            .decodeIdFromPin(sessionPin)
-            ?: return ProcessApiResponse.SessionNotFound(sessionPin)
-
-        try {
-            competitionProcessService
-                .changeStage(
-                    sessionId,
-                    from = CompetitionStage.Registration,
-                    to = CompetitionStage.WaitingStart(round = 1),
-                )
-        } catch (ex: CompetitionProcessException) {
-            return ProcessApiResponse.ProcessError(ex.message)
-        }
-
-        return StartCompetitionResponse
-    }
+        sessionPin: String,
+    ): ProcessApiResponse<StartCompetitionResponse> =
+        doCommand(
+            sessionPin = sessionPin,
+            teacherEmail = teacherEmail,
+            command = CompetitionCommand.Start,
+            onSuccess = StartCompetitionResponse,
+        )
 
     suspend fun startRound(
         teacherEmail: String,
         sessionPin: String,
-    ): ProcessApiResponse<StartRoundResponse>? {
-        val sessionId = sessionPinDecoder
-            .decodeIdFromPinUnsafe(sessionPin)
-            ?: return ProcessApiResponse.SessionNotFound(sessionPin)
+    ): ProcessApiResponse<StartRoundResponse>? =
+        doCommand(
+            sessionPin = sessionPin,
+            teacherEmail = teacherEmail,
+            command = CompetitionCommand.StartRound,
+            onSuccess = StartRoundResponse,
+        )
 
-        val session = competitionSessionRepository
-            .findAll(listOf(sessionId), CompetitionSession.WithStage)
-            .firstOrNull() ?: return ProcessApiResponse.SessionNotFound(sessionPin)
-
-        val stage = session.stage
-        if (stage is CompetitionStage.WaitingStart) {
-            try {
-                competitionProcessService
-                    .changeStage(
-                        sessionId = session.id,
-                        from = stage,
-                        to = CompetitionStage.InProcess(stage.round)
-                    )
-            } catch (ex: CompetitionProcessException) {
-                return ProcessApiResponse.ProcessError(ex.message)
-            }
-        }
-
-        return StartRoundResponse
-    }
+    suspend fun endRound(
+        teacherEmail: String,
+        sessionPin: String
+    ): ProcessApiResponse<EndRoundResponse> =
+        doCommand(
+            sessionPin = sessionPin,
+            teacherEmail = teacherEmail,
+            command = CompetitionCommand.EndCurrentRound,
+            onSuccess = EndRoundResponse,
+        )
 
     suspend fun changeRoundLength(
         teacherEmail: String,
@@ -101,7 +86,7 @@ class CompetitionTeacherProcessService(
         )
     }
 
-    fun allTeamAnswersFlow(
+    fun allTeamsAnswersFlow(
         sessionPin: String,
     ): Flow<SubmittedAnswerEvent> = flow {
         val sessionId = sessionPinDecoder
@@ -115,15 +100,72 @@ class CompetitionTeacherProcessService(
 
         competitionProcessService
             .getAllMessagesForSession(sessionId)
-            .map { it.body }
-            .filterIsInstance<CompetitionAnswerSubmittedMessage>()
-            .mapNotNull { msg ->
-                SubmittedAnswerEvent(
-                    teamIdInGame = teamNumberById.getValue(msg.teamId),
-                    roundNumber = msg.roundNumber,
-                    teamAnswer = msg.answer,
-                )
+            .collect {
+                val msg = it.body
+                val teamId = it.players.single()
+                if (msg is CompetitionAnswerSubmittedMessage) {
+                    val event = SubmittedAnswerEvent(
+                        teamIdInGame = teamNumberById.getValue(teamId),
+                        roundNumber = msg.roundNumber,
+                        teamAnswer = msg.answer,
+                    )
+                    emit(event)
+                }
             }
-            .collect(::emit)
+    }
+
+    fun allTeamsResultsFlow(
+        sessionPin: String
+    ): Flow<RoundTeamResultEvent> = flow {
+        val sessionId = sessionPinDecoder
+            .decodeIdFromPin(sessionPin)
+            ?: error("Incorrect pin")
+
+        val teamNumberById = competitionSessionRepository
+            .load(sessionId, CompetitionSession.WithTeams)
+            .teams
+            .associateBy(CompetitionTeam::id, CompetitionTeam::numberInGame)
+
+        competitionProcessService
+            .getAllMessagesForSession(sessionId)
+            .collect {
+                val msg = it.body
+                val teamId = it.players.single()
+                if (msg is CompetitionRoundResultsMessage) {
+                    val event = RoundTeamResultEvent(
+                        teamIdInGame = teamNumberById.getValue(teamId),
+                        roundNumber = msg.roundNumber,
+                        income = msg.income,
+                    )
+                    emit(event)
+                }
+            }
+    }
+
+    private suspend fun <T : ProcessApiResponse<T>> doCommand(
+        sessionPin: String,
+        teacherEmail: String,
+        command: CompetitionCommand,
+        onSuccess: T,
+    ): ProcessApiResponse<T> {
+        val sessionId = sessionPinDecoder
+            .decodeIdFromPin(sessionPin)
+            ?: return ProcessApiResponse.SessionNotFound(sessionPin)
+
+        val user = userRepository
+            .findByEmail(teacherEmail)
+            ?: error("User with email $teacherEmail doesn't exist")
+
+        return try {
+            competitionProcessService
+                .acceptCommand(
+                    sessionId = sessionId,
+                    user = user,
+                    command = command
+                )
+            onSuccess
+        } catch (ex: CompetitionProcessException) {
+            ProcessApiResponse.ProcessError(ex.message)
+        }
     }
 }

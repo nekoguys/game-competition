@@ -3,16 +3,15 @@ package ru.nekoguys.game.entity.competition.rule
 import org.springframework.stereotype.Component
 import ru.nekoguys.game.core.util.buildResponse
 import ru.nekoguys.game.entity.competition.model.*
-import ru.nekoguys.game.entity.competition.processError
 import ru.nekoguys.game.entity.competition.repository.CompetitionRoundAnswerRepository
 import ru.nekoguys.game.entity.competition.repository.CompetitionSessionRepository
 import ru.nekoguys.game.entity.competition.repository.load
+import ru.nekoguys.game.entity.competition.service.processError
 
 
 data class CompetitionAnswerSubmittedMessage(
-    val teamId: CompetitionTeam.Id,
     val roundNumber: Int,
-    val answer: Long,
+    val answer: Int,
 ) : CompetitionMessage()
 
 @Component
@@ -52,11 +51,20 @@ class CompetitionSubmitAnswerRule(
         return buildResponse {
             player.teamId {
                 +CompetitionAnswerSubmittedMessage(
-                    teamId = player.teamId,
                     roundNumber = currentStage.round,
                     answer = newAnswer.value,
                 )
             }
         }
     }
+}
+
+suspend fun CompetitionSubmitAnswerRule.submitAnswer(
+    player: CompetitionBasePlayer,
+    command: CompetitionCommand.SubmitAnswer,
+): List<CompGameMessage<CompetitionMessage>> {
+    if (player !is CompetitionPlayer.TeamCaptain) {
+        processError("User $player must be a captain")
+    }
+    return process(player, command)
 }

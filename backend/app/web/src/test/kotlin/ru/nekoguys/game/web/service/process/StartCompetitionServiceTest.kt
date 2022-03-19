@@ -16,7 +16,7 @@ import ru.nekoguys.game.web.util.CleanDatabaseExtension
 import ru.nekoguys.game.web.util.TestGame
 import java.time.LocalDateTime
 import java.util.concurrent.TimeUnit
-import ru.nekoguys.game.entity.competition.CompetitionProcessService as CoreCompetitionProcessService
+import ru.nekoguys.game.entity.competition.service.CompetitionProcessService as CoreCompetitionProcessService
 
 @ExtendWith(CleanDatabaseExtension::class)
 @GameWebApplicationTest

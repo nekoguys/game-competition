@@ -40,7 +40,7 @@ internal class GameSessionWithDeferredCommands<in P, in Cmd, P2, Msg>(
                 .map { (request, timeoutMillis) ->
                     async {
                         delay(timeoutMillis)
-                        acceptAndReturnMessages(request)
+                        innerSession.acceptAndReturnMessages(request)
                     }
                 }
                 .awaitAll()

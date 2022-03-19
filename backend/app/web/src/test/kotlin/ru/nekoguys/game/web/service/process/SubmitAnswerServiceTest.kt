@@ -18,7 +18,7 @@ import ru.nekoguys.game.web.service.CompetitionProcessService
 import ru.nekoguys.game.web.util.CleanDatabaseExtension
 import ru.nekoguys.game.web.util.TestGame
 import java.util.concurrent.TimeUnit
-import ru.nekoguys.game.entity.competition.CompetitionProcessService as CoreCompetitionProcessService
+import ru.nekoguys.game.entity.competition.service.CompetitionProcessService as CoreCompetitionProcessService
 
 @ExtendWith(CleanDatabaseExtension::class)
 @GameWebApplicationTest
@@ -87,9 +87,8 @@ class SubmitAnswerServiceTest @Autowired constructor(
 
         @Suppress("unused")
         val expectedMessage = object {
-            val teamNumberInGame = 1
             val roundNumber = 1
-            val answer = 42L
+            val answer = 42
         }
 
         assertThat(generatedMessage)

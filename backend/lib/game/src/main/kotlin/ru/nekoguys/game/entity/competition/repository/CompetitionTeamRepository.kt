@@ -23,6 +23,10 @@ interface CompetitionTeamRepository {
         teamsDiff: Collection<Pair<CompetitionTeam, CompetitionTeam>>,
     )
 
+    fun findAllByIds(
+        ids: Collection<Long>
+    ): Flow<CompetitionTeam>
+
     suspend fun findByName(
         sessionId: CommonSession.Id,
         teamName: String,

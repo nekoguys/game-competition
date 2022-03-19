@@ -198,7 +198,7 @@ class TestGame(
     fun submitAnswer(
         sessionPin: String = createSession(),
         captain: User,
-        answer: Long,
+        answer: Int,
     ): Unit = runBlocking {
         val session = loadSession(sessionPin)
         val response = competitionProcessService

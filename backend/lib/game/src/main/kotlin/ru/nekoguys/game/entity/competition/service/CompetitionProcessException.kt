@@ -1,4 +1,4 @@
-package ru.nekoguys.game.entity.competition
+package ru.nekoguys.game.entity.competition.service
 
 class CompetitionProcessException(
     override val message: String,

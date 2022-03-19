@@ -6,8 +6,11 @@ import org.springframework.stereotype.Service
 import ru.nekoguys.game.core.GameMessage
 import ru.nekoguys.game.core.GameRule
 import ru.nekoguys.game.entity.commongame.repository.CommonSessionRepository
-import ru.nekoguys.game.entity.competition.model.*
-import ru.nekoguys.game.entity.competition.processError
+import ru.nekoguys.game.entity.competition.model.BannedCompetitionPlayer
+import ru.nekoguys.game.entity.competition.model.CompetitionBasePlayer
+import ru.nekoguys.game.entity.competition.model.CompetitionStage
+import ru.nekoguys.game.entity.competition.model.CompetitionTeam
+import ru.nekoguys.game.entity.competition.service.processError
 
 sealed class CompetitionCommand {
     data class CreateTeam(
@@ -25,9 +28,20 @@ sealed class CompetitionCommand {
         val to: CompetitionStage,
     ) : CompetitionCommand()
 
+    object Start : CompetitionCommand()
+
+    object StartRound : CompetitionCommand()
+
+    object EndCurrentRound : CompetitionCommand()
+
     data class SubmitAnswer(
-        val answer: Long,
+        val answer: Int,
         val currentRound: Int,
+    ) : CompetitionCommand()
+
+    data class BanTeams(
+        val teamIds: Collection<CompetitionTeam.Id>,
+        val reason: String,
     ) : CompetitionCommand()
 }
 
@@ -41,6 +55,9 @@ sealed class CompetitionCommand {
     JsonSubTypes.Type(CompetitionJoinTeamMessage::class),
     JsonSubTypes.Type(CompetitionStageChangedMessage::class),
     JsonSubTypes.Type(CompetitionAnswerSubmittedMessage::class),
+    JsonSubTypes.Type(CompetitionTeamBannedMessage::class),
+    JsonSubTypes.Type(CompetitionPriceChangeMessage::class),
+    JsonSubTypes.Type(CompetitionRoundResultsMessage::class),
 )
 sealed class CompetitionMessage
 
@@ -55,6 +72,10 @@ class CompetitionRootRule(
     private val changeStageRule: CompetitionChangeStageRule,
     private val joinTeamRule: CompetitionJoinTeamRule,
     private val submitAnswerRule: CompetitionSubmitAnswerRule,
+    private val startRoundRule: CompetitionStartRoundRule,
+    private val endRoundRule: CompetitionEndRoundRule,
+    private val startRule: CompetitionStartRule,
+    private val banTeamRule: CompetitionBanTeamRule,
 ) : CompetitionRule<CompetitionBasePlayer, CompetitionCommand, CompetitionMessage> {
 
     override suspend fun process(
@@ -67,16 +88,21 @@ class CompetitionRootRule(
 
         val result = when (command) {
             is CompetitionCommand.CreateTeam ->
-                createTeam(player, command)
-
+                createTeamRule.createTeam(player, command)
             is CompetitionCommand.JoinTeam ->
-                joinTeam(player, command)
-
+                joinTeamRule.joinTeam(player, command)
             is CompetitionCommand.ChangeStage ->
-                changeStage(player, command)
-
+                changeStageRule.changeStage(player, command)
+            is CompetitionCommand.Start ->
+                startRule.start(player)
+            is CompetitionCommand.StartRound ->
+                startRoundRule.startRound(player)
+            is CompetitionCommand.EndCurrentRound ->
+                endRoundRule.endRound(player)
             is CompetitionCommand.SubmitAnswer ->
-                submitAnswer(player, command)
+                submitAnswerRule.submitAnswer(player, command)
+            is CompetitionCommand.BanTeams ->
+                banTeamRule.banTeam(player, command)
         }
 
         commonSessionRepository
@@ -85,61 +111,4 @@ class CompetitionRootRule(
         return result
     }
 
-    private suspend fun createTeam(
-        player: CompetitionBasePlayer,
-        command: CompetitionCommand.CreateTeam,
-    ): List<CompGameMessage<CompetitionCreateTeamMessage>> =
-        when (player) {
-            is CompetitionPlayer.TeamCaptain ->
-                processError(
-                    "${player.user.email} is Captain and is in another team already"
-                )
-
-            is CompetitionPlayer.TeamMember ->
-                processError(
-                    "Player ${player.user.email} must not be a member of any team"
-                )
-
-            is CompetitionPlayer.Unknown ->
-                createTeamRule.process(player, command)
-
-            else -> processError("Got unexpected player $player")
-        }
-
-    private suspend fun joinTeam(
-        player: CompetitionBasePlayer,
-        command: CompetitionCommand.JoinTeam,
-    ): List<CompGameMessage<CompetitionJoinTeamMessage>> =
-        when (player) {
-            is CompetitionPlayer.Student ->
-                processError("This user is in another team already")
-
-            is CompetitionPlayer.Teacher ->
-                processError("It is forbidden to play with yourself")
-
-            is CompetitionPlayer.Unknown ->
-                joinTeamRule.process(player, command)
-
-            else -> processError("Got unexpected player $player")
-        }
-
-    private suspend fun changeStage(
-        player: CompetitionBasePlayer,
-        command: CompetitionCommand.ChangeStage,
-    ): List<CompGameMessage<CompetitionMessage>> {
-        if (player !is InternalPlayer) {
-            processError("Player $player must be internal")
-        }
-        return changeStageRule.process(player, command)
-    }
-
-    private suspend fun submitAnswer(
-        player: CompetitionBasePlayer,
-        command: CompetitionCommand.SubmitAnswer,
-    ): List<CompGameMessage<CompetitionMessage>> {
-        if (player !is CompetitionPlayer.TeamCaptain) {
-            processError("User $player must be a captain")
-        }
-        return submitAnswerRule.process(player, command)
-    }
 }

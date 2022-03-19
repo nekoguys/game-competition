@@ -41,6 +41,34 @@ class CompetitionRoundAnswerRepositoryImpl(
             .awaitSingleOrNull()
     }
 
+    override suspend fun update(
+        answer: CompetitionRoundAnswer
+    ) {
+        databaseClient
+            .sql(
+                """
+                    UPDATE competition_round_answers
+                    SET value = :value, income = :income
+                    WHERE session_id = :sessionId
+                    AND round_number = :roundNumber
+                    AND team_id = :teamId
+                """.trimIndent()
+            )
+            .bind("sessionId", answer.sessionId.number)
+            .bind("roundNumber", answer.roundNumber)
+            .bind("teamId", answer.teamId.number)
+            .bind("value", answer.value)
+            .run {
+                if (answer is CompetitionRoundAnswer.WithIncome) {
+                    bind("income", answer.income)
+                } else {
+                    bindNull("income", Double::class.java)
+                }
+            }
+            .then()
+            .awaitSingleOrNull()
+    }
+
     override suspend fun find(
         sessionId: CommonSession.Id,
         teamId: CompetitionTeam.Id,

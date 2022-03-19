@@ -24,14 +24,14 @@ class StartCompetitionTest @Autowired constructor(
 
     @BeforeEach
     fun createUsers() {
-        teacher = game.createUser(UserRole.Teacher)
-        student = game.createUser(UserRole.Student, "test-student@hse.ru")
+        teacher = game.createUser(UserRole.Teacher, TestGame.DEFAULT_TEACHER_EMAIL)
+        student = game.createUser(UserRole.Student, TestGame.DEFAULT_STUDENT_EMAIL)
     }
 
     @Test
-    @WithMockUser(username = TestGame.DEFAULT_ADMIN_EMAIL, roles = ["TEACHER"])
+    @WithMockUser(username = TestGame.DEFAULT_TEACHER_EMAIL, roles = ["TEACHER"])
     fun `can start competition`() {
-        val sessionPin = game.createSession()
+        val sessionPin = game.createSession(teacher)
         repeat(2) { game.createTeam(sessionPin) }
 
         webTestClient
@@ -44,9 +44,9 @@ class StartCompetitionTest @Autowired constructor(
     }
 
     @Test
-    @WithMockUser(username = "test-student@hse.ru", roles = ["STUDENT"])
+    @WithMockUser(username = TestGame.DEFAULT_STUDENT_EMAIL, roles = ["STUDENT"])
     fun `student can't start competition`() {
-        val sessionPin = game.createSession()
+        val sessionPin = game.createSession(teacher)
         repeat(2) { game.createTeam(sessionPin) }
 
         webTestClient
@@ -57,7 +57,7 @@ class StartCompetitionTest @Autowired constructor(
     }
 
     @Test
-    @WithMockUser(username = TestGame.DEFAULT_ADMIN_EMAIL, roles = ["TEACHER"])
+    @WithMockUser(username = TestGame.DEFAULT_TEACHER_EMAIL, roles = ["TEACHER"])
     fun `can't start draft competition`() {
         val sessionPin = game.createSession(
             request = TestGame.DEFAULT_CREATE_DRAFT_COMPETITION_REQUEST
@@ -73,7 +73,7 @@ class StartCompetitionTest @Autowired constructor(
     }
 
     @Test
-    @WithMockUser(username = TestGame.DEFAULT_ADMIN_EMAIL, roles = ["TEACHER"])
+    @WithMockUser(username = TestGame.DEFAULT_TEACHER_EMAIL, roles = ["TEACHER"])
     fun `can start competition twice`() {
         val sessionPin = game.createSession()
         repeat(2) { game.createTeam(sessionPin) }

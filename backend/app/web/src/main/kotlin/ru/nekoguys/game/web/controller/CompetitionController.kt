@@ -75,10 +75,9 @@ class CompetitionController(
     @PreAuthorize("hasRole('TEACHER')")
     suspend fun getCompetitionInfo(
         @PathVariable sessionPin: String,
-    ) {
+    ): ResponseEntity<CompetitionCloneInfoResponse> =
         wrapServiceCall {
             competitionService
                 .getCompetitionCloneInfo(sessionPin)
         }
-    }
 }

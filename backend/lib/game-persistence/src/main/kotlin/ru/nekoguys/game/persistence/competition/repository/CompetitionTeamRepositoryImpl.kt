@@ -74,7 +74,7 @@ class CompetitionTeamRepositoryImpl(
                 from.name != to.name
                         || from.captain != to.captain
                         || from.teamMembers != to.teamMembers
-                        || from.isBanned != to.isBanned
+                        || from.banRoundNumber != to.banRoundNumber
                         || from.strategy != to.strategy
             }
             .map { (_, team) ->
@@ -99,6 +99,28 @@ class CompetitionTeamRepositoryImpl(
                 }
             }
     }!!
+
+    override fun findAllByIds(
+        ids: Collection<Long>,
+    ): Flow<CompetitionTeam> =
+        dbCompetitionTeamRepository
+            .findAllById(ids)
+            .map { dbTeam ->
+                val sessionId = CommonSession.Id(dbTeam.sessionId)
+
+                val members = competitionPlayerRepository
+                    .loadAllInTeam(sessionId, CompetitionTeam.Id(dbTeam.id!!))
+                    .toList()
+
+                createCompetitionTeam(
+                    dbTeam = dbTeam,
+                    captain = members
+                        .filterIsInstance<CompetitionPlayer.TeamCaptain>()
+                        .single(),
+                    teamMembers = members
+                        .filterIsInstance<CompetitionPlayer.TeamMember>()
+                )
+            }
 
     override suspend fun findByName(
         sessionId: CommonSession.Id,
@@ -129,15 +151,15 @@ class CompetitionTeamRepositoryImpl(
         sessionId: Long,
     ): Flow<CompetitionTeam> = flow {
         coroutineScope {
-            val allMembersDeferred = async {
-                competitionPlayerRepository
-                    .loadAllInSession(sessionId)
-                    .toList()
-            }
-
             val dbTeamsDeferred = async {
                 dbCompetitionTeamRepository
                     .findAllBySessionId(sessionId)
+                    .toList()
+            }
+
+            val allMembersDeferred = async {
+                competitionPlayerRepository
+                    .loadAllInSession(sessionId)
                     .toList()
             }
 
@@ -190,25 +212,9 @@ class CompetitionTeamRepositoryImpl(
 
     override suspend fun load(
         teamId: CompetitionTeam.Id
-    ): CompetitionTeam {
-        val dbTeam = dbCompetitionTeamRepository
-            .findById(teamId.number)
-            ?: error("Team with id $teamId must exist")
-
-        val sessionId = CommonSession.Id(dbTeam.sessionId)
-        val members = competitionPlayerRepository
-            .loadAllInTeam(sessionId, CompetitionTeam.Id(dbTeam.id!!))
-            .toList()
-
-        return createCompetitionTeam(
-            dbTeam = dbTeam,
-            captain = members
-                .filterIsInstance<CompetitionPlayer.TeamCaptain>()
-                .single(),
-            teamMembers = members
-                .filterIsInstance<CompetitionPlayer.TeamMember>()
-        )
-    }
+    ): CompetitionTeam =
+        findAllByIds(listOf(teamId.number))
+            .singleOrNull() ?: error("Team with id $teamId must exist")
 }
 
 private fun createCompetitionTeam(
@@ -223,7 +229,7 @@ private fun createCompetitionTeam(
         numberInGame = dbTeam.teamNumber,
         captain = captain,
         teamMembers = teamMembers,
-        isBanned = dbTeam.banRound != null,
+        banRoundNumber = dbTeam.banRound,
         password = dbTeam.password,
         strategy = dbTeam.strategy,
     )
