@@ -6,6 +6,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.web.reactive.server.WebTestClient
+import ru.nekoguys.game.entity.commongame.service.pin
 import ru.nekoguys.game.entity.user.model.User
 import ru.nekoguys.game.web.GameWebApplicationIntegrationTest
 import ru.nekoguys.game.web.dto.CheckGamePinRequest
@@ -114,7 +115,7 @@ class CompetitionControllerTest @Autowired constructor(
         )
         webTestClient
             .post()
-            .uri("/api/competitions/update_competition/${session.id}")
+            .uri("/api/competitions/update_competition/${session.pin}")
             .bodyValue(request)
             .exchange()
             .expectStatus().isOk
