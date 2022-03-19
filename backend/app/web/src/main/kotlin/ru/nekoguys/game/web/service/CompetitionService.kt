@@ -174,7 +174,10 @@ private fun createCompetitionHistoryResponseItem(
         shouldShowResultTableInEnd = settings.showStudentsResultsTable,
         shouldShowStudentPreviousRoundResults = settings.showPreviousRoundResults,
         showOtherTeamsMembers = settings.showOtherTeamsMembers,
-        state = stage.name,
+        state = when (stage) {
+            is CompetitionStage.WaitingStart -> "InProcess"
+            else -> stage.name
+        },
         teamLossUpperbound = settings.teamLossLimit.toDouble(),
     )
 

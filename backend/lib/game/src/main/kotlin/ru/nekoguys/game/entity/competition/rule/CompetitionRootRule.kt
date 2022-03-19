@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
 import org.springframework.stereotype.Service
 import ru.nekoguys.game.core.GameMessage
 import ru.nekoguys.game.core.GameRule
+import ru.nekoguys.game.entity.commongame.repository.CommonSessionRepository
 import ru.nekoguys.game.entity.competition.model.*
 import ru.nekoguys.game.entity.competition.processError
 
@@ -49,6 +50,7 @@ typealias CompetitionRule<P, Cmd, Msg> = GameRule<P, Cmd, CompetitionTeam.Id, Ms
 
 @Service
 class CompetitionRootRule(
+    private val commonSessionRepository: CommonSessionRepository,
     private val createTeamRule: CompetitionCreateTeamRule,
     private val changeStageRule: CompetitionChangeStageRule,
     private val joinTeamRule: CompetitionJoinTeamRule,
@@ -63,7 +65,7 @@ class CompetitionRootRule(
             processError("You were banned!")
         }
 
-        return when (command) {
+        val result = when (command) {
             is CompetitionCommand.CreateTeam ->
                 createTeam(player, command)
 
@@ -76,6 +78,11 @@ class CompetitionRootRule(
             is CompetitionCommand.SubmitAnswer ->
                 submitAnswer(player, command)
         }
+
+        commonSessionRepository
+            .updateLastModifiedTime(player.sessionId)
+
+        return result
     }
 
     private suspend fun createTeam(
