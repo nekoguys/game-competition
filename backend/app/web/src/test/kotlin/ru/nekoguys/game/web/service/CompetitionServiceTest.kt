@@ -5,10 +5,14 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
+import ru.nekoguys.game.entity.commongame.service.SessionPinDecoder
 import ru.nekoguys.game.entity.commongame.service.pin
 import ru.nekoguys.game.entity.competition.model.CompetitionStage
+import ru.nekoguys.game.entity.competition.repository.CompetitionSessionRepository
 import ru.nekoguys.game.entity.user.model.UserRole
 import ru.nekoguys.game.web.GameWebApplicationTest
+import ru.nekoguys.game.web.dto.CreateCompetitionRequest
+import ru.nekoguys.game.web.dto.CreateCompetitionResponse
 import ru.nekoguys.game.web.util.CleanDatabaseExtension
 import ru.nekoguys.game.web.util.TestGame
 import java.time.LocalDateTime
@@ -18,6 +22,9 @@ import java.time.LocalDateTime
 class CompetitionServiceTest @Autowired constructor(
     private val game: TestGame,
     private val competitionService: CompetitionService,
+    private val userService: UserService,
+    private val competitionSessionRepository: CompetitionSessionRepository,
+    private val sessionPinDecoder: SessionPinDecoder,
 ) {
 
     @Test
@@ -126,5 +133,50 @@ class CompetitionServiceTest @Autowired constructor(
                     .sortedByDescending { it.lastModified }
                     .map { it.pin }
             )
+    }
+
+    @Test
+    fun `change competition settings`() {
+        val teacher = game.createUser(
+            role = UserRole.Teacher
+        )
+        val session = game.createAndLoadSession(
+            teacher = teacher,
+            request = TestGame.DEFAULT_CREATE_COMPETITION_REQUEST,
+        )
+        val newSettings = CreateCompetitionRequest(
+            demandFormula = listOf(-2.0, 1337.0),
+            expensesFormula = listOf(1.0, -3.0, 1337.0),
+            instruction = "Updated instruction",
+            isAutoRoundEnding = false,
+            maxTeamSize = 4,
+            maxTeamsAmount = 4,
+            name = "Updated name",
+            roundLength = 4,
+            roundsCount = 4,
+            shouldEndRoundBeforeAllAnswered = false,
+            shouldShowResultTableInEnd = false,
+            shouldShowStudentPreviousRoundResults = false,
+            showOtherTeamsMembers = false,
+            state = "Created",
+            teamLossUpperbound = 1337,
+        ).extractCompetitionSettings()
+
+        val response = runBlocking {
+            competitionService.changeCompetitionSettings(
+                userEmail = teacher.email,
+                sessionPin = session.pin,
+                competitionSettings = newSettings,
+            )
+        }
+        assertThat(response)
+            .isInstanceOf(CreateCompetitionResponse.Created::class.java)
+
+        val savedSettings = game.loadSession(session.pin).settings
+
+        assertThat(savedSettings)
+            .usingRecursiveComparison()
+            .isEqualTo(newSettings)
+
     }
 }

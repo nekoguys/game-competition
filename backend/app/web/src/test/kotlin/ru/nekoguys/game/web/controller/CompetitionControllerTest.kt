@@ -102,4 +102,23 @@ class CompetitionControllerTest @Autowired constructor(
             .expectBody()
             .jsonPath("$.exists").isEqualTo(false)
     }
+
+    @WithMockUser(username = TestGame.DEFAULT_ADMIN_EMAIL, roles = ["TEACHER"])
+    @Test
+    fun `can update competition settings`() {
+        val session = game.createAndLoadSession(
+            teacher = testUser
+        )
+        val request = DEFAULT_CREATE_COMPETITION_REQUEST.copy(
+            roundLength = 30,
+        )
+        webTestClient
+            .post()
+            .uri("/api/competitions/update_competition/${session.id}")
+            .bodyValue(request)
+            .exchange()
+            .expectStatus().isOk
+            .expectBody()
+            .jsonPath("$.message").exists()
+    }
 }

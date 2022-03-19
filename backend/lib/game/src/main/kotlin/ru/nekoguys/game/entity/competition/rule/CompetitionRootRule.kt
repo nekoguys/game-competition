@@ -29,6 +29,10 @@ sealed class CompetitionCommand {
         val answer: Long,
         val currentRound: Int,
     ) : CompetitionCommand()
+
+    data class ChangeCompetitionSettings(
+        val newSettings: CompetitionSettings,
+    ) : CompetitionCommand()
 }
 
 /**
@@ -55,6 +59,7 @@ class CompetitionRootRule(
     private val changeStageRule: CompetitionChangeStageRule,
     private val joinTeamRule: CompetitionJoinTeamRule,
     private val submitAnswerRule: CompetitionSubmitAnswerRule,
+    private val competitionChangeSettingsRule: CompetitionChangeSettingsRule,
 ) : CompetitionRule<CompetitionBasePlayer, CompetitionCommand, CompetitionMessage> {
 
     override suspend fun process(
@@ -77,6 +82,9 @@ class CompetitionRootRule(
 
             is CompetitionCommand.SubmitAnswer ->
                 submitAnswer(player, command)
+
+            is CompetitionCommand.ChangeCompetitionSettings ->
+                changeCompetitionSettings(player, command)
         }
 
         commonSessionRepository
@@ -141,5 +149,13 @@ class CompetitionRootRule(
             processError("User $player must be a captain")
         }
         return submitAnswerRule.process(player, command)
+    }
+
+    private suspend fun changeCompetitionSettings(
+        player: CompetitionBasePlayer,
+        command: CompetitionCommand.ChangeCompetitionSettings,
+    ): List<CompGameMessage<CompetitionMessage>> {
+        require(player is CompetitionPlayer.Teacher) { "Player $player must be teacher" }
+        return competitionChangeSettingsRule.process(player, command)
     }
 }
