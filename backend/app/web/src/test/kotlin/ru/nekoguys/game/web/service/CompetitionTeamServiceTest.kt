@@ -8,6 +8,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
+import ru.nekoguys.game.entity.commongame.service.pin
 import ru.nekoguys.game.entity.user.model.UserRole
 import ru.nekoguys.game.web.GameWebApplicationTest
 import ru.nekoguys.game.web.dto.TeamMemberUpdateNotification
@@ -41,5 +42,27 @@ class CompetitionTeamServiceTest @Autowired constructor(
         }
         checkValidFlow(competitionTeamService.joinUserTeamEventsFlow(captain.email, sessionPin))
         checkValidFlow(competitionTeamService.joinUserTeamEventsFlow(sampleMember.email, sessionPin))
+    }
+
+    @Test
+    fun `competition's LastModified field changes when team is created`() {
+        val sessionBefore = game.createAndLoadSession()
+        game.createTeam(sessionBefore.pin)
+        val sessionAfter = game.loadSession(sessionBefore.pin)
+
+        assertThat(sessionAfter.lastModified)
+            .isAfter(sessionBefore.lastModified)
+    }
+
+    @Test
+    fun `competition's LastModified field changes when team is updated`() {
+        val (sessionPin, teamName) = game.createTeam()
+        val sessionBefore = game.loadSession(sessionPin)
+
+        game.joinTeam(sessionPin, teamName)
+        val sessionAfter = game.loadSession(sessionBefore.pin)
+
+        assertThat(sessionAfter.lastModified)
+            .isAfter(sessionBefore.lastModified)
     }
 }
