@@ -92,8 +92,9 @@ class TestGame(
         teacher: User = createUser(UserRole.Teacher),
         request: CreateCompetitionRequest = DEFAULT_CREATE_COMPETITION_REQUEST
             .copy(name = nextSessionName()),
+        additionalActions: suspend (String) -> Unit = {},
     ): String =
-        createAndLoadSession(teacher, request)
+        createAndLoadSession(teacher, request, additionalActions)
             .id
             .toPin()
 
@@ -216,6 +217,7 @@ class TestGame(
         private val indexCounter = AtomicLong()
 
         const val DEFAULT_ADMIN_EMAIL = "admin@hse.ru"
+        const val DEFAULT_TEACHER_EMAIL = "admin@hse.ru"
         const val DEFAULT_STUDENT_EMAIL = "student@edu.hse.ru"
         const val DEFAULT_PASSWORD = "password"
         const val DEFAULT_COMPETITION_NAME = "Test Competition"

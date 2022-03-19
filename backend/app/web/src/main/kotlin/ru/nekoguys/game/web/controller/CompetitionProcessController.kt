@@ -82,7 +82,8 @@ class CompetitionProcessController(
 
     @PostMapping(
         "/submit_answer",
-        produces = [MediaType.TEXT_EVENT_STREAM_VALUE],
+        consumes = [MediaType.APPLICATION_JSON_VALUE],
+        produces = [MediaType.APPLICATION_JSON_VALUE],
     )
     @PreAuthorize("hasRole('STUDENT')")
     suspend fun submitAnswer(

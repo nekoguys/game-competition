@@ -78,7 +78,10 @@ data class SubmitAnswerRequest(
 )
 
 object SubmitAnswerResponse
-    : ProcessApiResponse<SubmitAnswerResponse>(HttpStatus.OK)
+    : ProcessApiResponse<SubmitAnswerResponse>(HttpStatus.OK) {
+    @Suppress("unused")
+    val message = "Answer submitted successfully"
+}
 
 data class SubmittedAnswerEvent(
     val teamIdInGame: Int,

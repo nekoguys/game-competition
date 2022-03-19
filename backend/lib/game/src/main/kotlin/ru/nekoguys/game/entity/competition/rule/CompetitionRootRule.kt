@@ -60,7 +60,7 @@ class CompetitionRootRule(
         command: CompetitionCommand,
     ): List<CompGameMessage<CompetitionMessage>> {
         if (player is BannedCompetitionPlayer) {
-            processError("You was banned!")
+            processError("You were banned!")
         }
 
         return when (command) {
@@ -96,7 +96,7 @@ class CompetitionRootRule(
             is CompetitionPlayer.Unknown ->
                 createTeamRule.process(player, command)
 
-            else -> error("Got unexpected player $player")
+            else -> processError("Got unexpected player $player")
         }
 
     private suspend fun joinTeam(
@@ -113,7 +113,7 @@ class CompetitionRootRule(
             is CompetitionPlayer.Unknown ->
                 joinTeamRule.process(player, command)
 
-            else -> error("Got unexpected player $player")
+            else -> processError("Got unexpected player $player")
         }
 
     private suspend fun changeStage(
@@ -121,7 +121,7 @@ class CompetitionRootRule(
         command: CompetitionCommand.ChangeStage,
     ): List<CompGameMessage<CompetitionMessage>> {
         if (player !is InternalPlayer) {
-            error("Player $player must be internal")
+            processError("Player $player must be internal")
         }
         return changeStageRule.process(player, command)
     }
@@ -130,7 +130,9 @@ class CompetitionRootRule(
         player: CompetitionBasePlayer,
         command: CompetitionCommand.SubmitAnswer,
     ): List<CompGameMessage<CompetitionMessage>> {
-        require(player is CompetitionPlayer.TeamCaptain) { "Player $player must be a captain" }
+        if (player !is CompetitionPlayer.TeamCaptain) {
+            processError("User $player must be a captain")
+        }
         return submitAnswerRule.process(player, command)
     }
 }
