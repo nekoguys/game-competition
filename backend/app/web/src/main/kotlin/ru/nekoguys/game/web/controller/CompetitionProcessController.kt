@@ -66,6 +66,9 @@ class CompetitionProcessController(
                 .myAnswersEventsFlow(sessionPin, principal.name)
                 .asServerSentEventStream("answerStream"),
             competitionProcessService
+                .myResultsEventsFlow(sessionPin, principal.name)
+                .asServerSentEventStream("answerStream"),
+            competitionProcessService
                 .priceEventsFlow(sessionPin)
                 .asServerSentEventStream("pricesStream")
         )
@@ -130,10 +133,7 @@ class CompetitionProcessController(
         @PathVariable sessionPin: String,
     ): Flow<ServerSentEvent<RoundTeamResultEvent>> =
         competitionProcessService
-            .myResultsEventsFlow(
-                sessionPin = sessionPin,
-                studentEmail = principal.name,
-            )
+            .myResultsEventsFlow(sessionPin, principal.name)
             .asServerSentEventStream("answerStream")
 
 
