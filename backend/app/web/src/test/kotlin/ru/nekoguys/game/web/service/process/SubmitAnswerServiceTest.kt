@@ -53,7 +53,7 @@ class SubmitAnswerServiceTest @Autowired constructor(
                 .answers
                 .single()
 
-        assertThat(actualAnswer.value)
+        assertThat(actualAnswer.production)
             .isEqualTo(42)
     }
 
@@ -69,7 +69,7 @@ class SubmitAnswerServiceTest @Autowired constructor(
                 .answers
                 .single()
 
-        assertThat(actualAnswer.value)
+        assertThat(actualAnswer.production)
             .isEqualTo(42)
     }
 

@@ -29,33 +29,33 @@ sealed interface CompetitionRoundAnswer {
     val sessionId: CommonSession.Id
     val teamId: CompetitionTeam.Id
     val roundNumber: Int
-    val value: Int
+    val production: Int
 
-    data class Impl(
+    data class WithoutIncome(
         override val sessionId: CommonSession.Id,
         override val teamId: CompetitionTeam.Id,
         override val roundNumber: Int,
-        override val value: Int,
+        override val production: Int,
     ) : CompetitionRoundAnswer
 
     data class WithIncome(
         override val sessionId: CommonSession.Id,
         override val teamId: CompetitionTeam.Id,
         override val roundNumber: Int,
-        override val value: Int,
+        override val production: Int,
         val income: Double,
     ) : CompetitionRoundAnswer
 }
 
 fun CompetitionRoundAnswer.withoutIncome() =
-    if (this is CompetitionRoundAnswer.Impl) {
+    if (this is CompetitionRoundAnswer.WithoutIncome) {
         this
     } else {
-        CompetitionRoundAnswer.Impl(
+        CompetitionRoundAnswer.WithoutIncome(
             sessionId = sessionId,
             teamId = teamId,
             roundNumber = roundNumber,
-            value = value,
+            production = production,
         )
     }
 
@@ -67,7 +67,7 @@ fun CompetitionRoundAnswer.withIncome(income: Double) =
             sessionId = sessionId,
             teamId = teamId,
             roundNumber = roundNumber,
-            value = value,
+            production = production,
             income = income,
         )
     }

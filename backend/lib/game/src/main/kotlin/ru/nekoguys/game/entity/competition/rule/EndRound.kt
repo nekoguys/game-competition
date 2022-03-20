@@ -1,5 +1,6 @@
 package ru.nekoguys.game.entity.competition.rule
 
+import kotlinx.coroutines.flow.toList
 import org.springframework.stereotype.Component
 import ru.nekoguys.game.core.GameMessage
 import ru.nekoguys.game.core.util.buildResponse
@@ -10,6 +11,7 @@ import ru.nekoguys.game.entity.competition.repository.CompetitionSessionReposito
 import ru.nekoguys.game.entity.competition.repository.load
 import ru.nekoguys.game.entity.competition.service.RoundResultsCalculator
 import ru.nekoguys.game.entity.competition.service.processError
+
 
 data class CompetitionPriceChangeMessage(
     val roundNumber: Int,
@@ -25,7 +27,6 @@ data class CompetitionRoundResultsMessage(
 @Component
 class CompetitionEndRoundRule(
     private val competitionSessionRepository: CompetitionSessionRepository,
-    private val roundResultsCalculator: RoundResultsCalculator,
     private val competitionRoundAnswerRepository: CompetitionRoundAnswerRepository,
 ) : CompetitionRule<CompetitionPlayer.Teacher, CompetitionCommand.EndCurrentRound, CompetitionMessage> {
 
@@ -37,7 +38,6 @@ class CompetitionEndRoundRule(
             .load(
                 player.sessionId,
                 CompetitionSession.WithStage,
-                CompetitionSession.WithRounds,
                 CompetitionSession.WithSettings,
                 CompetitionSession.WithTeamIds,
             )
@@ -48,17 +48,15 @@ class CompetitionEndRoundRule(
         }
         val currentRoundNumber = stage.round
 
-        val roundAnswers = session
-            .rounds
-            .maxByOrNull { it.roundNumber }
-            ?.answers
-            .orEmpty()
+        val roundAnswers = competitionRoundAnswerRepository
+            .findAll(session.id, currentRoundNumber)
+            .toList()
 
-        val (results, bannedTeamsIds, price) = roundResultsCalculator
-            .calculateResults(roundAnswers)
+        val (incomes, bannedTeamsIds, price) = RoundResultsCalculator
+            .calculateResults(session.settings, roundAnswers)
 
         for (answer in roundAnswers) {
-            val newAnswer = answer.withIncome(results.getValue(answer.teamId))
+            val newAnswer = answer.withIncome(incomes.getValue(answer.teamId))
             competitionRoundAnswerRepository.update(newAnswer)
         }
 
@@ -75,7 +73,7 @@ class CompetitionEndRoundRule(
                     +CompetitionRoundResultsMessage(
                         roundNumber = currentRoundNumber,
                         price = price,
-                        income = results[teamId] ?: -1.0,
+                        income = incomes.getValue(teamId),
                     )
                 }
             }
@@ -85,7 +83,7 @@ class CompetitionEndRoundRule(
                     fromPlayer = InternalPlayer(sessionId = player.sessionId),
                     command = CompetitionCommand.BanTeams(
                         teamIds = bannedTeamsIds,
-                        reason = "too much loss",
+                        reason = "command lost too much",
                     )
                 )
             }

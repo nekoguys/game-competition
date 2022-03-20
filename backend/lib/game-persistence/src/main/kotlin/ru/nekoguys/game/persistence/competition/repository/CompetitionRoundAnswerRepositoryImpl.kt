@@ -38,7 +38,7 @@ class CompetitionRoundAnswerRepositoryImpl(
             .bind("sessionId", answer.sessionId.number)
             .bind("roundNumber", answer.roundNumber)
             .bind("teamId", answer.teamId.number)
-            .bind("value", answer.value)
+            .bind("value", answer.production)
             .bind(
                 name = "income",
                 value = (answer as? CompetitionRoundAnswer.WithIncome)?.income
@@ -63,7 +63,7 @@ class CompetitionRoundAnswerRepositoryImpl(
             .bind("sessionId", answer.sessionId.number)
             .bind("roundNumber", answer.roundNumber)
             .bind("teamId", answer.teamId.number)
-            .bind("value", answer.value)
+            .bind("value", answer.production)
             .bind(
                 name = "income",
                 value = (answer as? CompetitionRoundAnswer.WithIncome)?.income
@@ -158,18 +158,18 @@ private fun createCompetitionRoundAnswer(
     sessionId: CommonSession.Id = CommonSession.Id(db.sessionId),
     teamId: CompetitionTeam.Id = CompetitionTeam.Id(db.teamId),
 ) = if (db.income == null) {
-    CompetitionRoundAnswer.Impl(
+    CompetitionRoundAnswer.WithoutIncome(
         sessionId = sessionId,
         teamId = teamId,
         roundNumber = db.roundNumber,
-        value = db.value,
+        production = db.value,
     )
 } else {
     CompetitionRoundAnswer.WithIncome(
         sessionId = sessionId,
         teamId = teamId,
         roundNumber = db.roundNumber,
-        value = db.value,
+        production = db.value,
         income = db.income!!
     )
 }
