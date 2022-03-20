@@ -38,7 +38,7 @@ class CompetitionTeacherProcessController(
                 )
         }
 
-    @GetMapping(
+    @PostMapping(
         "/start_round",
         produces = [MediaType.APPLICATION_JSON_VALUE],
     )
@@ -55,7 +55,7 @@ class CompetitionTeacherProcessController(
                 )
         }
 
-    @GetMapping(
+    @PostMapping(
         "/end_round",
         produces = [MediaType.APPLICATION_JSON_VALUE],
     )

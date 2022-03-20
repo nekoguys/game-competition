@@ -341,14 +341,14 @@ export default class ApiHelper {
 
     static startNewCompetitionRound(pin) {
         return fetch(ApiSettings.startRoundEndPoint(pin), {
-            method: "GET",
+            method: "POST",
             headers: this.authDefaultHeaders()
         })
     }
 
     static endCompetitionRound(pin) {
         return fetch(ApiSettings.endRoundEndPoint(pin), {
-            method: "GET",
+            method: "POST",
             headers: this.authDefaultHeaders()
         })
     }
