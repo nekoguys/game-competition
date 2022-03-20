@@ -80,7 +80,7 @@ const competitionProcessStudentCompetitionInfoFetcher = {
     real: (pin) => {
         return apiFetcher(pin, (pin) => ApiHelper.studentCompetitionInfo(pin))
     }
-}["mock"]
+}[fetcherType]
 
 const allInOneStudentStream = {
     mock: (_) => {
@@ -117,7 +117,7 @@ const allInOneStudentStream = {
     real: (pin) => {
         return new EventSourceWrapper(ApiHelper.allInOneStudentStream(pin))
     }
-}['mock']
+}[fetcherType]
 
 const userInfoFetcher = {
     mock: (_) => {
@@ -264,12 +264,12 @@ const competitionRoundEvents = {
 const submitAnswer = {
     mock: (_) => new Promise(resolve => resolve({})),
     real: (pin, answerDTO) => apiFetcher({pin, answerDTO}, ({pin, answerDTO}) => ApiHelper.submitAnswer(pin, answerDTO))
-}['mock']
+}[fetcherType]
 
 const submitStrategy = {
     mock: (_) => new Promise(resolve => resolve({})),
     real: (strategyDTO) => apiFetcher(strategyDTO, (strategyDTO) => ApiHelper.submitStrategy(strategyDTO))
-}['mock']
+}[fetcherType]
 
 const cloneInfoCompetitionFetcher = {
     mock: (_) => {
