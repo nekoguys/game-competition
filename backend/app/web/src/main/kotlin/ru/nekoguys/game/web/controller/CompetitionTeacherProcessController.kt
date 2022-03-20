@@ -115,7 +115,7 @@ class CompetitionTeacherProcessController(
     fun teacherAllInOneFlow(
         principal: Principal,
         @PathVariable sessionPin: String,
-    ): Flow<ServerSentEvent<Any>> =
+    ): Flow<ServerSentEvent<out Any>> =
         merge(
             competitionProcessService
                 .competitionRoundEventsFlow(sessionPin)

@@ -52,6 +52,9 @@ private class RpsMessageLogImpl(
             .toList()
             .asFlow()
             .map { rpsMessageLogFormat.decodeFromString(RpsLoggedGameMessageSerializer, it) }
+
+    override val currentSessionOffset: Int
+        get() = sessionSavedMessages.size
 }
 
 // Костыль, так как иерархия классов сложная

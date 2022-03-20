@@ -5,6 +5,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
 import org.springframework.stereotype.Component
 import ru.nekoguys.game.core.GameMessage
 import ru.nekoguys.game.core.GameRule
+import ru.nekoguys.game.core.LockableResource
+import ru.nekoguys.game.core.ResourceLocks
 import ru.nekoguys.game.entity.commongame.repository.CommonSessionRepository
 import ru.nekoguys.game.entity.competition.model.*
 import ru.nekoguys.game.entity.competition.service.processError
@@ -79,6 +81,19 @@ class CompetitionRootRule(
     private val startRule: CompetitionStartRule,
     private val banTeamRule: CompetitionBanTeamRule,
 ) : CompetitionRule<CompetitionBasePlayer, CompetitionCommand, CompetitionMessage> {
+
+    object ChangeStageLock : LockableResource()
+
+    override suspend fun getLocksFor(
+        command: CompetitionCommand
+    ): ResourceLocks =
+        when (command) {
+            is CompetitionCommand.ChangeStage -> ResourceLocks(
+                shared = sortedSetOf(),
+                unique = sortedSetOf(ChangeStageLock)
+            )
+            else -> super.getLocksFor(command)
+        }
 
     override suspend fun process(
         player: CompetitionBasePlayer,

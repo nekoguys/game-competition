@@ -14,6 +14,9 @@ data class LoggedGameMessage<out P, out T>(
 interface GameMessageLog<P, T> {
     suspend fun saveMessages(messages: List<LoggedGameMessage<P, T>>)
 
+    val currentSessionOffset: Int
+        get() = 0
+
     fun readAllMessages(): Flow<LoggedGameMessage<P, T>>
 }
 
@@ -69,7 +72,7 @@ internal class GameSessionWithMessagesFromLog<in P, in Cmd, P2, Msg>(
                 .onEach { ++messagesFromLogCount }
                 .also { emitAll(it) }
 
-            getIndexedMessagesFromSession(startIndex = messagesFromLogCount)
+            getIndexedMessagesFromSession(startIndex = messageLog.currentSessionOffset)
                 .onEach { (index, _) ->
                     if (index != messagesFromLogCount++) {
                         logger.warn("Some messages were lost")

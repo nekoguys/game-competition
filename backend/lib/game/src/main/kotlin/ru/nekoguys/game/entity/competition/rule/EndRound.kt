@@ -93,7 +93,7 @@ class CompetitionEndRoundRule(
                     +CompetitionRoundResultsMessage(
                         roundNumber = currentRoundNumber,
                         price = price,
-                        income = results.getValue(teamId),
+                        income = results[teamId] ?: -1.0,
                     )
                 }
             }

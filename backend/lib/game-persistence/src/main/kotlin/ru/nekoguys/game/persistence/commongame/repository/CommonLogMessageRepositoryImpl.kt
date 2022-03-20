@@ -3,7 +3,7 @@ package ru.nekoguys.game.persistence.commongame.repository
 import com.fasterxml.jackson.databind.ObjectMapper
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.toList
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Repository
@@ -70,10 +70,7 @@ class CommonLogMessageRepositoryImpl(
                     messageBody = parseMessage(it.message, messageClass)
                 )
             }
-            .onEach {
-                logger.debug("Loaded message $it from session $sessionId")
-            }
-            .also { logger.info("Loading all messages from session $sessionId") }
+            .onStart { logger.info("Loading all messages from session $sessionId") }
 
     private fun <P> parsePlayersSet(
         jsonString: String,

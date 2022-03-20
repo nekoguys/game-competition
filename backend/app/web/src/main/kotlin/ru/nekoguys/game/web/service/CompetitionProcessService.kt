@@ -57,7 +57,7 @@ class CompetitionProcessService(
                 (msg.body as? CompetitionStageChangedMessage)?.toRoundEvent()
             }
             .collect(::emit)
-    }
+    }.onCompletion { println("Completed!") }
 
     private fun CompetitionStageChangedMessage.toRoundEvent(): RoundEvent? =
         when {
