@@ -53,7 +53,7 @@ class CompetitionResultsTable extends React.Component {
         console.log({bannedTeams})
         console.log({strat: this.props.strategy})
         return (
-            <tr key={-1}>
+            <tr key={-10}>
                 <td colSpan={4} width={toStr(4)} style={{textAlign: "center"}} key={0}>
                     {this.props.i18n.t("competition_process.teacher.table.round_team")}
                 </td>
@@ -84,6 +84,7 @@ class CompetitionResultsTable extends React.Component {
                         } else {
                             popup = el;
                         }
+                        console.log({resultsTableEl: el});
                         return (
                             <td key={el} style={style} onClick={onClick_}>
                                 <div className={className}>
@@ -93,10 +94,10 @@ class CompetitionResultsTable extends React.Component {
                         );
                     })
                 }
-                <td key={teamsCount+1}>
+                <td key={-2}>
                     {"Q"}
                 </td>
-                <td key={teamsCount+2}>
+                <td key={-3}>
                     {"P"}
                 </td>
             </tr>
@@ -118,6 +119,7 @@ class CompetitionResultsTable extends React.Component {
                 }
 
                 if (el % 2 === 1) {
+                    console.log({roundRowsKey: el})
                     return (
                         <tr key={el}>
                             <td rowSpan={2} colSpan={3} width={toStr(3)} key={-1}>
@@ -162,6 +164,7 @@ class CompetitionResultsTable extends React.Component {
                         </tr>
                     )
                 } else if (el !== 0) {
+                    console.log({roundRowsKey: el})
                     return (
                         <tr key={el}>
                             <td width={toStr(1)} key={0}>{"П"}</td>
@@ -184,6 +187,7 @@ class CompetitionResultsTable extends React.Component {
                         </tr>
                     )
                 } else {
+                    console.log({roundRowsKey: roundsCount * 2 + 2})
                     return (
                         <tr key={roundsCount* 2 + 2}>
                             <td colSpan={4} width={toStr(4)} key={0}>
@@ -227,10 +231,13 @@ class CompetitionResultsTable extends React.Component {
         const {teamsCount, roundsCount, bannedTeams=[]} = this.props;
         return (
             <div style={{width: "100%"}}>
-                <div style={{textAlign: "center", fontSize: "23px", paddingBottom: "10px"}}>
+                <div
+                    style={{textAlign: "center", fontSize: "23px", paddingBottom: "10px", color: "rgba(0, 0, 0, 0.6)"}}>
                     {this.props.i18n.t("competition_process.teacher.table.stats")}
                 </div>
-                <table style={{width: "100%"}} className={"competition-process-teacher-table"}>
+
+                <table style={{width: "100%"}}
+                       className={"competition-process-teacher-table competition-process-student-results-table"}>
                     <tbody>
                     {this.firstRow(teamsCount, bannedTeams)}
                     {this.roundRows(teamsCount, roundsCount, bannedTeams)}

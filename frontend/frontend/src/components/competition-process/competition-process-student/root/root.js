@@ -15,6 +15,7 @@ import * as Constants from "../../../../helpers/constants";
 import StrategySubmissionComponent from "../../strategy-submission";
 import {useTranslation} from "react-i18next";
 import {useNavigate, useParams} from "react-router";
+import usePrevious from "../../../../helpers/use-previous-hook";
 
 const initialState = {
     competitionName: '',
@@ -277,18 +278,17 @@ const CompetitionProcessStudentRootNew = ({fetchers, eventSources, showNotificat
                         {table}
                     </div>
                     {sendAnswer}
-                    <div style={{paddingTop: "35px"}}>
-                        <MessagesContainer messages={competitionState.messages}
-                                           unreadMessagesCount={competitionState.unreadMessages}
-                                           onReadMessagesCallback={() => {
-                                               setCompetitionState(prevState => {
-                                                   if (prevState.unreadMessages !== 0)
-                                                       return {...prevState, unreadMessages: 0};
-                                                   return prevState
-                                               })
-                                           }}
-                        />
-                    </div>
+                    <div className={"competition-process-student-table-messages-spacer"}/>
+                    <MessagesContainer messages={competitionState.messages}
+                                       unreadMessagesCount={competitionState.unreadMessages}
+                                       onReadMessagesCallback={() => {
+                                           setCompetitionState(prevState => {
+                                               if (prevState.unreadMessages !== 0)
+                                                   return {...prevState, unreadMessages: 0};
+                                               return prevState
+                                           })
+                                       }}
+                    />
                     <div style={{paddingTop: "20px"}}>
                         <DescriptionHolder instruction={competitionState.description}/>
                     </div>
@@ -308,15 +308,7 @@ const CompetitionProcessStudentRootNew = ({fetchers, eventSources, showNotificat
     )
 }
 
-function usePrevious(value) {
-    const ref = useRef();
-    useEffect(() => {
-        ref.current = value;
-    }, [value]);
-    return ref.current;
-}
-
-const RoundAndTimerHolder = ({roundNumber, timeTillRoundEnd}) => {
+export const RoundAndTimerHolder = ({roundNumber, timeTillRoundEnd}) => {
     const {t} = useTranslation();
 
     return <>

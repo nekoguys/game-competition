@@ -2,6 +2,7 @@
     border-collapse: collapse;
     caption-side: top;
     border: 1px solid black;
+    color: rgba(0, 0, 0, 0.6);
 }
 
 table.competition-process-teacher-table th, table.competition-process-teacher-table td {

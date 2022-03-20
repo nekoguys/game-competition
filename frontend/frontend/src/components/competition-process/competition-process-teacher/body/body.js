@@ -1,255 +1,165 @@
-import React from "react";
+import React, {useEffect, useRef, useState} from "react";
 
 import "./body.css"
 import DefaultSubmitButton from "../../../common/default-submit-button";
 import CompetitionResultsTable from "../results-table";
 import MessagesContainer from "../messages";
-import ApiHelper from "../../../../helpers/api-helper";
-import processRoundsEvents from "../../../../helpers/rounds-event-source-helper";
-import processMessagesEvents from "../../../../helpers/messages-event-source-helper";
-import showNotification from "../../../../helpers/notification-helper";
+import {processParsedRoundEvent} from "../../../../helpers/rounds-event-source-helper";
+import {processMessageParsedEvent} from "../../../../helpers/messages-event-source-helper";
 import * as Constants from "../../../../helpers/constants";
 import ChangeRoundLengthContainer from "../change-round-length-container";
-import {withTranslation} from "react-i18next";
+import {useTranslation} from "react-i18next";
+import usePrevious from "../../../../helpers/use-previous-hook";
+import {RoundAndTimerHolder} from "../../competition-process-student/root/root";
+
+const defaultState = {
+    currentRoundNumber: 0,
+    timeTillRoundEnd: 0,
+    isCurrentRoundEnded: true,
+    currentRoundLength: 0,
+    name: "",
+    teamsCount: 10,
+    roundsCount: 0,
+    isAutoRoundEnding: false,
+    answers: {},
+    results: {},
+    prices: {},
+    messages: [],
+    bannedTeams: []
+}
+
+const CompetitionProcessTeacherBodyNew = (
+    {
+        showNotification,
+        onEndCallback,
+        updateCompetitionNameCallback,
+        pin,
+        fetchers,
+        eventSources
+    }) => {
+    const [competitionState, setCompetitionState] = useState(defaultState);
+    const {i18n} = useTranslation();
+    const timerId = useRef(null);
+    const isRoundEndedPrevValue = usePrevious(competitionState.isCurrentRoundEnded)
+
+    const getCompetitionInfo = () => {
+        fetchers.competitionInfoForResultsTable(pin).then(resp => {
+            updateCompetitionNameCallback(resp.name);
 
 
-class CompetitionProcessTeacherBody extends React.Component {
-    constructor(props) {
-        super(props);
+            setCompetitionState((prevState => {
+                if (resp.roundsCount === prevState.currentRoundNumber && resp.roundsCount !== 0) {
+                    onEndCallback();
+                }
+                return {
+                    ...prevState,
+                    name: resp.name,
+                    teamsCount: resp.connectedTeamsCount,
+                    roundsCount: resp.roundsCount,
+                    isAutoRoundEnding: resp.isAutoRoundEnding
+                }
+            }))
 
-        this.eventsSource = undefined;
-
-        this.state = {
-            currentRoundNumber: 0,
-            timeTillRoundEnd: 0,
-            isCurrentRoundEnded: true,
-            currentRoundLength: 0,
-            name: "",
-            teamsCount: 10,
-            roundsCount: 0,
-            isAutoRoundEnding: false,
-            answers: {},
-            results: {},
-            prices: {},
-            messages: [],
-            bannedTeams: []
-        };
+        })
     }
 
-    render() {
-        const { i18n } = this.props;
-
-        let res = (<CompetitionProcessTeacherActive
-            i18n={i18n}
-            round={this.state.currentRoundNumber}
-            timeLeft={this.state.timeTillRoundEnd}
-            isRoundEnded={this.state.isCurrentRoundEnded}
-            messages={this.state.messages}
-            answers={this.state.answers}
-            sendMessageCallBack={this.sendMessageCallback}
-            rightButtonClick={this.onStartOrEndRoundButtonClick}
-            teamsCount={this.state.teamsCount}
-            roundsCount={this.state.roundsCount}
-            results={this.state.results}
-            prices={this.state.prices}
-            bannedTeams={this.state.bannedTeams}
-            currentRoundLength={this.state.currentRoundLength}
-            changeRoundLengthCallback={this.changeRoundLength}
-            isAutoRoundEnding={this.state.isAutoRoundEnding}
-            restartGameCallback={this.restartGameCallback}
-        />);
-
-        return (
-            <div>
-            <div className={"game-state-holder"}>
-                {res}
-            </div>
-            </div>
-        );
+    const updateCertainFields = (obj) => {
+        setCompetitionState(prevValue => {
+            return {...prevValue, ...obj}
+        })
     }
 
-    componentDidMount() {
-        this.getCompetitionInfo();
-        this.setupAllInOneEvents();
-
-        this.setupTimer();
-    }
-
-    componentWillUnmount() {
-        if (this.eventSource !== undefined) {
-            this.eventSource.close();
-        }
-
-        clearInterval(this.timerId);
-    }
-
-    componentDidUpdate(prevProps, prevState, snapshot) {
-        if (this.state.isCurrentRoundEnded) {
-            clearInterval(this.timerId);
-        } else if (!this.state.isCurrentRoundEnded && prevState.isCurrentRoundEnded) {
-            clearInterval(this.timerId);
-            this.setupTimer();
-        }
-
-        if (this.state.roundsCount > 0 && this.state.roundsCount === this.state.currentRoundNumber && this.state.isCurrentRoundEnded) {
-            this.props.onEndCallback();
-        }
-    }
-
-    setupTimer = () => {
-        this.timerId = setInterval(() => {
-            this.setState(prevState => {
-                return {timeTillRoundEnd: Math.max(prevState.timeTillRoundEnd - 1, 0)};
+    const setupTimer = () => {
+        timerId.current = setInterval(() => {
+            setCompetitionState(prevState => {
+                return {...prevState, timeTillRoundEnd: Math.max(prevState.timeTillRoundEnd - 1, 0)};
             })
         }, 1000);
-    };
-
-    getCompetitionInfo() {
-        console.log("getCompetitionInfo call");
-        const {pin} = this.props;
-
-        ApiHelper.competitionInfoForResultsTable(pin).then(resp => {
-            if (resp.status >= 300) {
-                return {success: false, json: resp.text()};
-            }
-
-            return {success: true, json: resp.json()};
-        }).then(resp => {
-            resp.json.then(jsonBody => {
-                console.log({competitionInfoCallData: jsonBody});
-                if (resp.success) {
-                    this.setState(prevState => {
-                        this.props.updateCompetitionNameCallback(jsonBody.name);
-
-                        if (jsonBody.roundsCount === prevState.currentRoundNumber && jsonBody.roundsCount !== 0) {
-                            this.props.onEndCallback();
-                        }
-
-                        return {
-                            name: jsonBody.name,
-                            teamsCount: jsonBody.connectedTeamsCount,
-                            roundsCount: jsonBody.roundsCount,
-                            isAutoRoundEnding: jsonBody.isAutoRoundEnding
-                        }
-                    })
-                } else {
-                    showNotification(this).error(jsonBody.message, "Error", 1500);
-                }
-            })
-        })
     }
 
-    changeRoundLength = (newRoundLength) => {
-        const ans = parseInt(newRoundLength, 10);
-        if (Number.isNaN(ans)) {
-            showNotification(this).error("Invalid round length", "Error", 2500);
-        } else {
-            const {pin} = this.props;
-
-            ApiHelper.changeRoundLength(pin, ans).then(resp => {
-                if (resp.status >= 300) {
-                    return {success: false, json: resp.text()};
-                }
-
-                return {success: true, json: resp.json()};
-            }).then(resp => {
-                resp.json.then(jsonBody => {
-                    console.log({changeRoundLengthResponse: jsonBody});
-                    if (resp.success) {
-                        showNotification(this).success(jsonBody.message, "Success", 2500);
-                    } else {
-                        showNotification(this).error(jsonBody.message, "Error", 2500);
-                    }
-                })
-            })
-        }
-    }
-
-    setupAllInOneEvents() {
-        const {pin} = this.props;
-
-        this.eventSource = ApiHelper.allInOneTeacherStream(pin);
-
-        this.eventSource.addEventListener("error", (err) => console.log({eventSource: err}));
-
-        this.eventSource.addEventListener("message", (message) => {
-            console.log({messageDataExt: JSON.parse(message.data)})
+    useEffect(() => {
+        getCompetitionInfo();
+        const eventSource = eventSources.allInOneTeacherStream(pin);
+        eventSource.subscribe((message) => {
+            console.log({messageDataExt: message});
+            console.log({messageDataExt: message.id});
             if (message.lastEventId === Constants.ANSWER_EVENT_ID) {
-                this.processAnswer(JSON.parse(message.data));
+                processAnswer(message);
             } else if (message.lastEventId === Constants.MESSAGE_EVENT_ID) {
-                this.processMessage(message);
+                processMessage(message);
             } else if (message.lastEventId === Constants.PRICE_EVENT_ID) {
-                this.processPrice(JSON.parse(message.data));
+                processPrice(message);
             } else if (message.lastEventId === Constants.RESULT_EVENT_ID) {
-                this.processResult(JSON.parse(message.data));
+                processResult(message);
             } else if (message.lastEventId === Constants.ROUND_EVENT_ID) {
-                this.processRound(message)
+                processRound(message)
             } else if (message.lastEventId === Constants.BAN_EVENT_ID) {
-                this.processBan(JSON.parse(message.data));
+                processBan(message);
             }
         })
 
-    }
-
-    processBan = (obj) => {
-        if ((obj.type ?? "") === "cancel") {
-            this.setState({bannedTeams: []});
-        } else {
-            this.setState(prevState => {
-                const bannedTeams = [...prevState.bannedTeams];
-                bannedTeams.push(obj.teamIdInGame);
-                return {bannedTeams};
-            });
-            showNotification(this).warning(`Team ${obj.teamIdInGame} "${obj.teamName}" was banned`, 'BAN', 3000);
+        return function cleanup() {
+            eventSource.close();
         }
+    }, []);
 
-    }
+    useEffect(() => {
+        if (competitionState.isCurrentRoundEnded) {
+            clearInterval(timerId.current);
+        } else if (!competitionState.isCurrentRoundEnded && isRoundEndedPrevValue) {
+            clearInterval(timerId.current);
+            setupTimer();
+        }
+    }, [competitionState.isCurrentRoundEnded])
 
-    processPrice = (obj) => {
-        if ((obj.type ?? "") === "cancel") {
-            this.setState({prices: {}});
+    useEffect(() => {
+        if (competitionState.roundsCount > 0 && competitionState.roundsCount === competitionState.currentRoundNumber && competitionState.isCurrentRoundEnded) {
+            onEndCallback();
+        }
+    });
+
+    const processBan = (banDTO) => {
+        if (banDTO.type === "cancel") {
+            updateCertainFields({bannedTeams: []})
         } else {
-            this.setState(prevState => {
-                const prices = {...prevState.prices};
-
-                prices[obj.roundNumber] = obj.price;
-                return {prices};
-            })
+            updateCertainFields({bannedTeams: [...competitionState.bannedTeams, banDTO.teamIdInGame]});
+            showNotification().warning(`Team ${banDTO.teamIdInGame} "${banDTO.teamName}" was banned`, 'BAN', 3000);
         }
     }
 
-    processResult = (data) => {
-        if ((data.type ?? "") === "cancel") {
-            this.setState({results: {}});
+    const processPrice = (priceDTO) => {
+        if (priceDTO.type === "cancel") {
+            updateCertainFields({prices: {}});
         } else {
-            const teamIdInGame = data.teamIdInGame;
-            const round = data.roundNumber;
-            const income = data.income;
+            updateCertainFields({prices: {...competitionState.prices, [priceDTO.roundNumber]: priceDTO.price}})
+        }
+    }
 
-            this.setState(prevState => {
-                const results = {...prevState.results};
-
-                if (!(round in results)) {
-                    results[round] = {[teamIdInGame]: income};
+    const processResult = (resultDTO) => {
+        if (resultDTO.type === "cancel") {
+            updateCertainFields({results: {}});
+        } else {
+            setCompetitionState(prevValue => {
+                const results = {...prevValue.results};
+                if (resultDTO.roundNumber in results) {
+                    results[resultDTO.roundNumber][resultDTO.teamIdInGame] = resultDTO.income;
                 } else {
-                    results[round][teamIdInGame] = income;
+                    results[resultDTO.roundNumber] = {[resultDTO.teamIdInGame]: resultDTO.income}
                 }
-
-                return {results: results};
+                return {...prevValue, results};
             })
-
         }
-     }
+    }
 
-    processAnswer = (answerData) => {
-        if ((answerData.type ?? "") === "cancel") {
-            this.setState({answers: {}});
+    const processAnswer = (answerDTO) => {
+        if (answerDTO.type === "cancel") {
+            updateCertainFields({answers: {}});
         } else {
-            const teamIdInGame = answerData.teamIdInGame;
-            const round = answerData.roundNumber;
-            const answer = answerData.teamAnswer;
+            const teamIdInGame = answerDTO.teamIdInGame;
+            const round = answerDTO.roundNumber;
+            const answer = answerDTO.teamAnswer;
 
-            this.setState(prevState => {
+            setCompetitionState(prevState => {
                 const answers = {...prevState.answers};
 
                 if (!(round in answers)) {
@@ -258,96 +168,92 @@ class CompetitionProcessTeacherBody extends React.Component {
                     answers[round][teamIdInGame] = answer;
                 }
 
-                return {answers: answers};
+                return {...prevState, answers};
             })
         }
     }
 
-    processRound = (message) => {
-        this.setState((prevState) => {
-            return processRoundsEvents(message);
-        });
+    const processRound = (message) => {
+        updateCertainFields(processParsedRoundEvent(message))
     }
 
-    processMessage = (event) => {
-        this.setState(prevState => {
-            return processMessagesEvents(event, [...prevState.messages]);
-        });
+    const processMessage = (message) => {
+        setCompetitionState(prevState => {
+            const newMessages = processMessageParsedEvent(message, [...prevState.messages]);
+            return {...prevState, ...newMessages};
+        })
     }
 
-    onStartOrEndRoundButtonClick = () => {
-        console.log("click on start/end round button");
-        const {pin} = this.props;
-        let pr;
-        if (this.state.isCurrentRoundEnded) {
-            pr = ApiHelper.startNewCompetitionRound(pin);
-            console.log("start");
+    const sendMessage = (message) => {
+        if (message !== "") {
+            fetchers.sendMessage(pin, message).then(_ => {
+                showNotification().success("Message sent successfully", "Success", 1500);
+            }).catch(err => {
+                showNotification().error(err.message, "Error", 2500);
+            })
+        }
+    }
+
+    const startOrEndRound = () => {
+        const fetchPromise = competitionState.isCurrentRoundEnded
+            ? fetchers.startNewCompetitionRound(pin)
+            : fetchers.endCompetitionRound(pin)
+
+        fetchPromise.then(resp => {
+            showNotification().success(resp.message, "Success", 1500);
+        }).catch(err => {
+            showNotification().error(err.message, "Error", 2500);
+        })
+    }
+
+    const changeRoundLength = (newRoundLength) => {
+        const ans = parseInt(newRoundLength, 10);
+        if (Number.isNaN(ans)) {
+            showNotification(this).error("Invalid round length", "Error", 2500);
         } else {
-            pr = ApiHelper.endCompetitionRound(pin);
-            console.log("end");
+            fetchers.changeRoundLength(pin, ans).then(resp => {
+                showNotification().success(resp.message, "Success", 1500);
+            }).catch(err => {
+                showNotification().error(err.message, "Error", 2500);
+            })
         }
+    }
 
-        pr.then(resp => {
-            console.log({resp});
-            if (resp.status >= 300) {
-                return {success: false, json: resp.text()};
-            }
-            
-            return {success: true, json: resp.json()};
-        }).then(resp => {
-            resp.json.then(jsonBody => {
-                console.log({jsonBody});
-                if (resp.success) {
-                    showNotification(this).success(jsonBody.message, "Success", 900);
-                } else {
-                    showNotification(this).error(jsonBody.message, "Error", 1500);
-                }
-            })
-        })
-    };
-
-    sendMessageCallback = (message) => {
-        console.log({sendMessage: message});
-        ApiHelper.sendCompetitionMessage(this.props.pin, message).then(resp => {
-            console.log({resp});
-            if (resp.status >= 300) {
-                return {success: false, json: resp.text()};
-            }
-
-            return {success: true, json: resp.json()};
-        }).then(resp => {
-            resp.json.then(jsonBody => {
-                console.log({jsonBody});
-                if (resp.success) {
-                    showNotification(this).success(jsonBody.message, "Success", 900);
-                } else {
-                    showNotification(this).error(jsonBody.message, "Error", 1500);
-                }
-            })
+    const restartGame = () => {
+        fetchers.restartGame(pin).then(resp => {
+            showNotification().success(resp.message, "Success", 1500);
+        }).catch(err => {
+            showNotification().error(err.message, "Error", 2500);
         })
     }
 
-    restartGameCallback = () => {
-        console.log("restarting game");
+    let res = (<CompetitionProcessTeacherActive
+        i18n={i18n}
+        round={competitionState.currentRoundNumber}
+        timeLeft={competitionState.timeTillRoundEnd}
+        isRoundEnded={competitionState.isCurrentRoundEnded}
+        messages={competitionState.messages}
+        answers={competitionState.answers}
+        sendMessageCallBack={(message) => sendMessage(message)}
+        rightButtonClick={() => startOrEndRound()}
+        teamsCount={competitionState.teamsCount}
+        roundsCount={competitionState.roundsCount}
+        results={competitionState.results}
+        prices={competitionState.prices}
+        bannedTeams={competitionState.bannedTeams}
+        currentRoundLength={competitionState.currentRoundLength}
+        changeRoundLengthCallback={(roundLength) => changeRoundLength(roundLength)}
+        isAutoRoundEnding={competitionState.isAutoRoundEnding}
+        restartGameCallback={restartGame}
+    />);
 
-        ApiHelper.restartGame(this.props.pin).then(resp => {
-            console.log({resp});
-            if (resp.status >= 300) {
-                return {success: false, json: resp.text()};
-            }
-
-            return {success: true, json: resp.json()};
-        }).then(resp => {
-            resp.json.then(jsonBody => {
-                console.log(jsonBody);
-                if (resp.success) {
-                    showNotification(this).success(jsonBody.message, "Success", 2500);
-                } else {
-                    showNotification(this).success(jsonBody.message, "Error", 5000);
-                }
-            })
-        })
-    }
+    return (
+        <div>
+            <div className={"game-state-holder"}>
+                {res}
+            </div>
+        </div>
+    )
 }
 
 class CompetitionProcessTeacherActive extends React.Component {
@@ -378,32 +284,22 @@ class CompetitionProcessTeacherActive extends React.Component {
 
         if (this.props.round !== 0 && !(this.props.isRoundEnded && this.props.round === this.props.roundsCount)) {
             restartGameButton = (
-                <div style={{paddingTop: "20px"}}>
-                    <DefaultSubmitButton text={this.props.i18n.t("competition_process.teacher.body.restart_game")} 
-                                         onClick={this.props.restartGameCallback}/>
-                </div>
+                // <div style={{paddingTop: "20px"}}>
+                //     <DefaultSubmitButton text={this.props.i18n.t("competition_process.teacher.body.restart_game")}
+                //                          onClick={this.props.restartGameCallback}/>
+                // </div>
+                <div/>
             )
         }
-
         return (
             <div>
-                <div className={"row justify-content-between"}>
-                    <div className={"col-4"}>
-                        <div>
-                            <div style={{textAlign: "center", fontSize: "23px"}}>
-                                {roundText}
-                            </div>
-                            {restartGameButton}
-                        </div>
-                    </div>
-                    <div className={"col-4"}>
-                        <div style={{textAlign: "center", fontSize: "23px"}}>
-                            {this.props.i18n.t("competition_process.teacher.body.until_round_end") + timeLeft + this.props.i18n.t("competition_process.teacher.body.seconds")}
-                        </div>
-                        {beginEndRoundButton}
-                    </div>
+                <RoundAndTimerHolder roundNumber={roundText} timeTillRoundEnd={timeLeft}/>
+                <div className={"competition-process-teacher-buttons-holder"}>
+                    {restartGameButton}
+                    {beginEndRoundButton}
                 </div>
-                <div style={{paddingTop: "20px"}}>
+                <div className={"competition-process-teacher-buttons-results-table-spacer"}/>
+                <div className={"competition-process-teacher-results-table-holder"}>
                     <CompetitionResultsTable style={{width: "100%"}} teamsCount={this.props.teamsCount}
                                              roundsCount={this.props.roundsCount}
                                              answers={this.props.answers}
@@ -412,15 +308,18 @@ class CompetitionProcessTeacherActive extends React.Component {
                                              bannedTeams={this.props.bannedTeams}
                     />
                 </div>
-                <div style={{paddingTop: "20px"}}>
-                    <ChangeRoundLengthContainer currentRoundLength={this.props.currentRoundLength} changeRoundLengthCallback={this.props.changeRoundLengthCallback}/>
+                <div className={"competition-process-teacher-bottom-content"}>
+                    <div className={"competition-process-teacher-results-table-round-length-spacer"}/>
+                    <ChangeRoundLengthContainer currentRoundLength={this.props.currentRoundLength}
+                                                changeRoundLengthCallback={this.props.changeRoundLengthCallback}/>
+                    <div className={"competition-process-teacher-round-length-messages-spacer"}/>
+                    <MessagesContainer messages={this.props.messages}
+                                       sendMessageCallBack={this.props.sendMessageCallBack}/>
                 </div>
-                <div style={{paddingTop: "40px"}}>
-                    <MessagesContainer messages={this.props.messages} sendMessageCallBack={this.props.sendMessageCallBack}/>
-                </div>
+
             </div>
         )
     }
 }
 
-export default withTranslation('translation')(CompetitionProcessTeacherBody);
+export default (CompetitionProcessTeacherBodyNew);

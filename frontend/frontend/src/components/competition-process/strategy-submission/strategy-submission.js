@@ -8,7 +8,7 @@ const StrategySubmissionComponent = ({
                                          strategyText,
                                          setStrategyText,
                                          onSubmit,
-                                         didSubmitStrategy = false,
+                                         didSubmitStrategy = false,//TODO
                                          isExpandedByDefault = false
                                      }) => {
     const [expanded, setExpanded] = useState(isExpandedByDefault);
@@ -17,7 +17,8 @@ const StrategySubmissionComponent = ({
     if (expanded) {
         form = (
             <div className={"form-group"}>
-                <label htmlFor="strategy-text" style={{paddingLeft: "3px", marginBottom: "3px"}}>Введите
+                <label htmlFor="strategy-text"
+                       style={{paddingLeft: "3px", marginBottom: "3px", color: "rgba(0, 0, 0, 0.6)"}}>Введите
                     стратегию</label>
                 <textarea className="form-control" id="strategy-text" rows="3" value={strategyText} onChange={el => {
                     setStrategyText(el.target.value);

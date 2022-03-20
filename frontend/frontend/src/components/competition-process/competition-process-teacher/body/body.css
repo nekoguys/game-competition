@@ -1,6 +1,35 @@
 .game-state-holder {
     border-radius: 30px;
-    background: #E7E7E7;
+    background: rgba(223, 220, 223, 0.35);
     margin: 20px 80px;
     padding: 20px 50px 20px 50px;
+}
+
+.competition-process-teacher-buttons-holder {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-direction: row;
+}
+
+.competition-process-teacher-results-table-holder {
+    overflow: auto;
+}
+
+.competition-process-teacher-buttons-results-table-spacer {
+    height: 20px;
+}
+
+.competition-process-teacher-results-table-round-length-spacer {
+    height: 20px;
+}
+
+.competition-process-teacher-round-length-messages-spacer {
+    height: 40px;
+}
+
+.competition-process-teacher-bottom-content {
+    max-width: 600px;
+    margin-right: auto;
+    margin-left: auto;
 }

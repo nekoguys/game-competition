@@ -27,6 +27,7 @@ import NewJoinCompetitionCaptainForm
     from "../join-competition/join-competition-form/new-forms/new-join-competition-captain-form";
 import NewJoinCompetitionMemberForm
     from "../join-competition/join-competition-form/new-forms/new-join-competition-member-form/new-join-competition-member-form";
+import CompetitionProcessTeacherBody from "../competition-process/competition-process-teacher/body";
 import {LocalStorageWrapper} from "../../helpers/storage-wrapper";
 import CreateCompetition from "../create-competition/create-competition";
 import EventSourceMock from "../../helpers/mocks/event-source-mock";
@@ -80,7 +81,7 @@ const competitionProcessStudentCompetitionInfoFetcher = {
     real: (pin) => {
         return apiFetcher(pin, (pin) => ApiHelper.studentCompetitionInfo(pin))
     }
-}["mock"]
+}[fetcherType]
 
 const allInOneStudentStream = {
     mock: (_) => {
@@ -117,7 +118,7 @@ const allInOneStudentStream = {
     real: (pin) => {
         return new EventSourceWrapper(ApiHelper.allInOneStudentStream(pin))
     }
-}['mock']
+}[fetcherType]
 
 const userInfoFetcher = {
     mock: (_) => {
@@ -264,12 +265,12 @@ const competitionRoundEvents = {
 const submitAnswer = {
     mock: (_) => new Promise(resolve => resolve({})),
     real: (pin, answerDTO) => apiFetcher({pin, answerDTO}, ({pin, answerDTO}) => ApiHelper.submitAnswer(pin, answerDTO))
-}['mock']
+}[fetcherType]
 
 const submitStrategy = {
     mock: (_) => new Promise(resolve => resolve({})),
     real: (strategyDTO) => apiFetcher(strategyDTO, (strategyDTO) => ApiHelper.submitStrategy(strategyDTO))
-}['mock']
+}[fetcherType]
 
 const cloneInfoCompetitionFetcher = {
     mock: (_) => {
@@ -295,6 +296,107 @@ const cloneInfoCompetitionFetcher = {
         return apiFetcher(pin, (pin) => ApiHelper.getCompetitionCloneInfo(pin))
     }
 }[fetcherType]
+
+
+const allInOneTeacherStream = {
+    mock: (_) => {
+        return new EventSourceMock([
+            {
+                lastEventId: Constants.ROUND_EVENT_ID,
+                type: "newround",
+                roundLength: 66,
+                roundNumber: 1,
+                beginTime: (Math.round((new Date().getTime()) / 1000))
+            },
+            {
+                lastEventId: Constants.ANSWER_EVENT_ID,
+                roundNumber: 1,
+                teamAnswer: 10,
+                teamIdInGame: 1,
+            },
+            {
+                lastEventId: Constants.RESULT_EVENT_ID,
+                roundNumber: 1,
+                income: 100.1,
+                teamIdInGame: 1
+            },
+            {
+                lastEventId: Constants.PRICE_EVENT_ID,
+                roundNumber: 1,
+                price: 15
+            },
+            {
+                lastEventId: Constants.MESSAGE_EVENT_ID,
+                message: "sample message sample message sample message",
+                sendTime: 1647732566
+            }
+        ], 200)
+    },
+    real: (pin) => {
+        return new EventSourceWrapper(ApiHelper.allInOneTeacherStream(pin))
+    }
+}[fetcherType]
+
+const competitionInfoForResultsTableFetcher = {
+    mock: (_) => {
+        return new Promise(resolve => setTimeout(() =>
+            resolve({
+                name: "Конкуренция на рынке пшеницы",
+                teamsCount: 5,
+                roundsCount: 7,
+                isAutoRoundEnding: false,
+                connectedTeamsCount: 10
+            }), 1500))
+    },
+    real: (pin) => apiFetcher(pin, (pin) => ApiHelper.competitionInfoForResultsTable(pin))
+}[fetcherType]
+
+const startNewCompetitionRound = {
+    mock: (_) => {
+        new Promise(resolve => resolve({}));
+    },
+    real: (pin) => apiFetcher(pin, (pin) => ApiHelper.startNewCompetitionRound(pin))
+}[fetcherType]
+
+const endCompetitionRound = {
+    mock: (_) => {
+        new Promise(resolve => resolve({}));
+    },
+    real: (pin) => apiFetcher(pin, (pin) => ApiHelper.endCompetitionRound(pin))
+}[fetcherType]
+
+const sendMessage = {
+    mock: (_) => {
+        return new Promise(resolve => resolve({}));
+    },
+    real: (pin, message) => apiFetcher({pin, message}, ({
+                                                            pin,
+                                                            message
+                                                        }) => ApiHelper.sendCompetitionMessage(pin, message))
+}[fetcherType]
+
+const changeRoundLength = {
+    mock: (_) => {
+        return new Promise(resolve => resolve({}))
+    },
+    real: (pin, newLength) => apiFetcher({pin, newLength}, ({
+                                                                pin,
+                                                                newLength
+                                                            }) => ApiHelper.changeRoundLength(pin, newLength))
+}[fetcherType]
+
+export const CompetitionProcessTeacherBodyNew = (props) => {
+    return <CompetitionProcessTeacherBody
+        fetchers={{
+            competitionInfoForResultsTable: competitionInfoForResultsTableFetcher,
+            startNewCompetitionRound,
+            endCompetitionRound,
+            sendMessage,
+            changeRoundLength
+        }} eventSources={{allInOneTeacherStream}}
+        {...props}
+    />
+}
 
 const teamEventsSource = {
     mock: (_) => {

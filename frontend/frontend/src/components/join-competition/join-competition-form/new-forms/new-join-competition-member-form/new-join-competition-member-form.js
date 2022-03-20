@@ -18,8 +18,17 @@ const NewJoinCompetitionMemberForm = ({fetchers, eventSources, showNotification}
     useEffect(() => {
         let eventSource = eventSources.teams(pin);
         eventSource.subscribe((newTeam) => {
-            console.log({newTeam ,teams});
-            setTeams(prevValue => [...prevValue, newTeam]);
+            console.log({newTeam, teams});
+            setTeams(prevValue => {
+                const teams = [...prevValue];
+                const teamIndex = teams.map(el => el.teamIdInGame).indexOf(newTeam.teamIdInGame)
+                if (teamIndex !== -1) {
+                    teams[teamIndex] = newTeam;
+                } else {
+                    teams.push(newTeam);
+                }
+                return teams;
+            })
         })
 
         return function cleanup() {

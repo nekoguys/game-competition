@@ -1,49 +1,35 @@
 import React from "react";
 import submitButtonImage from "../../../join-competition/join-competition-player-form/submitButton.png";
 import "./messages-container.css";
-import {withTranslation} from "react-i18next";
+import {useTranslation, withTranslation} from "react-i18next";
 import {
     TextInputWithSubmitButton
 } from "../../../join-competition/join-competition-player-form/text-input-with-submit-button/text-input-with-submit-button";
 
+const SendMessageContainer = ({onSubmit}) => {
+    const {t} = useTranslation();
+    return (
+        <div>
+            <div className={"current-round-length__input-container"}>
+                <TextInputWithSubmitButton imagePath={submitButtonImage}
+                                           placeholder={t('competition_process.teacher.messages.message')}
+                                           onSubmit={onSubmit}
+                                           buttonStyle={{}} buttonClasses={" game-id-form__input-button"}
+                                           inputStyle={{}}
+                                           inputClasses={" game-id-form__input-input"}
+                                           imgClasses={" game-id-form__input-img"}
+                />
+            </div>
+        </div>
+    )
+}
+
 class MessagesContainer extends React.Component {
     render() {
-        const buttonStyle = {
-            backgroundColor: "Transparent",
-            padding: "-5px",
-            border: "none",
-            overflow: "hidden",
-            marginLeft: "-50px"
-        };
-
-        const inputStyle = {
-            backgroundColor: "#CACACA",
-            fontSize: "16px",
-            textAlign: "center",
-            border: "none",
-            outline: "none"
-        };
-
         return (
-            <div className={"row"}>
-                <div className={"col-4"} style={{textAlign: "right", paddingTop: "5px"}}>
-                    {this.props.i18n.t("competition_process.teacher.messages.message")}
-                </div>
-                <div className={"col-5"}>
-                    <TextInputWithSubmitButton imagePath={submitButtonImage}
-                                               containerStyle={{width: "100%", borderRadius: "10px"}}
-                                               placeholder={""}
-                                               inputStyle={inputStyle}
-                                               buttonStyle={buttonStyle}
-                                               onSubmit={this.props.sendMessageCallBack}
-                                               clearOnSubmit={true}
-                                               submitOnKey={'enter'}
-                                               imgStyle={{width: "35px", height: "35px"}}
-                    />
-                    <div style={{paddingLeft: "40px"}}>
-                        <MessagesListContainer messages={this.props.messages}/>
-                    </div>
-                </div>
+            <div>
+                <SendMessageContainer onSubmit={this.props.sendMessageCallBack}/>
+                <MessagesListContainer messages={this.props.messages}/>
             </div>
         )
     }
