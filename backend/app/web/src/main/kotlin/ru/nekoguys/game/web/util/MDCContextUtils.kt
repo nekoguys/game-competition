@@ -1,10 +1,9 @@
 package ru.nekoguys.game.web.util
 
-import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.emitAll
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.reactor.ReactorContext
 import kotlinx.coroutines.slf4j.MDCContext
 import kotlinx.coroutines.withContext
@@ -39,19 +38,11 @@ suspend fun <T> withMDCContext(block: suspend () -> T): T {
     }
 }
 
+@OptIn(ExperimentalCoroutinesApi::class)
 fun <T> Flow<T>.withRequestIdInContext(): Flow<T> =
-    flow {
-        val logPrefix: String? =
-            currentCoroutineContext()[ReactorContext]
-                ?.context
-                ?.extractRequestIdPrefix()
-
-        if (logPrefix != null) {
-            val contextMap = mapOf(REQUEST_ID_CONTEXT_KEY to logPrefix)
-            val flowWithMDCContext = this@withRequestIdInContext
-                .flowOn(MDCContext(contextMap))
-            emitAll(flowWithMDCContext)
-        } else {
-            emitAll(this@withRequestIdInContext)
+    channelFlow {
+        withMDCContext {
+            this@withRequestIdInContext
+                .collect { send(it) }
         }
-    }.flowOn(MDCContext(emptyMap()))
+    }

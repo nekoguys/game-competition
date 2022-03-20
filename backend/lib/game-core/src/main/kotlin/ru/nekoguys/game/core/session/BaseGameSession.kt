@@ -10,6 +10,8 @@ import ru.nekoguys.game.core.GameMessage
 import ru.nekoguys.game.core.GameMessageImpl
 import ru.nekoguys.game.core.GameRule
 import java.util.concurrent.atomic.AtomicInteger
+import kotlin.time.ExperimentalTime
+import kotlin.time.measureTime
 
 internal class BaseGameSession<in P, in Cmd, P2, Msg>(
     private val rule: GameRule<P, Cmd, P2, Msg>,
@@ -33,14 +35,26 @@ internal class BaseGameSession<in P, in Cmd, P2, Msg>(
             .also { messages -> shareMessages(messages) }
     }
 
+    @OptIn(ExperimentalTime::class)
     private suspend fun processWithoutSynchronization(
         command: Cmd,
         player: P,
     ): List<GameMessage<P2, Msg>> {
         logger.info("Started processing command $command by player $player")
-        val res = rule.process(player, command)
-        logger.info("Ended processing command $command by player $player")
-        return res
+
+        val result: List<GameMessage<P2, Msg>>
+        val timeElapsed = measureTime {
+            result = rule.process(player, command)
+        }
+        val milliseconds = timeElapsed.inWholeMilliseconds
+
+        logger.info(
+            """
+            Ended processing command $command by player $player in $milliseconds ms
+        """.trimIndent()
+        )
+
+        return result
     }
 
     override suspend fun shareMessages(messages: Collection<GameMessage<P2, Msg>>) {

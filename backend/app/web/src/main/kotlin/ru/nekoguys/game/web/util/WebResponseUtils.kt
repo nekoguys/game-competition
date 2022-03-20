@@ -19,9 +19,7 @@ fun <T : Any> Flow<T>.asServerSentEventStream(
 ): Flow<ServerSentEvent<T>> =
     map { ServerSentEvent.builder(it).id(streamName).build() }
         .onEach {
-            withMDCContext {
-                logger.debug("Sent event $it")
-            }
+            logger.debug("Sent event $it")
         }
         .withRequestIdInContext()
 
