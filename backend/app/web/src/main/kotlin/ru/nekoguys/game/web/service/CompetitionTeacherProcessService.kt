@@ -48,7 +48,7 @@ class CompetitionTeacherProcessService(
 
     suspend fun endRound(
         teacherEmail: String,
-        sessionPin: String
+        sessionPin: String,
     ): ProcessApiResponse<EndRoundResponse> =
         doCommand(
             sessionPin = sessionPin,
@@ -86,6 +86,34 @@ class CompetitionTeacherProcessService(
         )
     }
 
+    suspend fun sendAnnouncement(
+        teacherEmail: String,
+        sessionPin: String,
+        announcement: String,
+    ): ProcessApiResponse<SendAnnouncementResponse> {
+        val user = userRepository.findByEmail(teacherEmail)
+        requireNotNull(user)
+        val sessionId = sessionPinDecoder.decodeIdFromPin(sessionPin)
+            ?: error("No competition with pin $sessionPin")
+        val session = competitionSessionRepository.load(
+            id = sessionId,
+            CompetitionSession.WithCommonFields
+        )
+        if (session.creatorId != user.id) {
+            return ProcessApiResponse.ProcessError(
+                "${user.email} is not game creator"
+            )
+        }
+
+        competitionProcessService.acceptInternalCommand(
+            sessionId = sessionId,
+            command = CompetitionCommand.SendAnnouncement(
+                announcement = announcement,
+            )
+        )
+        return SendAnnouncementResponse("Announcement sent")
+    }
+
     fun allTeamsAnswersFlow(
         sessionPin: String,
     ): Flow<SubmittedAnswerEvent> = flow {
@@ -115,7 +143,7 @@ class CompetitionTeacherProcessService(
     }
 
     fun allTeamsResultsFlow(
-        sessionPin: String
+        sessionPin: String,
     ): Flow<RoundTeamResultEvent> = flow {
         val sessionId = sessionPinDecoder
             .decodeIdFromPin(sessionPin)
