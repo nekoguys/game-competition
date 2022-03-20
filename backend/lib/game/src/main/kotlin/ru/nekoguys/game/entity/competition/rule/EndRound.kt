@@ -63,24 +63,6 @@ class CompetitionEndRoundRule(
         }
 
         return buildResponse {
-            if (bannedTeamsIds.isNotEmpty()) {
-                defer(
-                    fromPlayer = InternalPlayer(sessionId = player.sessionId),
-                    command = CompetitionCommand.BanTeams(
-                        teamIds = bannedTeamsIds,
-                        reason = "too much loss",
-                    )
-                )
-            }
-
-            defer(
-                fromPlayer = InternalPlayer(sessionId = player.sessionId),
-                command = CompetitionCommand.ChangeStage(
-                    from = CompetitionStage.InProcess(currentRoundNumber),
-                    to = CompetitionStage.WaitingStart(currentRoundNumber + 1)
-                )
-            )
-
             session.teamIds {
                 +CompetitionPriceChangeMessage(
                     roundNumber = currentRoundNumber,
@@ -97,6 +79,28 @@ class CompetitionEndRoundRule(
                     )
                 }
             }
+
+            if (bannedTeamsIds.isNotEmpty()) {
+                defer(
+                    fromPlayer = InternalPlayer(sessionId = player.sessionId),
+                    command = CompetitionCommand.BanTeams(
+                        teamIds = bannedTeamsIds,
+                        reason = "too much loss",
+                    )
+                )
+            }
+
+            defer(
+                fromPlayer = InternalPlayer(sessionId = player.sessionId),
+                command = CompetitionCommand.ChangeStage(
+                    from = CompetitionStage.InProcess(currentRoundNumber),
+                    to = if (currentRoundNumber < session.settings.roundsCount) {
+                        CompetitionStage.WaitingStart(currentRoundNumber + 1)
+                    } else {
+                        CompetitionStage.Ended
+                    },
+                )
+            )
         }
     }
 }
