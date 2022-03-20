@@ -12,7 +12,7 @@ import org.springframework.web.server.WebFilter
 import org.springframework.web.server.WebFilterChain
 import reactor.core.publisher.Mono
 import ru.nekoguys.game.web.util.REQUEST_ID_CONTEXT_KEY
-import ru.nekoguys.game.web.util.extractRequestId
+import ru.nekoguys.game.web.util.extractRequestIdPrefix
 
 /**
  * Запись в лог каждого запроса и ответа
@@ -26,7 +26,7 @@ class LoggingFilter : WebFilter {
         val startTime = System.currentTimeMillis()
 
         val logRequestMono: Mono<Void> = Mono.deferContextual { context ->
-            val requestId = context.extractRequestId()
+            val requestId = context.extractRequestIdPrefix()
             MDC.putCloseable(REQUEST_ID_CONTEXT_KEY, requestId).use {
                 logRequest(exchange.request)
             }
@@ -36,7 +36,7 @@ class LoggingFilter : WebFilter {
         return logRequestMono
             .then(chain.filter(exchange))
             .doOnEach { signal ->
-                val requestId = signal.contextView.extractRequestId()
+                val requestId = signal.contextView.extractRequestIdPrefix()
                 MDC.putCloseable(REQUEST_ID_CONTEXT_KEY, requestId).use {
                     when {
                         signal.isOnComplete -> {
@@ -70,10 +70,9 @@ class LoggingFilter : WebFilter {
         millisecondsElapsed: Long,
     ) {
         logger.info(
-            "Finished processing {} {} with response {} in {} ms",
+            "Finished processing {} {} in {} ms",
             exchange.request.method,
             exchange.request.uri.rawPath,
-            exchange.response.statusCode,
             millisecondsElapsed,
         )
     }

@@ -10,6 +10,10 @@ interface CompetitionRoundAnswerRepository {
         answer: CompetitionRoundAnswer,
     )
 
+    suspend fun update(
+        answer: CompetitionRoundAnswer,
+    )
+
     suspend fun find(
         sessionId: CommonSession.Id,
         teamId: CompetitionTeam.Id,

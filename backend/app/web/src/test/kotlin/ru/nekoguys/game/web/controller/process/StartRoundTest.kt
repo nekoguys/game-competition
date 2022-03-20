@@ -24,19 +24,19 @@ class StartRoundTest @Autowired constructor(
 
     @BeforeEach
     fun createUsers() {
-        teacher = game.createUser(UserRole.Teacher)
-        student = game.createUser(UserRole.Student, "test-student@hse.ru")
+        teacher = game.createUser(UserRole.Teacher, TestGame.DEFAULT_TEACHER_EMAIL)
+        student = game.createUser(UserRole.Student)
     }
 
     @Test
-    @WithMockUser(username = TestGame.DEFAULT_ADMIN_EMAIL, roles = ["TEACHER"])
+    @WithMockUser(username = TestGame.DEFAULT_TEACHER_EMAIL, roles = ["TEACHER"])
     fun `teacher can start round`() {
-        val sessionPin = game.createSession()
+        val sessionPin = game.createSession(teacher)
         repeat(2) { game.createTeam(sessionPin) }
         game.startCompetition(sessionPin)
 
         webTestClient
-            .get()
+            .post()
             .uri("/api/competition_process/$sessionPin/start_round")
             .exchange()
             .expectStatus().isOk

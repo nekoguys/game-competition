@@ -10,6 +10,7 @@ import ru.nekoguys.game.entity.competition.repository.CompetitionPlayerRepositor
 import ru.nekoguys.game.entity.user.model.User
 import ru.nekoguys.game.entity.user.repository.UserRepository
 import ru.nekoguys.game.persistence.commongame.repository.DbGameSessionRepository
+import ru.nekoguys.game.persistence.competition.model.DbCompetitionTeam
 import ru.nekoguys.game.persistence.competition.model.DbCompetitionTeamMember
 
 @Repository
@@ -17,6 +18,7 @@ class CompetitionPlayerRepositoryImpl(
     private val userRepository: UserRepository,
     private val dbGameSessionRepository: DbGameSessionRepository,
     private val dbCompetitionTeamMemberRepository: DbCompetitionTeamMemberRepository,
+    private val dbCompetitionTeamRepository: DbCompetitionTeamRepository,
 ) : CompetitionPlayerRepository {
 
     private val logger = LoggerFactory.getLogger(CompetitionPlayerRepositoryImpl::class.java)
@@ -46,12 +48,17 @@ class CompetitionPlayerRepositoryImpl(
                 userId = user.id.number,
             )
 
+
         return when {
             dbCompetitionTeamMember != null -> {
+                val banRoundNumber = dbCompetitionTeamRepository
+                    .findBanRoundByTeamId(dbCompetitionTeamMember.teamId)
+
                 createTeamMember(
                     dbCompetitionTeamMember,
                     sessionId,
                     user,
+                    banRoundNumber
                 ).also { logger.info("Loaded team member $it from DB") }
             }
 
@@ -89,13 +96,17 @@ class CompetitionPlayerRepositoryImpl(
                 .toList()
                 .associateBy { it.userId }
 
+        val banRoundNumber = dbCompetitionTeamRepository
+            .findBanRoundByTeamId(teamId.number)
+
         userRepository
             .findAll(dbCompetitionTeamMembersByUserId.keys)
             .map { user ->
                 createTeamMember(
                     dbCompetitionTeamMembersByUserId.getValue(user.id.number),
                     sessionId,
-                    user
+                    user,
+                    banRoundNumber,
                 )
             }
             .collect { player -> emit(player) }
@@ -110,13 +121,22 @@ class CompetitionPlayerRepositoryImpl(
                 .toList()
                 .associateBy { it.userId }
 
+        val banRounds = dbCompetitionTeamRepository
+            .findAllBySessionId(sessionId)
+            .toList()
+            .associateBy(DbCompetitionTeam::id, DbCompetitionTeam::banRound)
+
         userRepository
             .findAll(dbCompetitionTeamMembersByUserId.keys)
             .map { user ->
+                val dbTeamMember = dbCompetitionTeamMembersByUserId
+                    .getValue(user.id.number)
+
                 createTeamMember(
-                    dbCompetitionTeamMembersByUserId.getValue(user.id.number),
+                    dbTeamMember,
                     CommonSession.Id(sessionId),
                     user,
+                    banRoundNumber = banRounds[dbTeamMember.teamId],
                 )
             }
             .collect { player -> emit(player) }
@@ -127,11 +147,12 @@ private fun createTeamMember(
     dbCompetitionTeamMember: DbCompetitionTeamMember,
     sessionId: CommonSession.Id,
     user: User,
+    banRoundNumber: Int?,
 ): CompetitionPlayer.Student {
     val teamId = CompetitionTeam.Id(dbCompetitionTeamMember.teamId)
     return if (dbCompetitionTeamMember.captain) {
-        CompetitionPlayer.TeamCaptain(sessionId, user, teamId)
+        CompetitionPlayer.TeamCaptain(sessionId, user, teamId, banRoundNumber)
     } else {
-        CompetitionPlayer.TeamMember(sessionId, user, teamId)
+        CompetitionPlayer.TeamMember(sessionId, user, teamId, banRoundNumber)
     }
 }

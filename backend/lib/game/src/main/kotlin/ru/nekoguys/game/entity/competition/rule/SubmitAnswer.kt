@@ -3,16 +3,15 @@ package ru.nekoguys.game.entity.competition.rule
 import org.springframework.stereotype.Component
 import ru.nekoguys.game.core.util.buildResponse
 import ru.nekoguys.game.entity.competition.model.*
-import ru.nekoguys.game.entity.competition.processError
 import ru.nekoguys.game.entity.competition.repository.CompetitionRoundAnswerRepository
 import ru.nekoguys.game.entity.competition.repository.CompetitionSessionRepository
 import ru.nekoguys.game.entity.competition.repository.load
+import ru.nekoguys.game.entity.competition.service.processError
 
 
 data class CompetitionAnswerSubmittedMessage(
-    val teamId: CompetitionTeam.Id,
     val roundNumber: Int,
-    val answer: Long,
+    val answer: Int,
 ) : CompetitionMessage()
 
 @Component
@@ -35,28 +34,38 @@ class CompetitionSubmitAnswerRule(
             processError("Tried to submit answer in invalid round")
         }
 
-        val currentRoundAnswer = competitionRoundAnswerRepository
-            .find(player.sessionId, player.teamId, currentStage.round)
-        if (currentRoundAnswer != null) {
-            processError("You've already submitted your answer!")
-        }
-
         val newAnswer = CompetitionRoundAnswer.Impl(
             sessionId = player.sessionId,
             teamId = player.teamId,
             roundNumber = currentStage.round,
             value = command.answer,
         )
-        competitionRoundAnswerRepository.save(newAnswer)
+
+        val currentRoundAnswer = competitionRoundAnswerRepository
+            .find(player.sessionId, player.teamId, currentStage.round)
+        if (currentRoundAnswer == null) {
+            competitionRoundAnswerRepository.save(newAnswer)
+        } else {
+            competitionRoundAnswerRepository.update(newAnswer)
+        }
 
         return buildResponse {
             player.teamId {
                 +CompetitionAnswerSubmittedMessage(
-                    teamId = player.teamId,
                     roundNumber = currentStage.round,
                     answer = newAnswer.value,
                 )
             }
         }
     }
+}
+
+suspend fun CompetitionSubmitAnswerRule.submitAnswer(
+    player: CompetitionBasePlayer,
+    command: CompetitionCommand.SubmitAnswer,
+): List<CompGameMessage<CompetitionMessage>> {
+    if (player !is CompetitionPlayer.TeamCaptain) {
+        processError("User $player must be a captain")
+    }
+    return process(player, command)
 }

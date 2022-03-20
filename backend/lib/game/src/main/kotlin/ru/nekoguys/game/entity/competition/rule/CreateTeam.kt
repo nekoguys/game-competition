@@ -2,14 +2,11 @@ package ru.nekoguys.game.entity.competition.rule
 
 import org.springframework.stereotype.Component
 import ru.nekoguys.game.core.util.buildResponse
-import ru.nekoguys.game.entity.competition.model.CompetitionPlayer
-import ru.nekoguys.game.entity.competition.model.CompetitionSession
-import ru.nekoguys.game.entity.competition.model.CompetitionStage
-import ru.nekoguys.game.entity.competition.model.CompetitionTeam
-import ru.nekoguys.game.entity.competition.processError
+import ru.nekoguys.game.entity.competition.model.*
 import ru.nekoguys.game.entity.competition.repository.CompetitionSessionRepository
 import ru.nekoguys.game.entity.competition.repository.CompetitionTeamRepository
 import ru.nekoguys.game.entity.competition.repository.load
+import ru.nekoguys.game.entity.competition.service.processError
 
 data class CompetitionCreateTeamMessage(
     val teamName: String,
@@ -84,5 +81,20 @@ class CompetitionCreateTeamRule(
             )
         }
     }
-
 }
+
+suspend fun CompetitionCreateTeamRule.createTeam(
+    player: CompetitionBasePlayer,
+    command: CompetitionCommand.CreateTeam,
+): List<CompGameMessage<CompetitionCreateTeamMessage>> =
+    when (player) {
+        is CompetitionPlayer.TeamCaptain ->
+            processError("${player.user.email} is Captain and is in another team already")
+
+        is CompetitionPlayer.TeamMember ->
+            processError("Player ${player.user.email} must not be a member of any team")
+
+        is CompetitionPlayer.Unknown -> process(player, command)
+
+        else -> processError("Got unexpected player $player")
+    }

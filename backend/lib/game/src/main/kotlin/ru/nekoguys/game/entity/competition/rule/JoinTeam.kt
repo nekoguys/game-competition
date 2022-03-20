@@ -5,10 +5,10 @@ import org.springframework.stereotype.Component
 import ru.nekoguys.game.core.GameMessage
 import ru.nekoguys.game.core.util.buildResponse
 import ru.nekoguys.game.entity.competition.model.*
-import ru.nekoguys.game.entity.competition.processError
 import ru.nekoguys.game.entity.competition.repository.CompetitionSessionRepository
 import ru.nekoguys.game.entity.competition.repository.CompetitionTeamRepository
 import ru.nekoguys.game.entity.competition.repository.load
+import ru.nekoguys.game.entity.competition.service.processError
 import ru.nekoguys.game.entity.user.repository.UserRepository
 
 data class CompetitionJoinTeamMessage(
@@ -87,6 +87,7 @@ class CompetitionJoinTeamRule(
             sessionId = player.sessionId,
             user = player.user,
             teamId = oldTeam.id,
+            banRoundNumber = null,
         )
         val newTeam = oldTeam.copy(
             teamMembers = oldTeam.teamMembers + newMember
@@ -115,3 +116,20 @@ class CompetitionJoinTeamRule(
         }
     }
 }
+
+suspend fun CompetitionJoinTeamRule.joinTeam(
+    player: CompetitionBasePlayer,
+    command: CompetitionCommand.JoinTeam,
+): List<CompGameMessage<CompetitionJoinTeamMessage>> =
+    when (player) {
+        is CompetitionPlayer.Student ->
+            processError("This user is in another team already")
+
+        is CompetitionPlayer.Teacher ->
+            processError("It is forbidden to play with yourself")
+
+        is CompetitionPlayer.Unknown ->
+            process(player, command)
+
+        else -> processError("Got unexpected player $player")
+    }

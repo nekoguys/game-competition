@@ -18,7 +18,11 @@ fun <T : Any> Flow<T>.asServerSentEventStream(
     streamName: String,
 ): Flow<ServerSentEvent<T>> =
     map { ServerSentEvent.builder(it).id(streamName).build() }
-        .onEach { logger.debug("Sent event $it") }
+        .onEach {
+            withMDCContext {
+                logger.debug("Sent event $it")
+            }
+        }
         .withRequestIdInContext()
 
 suspend fun <T : WebResponse> wrapServiceCall(block: suspend () -> T?): ResponseEntity<T> {

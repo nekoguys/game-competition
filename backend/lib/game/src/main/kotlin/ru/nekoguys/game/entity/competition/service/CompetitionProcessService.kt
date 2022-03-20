@@ -1,9 +1,7 @@
-package ru.nekoguys.game.entity.competition
+package ru.nekoguys.game.entity.competition.service
 
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.*
 import org.springframework.stereotype.Service
 import ru.nekoguys.game.core.GameMessage
 import ru.nekoguys.game.core.session.GameSession
@@ -14,7 +12,6 @@ import ru.nekoguys.game.entity.commongame.model.CommonSession
 import ru.nekoguys.game.entity.commongame.service.GameMessageLogProvider
 import ru.nekoguys.game.entity.commongame.service.createGameLog
 import ru.nekoguys.game.entity.competition.model.CompetitionBasePlayer
-import ru.nekoguys.game.entity.competition.model.CompetitionStage
 import ru.nekoguys.game.entity.competition.model.CompetitionTeam
 import ru.nekoguys.game.entity.competition.model.InternalPlayer
 import ru.nekoguys.game.entity.competition.repository.CompetitionPlayerRepository
@@ -78,6 +75,14 @@ class CompetitionProcessService(
                 .collect(this::emit)
         }
 
+    fun getAllMessagesForTeam(
+        sessionId: CommonSession.Id,
+        teamId: CompetitionTeam.Id,
+    ): Flow<CompetitionMessage> =
+        getAllMessagesForSession(sessionId)
+            .filter { teamId in it.players }
+            .map { it.body }
+
     private suspend fun launchGameSession(
         sessionId: CommonSession.Id,
     ): CompetitionLaunchedSession =
@@ -89,34 +94,4 @@ class CompetitionProcessService(
             replay = Int.MAX_VALUE,
         )
 
-}
-
-suspend fun CompetitionProcessService.changeStage(
-    sessionId: CommonSession.Id,
-    from: CompetitionStage,
-    to: CompetitionStage,
-) {
-    acceptInternalCommand(
-        sessionId,
-        CompetitionCommand.ChangeStage(
-            from = from,
-            to = to,
-        ),
-    )
-}
-
-suspend fun CompetitionProcessService.submitAnswer(
-    sessionId: CommonSession.Id,
-    user: User,
-    roundNumber: Int,
-    answer: Long,
-) {
-    acceptCommand(
-        sessionId,
-        user,
-        CompetitionCommand.SubmitAnswer(
-            currentRound = roundNumber,
-            answer = answer,
-        ),
-    )
 }

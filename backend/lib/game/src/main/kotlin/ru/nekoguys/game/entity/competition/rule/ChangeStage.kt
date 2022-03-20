@@ -2,10 +2,10 @@ package ru.nekoguys.game.entity.competition.rule
 
 import org.springframework.stereotype.Component
 import ru.nekoguys.game.core.util.buildResponse
+import ru.nekoguys.game.entity.competition.model.CompetitionBasePlayer
 import ru.nekoguys.game.entity.competition.model.CompetitionSession
 import ru.nekoguys.game.entity.competition.model.CompetitionStage
 import ru.nekoguys.game.entity.competition.model.InternalPlayer
-import ru.nekoguys.game.entity.competition.processError
 import ru.nekoguys.game.entity.competition.repository.CompetitionRoundRepository
 import ru.nekoguys.game.entity.competition.repository.CompetitionSessionRepository
 import ru.nekoguys.game.entity.competition.repository.load
@@ -79,10 +79,20 @@ class CompetitionChangeStageRule(
 
         if (session.stage != command.from) {
             with(command) {
-                processError(
+                error(
                     "Illegal Competition State: expected $from, but got $currentStage"
                 )
             }
         }
     }
+}
+
+suspend fun CompetitionChangeStageRule.changeStage(
+    player: CompetitionBasePlayer,
+    command: CompetitionCommand.ChangeStage,
+): List<CompGameMessage<CompetitionMessage>> {
+    if (player !is InternalPlayer) {
+        error("Player $player must be internal")
+    }
+    return process(player, command)
 }

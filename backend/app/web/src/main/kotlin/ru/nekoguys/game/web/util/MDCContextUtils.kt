@@ -16,17 +16,20 @@ const val REQUEST_ID_CONTEXT_KEY: String = "requestId"
 fun ContextView.extractRequestId(): String =
     get(REQUEST_ID_CONTEXT_KEY)
 
+fun ContextView.extractRequestIdPrefix(): String =
+    " [${extractRequestId()}]"
+
 suspend fun <T> withMDCContext(block: suspend () -> T): T {
-    val requestId: String? =
+    val logPrefix: String? =
         coroutineContext[ReactorContext]
             ?.context
-            ?.extractRequestId()
+            ?.extractRequestIdPrefix()
 
-    return if (requestId != null) {
+    return if (logPrefix != null) {
         // внешний withContext очистит MDC после своего выполнения
         withContext(MDCContext()) {
             // во внутреннем withContext в MDC будет лежать requestId
-            val contextMap = mapOf(REQUEST_ID_CONTEXT_KEY to requestId)
+            val contextMap = mapOf(REQUEST_ID_CONTEXT_KEY to logPrefix)
             withContext(MDCContext(contextMap)) {
                 block()
             }
@@ -38,13 +41,13 @@ suspend fun <T> withMDCContext(block: suspend () -> T): T {
 
 fun <T> Flow<T>.withRequestIdInContext(): Flow<T> =
     flow {
-        val requestId: String? =
+        val logPrefix: String? =
             currentCoroutineContext()[ReactorContext]
                 ?.context
-                ?.extractRequestId()
+                ?.extractRequestIdPrefix()
 
-        if (requestId != null) {
-            val contextMap = mapOf(REQUEST_ID_CONTEXT_KEY to requestId)
+        if (logPrefix != null) {
+            val contextMap = mapOf(REQUEST_ID_CONTEXT_KEY to logPrefix)
             val flowWithMDCContext = this@withRequestIdInContext
                 .flowOn(MDCContext(contextMap))
             emitAll(flowWithMDCContext)

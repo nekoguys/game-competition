@@ -4,58 +4,68 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Timeout
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import ru.nekoguys.game.entity.commongame.service.pin
-import ru.nekoguys.game.entity.competition.model.CompetitionStage
+import ru.nekoguys.game.entity.competition.model.CompetitionSession
 import ru.nekoguys.game.entity.competition.rule.CompetitionAnswerSubmittedMessage
+import ru.nekoguys.game.entity.user.model.User
 import ru.nekoguys.game.entity.user.model.UserRole
 import ru.nekoguys.game.web.GameWebApplicationTest
-import ru.nekoguys.game.web.dto.SubmitAnswerResponse
-import ru.nekoguys.game.web.service.CompetitionProcessService
 import ru.nekoguys.game.web.util.CleanDatabaseExtension
 import ru.nekoguys.game.web.util.TestGame
 import java.util.concurrent.TimeUnit
-import ru.nekoguys.game.entity.competition.CompetitionProcessService as CoreCompetitionProcessService
+import ru.nekoguys.game.entity.competition.service.CompetitionProcessService as CoreCompetitionProcessService
 
 @ExtendWith(CleanDatabaseExtension::class)
 @GameWebApplicationTest
 class SubmitAnswerServiceTest @Autowired constructor(
-    private val competitionProcessService: CompetitionProcessService,
     private val coreCompetitionProcessService: CoreCompetitionProcessService,
     private val game: TestGame,
 ) {
 
-    @Test
-    fun `answer is saved when captain submits answer`() {
-        val student = game.createUser(UserRole.Student)
-        val session = game.createAndLoadSession { pin ->
-            game.createTeam(pin)
-            game.createTeam(pin, captain = student)
+    lateinit var teacher: User
+    lateinit var student: User
+    lateinit var session: CompetitionSession
+
+    @BeforeEach
+    fun createUsers() {
+        teacher = game.createUser(UserRole.Teacher, TestGame.DEFAULT_TEACHER_EMAIL)
+        student = game.createUser(UserRole.Student, TestGame.DEFAULT_STUDENT_EMAIL)
+        session = game.createAndLoadSession(teacher = teacher) { pin ->
+            game.createTeam(pin, student)
             game.startCompetition(pin)
             game.startRound(pin)
         }
-        val roundNumber = (session.stage as CompetitionStage.InProcess).round
+    }
 
-        val response = runBlocking {
-            competitionProcessService.submitAnswer(
-                studentEmail = student.email,
-                sessionPin = session.pin,
-                roundNumber = roundNumber,
-                answer = 42,
-            )
-        }
-
-        assertThat(response)
-            .usingRecursiveComparison()
-            .isEqualTo(SubmitAnswerResponse)
+    @Test
+    fun `answer is saved when captain submits answer`() {
+        game.submitAnswer(session.pin, student, 42)
 
         val actualAnswer =
             game.loadSession(session.pin)
                 .rounds
-                .single { it.roundNumber == roundNumber }
+                .single { it.roundNumber == 1 }
+                .answers
+                .single()
+
+        assertThat(actualAnswer.value)
+            .isEqualTo(42)
+    }
+
+    @Test
+    fun `answer is saved when captain submits answer twice`() {
+        game.submitAnswer(session.pin, student, 12)
+        game.submitAnswer(session.pin, student, 42)
+
+        val actualAnswer =
+            game.loadSession(session.pin)
+                .rounds
+                .single { it.roundNumber == 1 }
                 .answers
                 .single()
 
@@ -66,14 +76,7 @@ class SubmitAnswerServiceTest @Autowired constructor(
     @Test
     @Timeout(value = 5, unit = TimeUnit.SECONDS)
     fun `event is sent when answer is submitted`() {
-        val student = game.createUser(UserRole.Student)
-        val session = game.createAndLoadSession { pin ->
-            game.createTeam(pin, captain = student)
-            game.createTeam(pin)
-            game.startCompetition(pin)
-            game.startRound(pin)
-            game.submitAnswer(pin, student, 42)
-        }
+        game.submitAnswer(session.pin, student, 42)
 
         val generatedMessage = runBlocking {
             // если что-то пойдёт не так при получении ивента,
@@ -87,9 +90,8 @@ class SubmitAnswerServiceTest @Autowired constructor(
 
         @Suppress("unused")
         val expectedMessage = object {
-            val teamNumberInGame = 1
             val roundNumber = 1
-            val answer = 42L
+            val answer = 42
         }
 
         assertThat(generatedMessage)

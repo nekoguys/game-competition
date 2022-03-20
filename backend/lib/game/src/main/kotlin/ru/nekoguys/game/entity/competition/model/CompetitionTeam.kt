@@ -9,7 +9,7 @@ data class CompetitionTeam(
     val numberInGame: Int,
     val captain: CompetitionPlayer.TeamCaptain,
     val teamMembers: List<CompetitionPlayer.TeamMember>,
-    val isBanned: Boolean,
+    val banRoundNumber: Int?,
     val password: String,
     val strategy: String?,
 ) {

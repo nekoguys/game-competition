@@ -24,7 +24,7 @@ class CompetitionProcessController(
         produces = [MediaType.TEXT_EVENT_STREAM_VALUE],
     )
     @PreAuthorize("hasRole('STUDENT')")
-    fun competitionRoundEventsFlow(
+    fun competitionRoundEventsStream(
         @PathVariable sessionPin: String,
     ): Flow<ServerSentEvent<RoundEvent>> =
         competitionProcessService
@@ -54,7 +54,7 @@ class CompetitionProcessController(
     )
     @PreAuthorize("hasRole('STUDENT')")
     @OptIn(ExperimentalCoroutinesApi::class)
-    fun studentAllInOneFlow(
+    fun allStudentEventsStream(
         principal: Principal,
         @PathVariable sessionPin: String,
     ): Flow<ServerSentEvent<out Any>> =
@@ -64,7 +64,10 @@ class CompetitionProcessController(
                 .asServerSentEventStream("roundStream"),
             competitionProcessService
                 .myAnswersEventsFlow(sessionPin, principal.name)
-                .asServerSentEventStream("answerStream")
+                .asServerSentEventStream("answerStream"),
+            competitionProcessService
+                .priceEventsFlow(sessionPin)
+                .asServerSentEventStream("pricesStream")
         )
     /*
     @RequestMapping(value = "/student_all_in_one", produces = {MediaType.TEXT_EVENT_STREAM_VALUE})
@@ -102,14 +105,14 @@ class CompetitionProcessController(
         }
 
     @RequestMapping(
-        "/my_results_stream",
+        "/my_answers_stream",
         produces = [MediaType.TEXT_EVENT_STREAM_VALUE]
     )
     @PreAuthorize("hasRole('STUDENT')")
-    fun myAnswersEventStream(
+    fun myAnswersEventsStream(
         principal: Principal,
         @PathVariable sessionPin: String,
-    ): Flow<ServerSentEvent<Any>> =
+    ): Flow<ServerSentEvent<SubmittedAnswerEvent>> =
         competitionProcessService
             .myAnswersEventsFlow(
                 sessionPin = sessionPin,
@@ -117,25 +120,57 @@ class CompetitionProcessController(
             )
             .asServerSentEventStream("answerStream")
 
-    /*
-    @RequestMapping(value = "/my_answers_stream", produces = {MediaType.TEXT_EVENT_STREAM_VALUE})
+    @RequestMapping(
+        "/my_results_stream",
+        produces = [MediaType.TEXT_EVENT_STREAM_VALUE]
+    )
     @PreAuthorize("hasRole('STUDENT')")
-    public Flux<ServerSentEvent<?>> getMyTeamAnswersEvents(Mono<Principal> principalMono, @PathVariable String pin) {
-        return Mono.zip(principalMono, competitionsRepository.findByPin(pin))
-                .flatMapMany(tuple -> {
-                    var comp = tuple.getT2();
-                    var email = tuple.getT1().getName();
-                    var team = this.teamFinder.findTeamForStudent(comp, email);
-                    log.info("REQUEST: /api/competition_process/{}/my_answers_stream, email: {}", pin, email);
+    fun myResultsEventsStream(
+        principal: Principal,
+        @PathVariable sessionPin: String,
+    ): Flow<ServerSentEvent<RoundTeamResultEvent>> =
+        competitionProcessService
+            .myResultsEventsFlow(
+                sessionPin = sessionPin,
+                studentEmail = principal.name,
+            )
+            .asServerSentEventStream("answerStream")
 
-                    if (team.isEmpty()) {
-                        return Flux.empty();
-                    }
 
-                    return gameManagementService.teamsAnswersEvents(comp).filter(roundTeamAnswerDto -> {
-                        return roundTeamAnswerDto.getTeamIdInGame() == team.get().getIdInGame() || roundTeamAnswerDto.getTeamIdInGame() == -1;
-                    });
-                }).map(e -> ServerSentEvent.builder().data(e).id("answerStream").build());
+    @RequestMapping(
+        "/prices_stream",
+        produces = [MediaType.TEXT_EVENT_STREAM_VALUE],
+    )
+    @PreAuthorize("hasRole('STUDENT')")
+    fun priceEventsStream(
+        principal: Principal,
+        @PathVariable sessionPin: String,
+    ): Flow<ServerSentEvent<PriceChangeEvent>> =
+        competitionProcessService
+            .priceEventsFlow(sessionPin)
+            .asServerSentEventStream("priceStream")
+
+    @RequestMapping(
+        "/bans",
+        produces = [MediaType.TEXT_EVENT_STREAM_VALUE]
+    )
+    @PreAuthorize("hasRole('STUDENT')")
+    fun banEventsStream(
+        principal: Principal,
+        @PathVariable sessionPin: String,
+    ): Flow<ServerSentEvent<TeamBanEvent>> =
+        competitionProcessService
+            .bansEventsFlow(sessionPin)
+            .asServerSentEventStream("banStream")
+
+    /*
+    @RequestMapping(value = "/prices_stream", produces = {MediaType.TEXT_EVENT_STREAM_VALUE})
+    @PreAuthorize("hasRole('STUDENT')")
+    public Flux<ServerSentEvent<?>> getPricesEvents(@PathVariable String pin) {
+        log.info("REQUEST: /api/competition_process/{}/prices_stream", pin);
+        return competitionsRepository.findByPin(pin)
+                .flatMapMany(comp -> gameManagementService.getRoundPricesEvents(comp))
+                .map(dto -> ServerSentEvent.builder(dto).id("priceStream").build());
     }
      */
 }

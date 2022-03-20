@@ -11,6 +11,7 @@ import org.springframework.data.r2dbc.core.select
 import org.springframework.data.relational.core.query.Criteria.where
 import org.springframework.data.relational.core.query.Query
 import org.springframework.r2dbc.core.DatabaseClient
+import org.springframework.r2dbc.core.bind
 import org.springframework.stereotype.Repository
 import ru.nekoguys.game.entity.commongame.model.CommonSession
 import ru.nekoguys.game.entity.competition.model.CompetitionRoundAnswer
@@ -23,20 +24,50 @@ class CompetitionRoundAnswerRepositoryImpl(
     private val databaseClient: DatabaseClient,
     private val r2dbcEntityTemplate: R2dbcEntityTemplate,
 ) : CompetitionRoundAnswerRepository {
+
     override suspend fun save(
         answer: CompetitionRoundAnswer
     ) {
         databaseClient
             .sql(
                 """
-                    INSERT INTO competition_round_answers (session_id, round_number, team_id, value) 
-                    VALUES (:sessionId, :roundNumber, :teamId, :value)
+                    INSERT INTO competition_round_answers (session_id, round_number, team_id, value, income) 
+                    VALUES (:sessionId, :roundNumber, :teamId, :value, :income)
                 """.trimIndent()
             )
             .bind("sessionId", answer.sessionId.number)
             .bind("roundNumber", answer.roundNumber)
             .bind("teamId", answer.teamId.number)
             .bind("value", answer.value)
+            .bind(
+                name = "income",
+                value = (answer as? CompetitionRoundAnswer.WithIncome)?.income
+            )
+            .then()
+            .awaitSingleOrNull()
+    }
+
+    override suspend fun update(
+        answer: CompetitionRoundAnswer
+    ) {
+        databaseClient
+            .sql(
+                """
+                    UPDATE competition_round_answers
+                    SET value = :value, income = :income
+                    WHERE session_id = :sessionId
+                    AND round_number = :roundNumber
+                    AND team_id = :teamId
+                """.trimIndent()
+            )
+            .bind("sessionId", answer.sessionId.number)
+            .bind("roundNumber", answer.roundNumber)
+            .bind("teamId", answer.teamId.number)
+            .bind("value", answer.value)
+            .bind(
+                name = "income",
+                value = (answer as? CompetitionRoundAnswer.WithIncome)?.income
+            )
             .then()
             .awaitSingleOrNull()
     }

@@ -99,9 +99,9 @@ CREATE TABLE competition_round_answers
     session_id   BIGINT NOT NULL,
     round_number INT    NOT NULL,
     team_id      BIGINT NOT NULL,
-    value        INT    NOT NULL,
-    income       INT    NULL,
-    PRIMARY KEY (session_id, round_number)
+    value        FLOAT  NOT NULL,
+    income       FLOAT  NULL,
+    PRIMARY KEY (session_id, round_number, team_id)
 );
 
 ALTER TABLE game_sessions

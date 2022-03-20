@@ -29,6 +29,11 @@ object StartRoundResponse : ProcessApiResponse<StartRoundResponse>(HttpStatus.OK
     val message = "Round has started successfully"
 }
 
+object EndRoundResponse : ProcessApiResponse<EndRoundResponse>(HttpStatus.OK) {
+    @Suppress("unused")
+    val message = "Round ended successfully"
+}
+
 data class ChangeRoundLengthRequest(
     val newRoundLength: Int,
 )
@@ -73,7 +78,7 @@ data class CompetitionInfoForStudentResultsTableResponse(
 ) : ProcessApiResponse<CompetitionInfoForResultsTableResponse>(HttpStatus.OK)
 
 data class SubmitAnswerRequest(
-    val answer: Long,
+    val answer: Int,
     val roundNumber: Int,
 )
 
@@ -86,5 +91,23 @@ object SubmitAnswerResponse
 data class SubmittedAnswerEvent(
     val teamIdInGame: Int,
     val roundNumber: Int,
-    val teamAnswer: Long,
+    val teamAnswer: Int,
+)
+
+data class PriceChangeEvent(
+    val roundNumber: Int,
+    val price: Double,
+)
+
+data class RoundTeamResultEvent(
+    val teamIdInGame: Int,
+    val roundNumber: Int,
+    val income: Double,
+)
+
+data class TeamBanEvent(
+    val teamIdInGame: Int,
+    val teamName: String,
+    val roundNumber: Int,
+    val reason: String,
 )

@@ -17,8 +17,9 @@ import ru.nekoguys.game.web.util.REQUEST_ID_CONTEXT_KEY
 class RequestIdFilter : WebFilter {
     override fun filter(exchange: ServerWebExchange, chain: WebFilterChain): Mono<Void> {
         val requestId = exchange.attributes[ServerWebExchange.LOG_ID_ATTRIBUTE]
-        val requestIdString = " [${requestId}]"
+        requestId as String
+        exchange.response.headers.add("X-Request-ID", requestId)
         return chain.filter(exchange)
-            .contextWrite { ctx -> ctx.put(REQUEST_ID_CONTEXT_KEY, requestIdString) }
+            .contextWrite { ctx -> ctx.put(REQUEST_ID_CONTEXT_KEY, requestId) }
     }
 }

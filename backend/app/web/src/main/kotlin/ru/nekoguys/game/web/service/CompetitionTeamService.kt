@@ -3,14 +3,14 @@ package ru.nekoguys.game.web.service
 import kotlinx.coroutines.flow.*
 import org.springframework.stereotype.Service
 import ru.nekoguys.game.entity.commongame.service.SessionPinDecoder
-import ru.nekoguys.game.entity.competition.CompetitionProcessException
-import ru.nekoguys.game.entity.competition.CompetitionProcessService
 import ru.nekoguys.game.entity.competition.model.CompetitionPlayer
 import ru.nekoguys.game.entity.competition.repository.CompetitionPlayerRepository
 import ru.nekoguys.game.entity.competition.repository.CompetitionTeamRepository
 import ru.nekoguys.game.entity.competition.rule.CompetitionCommand
 import ru.nekoguys.game.entity.competition.rule.CompetitionCreateTeamMessage
 import ru.nekoguys.game.entity.competition.rule.CompetitionJoinTeamMessage
+import ru.nekoguys.game.entity.competition.service.CompetitionProcessException
+import ru.nekoguys.game.entity.competition.service.CompetitionProcessService
 import ru.nekoguys.game.entity.user.repository.UserRepository
 import ru.nekoguys.game.web.dto.*
 
