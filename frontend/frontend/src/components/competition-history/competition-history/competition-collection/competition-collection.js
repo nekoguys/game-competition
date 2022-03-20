@@ -20,7 +20,7 @@ class CompetitionCollectionElement extends React.Component {
     }
 
     render() {
-        const {name, state, lastUpdateTime, owned} = this.props.item;
+        const {name, state, lastUpdateTime, isOwned} = this.props.item;
         const {onItemClickCallback = (item) => {}} = this.props;
         const {stateText, additionalClassName = ""} = this.stateMapper(state);
 
@@ -48,7 +48,7 @@ class CompetitionCollectionElement extends React.Component {
             </div>
             stateCloneSpacer = <div className={"spacer-state-clone"}/>
         }
-        const stateAdditionalClasses = owned ? "  state-text-with-clone-button" : "";
+        const stateAdditionalClasses = isOwned ? "  state-text-with-clone-button" : "";
         return <div className={"item-element-container"} onClick={() => {
             console.log("outer div click");
             onItemClickCallback(this.props.item);

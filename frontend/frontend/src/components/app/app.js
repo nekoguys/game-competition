@@ -83,13 +83,13 @@ const historyFetcher = {
                     name: "Конкуренция на рынке пшеницы",
                     state: "Registration",
                     pin: "1234",
-                    owned: true
+                    isOwned: true
                 },
                 {
                     name: "Ко",
                     state: "InProcess",
                     pin: "12345",
-                    owned: true
+                    isOwned: true
                 }
             ])
         }))

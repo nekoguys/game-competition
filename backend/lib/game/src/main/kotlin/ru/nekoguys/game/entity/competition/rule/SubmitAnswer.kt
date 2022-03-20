@@ -34,19 +34,20 @@ class CompetitionSubmitAnswerRule(
             processError("Tried to submit answer in invalid round")
         }
 
-        val currentRoundAnswer = competitionRoundAnswerRepository
-            .find(player.sessionId, player.teamId, currentStage.round)
-        if (currentRoundAnswer != null) {
-            processError("You've already submitted your answer!")
-        }
-
         val newAnswer = CompetitionRoundAnswer.Impl(
             sessionId = player.sessionId,
             teamId = player.teamId,
             roundNumber = currentStage.round,
             value = command.answer,
         )
-        competitionRoundAnswerRepository.save(newAnswer)
+
+        val currentRoundAnswer = competitionRoundAnswerRepository
+            .find(player.sessionId, player.teamId, currentStage.round)
+        if (currentRoundAnswer == null) {
+            competitionRoundAnswerRepository.save(newAnswer)
+        } else {
+            competitionRoundAnswerRepository.update(newAnswer)
+        }
 
         return buildResponse {
             player.teamId {

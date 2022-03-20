@@ -183,7 +183,7 @@ class CompetitionProcessService(
             .load(studentPlayerInfo.teamId)
     }
 
-    fun pricesEventFlow(
+    fun priceEventsFlow(
         sessionPin: String
     ): Flow<PriceChangeEvent> = flow {
         val sessionId = sessionPinDecoder
@@ -198,6 +198,28 @@ class CompetitionProcessService(
                 PriceChangeEvent(
                     roundNumber = msg.roundNumber,
                     price = msg.price,
+                )
+            }
+            .collect(::emit)
+    }
+
+    fun bansEventsFlow(
+        sessionPin: String
+    ): Flow<TeamBanEvent> = flow {
+        val sessionId = sessionPinDecoder
+            .decodeIdFromPin(sessionPin)
+            ?: error("Incorrect pin")
+
+        coreCompetitionProcessService
+            .getAllMessagesForSession(sessionId)
+            .map { it.body }
+            .filterIsInstance<CompetitionTeamBannedMessage>()
+            .map { msg ->
+                TeamBanEvent(
+                    teamIdInGame = msg.teamNumber,
+                    teamName = msg.teamName,
+                    roundNumber = msg.roundNumber,
+                    reason = msg.reason,
                 )
             }
             .collect(::emit)

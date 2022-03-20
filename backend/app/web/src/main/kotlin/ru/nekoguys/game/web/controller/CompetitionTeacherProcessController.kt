@@ -124,11 +124,14 @@ class CompetitionTeacherProcessController(
                 .allTeamsAnswersFlow(sessionPin)
                 .asServerSentEventStream("answerStream"),
             competitionProcessService
-                .pricesEventFlow(sessionPin)
+                .priceEventsFlow(sessionPin)
                 .asServerSentEventStream("pricesStream"),
             competitionTeacherProcessService
                 .allTeamsResultsFlow(sessionPin)
-                .asServerSentEventStream("resultStream")
+                .asServerSentEventStream("resultStream"),
+            competitionProcessService
+                .bansEventsFlow(sessionPin)
+                .asServerSentEventStream("banStream")
         )
 
     /*

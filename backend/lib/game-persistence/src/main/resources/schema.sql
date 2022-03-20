@@ -101,7 +101,7 @@ CREATE TABLE competition_round_answers
     team_id      BIGINT NOT NULL,
     value        FLOAT  NOT NULL,
     income       FLOAT  NULL,
-    PRIMARY KEY (session_id, round_number)
+    PRIMARY KEY (session_id, round_number, team_id)
 );
 
 ALTER TABLE game_sessions

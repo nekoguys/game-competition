@@ -42,7 +42,8 @@ class CompetitionTeamRepositoryImpl(
         val captain = CompetitionPlayer.TeamCaptain(
             sessionId = creator.sessionId,
             user = creator.user,
-            teamId = CompetitionTeam.Id(dbTeam.id!!)
+            teamId = CompetitionTeam.Id(dbTeam.id!!),
+            banRoundNumber = null,
         ).also { competitionPlayerRepository.save(it) }
 
         createCompetitionTeam(
@@ -84,7 +85,7 @@ class CompetitionTeamRepositoryImpl(
                     teamNumber = team.numberInGame,
                     name = team.name,
                     password = team.password,
-                    banRound = null,
+                    banRound = team.banRoundNumber,
                     strategy = team.strategy,
                 )
             }

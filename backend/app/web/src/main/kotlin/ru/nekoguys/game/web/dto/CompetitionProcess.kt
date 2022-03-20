@@ -104,3 +104,10 @@ data class RoundTeamResultEvent(
     val roundNumber: Int,
     val income: Double,
 )
+
+data class TeamBanEvent(
+    val teamIdInGame: Int,
+    val teamName: String,
+    val roundNumber: Int,
+    val reason: String,
+)

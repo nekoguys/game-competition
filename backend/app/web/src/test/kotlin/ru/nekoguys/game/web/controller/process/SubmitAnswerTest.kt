@@ -51,7 +51,7 @@ class SubmitAnswerTest @Autowired constructor(
 
     @Test
     @WithMockUser(username = TestGame.DEFAULT_STUDENT_EMAIL, roles = ["STUDENT"])
-    fun `student can't submit answer twice`() {
+    fun `student can submit answer twice`() {
         game.submitAnswer(sessionPin, student, 42)
         val request = SubmitAnswerRequest(
             answer = 43,
@@ -59,7 +59,7 @@ class SubmitAnswerTest @Autowired constructor(
         )
 
         doSubmitAnswerRequest(request)
-            .expectStatus().isBadRequest
+            .expectStatus().isOk
             .expectBody()
             .jsonPath("$.message").exists()
     }

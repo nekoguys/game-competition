@@ -9,7 +9,6 @@ import ru.nekoguys.game.entity.competition.model.InternalPlayer
 import ru.nekoguys.game.entity.competition.repository.CompetitionRoundRepository
 import ru.nekoguys.game.entity.competition.repository.CompetitionSessionRepository
 import ru.nekoguys.game.entity.competition.repository.load
-import ru.nekoguys.game.entity.competition.service.processError
 import java.time.LocalDateTime
 
 data class CompetitionStageChangedMessage(
@@ -80,7 +79,7 @@ class CompetitionChangeStageRule(
 
         if (session.stage != command.from) {
             with(command) {
-                processError(
+                error(
                     "Illegal Competition State: expected $from, but got $currentStage"
                 )
             }
@@ -93,7 +92,7 @@ suspend fun CompetitionChangeStageRule.changeStage(
     command: CompetitionCommand.ChangeStage,
 ): List<CompGameMessage<CompetitionMessage>> {
     if (player !is InternalPlayer) {
-        processError("Player $player must be internal")
+        error("Player $player must be internal")
     }
     return process(player, command)
 }

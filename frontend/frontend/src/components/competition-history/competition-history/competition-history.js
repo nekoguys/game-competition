@@ -33,7 +33,7 @@ class CompetitionHistory extends React.Component {
                 return {
                     items: prevState.items.concat(resp),
                     itemsLoaded: prevState.itemsLoaded + delta,
-                    isAnyCloneable: prevState.items.concat(resp).some((x) => x.owned)
+                    isAnyCloneable: prevState.items.concat(resp).some((x) => x.isOwned)
                 }
             }, () => this.scrollToBottom())
         })

@@ -2,7 +2,7 @@ package ru.nekoguys.game.entity.competition.rule
 
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
-import org.springframework.stereotype.Service
+import org.springframework.stereotype.Component
 import ru.nekoguys.game.core.GameMessage
 import ru.nekoguys.game.core.GameRule
 import ru.nekoguys.game.entity.commongame.repository.CommonSessionRepository
@@ -66,7 +66,7 @@ typealias CompGameMessage<Msg> = GameMessage<CompetitionTeam.Id, Msg>
 
 typealias CompetitionRule<P, Cmd, Msg> = GameRule<P, Cmd, CompetitionTeam.Id, Msg>
 
-@Service
+@Component
 class CompetitionRootRule(
     private val commonSessionRepository: CommonSessionRepository,
     private val createTeamRule: CompetitionCreateTeamRule,
@@ -84,8 +84,8 @@ class CompetitionRootRule(
         player: CompetitionBasePlayer,
         command: CompetitionCommand,
     ): List<CompGameMessage<CompetitionMessage>> {
-        if (player is BannedCompetitionPlayer) {
-            processError("You were banned!")
+        if (player is CompetitionPlayer.Student && player.banRoundNumber != null) {
+            processError("You were banned in round ${player.banRoundNumber}!")
         }
 
         val result = when (command) {

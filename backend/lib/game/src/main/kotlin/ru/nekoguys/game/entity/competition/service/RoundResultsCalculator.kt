@@ -13,7 +13,7 @@ class RoundResultsCalculator {
             results = roundAnswers
                 .map { it.teamId }
                 .associateWith { 0.0 },
-            bannedTeamIds = listOf(roundAnswers.random().teamId),
+            bannedTeamIds = listOfNotNull(roundAnswers.randomOrNull()?.teamId),
             price = 42.0,
         )
     }

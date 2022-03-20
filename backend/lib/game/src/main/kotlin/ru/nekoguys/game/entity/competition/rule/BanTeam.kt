@@ -9,7 +9,6 @@ import ru.nekoguys.game.entity.competition.model.CompetitionTeam
 import ru.nekoguys.game.entity.competition.model.InternalPlayer
 import ru.nekoguys.game.entity.competition.repository.CompetitionRoundRepository
 import ru.nekoguys.game.entity.competition.repository.CompetitionTeamRepository
-import ru.nekoguys.game.entity.competition.service.processError
 
 data class CompetitionTeamBannedMessage(
     val teamId: CompetitionTeam.Id,
@@ -67,7 +66,7 @@ suspend fun CompetitionBanTeamRule.banTeam(
     command: CompetitionCommand.BanTeams,
 ): List<GameMessage<CompetitionTeam.Id, CompetitionTeamBannedMessage>> {
     if (player !is InternalPlayer) {
-        processError("Player $player must be internal")
+        error("Player $player must be internal")
     }
     return process(player, command)
 }

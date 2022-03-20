@@ -87,6 +87,7 @@ class CompetitionJoinTeamRule(
             sessionId = player.sessionId,
             user = player.user,
             teamId = oldTeam.id,
+            banRoundNumber = null,
         )
         val newTeam = oldTeam.copy(
             teamMembers = oldTeam.teamMembers + newMember

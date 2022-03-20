@@ -24,7 +24,7 @@ class CompetitionProcessController(
         produces = [MediaType.TEXT_EVENT_STREAM_VALUE],
     )
     @PreAuthorize("hasRole('STUDENT')")
-    fun competitionRoundEventsFlow(
+    fun competitionRoundEventsStream(
         @PathVariable sessionPin: String,
     ): Flow<ServerSentEvent<RoundEvent>> =
         competitionProcessService
@@ -54,7 +54,7 @@ class CompetitionProcessController(
     )
     @PreAuthorize("hasRole('STUDENT')")
     @OptIn(ExperimentalCoroutinesApi::class)
-    fun studentAllInOneFlow(
+    fun allStudentEventsStream(
         principal: Principal,
         @PathVariable sessionPin: String,
     ): Flow<ServerSentEvent<out Any>> =
@@ -66,7 +66,7 @@ class CompetitionProcessController(
                 .myAnswersEventsFlow(sessionPin, principal.name)
                 .asServerSentEventStream("answerStream"),
             competitionProcessService
-                .pricesEventFlow(sessionPin)
+                .priceEventsFlow(sessionPin)
                 .asServerSentEventStream("pricesStream")
         )
     /*
@@ -109,7 +109,7 @@ class CompetitionProcessController(
         produces = [MediaType.TEXT_EVENT_STREAM_VALUE]
     )
     @PreAuthorize("hasRole('STUDENT')")
-    fun myAnswersEventStream(
+    fun myAnswersEventsStream(
         principal: Principal,
         @PathVariable sessionPin: String,
     ): Flow<ServerSentEvent<SubmittedAnswerEvent>> =
@@ -125,7 +125,7 @@ class CompetitionProcessController(
         produces = [MediaType.TEXT_EVENT_STREAM_VALUE]
     )
     @PreAuthorize("hasRole('STUDENT')")
-    fun myResultsEventStream(
+    fun myResultsEventsStream(
         principal: Principal,
         @PathVariable sessionPin: String,
     ): Flow<ServerSentEvent<RoundTeamResultEvent>> =
@@ -142,13 +142,26 @@ class CompetitionProcessController(
         produces = [MediaType.TEXT_EVENT_STREAM_VALUE],
     )
     @PreAuthorize("hasRole('STUDENT')")
-    fun pricesEventStream(
+    fun priceEventsStream(
         principal: Principal,
         @PathVariable sessionPin: String,
     ): Flow<ServerSentEvent<PriceChangeEvent>> =
         competitionProcessService
-            .pricesEventFlow(sessionPin)
+            .priceEventsFlow(sessionPin)
             .asServerSentEventStream("priceStream")
+
+    @RequestMapping(
+        "/bans",
+        produces = [MediaType.TEXT_EVENT_STREAM_VALUE]
+    )
+    @PreAuthorize("hasRole('STUDENT')")
+    fun banEventsStream(
+        principal: Principal,
+        @PathVariable sessionPin: String,
+    ): Flow<ServerSentEvent<TeamBanEvent>> =
+        competitionProcessService
+            .bansEventsFlow(sessionPin)
+            .asServerSentEventStream("banStream")
 
     /*
     @RequestMapping(value = "/prices_stream", produces = {MediaType.TEXT_EVENT_STREAM_VALUE})

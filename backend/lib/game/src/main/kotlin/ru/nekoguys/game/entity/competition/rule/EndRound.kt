@@ -59,8 +59,7 @@ class CompetitionEndRoundRule(
 
         for (answer in roundAnswers) {
             val newAnswer = answer.withIncome(results.getValue(answer.teamId))
-            competitionRoundAnswerRepository
-                .update(newAnswer)
+            competitionRoundAnswerRepository.update(newAnswer)
         }
 
         return buildResponse {

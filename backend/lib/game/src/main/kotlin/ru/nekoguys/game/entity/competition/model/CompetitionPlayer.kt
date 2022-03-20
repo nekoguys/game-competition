@@ -44,25 +44,20 @@ sealed interface CompetitionPlayer : CompetitionBasePlayer {
 
     sealed interface Student : CompetitionPlayer {
         val teamId: CompetitionTeam.Id
+        val banRoundNumber: Int?
     }
 
     data class TeamCaptain(
         override val sessionId: CommonSession.Id,
         override val user: User,
         override val teamId: CompetitionTeam.Id,
+        override val banRoundNumber: Int?
     ) : Student
 
     data class TeamMember(
         override val sessionId: CommonSession.Id,
         override val user: User,
         override val teamId: CompetitionTeam.Id,
+        override val banRoundNumber: Int?
     ) : Student
 }
-
-data class BannedCompetitionPlayer(
-    override val sessionId: CommonSession.Id,
-    val user: User,
-    val banRound: Int,
-) : CompetitionBasePlayer
-
-
