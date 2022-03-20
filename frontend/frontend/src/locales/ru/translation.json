@@ -49,8 +49,11 @@
         "seconds": " секунд"
       },
       "send_answer": {
-        "production_in_new_round": "Выпуск в новом раунде"
-      }
+        "production_in_new_round": "Выпуск в новом раунде",
+        "send_answer": "Ваш ответ"
+      },
+      "strategy": "Стратегия",
+      "send_strategy": "Отправить стратегию"
     },
     "teacher": {
       "body": {

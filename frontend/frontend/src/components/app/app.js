@@ -32,6 +32,7 @@ import CreateCompetition from "../create-competition/create-competition";
 import EventSourceMock from "../../helpers/mocks/event-source-mock";
 import EventSourceWrapper from "../../helpers/event-source-wrapper";
 import {isTeacher} from "../../helpers/role-helper";
+import * as Constants from "../../helpers/constants";
 
 const fetcherType = ApiHelper.fetcherType();
 
@@ -57,10 +58,66 @@ const verificationFetcher = {
     mock: (_) => {
         return new Promise(resolve => setTimeout(() => {
             resolve({message: "Подтвержден"})
-        }, 2500) )
+        }, 2500))
     },
     real: (token) => { return apiFetcher(token, (token) => ApiHelper.accountVerification(token)) }
 }[fetcherType];
+
+const competitionProcessStudentCompetitionInfoFetcher = {
+    mock: (_) => {
+        return new Promise(resolve => resolve({
+            teamIdInGame: 1,
+            teamName: "Sample team nae",
+            roundsCount: 20,
+            description: "sample description",
+            name: "Конкуренция на рынке пшеницы",
+            shouldShowResultTable: true,
+            shouldShowResultTableInEnd: true,
+            isCaptain: true,
+            fetchedStrategy: null
+        }))
+    },
+    real: (pin) => {
+        return apiFetcher(pin, (pin) => ApiHelper.studentCompetitionInfo(pin))
+    }
+}["mock"]
+
+const allInOneStudentStream = {
+    mock: (_) => {
+        return new EventSourceMock([
+            {
+                lastEventId: Constants.ROUND_EVENT_ID,
+                type: "newround",
+                roundLength: 66,
+                roundNumber: 1,
+                beginTime: (Math.round((new Date().getTime()) / 1000))
+            },
+            {
+                lastEventId: Constants.ANSWER_EVENT_ID,
+                roundNumber: 1,
+                teamAnswer: 10
+            },
+            {
+                lastEventId: Constants.RESULT_EVENT_ID,
+                roundNumber: 1,
+                income: 100.1
+            },
+            {
+                lastEventId: Constants.PRICE_EVENT_ID,
+                roundNumber: 1,
+                price: 15
+            },
+            {
+                lastEventId: Constants.MESSAGE_EVENT_ID,
+                message: "sample message sample message sample message",
+                sendTime: 1647732566
+            }
+        ], 200)
+    },
+    real: (pin) => {
+        return new EventSourceWrapper(ApiHelper.allInOneStudentStream(pin))
+    }
+}['mock']
 
 const userInfoFetcher = {
     mock: (_) => {
@@ -83,13 +140,13 @@ const historyFetcher = {
                     name: "Конкуренция на рынке пшеницы",
                     state: "Registration",
                     pin: "1234",
-                    owned: true
+                    owned: false
                 },
                 {
                     name: "Ко",
                     state: "InProcess",
                     pin: "12345",
-                    owned: true
+                    owned: false
                 }
             ])
         }))
@@ -204,6 +261,16 @@ const competitionRoundEvents = {
     }
 }[fetcherType]
 
+const submitAnswer = {
+    mock: (_) => new Promise(resolve => resolve({})),
+    real: (pin, answerDTO) => apiFetcher({pin, answerDTO}, ({pin, answerDTO}) => ApiHelper.submitAnswer(pin, answerDTO))
+}['mock']
+
+const submitStrategy = {
+    mock: (_) => new Promise(resolve => resolve({})),
+    real: (strategyDTO) => apiFetcher(strategyDTO, (strategyDTO) => ApiHelper.submitStrategy(strategyDTO))
+}['mock']
+
 const cloneInfoCompetitionFetcher = {
     mock: (_) => {
         return new Promise(resolve => {
@@ -246,7 +313,12 @@ const teamEventsSource = {
                 teamName: "Команда3",
                 teamMembers: ['Гена Букин', 'Клава Кока'],
                 idInGame: 3
-            }
+            },
+            {
+                teamName: "Команда2",
+                teamMembers: ['Бука', 'Злюка', 'Бяка'],
+                idInGame: 2
+            },
         ], 200)
     },
     real: (pin) => {
@@ -387,7 +459,17 @@ const paths = [
     },
     {
         path: "/competitions/process_captain/:pin",
-        component: CompetitionProcessStudentRoot
+        component: CompetitionProcessStudentRoot,
+        props: {
+            fetchers: {
+                competitionInfo: competitionProcessStudentCompetitionInfoFetcher,
+                submitAnswer: submitAnswer,
+                submitStrategy: submitStrategy
+            },
+            eventSources: {
+                allInOneStudentStream: allInOneStudentStream
+            }
+        }
     },
     {
         path: "/auth/verification/:token",

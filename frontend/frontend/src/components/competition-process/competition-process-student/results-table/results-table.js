@@ -65,7 +65,7 @@ class StudentResultsTable extends React.Component {
         }, 0);
         console.log({result});
         return (
-            <table width={"100%"}>
+            <table className={"competition-process-student-results-table"}>
                 <tbody>
                 {this.firstRow(roundsCount)}
                 {this.commonRow(roundsCount, 1, 'q', this.props.answers)}

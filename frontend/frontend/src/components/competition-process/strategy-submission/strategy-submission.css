@@ -1,13 +1,10 @@
-.show-settings {
-    border-radius: 15px;
-    background-color: #48BDFF;
-    text-align: center;
-    padding-left: 20px;
-    margin-top: 10px;
-    min-width: 200px;
+.strategy-submission-button-container {
+    display: flex;
+    justify-content: center;
 }
 
-.form-holder {
-    margin: 0 auto;
-    width: 60%;
+.strategy-submission-button {
+    width: 240px;
+    padding-top: 3px;
+    padding-bottom: 3px;
 }

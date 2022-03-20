@@ -12,7 +12,7 @@ const NewStudentsWaitingRoom = ({eventSources, fetchers, showNotification}) => {
     const {t} = useTranslation();
     const [teamMembers, setTeamMembers] = useState([]);
     const [teamPassword, setTeamPassword] = useState();
-    const [teamName, setTeamName] = useState("Капитанская дочка");
+    const [teamName, setTeamName] = useState("");
     const {pin} = useParams();
     const navigate = useNavigate()
 

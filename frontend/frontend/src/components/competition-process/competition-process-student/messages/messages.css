@@ -1,23 +1,71 @@
-.show-messages {
-    border-radius: 15px;
-    background-color: #48BDFF;
-    text-align: center;
-    padding-left: 20px;
-    margin-top: 10px;
-    min-width: 200px;
+.competition-process-student-toggle-content {
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
-.show-messages:hover {
-    background-color: #4398ff;
-    box-shadow: 1px 1px 5px 0 rgba(0,0,0,0.75);
-}
-
-.count {
+.message-container-unread-count {
     z-index: 1;
     position: absolute;
-    top: -10px;
-    background-color: #d93d00;
+    top: -15px;
+    right: -12px;
     border-radius: 50%;
-    padding-top: 6px;
-    padding-bottom: 6px;
+    width: 30px;
+    height: 30px;
+    background-color: #CFA856;
+    color: rgba(0, 0, 0, 0.6);
+    font-size: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
+
+.competition-process-default-toggle-centered-inner-container {
+    text-align: center;
+}
+
+.competition-process-default-toggle-container {
+    background-color: #BBC2D3;
+    border-radius: 20px;
+    text-align: center;
+    display: inline-block;
+    margin-left: auto;
+    margin-right: auto;
+    font-size: 18px;
+    padding-top: 3px;
+    padding-bottom: 3px;
+    position: relative;
+    user-select: none;
+
+    transition: box-shadow 0.15s ease;
+}
+
+.competition-process-default-toggle-text {
+    display: inline-block;
+    width: 240px;
+    color: rgba(0, 0, 0, 0.6);
+}
+
+.competition-process-default-toggle-container:hover {
+    box-shadow: 1px 2px 2px rgba(0, 0, 0, 0.1);
+}
+
+.competition-process-single-message-container {
+    display: flex;
+    flex-direction: column;
+}
+
+.competition-process-single-message-text {
+    padding-left: 10px;
+    word-break: break-all;
+    margin-bottom: -5px;
+    font-size: 18px;
+    padding-top: 8px;
+}
+
+.competition-process-single-message-date-text {
+    text-align: right;
+    font-size: 11px;
+    padding-right: 20px;
+}
+
