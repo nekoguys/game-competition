@@ -313,7 +313,12 @@ const teamEventsSource = {
                 teamName: "Команда3",
                 teamMembers: ['Гена Букин', 'Клава Кока'],
                 idInGame: 3
-            }
+            },
+            {
+                teamName: "Команда2",
+                teamMembers: ['Бука', 'Злюка', 'Бяка'],
+                idInGame: 2
+            },
         ], 200)
     },
     real: (pin) => {
