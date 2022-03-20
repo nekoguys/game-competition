@@ -68,7 +68,7 @@ class CompetitionJoinTeamRule(
             processError("Wrong team password")
         }
 
-        if (oldTeam.teamMembers.size > maxTeamSize) {
+        if (oldTeam.teamMembers.size + 1 > maxTeamSize) {
             processError(
                 "There are too much team members already, max amount: $maxTeamSize"
             )

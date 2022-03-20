@@ -49,8 +49,11 @@
         "seconds": "sec"
       },
       "send_answer": {
-        "production_in_new_round": "Production in new round"
-      }
+        "production_in_new_round": "Production in new round",
+        "send_answer": "Your answer"
+      },
+      "strategy": "Strategy",
+      "send_strategy": "Submit strategy"
     },
     "teacher": {
       "body": {

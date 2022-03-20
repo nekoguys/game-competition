@@ -53,10 +53,11 @@ export class MessagesListContainer extends React.Component {
     render() {
         const {messages = []} = this.props;
         return (
-            <div style={{paddingRight: "15px"}}>
-                    {messages.map(el => {
-                        return <div key={el.dateStr+el.message} style={{marginTop: "7px"}}><SingleMessageContainer message={el}/></div>
-                    })}
+            <div>
+                {messages.map(el => {
+                    return <div key={el.dateStr + el.message} style={{marginTop: "7px"}}><SingleMessageContainer
+                        message={el}/></div>
+                })}
             </div>
         )
     }
@@ -65,17 +66,13 @@ export class MessagesListContainer extends React.Component {
 class SingleMessageContainer extends React.Component {
     render() {
         const {message} = this.props;
-        const messageStyle = {
-            backgroundColor: "#CACACA",
-            borderRadius: "10px"
-        };
         return (
-            <div style={messageStyle}>
-                <div style={{fontSize: "19px", display: "flex", flexDirection: "column", justifyContent: "space-between", paddingTop: "2px"}}>
-                    <div style={{paddingTop: "2px", paddingLeft: "10px", marginBottom: "-10px", wordBreak: "break-all"}}>
+            <div className={"competition-process-teacher-message-style"}>
+                <div className={"competition-process-single-message-container"}>
+                    <div className={"competition-process-single-message-text"}>
                         {message.message}
                     </div>
-                    <div style={{ textAlign: "right", fontSize: "11px", paddingRight: "20px", paddingTop: "5px"}}>
+                    <div className={"competition-process-single-message-date-text"}>
                         {message.dateStr}
                     </div>
                 </div>

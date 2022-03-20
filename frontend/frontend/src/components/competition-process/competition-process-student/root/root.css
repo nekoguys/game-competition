@@ -1,6 +1,45 @@
-.game-state-holder {
+.competition-process-student-game-state-holder {
     border-radius: 30px;
-    background: #E7E7E7;
-    margin: 20px 80px;
+    background: rgba(223, 220, 223, 0.35);
+    margin: 0 80px;
     padding: 20px 50px 20px 50px;
+}
+
+.competition-process-student-title-and-game-state-holder-spacer {
+    height: 54px;
+}
+
+.competition-process-student-page-title {
+    color: rgba(0, 0, 0, 0.7);
+    text-align: center;
+    margin-top: 42px;
+}
+
+.competition-process-student-round-and-time-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 10px;
+    color: rgba(0, 0, 0, 0.6);
+    font-size: 19px;
+}
+
+.competition-process-student-team-name {
+    color: rgba(0, 0, 0, 0.6);
+    text-align: center;
+    font-size: 24px;
+}
+
+.competition-process-student-round-team-name-spacer {
+    height: 10px;
+}
+
+.competition-process-student-table-wrapper {
+    margin-top: 18px;
+    width: 100%;
+    overflow: auto;
+}
+
+.competition-process-student-table-wrapper > table {
+    color: rgba(0, 0, 0, 0.6);
 }

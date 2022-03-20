@@ -24,7 +24,16 @@ const AfterRegistrationOpenedNewComponent = ({eventSources, fetchers, showNotifi
         const eventSource = eventSources.teams(pin);
         eventSource.subscribe((newTeam) => {
             console.log({newTeam, teams});
-            setTeams(prevValue => [...prevValue, newTeam]);
+            setTeams(prevValue => {
+                const teamsCopy = prevValue;
+                const teamIndex = teamsCopy.map(el => el.idInGame).indexOf(newTeam.idInGame);
+                if (teamIndex === -1) {
+                    return [...prevValue, newTeam];
+                } else {
+                    teamsCopy[teamIndex] = newTeam;
+                    return teamsCopy;
+                }
+            });
         })
 
         return function cleanup() {
