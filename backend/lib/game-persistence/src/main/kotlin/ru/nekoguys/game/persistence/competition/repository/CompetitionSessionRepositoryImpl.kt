@@ -29,7 +29,6 @@ class CompetitionSessionRepositoryImpl(
     private val competitionSettingsRepository: CompetitionSettingsRepository,
     private val competitionTeamRepository: CompetitionTeamRepository,
     private val competitionRoundRepository: CompetitionRoundRepository,
-    @Suppress("SpringJavaInjectionPointsAutowiringInspection")
     private val transactionalOperator: TransactionalOperator,
     private val dbGameSessionRepository: DbGameSessionRepository,
     private val dbCompetitionSessionRepository: DbCompetitionSessionRepository,

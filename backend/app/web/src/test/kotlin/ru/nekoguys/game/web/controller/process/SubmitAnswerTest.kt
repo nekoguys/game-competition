@@ -25,7 +25,7 @@ class SubmitAnswerTest @Autowired constructor(
     lateinit var sessionPin: String
 
     @BeforeEach
-    fun createUsers() {
+    fun createTestData() {
         teacher = game.createUser(UserRole.Teacher, TestGame.DEFAULT_TEACHER_EMAIL)
         student = game.createUser(UserRole.Student, TestGame.DEFAULT_STUDENT_EMAIL)
         sessionPin = game.createSession(teacher = teacher) { pin ->

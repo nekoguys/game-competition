@@ -96,6 +96,16 @@ data class SendAnnouncementResponse(
     val message: String,
 ) : ProcessApiResponse<SendAnnouncementResponse>(HttpStatus.OK)
 
+data class SubmitStrategyRequest(
+    val strategy: String,
+)
+
+object SubmitStrategyResponse
+    : ProcessApiResponse<SubmitStrategyResponse>(HttpStatus.OK) {
+    @Suppress("unused")
+    val message = "Strategy submitted successfully"
+}
+
 data class SubmittedAnswerEvent(
     val teamIdInGame: Int,
     val roundNumber: Int,
