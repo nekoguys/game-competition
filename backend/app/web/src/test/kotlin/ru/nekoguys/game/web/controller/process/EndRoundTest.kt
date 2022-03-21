@@ -26,7 +26,7 @@ class EndRoundTest @Autowired constructor(
     lateinit var session: CompetitionSession.Full
 
     @BeforeEach
-    fun createUsers() {
+    fun createTestData() {
         teacher = game.createUser(UserRole.Teacher, TestGame.DEFAULT_TEACHER_EMAIL)
         student = game.createUser(UserRole.Student)
         session = game.createAndLoadSession(

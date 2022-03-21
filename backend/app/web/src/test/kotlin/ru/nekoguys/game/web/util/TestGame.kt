@@ -236,11 +236,26 @@ class TestGame(
             .isEqualTo(SendAnnouncementResponse("Announcement sent"))
     }
 
+    fun submitStrategy(
+        sessionPin: String,
+        captain: User,
+        strategy: String = "Test strategy",
+    ): Unit = runBlocking {
+        val response = competitionProcessService
+            .submitStrategy(
+                studentEmail = captain.email,
+                sessionPin = sessionPin,
+                strategy = strategy,
+            )
+        assertThat(response)
+            .isEqualTo(SubmitStrategyResponse)
+    }
+
     companion object TestData {
         private val indexCounter = AtomicLong()
 
         const val DEFAULT_ADMIN_EMAIL = "admin@hse.ru"
-        const val DEFAULT_TEACHER_EMAIL = "admin@hse.ru"
+        const val DEFAULT_TEACHER_EMAIL = "teacher@hse.ru"
         const val DEFAULT_STUDENT_EMAIL = "student@edu.hse.ru"
         const val DEFAULT_PASSWORD = "password"
         const val DEFAULT_COMPETITION_NAME = "Test Competition"

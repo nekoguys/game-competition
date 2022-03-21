@@ -50,22 +50,20 @@ class CompetitionSubmitStrategyRule(
                 CompetitionSession.WithStage,
                 CompetitionSession.WithSettings,
             )
-        val currentStage = session.stage
-        val settings = session.settings
 
-        when (currentStage) {
+        when (session.stage) {
             is CompetitionStage.Draft, is CompetitionStage.Registration ->
                 processError("Tried to submit in not started game")
 
             is CompetitionStage.Ended -> {
-                val lastRoundNumber = settings.roundsCount
+                val lastRoundNumber = session.settings.roundsCount
                 val lastRound = competitionRoundRepository
                     .find(sessionId, lastRoundNumber)
                     ?: error("Round $lastRoundNumber not found in session $sessionId")
 
                 val endTime = (lastRound as CompetitionRound.Ended).endTime
                 val now = LocalDateTime.now()
-                if (now.plusMinutes(MINUTES_TO_WAIT).isAfter(endTime)) {
+                if (endTime.plusMinutes(MINUTES_TO_WAIT) < now) {
                     processError("Can't submit strategy, it's too late")
                 }
             }
@@ -74,7 +72,7 @@ class CompetitionSubmitStrategyRule(
     }
 
     companion object {
-        const val MINUTES_TO_WAIT = 30 * 24 * 60L
+        const val MINUTES_TO_WAIT = 10L
         const val MAX_STRATEGY_LENGTH = 300
     }
 }
