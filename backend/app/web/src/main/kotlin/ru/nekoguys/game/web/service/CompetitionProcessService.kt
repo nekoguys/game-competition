@@ -14,6 +14,7 @@ import ru.nekoguys.game.entity.competition.rule.*
 import ru.nekoguys.game.entity.competition.service.CompetitionProcessException
 import ru.nekoguys.game.entity.user.repository.UserRepository
 import ru.nekoguys.game.web.dto.*
+import java.time.LocalDateTime
 import java.time.ZoneOffset
 import ru.nekoguys.game.entity.competition.service.CompetitionProcessService as CoreCompetitionProcessService
 
@@ -167,7 +168,7 @@ class CompetitionProcessService(
 
     private suspend fun getStudentTeam(
         sessionId: CommonSession.Id,
-        studentEmail: String
+        studentEmail: String,
     ): CompetitionTeam {
         val student = userRepository
             .findByEmail(studentEmail)
@@ -184,7 +185,7 @@ class CompetitionProcessService(
     }
 
     fun priceEventsFlow(
-        sessionPin: String
+        sessionPin: String,
     ): Flow<PriceChangeEvent> = flow {
         val sessionId = sessionPinDecoder
             .decodeIdFromPin(sessionPin)
@@ -203,8 +204,27 @@ class CompetitionProcessService(
             .collect(::emit)
     }
 
+    fun announcementsEventsFlow(
+        sessionPin: String,
+    ): Flow<AnnouncementEvent> = flow {
+        val sessionId = sessionPinDecoder
+            .decodeIdFromPin(sessionPin)
+            ?: error("Incorrect pin")
+        coreCompetitionProcessService
+            .getAllMessagesForSession(sessionId)
+            .map { it.body }
+            .filterIsInstance<CompetitionAnnouncementMessage>()
+            .map { msg ->
+                AnnouncementEvent(
+                    message = msg.announcement,
+                    sendTime = LocalDateTime.now().atOffset(ZoneOffset.UTC).toEpochSecond()
+                )
+            }
+            .collect(::emit)
+    }
+
     fun bansEventsFlow(
-        sessionPin: String
+        sessionPin: String,
     ): Flow<TeamBanEvent> = flow {
         val sessionId = sessionPinDecoder
             .decodeIdFromPin(sessionPin)

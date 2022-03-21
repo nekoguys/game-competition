@@ -4,6 +4,7 @@ import kotlinx.coroutines.flow.toList
 import org.springframework.stereotype.Component
 import ru.nekoguys.game.core.GameMessage
 import ru.nekoguys.game.core.util.buildResponse
+import ru.nekoguys.game.core.util.defer
 import ru.nekoguys.game.entity.competition.model.CompetitionBasePlayer
 import ru.nekoguys.game.entity.competition.model.CompetitionTeam
 import ru.nekoguys.game.entity.competition.model.InternalPlayer
@@ -26,7 +27,7 @@ class CompetitionBanTeamRule(
 
     override suspend fun process(
         player: InternalPlayer,
-        command: CompetitionCommand.BanTeams
+        command: CompetitionCommand.BanTeams,
     ): List<GameMessage<CompetitionTeam.Id, CompetitionTeamBannedMessage>> {
         val teams = competitionTeamRepository
             .findAllByIds(command.teamIds.map { it.number })
@@ -56,6 +57,13 @@ class CompetitionBanTeamRule(
                         reason = command.reason,
                     )
                 }
+                defer(
+                    fromPlayer = InternalPlayer(sessionId = player.sessionId),
+                    command = CompetitionCommand.SendAnnouncement(
+                        announcement = " Game: Team ${team.numberInGame}: \"${team.name}\"" +
+                                " is banned for exceeding loss limit"
+                    )
+                )
             }
         }
     }

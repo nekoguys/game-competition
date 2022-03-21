@@ -70,7 +70,10 @@ class CompetitionProcessController(
                 .asServerSentEventStream("answerStream"),
             competitionProcessService
                 .priceEventsFlow(sessionPin)
-                .asServerSentEventStream("pricesStream")
+                .asServerSentEventStream("pricesStream"),
+            competitionProcessService
+                .announcementsEventsFlow(sessionPin)
+                .asServerSentEventStream("messagesStream"),
         )
     /*
     @RequestMapping(value = "/student_all_in_one", produces = {MediaType.TEXT_EVENT_STREAM_VALUE})

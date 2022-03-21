@@ -46,6 +46,10 @@ sealed class CompetitionCommand {
         val teamIds: Collection<CompetitionTeam.Id>,
         val reason: String,
     ) : CompetitionCommand()
+
+    data class SendAnnouncement(
+        val announcement: String,
+    ) : CompetitionCommand()
 }
 
 /**
@@ -80,12 +84,13 @@ class CompetitionRootRule(
     private val endRoundRule: CompetitionEndRoundRule,
     private val startRule: CompetitionStartRule,
     private val banTeamRule: CompetitionBanTeamRule,
+    private val sendAnnouncementRule: SendAnnouncement,
 ) : CompetitionRule<CompetitionBasePlayer, CompetitionCommand, CompetitionMessage> {
 
     object ChangeStageLock : LockableResource()
 
     override suspend fun getLocksFor(
-        command: CompetitionCommand
+        command: CompetitionCommand,
     ): ResourceLocks =
         when (command) {
             is CompetitionCommand.ChangeStage -> ResourceLocks(
@@ -122,6 +127,8 @@ class CompetitionRootRule(
                 banTeamRule.banTeam(player, command)
             is CompetitionCommand.ChangeCompetitionSettings ->
                 changeSettingsRule.changeSettings(player, command)
+            is CompetitionCommand.SendAnnouncement ->
+                sendAnnouncementRule.sendAnnouncement(player, command)
         }
 
         commonSessionRepository
