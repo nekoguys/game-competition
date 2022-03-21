@@ -4,6 +4,7 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 import org.springframework.stereotype.Repository
 import org.springframework.transaction.reactive.TransactionalOperator
 import org.springframework.transaction.reactive.executeAndAwait
@@ -18,7 +19,6 @@ import ru.nekoguys.game.persistence.competition.model.DbCompetitionTeam
 class CompetitionTeamRepositoryImpl(
     private val competitionPlayerRepository: CompetitionPlayerRepository,
     private val dbCompetitionTeamRepository: DbCompetitionTeamRepository,
-    @Suppress("SpringJavaInjectionPointsAutowiringInspection")
     private val transactionalOperator: TransactionalOperator,
 ) : CompetitionTeamRepository {
 
@@ -65,40 +65,42 @@ class CompetitionTeamRepositoryImpl(
     override suspend fun update(
         teamsDiff: Collection<Pair<CompetitionTeam, CompetitionTeam>>,
     ): Unit = transactionalOperator.executeAndAwait {
-        teamsDiff
-            .filter { (from, to) ->
-                require(from.id == to.id)
-                require(from.sessionId == to.sessionId)
-                require(from.numberInGame == to.numberInGame)
-                require(from.captain == to.captain)
+        coroutineScope {
+            teamsDiff
+                .filter { (from, to) ->
+                    require(from.id == to.id)
+                    require(from.sessionId == to.sessionId)
+                    require(from.numberInGame == to.numberInGame)
+                    require(from.captain == to.captain)
 
-                from.name != to.name
-                        || from.captain != to.captain
-                        || from.teamMembers != to.teamMembers
-                        || from.banRoundNumber != to.banRoundNumber
-                        || from.strategy != to.strategy
-            }
-            .map { (_, team) ->
-                DbCompetitionTeam(
-                    id = team.id.number,
-                    sessionId = team.sessionId.number,
-                    teamNumber = team.numberInGame,
-                    name = team.name,
-                    password = team.password,
-                    banRound = team.banRoundNumber,
-                    strategy = team.strategy,
-                )
-            }
-            .let { dbCompetitionTeamRepository.saveAll(it) }
-            .collect()
-
-        teamsDiff
-            .forEach { (from, to) ->
-                val newTeamMembers = to.teamMembers - from.teamMembers.toSet()
-                for (teamMember in newTeamMembers) {
-                    competitionPlayerRepository.save(teamMember)
+                    from.name != to.name
+                            || from.captain != to.captain
+                            || from.teamMembers != to.teamMembers
+                            || from.banRoundNumber != to.banRoundNumber
+                            || from.strategy != to.strategy
                 }
-            }
+                .forEach { (_, team) ->
+                    val dbTeam = DbCompetitionTeam(
+                        id = team.id.number,
+                        sessionId = team.sessionId.number,
+                        teamNumber = team.numberInGame,
+                        name = team.name,
+                        password = team.password,
+                        banRound = team.banRoundNumber,
+                        strategy = team.strategy,
+                    )
+
+                    launch { dbCompetitionTeamRepository.save(dbTeam) }
+                }
+
+            teamsDiff
+                .forEach { (from, to) ->
+                    val newTeamMembers = to.teamMembers - from.teamMembers.toSet()
+                    for (teamMember in newTeamMembers) {
+                        launch { competitionPlayerRepository.save(teamMember) }
+                    }
+                }
+        }
     }!!
 
     override fun findAllByIds(

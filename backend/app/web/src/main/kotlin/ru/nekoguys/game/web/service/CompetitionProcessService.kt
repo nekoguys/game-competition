@@ -44,6 +44,20 @@ class CompetitionProcessService(
             onSuccess = SubmitAnswerResponse,
         )
 
+    suspend fun submitStrategy(
+        studentEmail: String,
+        sessionPin: String,
+        strategy: String
+    ): ProcessApiResponse<SubmitStrategyResponse> =
+        doCommand(
+            sessionPin = sessionPin,
+            studentEmail = studentEmail,
+            command = CompetitionCommand.SubmitStrategy(
+                strategy = strategy,
+            ),
+            onSuccess = SubmitStrategyResponse,
+        )
+
     fun competitionRoundEventsFlow(
         sessionPin: String,
     ): Flow<RoundEvent> = flow {

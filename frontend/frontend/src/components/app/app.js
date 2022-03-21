@@ -269,7 +269,7 @@ const submitAnswer = {
 
 const submitStrategy = {
     mock: (_) => new Promise(resolve => resolve({})),
-    real: (strategyDTO) => apiFetcher(strategyDTO, (strategyDTO) => ApiHelper.submitStrategy(strategyDTO))
+    real: (strategyDTO, pin) => apiFetcher(strategyDTO, (strategyDTO) => ApiHelper.submitStrategy(strategyDTO, pin))
 }[fetcherType]
 
 const cloneInfoCompetitionFetcher = {

@@ -88,6 +88,16 @@ object SubmitAnswerResponse
     val message = "Answer submitted successfully"
 }
 
+data class SubmitStrategyRequest(
+    val strategy: String,
+)
+
+object SubmitStrategyResponse
+    : ProcessApiResponse<SubmitStrategyResponse>(HttpStatus.OK) {
+    @Suppress("unused")
+    val message = "Strategy submitted successfully"
+}
+
 data class SubmittedAnswerEvent(
     val teamIdInGame: Int,
     val roundNumber: Int,

@@ -42,6 +42,10 @@ sealed class CompetitionCommand {
         val currentRound: Int,
     ) : CompetitionCommand()
 
+    data class SubmitStrategy(
+        val strategy: String
+    ) : CompetitionCommand()
+
     data class BanTeams(
         val teamIds: Collection<CompetitionTeam.Id>,
         val reason: String,
@@ -75,6 +79,7 @@ class CompetitionRootRule(
     private val changeStageRule: CompetitionChangeStageRule,
     private val joinTeamRule: CompetitionJoinTeamRule,
     private val submitAnswerRule: CompetitionSubmitAnswerRule,
+    private val submitStrategyRule: CompetitionSubmitStrategyRule,
     private val changeSettingsRule: CompetitionChangeSettingsRule,
     private val startRoundRule: CompetitionStartRoundRule,
     private val endRoundRule: CompetitionEndRoundRule,
@@ -118,6 +123,8 @@ class CompetitionRootRule(
                 endRoundRule.endRound(player)
             is CompetitionCommand.SubmitAnswer ->
                 submitAnswerRule.submitAnswer(player, command)
+            is CompetitionCommand.SubmitStrategy ->
+                submitStrategyRule.submitStrategy(player, command)
             is CompetitionCommand.BanTeams ->
                 banTeamRule.banTeam(player, command)
             is CompetitionCommand.ChangeCompetitionSettings ->
