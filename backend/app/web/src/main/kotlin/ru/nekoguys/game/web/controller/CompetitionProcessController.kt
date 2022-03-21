@@ -19,17 +19,6 @@ import java.security.Principal
 class CompetitionProcessController(
     private val competitionProcessService: CompetitionProcessService,
 ) {
-    @RequestMapping(
-        "/rounds_stream",
-        produces = [MediaType.TEXT_EVENT_STREAM_VALUE],
-    )
-    @PreAuthorize("hasRole('STUDENT')")
-    fun competitionRoundEventsStream(
-        @PathVariable sessionPin: String,
-    ): Flow<ServerSentEvent<RoundEvent>> =
-        competitionProcessService
-            .competitionRoundEventsFlow(sessionPin)
-            .asServerSentEventStream("roundStream")
 
     @GetMapping(
         "/student_comp_info",
@@ -45,6 +34,27 @@ class CompetitionProcessController(
                 .getStudentCompInfo(
                     studentEmail = principal.name,
                     sessionPin = sessionPin,
+                )
+        }
+
+    @PostMapping(
+        "/submit_answer",
+        consumes = [MediaType.APPLICATION_JSON_VALUE],
+        produces = [MediaType.APPLICATION_JSON_VALUE],
+    )
+    @PreAuthorize("hasRole('STUDENT')")
+    suspend fun submitAnswer(
+        principal: Principal,
+        @PathVariable sessionPin: String,
+        @RequestBody request: SubmitAnswerRequest,
+    ): ResponseEntity<ProcessApiResponse<SubmitAnswerResponse>> =
+        wrapServiceCall {
+            competitionProcessService
+                .submitAnswer(
+                    studentEmail = principal.name,
+                    sessionPin = sessionPin,
+                    roundNumber = request.roundNumber,
+                    answer = request.answer,
                 )
         }
 
@@ -95,81 +105,4 @@ class CompetitionProcessController(
                 .announcementsEventsFlow(sessionPin)
                 .asServerSentEventStream("messagesStream"),
         )
-
-    @PostMapping(
-        "/submit_answer",
-        consumes = [MediaType.APPLICATION_JSON_VALUE],
-        produces = [MediaType.APPLICATION_JSON_VALUE],
-    )
-    @PreAuthorize("hasRole('STUDENT')")
-    suspend fun submitAnswer(
-        principal: Principal,
-        @PathVariable sessionPin: String,
-        @RequestBody request: SubmitAnswerRequest,
-    ): ResponseEntity<ProcessApiResponse<SubmitAnswerResponse>> =
-        wrapServiceCall {
-            competitionProcessService
-                .submitAnswer(
-                    studentEmail = principal.name,
-                    sessionPin = sessionPin,
-                    roundNumber = request.roundNumber,
-                    answer = request.answer,
-                )
-        }
-
-    @RequestMapping(
-        "/my_answers_stream",
-        produces = [MediaType.TEXT_EVENT_STREAM_VALUE]
-    )
-    @PreAuthorize("hasRole('STUDENT')")
-    fun myAnswersEventsStream(
-        principal: Principal,
-        @PathVariable sessionPin: String,
-    ): Flow<ServerSentEvent<SubmittedAnswerEvent>> =
-        competitionProcessService
-            .myAnswersEventsFlow(
-                sessionPin = sessionPin,
-                studentEmail = principal.name,
-            )
-            .asServerSentEventStream("answerStream")
-
-    @RequestMapping(
-        "/my_results_stream",
-        produces = [MediaType.TEXT_EVENT_STREAM_VALUE]
-    )
-    @PreAuthorize("hasRole('STUDENT')")
-    fun myResultsEventsStream(
-        principal: Principal,
-        @PathVariable sessionPin: String,
-    ): Flow<ServerSentEvent<RoundTeamResultEvent>> =
-        competitionProcessService
-            .myResultsEventsFlow(sessionPin, principal.name)
-            .asServerSentEventStream("answerStream")
-
-
-    @RequestMapping(
-        "/prices_stream",
-        produces = [MediaType.TEXT_EVENT_STREAM_VALUE],
-    )
-    @PreAuthorize("hasRole('STUDENT')")
-    fun priceEventsStream(
-        principal: Principal,
-        @PathVariable sessionPin: String,
-    ): Flow<ServerSentEvent<PriceChangeEvent>> =
-        competitionProcessService
-            .priceEventsFlow(sessionPin)
-            .asServerSentEventStream("priceStream")
-
-    @RequestMapping(
-        "/bans",
-        produces = [MediaType.TEXT_EVENT_STREAM_VALUE]
-    )
-    @PreAuthorize("hasRole('STUDENT')")
-    fun banEventsStream(
-        principal: Principal,
-        @PathVariable sessionPin: String,
-    ): Flow<ServerSentEvent<TeamBanEvent>> =
-        competitionProcessService
-            .bansEventsFlow(sessionPin)
-            .asServerSentEventStream("banStream")
 }

@@ -21,6 +21,21 @@ class CompetitionTeacherProcessController(
     private val competitionProcessService: CompetitionProcessService,
     private val competitionTeacherProcessService: CompetitionTeacherProcessService,
 ) {
+    @GetMapping(
+        value = ["/comp_info", "/teacher_comp_info"],
+        produces = [MediaType.APPLICATION_JSON_VALUE],
+    )
+    @PreAuthorize("hasRole('TEACHER')")
+    suspend fun getTeacherCompInfo(
+        @PathVariable sessionPin: String,
+    ): ResponseEntity<CompetitionInfoForResultsTableResponse> =
+        wrapServiceCall {
+            competitionTeacherProcessService
+                .getTeacherCompInfo(
+                    sessionPin = sessionPin,
+                )
+        }
+
     @PostMapping(
         "/start_competition",
         produces = [MediaType.APPLICATION_JSON_VALUE],
@@ -91,27 +106,12 @@ class CompetitionTeacherProcessController(
                 )
         }
 
-    @GetMapping(
-        value = ["/comp_info", "/teacher_comp_info"],
-        produces = [MediaType.APPLICATION_JSON_VALUE],
-    )
-    @PreAuthorize("hasRole('TEACHER')")
-    suspend fun getTeacherCompInfo(
-        @PathVariable sessionPin: String,
-    ): ResponseEntity<CompetitionInfoForResultsTableResponse> =
-        wrapServiceCall {
-            competitionTeacherProcessService
-                .getTeacherCompInfo(
-                    sessionPin = sessionPin,
-                )
-        }
-
     @PostMapping(
         "/send_message",
         produces = [MediaType.APPLICATION_JSON_VALUE]
     )
     @PreAuthorize("hasRole('TEACHER')")
-    suspend fun sendAnnouncementRequest(
+    suspend fun sendAnnouncement(
         principal: Principal,
         @PathVariable sessionPin: String,
         @RequestBody request: SendAnnouncementRequest,
@@ -154,30 +154,4 @@ class CompetitionTeacherProcessController(
                 .announcementsEventsFlow(sessionPin)
                 .asServerSentEventStream("messagesStream"),
         )
-
-    // TODO: restart_game
-
-    @RequestMapping(
-        "/answers_stream",
-        produces = [MediaType.TEXT_EVENT_STREAM_VALUE]
-    )
-    @PreAuthorize("hasRole('TEACHER')")
-    fun allTeamsAnswersEvents(
-        @PathVariable sessionPin: String,
-    ): Flow<ServerSentEvent<SubmittedAnswerEvent>> =
-        competitionTeacherProcessService
-            .allTeamsAnswersFlow(sessionPin)
-            .asServerSentEventStream("answerStream")
-
-    @RequestMapping(
-        "/results_stream",
-        produces = [MediaType.TEXT_EVENT_STREAM_VALUE]
-    )
-    @PreAuthorize("hasRole('TEACHER')")
-    fun allTeamsResultsEvents(
-        @PathVariable sessionPin: String,
-    ): Flow<ServerSentEvent<RoundTeamResultEvent>> =
-        competitionTeacherProcessService
-            .allTeamsResultsFlow(sessionPin)
-            .asServerSentEventStream("resultStream")
 }

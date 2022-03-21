@@ -14,12 +14,12 @@ import ru.nekoguys.game.entity.competition.repository.load
 class CompetitionChangeSettingsRule(
     private val competitionSettingsRepository: CompetitionSettingsRepository,
     private val competitionSessionRepository: CompetitionSessionRepository,
-) : CompetitionRule<CompetitionPlayer.Teacher, CompetitionCommand.ChangeCompetitionSettings, CompetitionMessage> {
+) : CompetitionRule<CompetitionPlayer.Teacher, CompetitionCommand.ChangeCompetitionSettings, Nothing> {
 
     override suspend fun process(
         player: CompetitionPlayer.Teacher,
         command: CompetitionCommand.ChangeCompetitionSettings,
-    ): List<GameMessage<CompetitionTeam.Id, CompetitionMessage>> {
+    ): List<GameMessage<CompetitionTeam.Id, Nothing>> {
 
         val competition = competitionSessionRepository.load(
             id = player.sessionId,
@@ -36,7 +36,7 @@ class CompetitionChangeSettingsRule(
 suspend fun CompetitionChangeSettingsRule.changeSettings(
     player: CompetitionBasePlayer,
     command: CompetitionCommand.ChangeCompetitionSettings,
-): List<CompGameMessage<CompetitionMessage>> {
+): List<CompGameMessage<Nothing>> {
     require(player is CompetitionPlayer.Teacher) { "Player $player must be teacher" }
     return process(player, command)
 }
