@@ -65,7 +65,7 @@ class CompetitionService(
             )
             .sortedByDescending { it.lastModified }
             .map {
-                createCompetitionHistoryResponseItem(
+                createGetCompetitionResponseItem(
                     settings = it.settings,
                     stage = it.stage,
                     lastModified = it.lastModified,
@@ -103,7 +103,7 @@ class CompetitionService(
             .findAll(listOf(id), CompetitionSession.Full)
             .singleOrNull()
             ?.run {
-                createCompetitionHistoryResponseItem(
+                createGetCompetitionResponseItem(
                     settings = this.settings,
                     stage = this.stage,
                     lastModified = this.lastModified,
@@ -136,7 +136,7 @@ class CompetitionService(
                 id = sessionId,
                 CompetitionSession.Full
             ).run {
-                createCompetitionHistoryResponseItem(
+                createGetCompetitionResponseItem(
                     settings = this.settings,
                     stage = this.stage,
                     lastModified = this.lastModified,
@@ -204,13 +204,13 @@ private val CompetitionSettings.expensesFormulaString: String
         expensesFormula.freeCoefficient.toString(),
     ).joinToString(";")
 
-private fun createCompetitionHistoryResponseItem(
+private fun createGetCompetitionResponseItem(
     settings: CompetitionSettings,
     stage: CompetitionStage,
     lastModified: LocalDateTime,
     @Suppress("SameParameterValue") isOwned: Boolean,
     pin: String,
-) =
+): GetCompetitionResponse =
     GetCompetitionResponse(
         demandFormula = settings.demandFormulaString,
         expensesFormula = settings.expensesFormulaString,

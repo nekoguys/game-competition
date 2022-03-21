@@ -105,4 +105,16 @@ class CompetitionProcessController(
                 .announcementsEventsFlow(sessionPin)
                 .asServerSentEventStream("messagesStream"),
         )
+
+    @RequestMapping(
+        "/rounds_stream",
+        produces = [MediaType.TEXT_EVENT_STREAM_VALUE],
+    )
+    @PreAuthorize("hasRole('STUDENT')")
+    fun competitionRoundEventsStream(
+        @PathVariable sessionPin: String,
+    ): Flow<ServerSentEvent<RoundEvent>> =
+        competitionProcessService
+            .competitionRoundEventsFlow(sessionPin)
+            .asServerSentEventStream("roundStream")
 }

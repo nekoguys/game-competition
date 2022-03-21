@@ -128,16 +128,17 @@ class CompetitionTeacherProcessService(
 
         competitionProcessService
             .getAllMessagesForSession(sessionId)
-            .collect {
-                val msg = it.body
-                val teamId = it.players.single()
+            .collect { gameMessage ->
+                val msg = gameMessage.body
                 if (msg is CompetitionAnswerSubmittedMessage) {
-                    val event = SubmittedAnswerEvent(
-                        teamIdInGame = teamNumberById.getValue(teamId),
-                        roundNumber = msg.roundNumber,
-                        teamAnswer = msg.answer,
-                    )
-                    emit(event)
+                    for (teamId in gameMessage.players) {
+                        val event = SubmittedAnswerEvent(
+                            teamIdInGame = teamNumberById.getValue(teamId),
+                            roundNumber = msg.roundNumber,
+                            teamAnswer = msg.answer,
+                        )
+                        emit(event)
+                    }
                 }
             }
     }
@@ -156,16 +157,17 @@ class CompetitionTeacherProcessService(
 
         competitionProcessService
             .getAllMessagesForSession(sessionId)
-            .collect {
-                val msg = it.body
-                val teamId = it.players.single()
+            .collect { gameMessage ->
+                val msg = gameMessage.body
                 if (msg is CompetitionRoundResultsMessage) {
-                    val event = RoundTeamResultEvent(
-                        teamIdInGame = teamNumberById.getValue(teamId),
-                        roundNumber = msg.roundNumber,
-                        income = msg.income,
-                    )
-                    emit(event)
+                    for (teamId in gameMessage.players) {
+                        val event = RoundTeamResultEvent(
+                            teamIdInGame = teamNumberById.getValue(teamId),
+                            roundNumber = msg.roundNumber,
+                            income = msg.income,
+                        )
+                        emit(event)
+                    }
                 }
             }
     }
