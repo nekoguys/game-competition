@@ -68,8 +68,8 @@
         "seconds": "sec"
       },
       "round_length": {
-        "change_length": "Change round's length",
-        "current_length": "Current round's length"
+        "change_length": "Change round duration",
+        "current_length": "Current duration is"
       },
       "messages": {
         "message": "Messages for students"

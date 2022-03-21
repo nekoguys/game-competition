@@ -1,67 +1,43 @@
-import React from "react";
+import React, {useEffect, useState} from "react";
 
 import "./root.css";
-import {NavbarHeaderWithFetcher as NavbarHeader} from "../../../app/app";
-import CompetitionProcessTeacherBody from "../body";
+import {CompetitionProcessTeacherBodyNew, NavbarHeaderWithFetcher} from "../../../app/app";
 import withRedirect from "../../../../helpers/redirect-helper";
-import showNotification from "../../../../helpers/notification-helper";
-import {withTranslation} from "react-i18next";
+import {useNavigate, useParams} from "react-router";
 
-class CompetitionProcessTeacherRootComponent extends React.Component {
-    constructor(props) {
-        super(props);
+const CompetitionProcessTeacherRootNew = ({showNotification}) => {
+    const [didEnd, setDidEnd] = useState(false);
+    const [competitionName, setCompetitionName] = useState("Конкуренция на рынке пшеницы");
+    const navigate = useNavigate();
+    const {pin} = useParams();
 
-        this.state = {
-            competitionName: "",
-            didEnd: false
+    useEffect((prevDidEnd) => {
+        if (didEnd && !prevDidEnd) {
+            showNotification().success("Attention", "Game has ended", 2500);
+            setTimeout(() => {
+                navigate("/competition/results/" + pin);
+            }, 2500);
         }
-    }
+    }, [didEnd])
 
-    updateCompetitionNameCallback = (name) => {
-        this.setState({competitionName: name});
-    };
-
-    onRedirectToResultsPage = () => {
-        this.setState(prevState => {
-           if (!prevState.didEnd) {
-               showNotification(this).success("Game over", "Game over", 2500);
-
-               setTimeout(() => {
-                   const {pin} = this.props.match.params;
-                   this.props.history("/competitions/results/" + pin);
-               }, 2500);
-               return {didEnd: true};
-           }
-        });
-    };
-
-    render() {
-        const {pin} = this.props.match.params;
-        const {competitionName} = this.state;
-
-        return (
+    return (
+        <div>
             <div>
-                <div>
-                    <NavbarHeader/>
+                <NavbarHeaderWithFetcher/>
+            </div>
+            <div className={"below-navbar"}>
+                <div className={"page-title competition-process-student-page-title"}>
+                    {competitionName + " №" + pin}
                 </div>
-                <div style={{paddingTop: "80px"}}>
-                    <div style={{fontSize: "26px"}}>
-                        <div style={{textAlign: "center"}}>
-                            {this.props.i18n.t("competition_process.teacher.root.game") + competitionName}
-                        </div>
-                        <div style={{textAlign: "center"}}>
-                            {"ID: " + pin}
-                        </div>
-                    </div>
 
-
-                    <div>
-                        <CompetitionProcessTeacherBody showNotification={this.props.showNotification} onEndCallback={this.onRedirectToResultsPage} pin={pin} updateCompetitionNameCallback={this.updateCompetitionNameCallback}/>
-                    </div>
+                <div>
+                    <CompetitionProcessTeacherBodyNew showNotification={showNotification}
+                                                      onEndCallback={() => setDidEnd(true)} pin={pin}
+                                                      updateCompetitionNameCallback={(name) => setCompetitionName(name)}/>
                 </div>
             </div>
-        )
-    }
+        </div>
+    )
 }
 
-export default withTranslation('translation')(withRedirect(CompetitionProcessTeacherRootComponent));
+export default (withRedirect(CompetitionProcessTeacherRootNew));

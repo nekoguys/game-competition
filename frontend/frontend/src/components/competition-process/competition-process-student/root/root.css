@@ -43,3 +43,41 @@
 .competition-process-student-table-wrapper > table {
     color: rgba(0, 0, 0, 0.6);
 }
+
+.competition-process-student-table-messages-spacer {
+    height: 35px;
+}
+
+@media (max-width: 500px) {
+    .competition-process-student-game-state-holder {
+        margin-left: 15px;
+        margin-right: 15px;
+        border-radius: 10px;
+        padding: 15px;
+    }
+
+    .competition-process-student-page-title {
+        margin-top: 15px;
+    }
+
+    .competition-process-student-title-and-game-state-holder-spacer {
+        height: 20px;
+    }
+
+    .competition-process-student-round-and-time-container {
+        font-size: 15px;
+    }
+
+    .competition-process-student-team-name {
+        font-size: 18px;
+    }
+
+    .competition-process-student-table-wrapper {
+        font-size: 0.9rem;
+        margin-top: 10px;
+    }
+
+    .competition-process-student-table-messages-spacer {
+        height: 20px;
+    }
+}

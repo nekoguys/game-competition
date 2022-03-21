@@ -1,9 +1,20 @@
 .current-round-length-container {
     font-size: 19px;
     text-align: center;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    padding-top: 2px;
-    margin-right: 15px;
+    color: rgba(0, 0, 0, 0.6);
+}
+
+.current-round-length__input-container {
+    width: 360px;
+    margin: 0 auto;
+    border-radius: 20px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    background-color: white;
+}
+
+.game-id-form__input-img {
+    width: 32px;
+    height: 32px;
+    content: url("data:image/svg+xml,%3Csvg width='35' height='35' viewBox='0 0 35 35' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='17.5' cy='17.5' r='17.5' fill='%23BBC2D3'/%3E%3Cpath d='M18 27V18V9M18 9L11 15M18 9L25 15' stroke='white' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E%0A");
 }
