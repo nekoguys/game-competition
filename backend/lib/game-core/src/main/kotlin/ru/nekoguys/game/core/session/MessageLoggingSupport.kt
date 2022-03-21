@@ -1,7 +1,6 @@
 package ru.nekoguys.game.core.session
 
 import kotlinx.coroutines.flow.*
-import org.slf4j.LoggerFactory
 import ru.nekoguys.game.core.GameCommandRequest
 import ru.nekoguys.game.core.GameMessage
 import ru.nekoguys.game.core.GameMessageImpl
@@ -66,18 +65,10 @@ internal class GameSessionWithMessagesFromLog<in P, in Cmd, P2, Msg>(
 
     override fun getAllMessagesIndexed(): Flow<IndexedValue<GameMessage<P2, Msg>>> =
         flow {
-            var messagesFromLogCount = 0
-
             getIndexedMessagesFromLog()
-                .onEach { ++messagesFromLogCount }
                 .also { emitAll(it) }
 
             getIndexedMessagesFromSession(startIndex = messageLog.currentSessionOffset)
-                .onEach { (index, _) ->
-                    if (index != messagesFromLogCount++) {
-                        logger.warn("Some messages were lost")
-                    }
-                }
                 .also { emitAll(it) }
         }
 
@@ -91,8 +82,4 @@ internal class GameSessionWithMessagesFromLog<in P, in Cmd, P2, Msg>(
         innerSession
             .getAllMessagesIndexed()
             .drop(startIndex)
-
-    private companion object {
-        private val logger = LoggerFactory.getLogger(GameSessionWithMessageLogging::class.java)
-    }
 }

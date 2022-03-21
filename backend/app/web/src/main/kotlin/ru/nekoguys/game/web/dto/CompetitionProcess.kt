@@ -48,7 +48,7 @@ sealed class RoundEvent {
     data class NewRound(
         val roundLength: Int,
         val beginTime: Long,
-        val roundNumber: Int
+        val roundNumber: Int,
     ) : RoundEvent()
 
     data class EndRound(
@@ -88,6 +88,14 @@ object SubmitAnswerResponse
     val message = "Answer submitted successfully"
 }
 
+data class SendAnnouncementRequest(
+    val message: String,
+)
+
+data class SendAnnouncementResponse(
+    val message: String,
+) : ProcessApiResponse<SendAnnouncementResponse>(HttpStatus.OK)
+
 data class SubmitStrategyRequest(
     val strategy: String,
 )
@@ -120,4 +128,9 @@ data class TeamBanEvent(
     val teamName: String,
     val roundNumber: Int,
     val reason: String,
+)
+
+data class AnnouncementEvent(
+    val message: String,
+    val sendTime: Long,
 )

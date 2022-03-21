@@ -106,6 +106,24 @@ class CompetitionTeacherProcessController(
                 )
         }
 
+    @PostMapping(
+        "/send_message",
+        produces = [MediaType.APPLICATION_JSON_VALUE]
+    )
+    @PreAuthorize("hasRole('TEACHER')")
+    suspend fun sendAnnouncementRequest(
+        principal: Principal,
+        @PathVariable sessionPin: String,
+        @RequestBody request: SendAnnouncementRequest,
+    ): ResponseEntity<ProcessApiResponse<SendAnnouncementResponse>> =
+        wrapServiceCall {
+            competitionTeacherProcessService.sendAnnouncement(
+                teacherEmail = principal.name,
+                sessionPin = sessionPin,
+                announcement = request.message,
+            )
+        }
+
     @RequestMapping(
         "/teacher_all_in_one",
         produces = [MediaType.TEXT_EVENT_STREAM_VALUE],
@@ -131,21 +149,12 @@ class CompetitionTeacherProcessController(
                 .asServerSentEventStream("resultStream"),
             competitionProcessService
                 .bansEventsFlow(sessionPin)
-                .asServerSentEventStream("banStream")
+                .asServerSentEventStream("banStream"),
+            competitionProcessService
+                .announcementsEventsFlow(sessionPin)
+                .asServerSentEventStream("messagesStream"),
         )
 
-    /*
-    return Flux.merge(
-                getTeamsAnswers(pin),
-                getResultsEvents(pin),
-                getCompetitionRoundEvents(pin),
-                getCompetitionMessages(pin),
-                getPricesEvents(pin),
-                getBanEvents(pin)
-        );
-     */
-
-    // TODO: send_message
     // TODO: restart_game
 
     @RequestMapping(
