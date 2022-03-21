@@ -34,11 +34,11 @@ class CompetitionSubmitAnswerRule(
             processError("Tried to submit answer in invalid round")
         }
 
-        val newAnswer = CompetitionRoundAnswer.Impl(
+        val newAnswer = CompetitionRoundAnswer.WithoutIncome(
             sessionId = player.sessionId,
             teamId = player.teamId,
             roundNumber = currentStage.round,
-            value = command.answer,
+            production = command.answer,
         )
 
         val currentRoundAnswer = competitionRoundAnswerRepository
@@ -53,7 +53,7 @@ class CompetitionSubmitAnswerRule(
             player.teamId {
                 +CompetitionAnswerSubmittedMessage(
                     roundNumber = currentStage.round,
-                    answer = newAnswer.value,
+                    answer = newAnswer.production,
                 )
             }
         }
