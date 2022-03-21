@@ -48,25 +48,6 @@ class CompetitionProcessController(
                 )
         }
 
-    /*
-     @PostMapping("/submit_strategy")
-    @PreAuthorize("hasRole('STUDENT')")
-    public Mono<ResponseEntity> submitStrategy(
-            Mono<Principal> principalMono, @PathVariable String pin,
-            @Valid @RequestBody StrategySubmissionRequestDto strategySubmissionRequestDto
-    ) {
-        var comp = competitionsRepository.findByPin(pin);
-
-        return routine(Mono.zip(comp, principalMono), (tuple) -> {
-            var competition = tuple.getT1();
-            String submitterEmail = tuple.getT2().getName();
-
-            log.info("POST: /api/competition_process/{}/submit_strategy, email: {}, body: {}", pin, submitterEmail, strategySubmissionRequestDto);
-            return this.strategySubmissionService.submitStrategy(submitterEmail, competition, new IStrategySubmissionService.StrategyHolder(strategySubmissionRequestDto.getStrategy())).thenReturn(1);
-        }, () -> "Strategy submitted successfully", () -> "Competition with pin: " + pin + " not found");
-    }
-     */
-
     @PostMapping(
         "/submit_strategy",
         consumes = [MediaType.APPLICATION_JSON_VALUE],
@@ -114,19 +95,6 @@ class CompetitionProcessController(
                 .announcementsEventsFlow(sessionPin)
                 .asServerSentEventStream("messagesStream"),
         )
-    /*
-    @RequestMapping(value = "/student_all_in_one", produces = {MediaType.TEXT_EVENT_STREAM_VALUE})
-    @PreAuthorize("hasRole('STUDENT')")
-    public Flux<ServerSentEvent<?>> getAllStudent(Mono<Principal> principalMono, @PathVariable String pin) {
-        return Flux.merge(
-                getMyTeamAnswersEvents(principalMono, pin),
-                getMyTeamResultsEvents(principalMono, pin),
-                getCompetitionRoundEvents(pin),
-                getCompetitionMessages(pin),
-                getPricesEvents(pin)
-        );
-    }
-     */
 
     @PostMapping(
         "/submit_answer",
@@ -204,15 +172,4 @@ class CompetitionProcessController(
         competitionProcessService
             .bansEventsFlow(sessionPin)
             .asServerSentEventStream("banStream")
-
-    /*
-    @RequestMapping(value = "/prices_stream", produces = {MediaType.TEXT_EVENT_STREAM_VALUE})
-    @PreAuthorize("hasRole('STUDENT')")
-    public Flux<ServerSentEvent<?>> getPricesEvents(@PathVariable String pin) {
-        log.info("REQUEST: /api/competition_process/{}/prices_stream", pin);
-        return competitionsRepository.findByPin(pin)
-                .flatMapMany(comp -> gameManagementService.getRoundPricesEvents(comp))
-                .map(dto -> ServerSentEvent.builder(dto).id("priceStream").build());
-    }
-     */
 }

@@ -61,69 +61,6 @@ object RoundResultsCalculator {
                     xCoefficient * production +
                     freeCoefficient
         }
-
-    /*
-    @Override
-    public RoundResultsHolder calculateResults(DbCompetitionRoundInfo roundInfo, DbCompetition competition) {
-        double price = calculatePrice(roundInfo, competition.getParameters());
-        List<DbRoundResultElement> results = new ArrayList<>();
-        Set<Integer> visited = new HashSet<>();
-
-        List<Integer> bannedTeams = new ArrayList<>();
-        double teamLossUpperbound = competition.getParameters().getTeamLossUpperbound();
-        for (var answer : roundInfo.getAnswerList()) {
-            if (!answer.getSubmitter().isBanned()) {
-                double totalCost = getTotalCosts(answer.getValue(), competition.getParameters());
-                double income = answer.getValue() * price - totalCost;
-
-                if (income < -teamLossUpperbound) {
-                    bannedTeams.add(answer.getSubmitter().getIdInGame());
-                }
-
-                visited.add(answer.getSubmitter().getIdInGame());
-
-                results.add(DbRoundResultElement.builder().income(income).team(answer.getSubmitter()).build());
-            }
-        }
-
-        competition.getTeams().stream()
-                .filter(team -> !visited.contains(team.getIdInGame()))
-                .forEach(el -> {
-                    results.add(DbRoundResultElement.builder()
-                            .income(-getTotalCosts(0, competition.getParameters()))
-                            .team(el)
-                            .build()
-                    );
-                });
-
-        return RoundResultsHolder.builder().bannedTeams(bannedTeams).price(price).results(results).build();
-    }
-
-
-    private double getTotalCosts(int produced, DbCompetition.Parameters competitionParameters) {
-        var expensesFormula = competitionParameters.getExpensesFormula();
-        double x2Coef = Double.parseDouble(expensesFormula.get(0));
-        double xCoef = Double.parseDouble(expensesFormula.get(1));
-        double freeCoef = Double.parseDouble(expensesFormula.get(2));
-
-        return x2Coef * produced * produced + xCoef * produced + freeCoef;
-    }
-     */
-
-    /*
-    private double calculatePrice(DbCompetitionRoundInfo roundInfo, DbCompetition.Parameters competitionParameters) {
-        int totalProduced = roundInfo.getAnswerList().stream()
-                .filter(el -> !el.getSubmitter().isBanned())
-                .map(DbAnswer::getValue)
-                .reduce(Integer::sum).orElse(0);
-        //Q = a - bp
-        //p = (a-Q)/b
-        double a = Double.parseDouble(competitionParameters.getDemandFormula().get(0));
-        double b = Double.parseDouble(competitionParameters.getDemandFormula().get(1));
-
-        return Math.max((a - totalProduced) / b, 0);
-    }
-     */
 }
 
 data class RoundResults(
