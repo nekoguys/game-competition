@@ -221,6 +221,21 @@ class TestGame(
             .isEqualTo(EndRoundResponse)
     }
 
+    fun sendAnnouncement(
+        sessionPin: String,
+        announcement: String = "Test announcement",
+    ): Unit = runBlocking {
+        val teacherId = loadSession(sessionPin).creatorId
+        val teacher = userRepository.load(teacherId)
+        val response = competitionTeacherProcessService.sendAnnouncement(
+            teacherEmail = teacher.email,
+            sessionPin = sessionPin,
+            announcement = announcement,
+        )
+        assertThat(response)
+            .isEqualTo(SendAnnouncementResponse("Announcement sent"))
+    }
+
     companion object TestData {
         private val indexCounter = AtomicLong()
 
