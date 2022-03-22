@@ -17,7 +17,14 @@ const NewTeamMembersElement = ({members}) => {
     )
 }
 
-const NewTeamCollectionElement = ({idInGame, teamName, isReadOnly = false, members, onSubmit}) => {
+const NewTeamCollectionElement = ({
+                                      idInGame,
+                                      teamName,
+                                      isReadOnly = false,
+                                      members,
+                                      strategy = {show: false},
+                                      onSubmit
+                                  }) => {
     const {t} = useTranslation();
     const getName = () => {
         return t('competition_process.student.root.team') + (idInGame !== undefined ? idInGame.toString() + " - " : "") + teamName;
@@ -50,14 +57,46 @@ const NewTeamCollectionElement = ({idInGame, teamName, isReadOnly = false, membe
                     </div>
                 </div>
             </div>
-            <div className={showingMembers ? "team-members-container" : "team-members-container-hidden"}>
-                <NewTeamMembersElement members={members}/>
+            <div className={"team-collection-unwind-content"}>
+                <div
+                    className={(showingMembers && strategy.show) ? "team-collection-strategy-holder" : "team-collection-strategy-holder-hidden"}>
+                    <TeamCollectionStrategyElement strategy={strategy.strategy}/>
+                </div>
+                <div className={"team-collection-strategy-members-spacer"}/>
+                <div className={showingMembers ? "team-members-container" : "team-members-container-hidden"}>
+                    {
+                        strategy.show ? <TeamMembersTitle/> : null
+                    }
+                    <div className={"ended-results-teams-title-content-spacer"}/>
+                    <NewTeamMembersElement members={members}/>
+                </div>
             </div>
         </div>
     )
 }
 
+const TeamMembersTitle = ({}) => {
+    const {t} = useTranslation();
+    return (
+        <>
+            <div className={"team-collection-strategy-title"}>{t("competition_results.team_members_title")}</div>
+        </>
+    )
+}
+
+const TeamCollectionStrategyElement = ({strategy}) => {
+    const {t} = useTranslation();
+    return (
+        <>
+            <div className={"team-collection-strategy-title"}>{t('competition_process.student.strategy') + ":"}</div>
+            <div className={"ended-results-teams-title-content-spacer"}/>
+            <span className={"team-collection-strategy-span"}>{strategy ? strategy : "Пустая стратегия"}</span>
+        </>
+    )
+}
+
 const NewTeamCollection = ({teams, onSubmit, readOnly = false}) => {
+    console.log({teams});
     return (
         <div>
             {
@@ -67,6 +106,7 @@ const NewTeamCollection = ({teams, onSubmit, readOnly = false}) => {
                         idInGame={team.idInGame}
                         teamName={team.teamName}
                         members={team.teamMembers}
+                        strategy={team.strategy}
                         isReadOnly={readOnly}
                         onSubmit={onSubmit}
                     />

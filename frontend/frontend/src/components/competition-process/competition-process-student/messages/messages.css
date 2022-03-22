@@ -4,6 +4,10 @@
     margin-right: auto;
 }
 
+.competition-process-messages-toggle-content-spacer {
+    height: 15px;
+}
+
 .message-container-unread-count {
     z-index: 1;
     position: absolute;
@@ -55,8 +59,16 @@
     flex-direction: column;
 }
 
+.competition-process-single-message-container-root {
+    margin-bottom: 7px;
+}
+
+.competition-process-single-message-container-root:last-child {
+    margin-bottom: 0;
+}
+
 .competition-process-single-message-text {
-    padding-left: 10px;
+    padding-left: 15px;
     word-break: break-all;
     margin-bottom: -5px;
     font-size: 18px;
@@ -66,7 +78,8 @@
 .competition-process-single-message-date-text {
     text-align: right;
     font-size: 11px;
-    padding-right: 20px;
+    padding-right: 15px;
+    color: rgba(0, 0, 0, 0.3);
 }
 
 @media (max-width: 500px) {

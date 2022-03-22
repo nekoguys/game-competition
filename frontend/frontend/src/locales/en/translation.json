@@ -150,6 +150,9 @@
     "team": "Team ",
     "continue": "Continue",
     "ended": "Ended",
-    "messages": "Messages:"
+    "messages": "Messages",
+    "teams": "Teams",
+    "description": "Description",
+    "team_members_title": "Members:"
   }
 }
