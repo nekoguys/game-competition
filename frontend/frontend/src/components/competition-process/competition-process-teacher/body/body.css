@@ -33,3 +33,28 @@
     margin-right: auto;
     margin-left: auto;
 }
+
+.competition-process-teacher-actions-buttons-top-spacer {
+    height: 20px;
+}
+
+@media (max-width: 500px) {
+    .game-state-holder {
+        border-radius: 15px;
+        background: rgba(223, 220, 223, 0.35);
+        margin: 0 15px;
+        padding: 10px 20px;
+    }
+
+    .competition-process-teacher-buttons-results-table-spacer {
+        height: 10px;
+    }
+
+    .competition-process-teacher-actions-buttons-top-spacer {
+        height: 10px;
+    }
+
+    .competition-process-teacher-results-table-round-length-spacer {
+        height: 10px;
+    }
+}

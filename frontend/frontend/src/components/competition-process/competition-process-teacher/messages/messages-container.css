@@ -3,3 +3,7 @@
     border-radius: 10px;
     color: rgba(0, 0, 0, 0.6);
 }
+
+.messages-container-send-message-container-spacer {
+    height: 15px;
+}

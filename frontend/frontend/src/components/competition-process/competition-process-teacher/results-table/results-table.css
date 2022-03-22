@@ -8,75 +8,23 @@
 table.competition-process-teacher-table th, table.competition-process-teacher-table td {
     border: 1px solid black;
     text-align: center;
-
 }
 
-.results-table-popup {
-    position: relative;
-    display: inline-block;
-    cursor: pointer;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-}
-
-.results-table-popup-text {
-    position: absolute;
-    z-index: 2;
-}
-
-.results-table-popup .results-table-popup-text {
-    opacity: 0;
-    min-width: 20em;
-    background-color: #555;
-    color: #fff;
+.results-table-header-title {
     text-align: center;
-    border-radius: 6px;
-    padding: 8px 0;
-    position: absolute;
-    z-index: 1;
-    bottom: 125%;
-    left: 50%;
-    margin-left: -10em;
+    font-size: 23px;
+    padding-bottom: 10px;
+    color: rgba(0, 0, 0, 0.6);
 }
 
-.results-table-popup .results-table-popup-text::after {
-    content: "";
-    position: absolute;
-    top: 100%;
-    left: 50%;
-    margin-left: -5px;
-    border-width: 5px;
-    border-style: solid;
-    border-color: #555 transparent transparent transparent;
-}
+@media (max-width: 500px) {
+    .results-table-header-title {
+        font-size: 17px;
+        padding-bottom: 6px;
+        color: rgba(0, 0, 0, 0.6);
+    }
 
-.results-table-popup .results-table-popup-show {
-    visibility: visible;
-    opacity: 1;
-    -webkit-animation: fadeIn 600ms;
-    animation: fadeIn 600ms;
-    transition: opacity 0.5s ease-out;
-}
-
-.results-table-popup .results-table-popup-hide {
-    visibility: hidden;
-    transition: opacity 0.5s ease-out;
-    opacity: 0;
-}
-
-.popup-text-table-header {
-    color: rgba(63, 100, 155, 0.7);
-    transform: translateY(-1px);
-}
-
-.popup-text-table-header:after {
-    content: '';
-    position: absolute;
-    width: 100%;
-    display: block;
-    height: 1.5px;
-    background-color: rgba(63, 100, 155, 0.7);
-    bottom: 2px;
+    table.competition-process-teacher-table th, table.competition-process-teacher-table td {
+        font-size: 14px;
+    }
 }

@@ -39,7 +39,7 @@
     margin-right: 20px;
 }
 
-.competition-process-single-message-text {
+.ended-results-bottom-content .competition-process-single-message-text {
     font-size: 17px;
 }
 
@@ -68,4 +68,34 @@
     padding: 8px 15px;
     border-radius: 10px;
     margin-top: 0;
+}
+
+@media (max-width: 500px) {
+    .ended-results-bottom-content .team-members-collection-holder {
+        padding: 5px 8px;
+    }
+
+    .ended-results-bottom-content .new-team-element-holder {
+        padding: 5px 8px;
+    }
+
+    .ended-results-bottom-content .instruction-holder {
+        padding: 5px 8px;
+    }
+
+    .ended-results-bottom-content .competition-process-single-message-text {
+        padding: 5px 8px;
+    }
+
+    .ended-results-bottom-content .team-collection-strategy-span {
+        padding: 5px 8px;
+    }
+
+    .ended-results-table-messages-spacer {
+        height: 20px;
+    }
+
+    .ended-results-bottom-content .team-collection-strategy-holder {
+        padding-top: 0;
+    }
 }

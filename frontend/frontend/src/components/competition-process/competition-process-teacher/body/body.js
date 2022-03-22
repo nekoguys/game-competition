@@ -274,7 +274,8 @@ class CompetitionProcessTeacherActive extends React.Component {
         let beginEndRoundButton;
         if (!this.props.isAutoRoundEnding || this.props.round === 0) {
             beginEndRoundButton = (
-                <div style={{paddingTop: "20px"}}>
+                <div>
+                    <div className={"competition-process-teacher-actions-buttons-top-spacer"}/>
                     <DefaultSubmitButton text={rightButtonText} onClick={this.props.rightButtonClick}/>
                 </div>
             )
