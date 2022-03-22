@@ -385,6 +385,103 @@ const changeRoundLength = {
                                                             }) => ApiHelper.changeRoundLength(pin, newLength))
 }[fetcherType]
 
+const competitionResults = {
+    mock: (_) => {
+        return new Promise(resolve => resolve({
+            competitionName: "Конкуренция на рынке пшеницы",
+            teams: [
+                {
+                    teamName: "Команда Команда Команда",
+                    teamMembers: ["Вася", "Кука"],
+                    idInGame: 1
+                },
+                {
+                    teamName: "Команда2",
+                    teamMembers: ['Бука', 'Злюка'],
+                    idInGame: 2
+                },
+                {
+                    teamName: "Команда3",
+                    teamMembers: ['Гена Букин', 'Клава Кока'],
+                    idInGame: 3
+                }
+            ],
+            teamsOrderInDecreasingByTotalPrice: [3, 2, 1],
+            produced: {
+                1: {
+                    1: 10,
+                    2: 11,
+                    3: 12
+                },
+                2: {
+                    1: 11,
+                    2: 12,
+                    3: 13
+                },
+                3: {
+                    1: 12,
+                    2: 13,
+                    3: 14
+                },
+                4: {
+                    1: 12,
+                    2: 13,
+                    3: 14
+                },
+                5: {
+                    1: 13,
+                    2: 14,
+                    3: 15
+                }
+            },
+            income: {
+                1: {
+                    1: 500,
+                    2: 501,
+                    3: 502
+                },
+                2: {
+                    1: 500,
+                    2: 501,
+                    3: 502
+                },
+                3: {
+                    1: 500,
+                    2: 501,
+                    3: 502
+                },
+                4: {
+                    1: 500,
+                    2: 501,
+                    3: 502
+                },
+                5: {
+                    1: 500,
+                    2: 501,
+                    3: 502
+                }
+            },
+            prices: [100, 101, 102, 103, 104],
+            messages: [
+                {
+                    message: "sample message sample message sample message",
+                    sendTime: 1647732566
+                }
+            ],
+            instruction: "Sample instruction",
+            strategyHolders: {
+                1: {
+                    strategy: "Очень большая стратегия Очень большая стратегия Очень большая стратегия Очень большая стратегия Очень большая стратегия 1"
+                },
+                2: {
+                    strategy: "Стратегия 2"
+                }
+            }
+        }))
+    },
+    real: (pin) => apiFetcher(pin, (pin) => ApiHelper.competitionInfoForResultsTable(pin))
+}[fetcherType]
+
 export const CompetitionProcessTeacherBodyNew = (props) => {
     return <CompetitionProcessTeacherBody
         fetchers={{
@@ -584,7 +681,12 @@ const paths = [
     },
     {
         path: "/competitions/results/:pin",
-        component: EndedCompetitionResultsRoot
+        component: EndedCompetitionResultsRoot,
+        props: {
+            fetchers: {
+                competitionResults: competitionResults
+            }
+        }
     },
     {
         path: "/profile",

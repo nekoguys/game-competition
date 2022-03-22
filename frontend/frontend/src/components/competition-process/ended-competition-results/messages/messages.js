@@ -1,44 +1,18 @@
 import React from "react";
 import {MessagesListContainer} from "../../competition-process-teacher/messages/messages-container";
+import "./messages.css";
+import {useTranslation} from "react-i18next";
 
-import {withTranslation} from "react-i18next";
-
-class ReadonlyMessagesContainer extends React.Component {
-    render() {
-
-
-        const {i18n} = this.props;
-
-        const buttonStyle = {
-            backgroundColor: "Transparent",
-            padding: "-5px",
-            border: "none",
-            overflow: "hidden",
-            marginLeft: "-50px"
-        };
-
-        const inputStyle = {
-            backgroundColor: "#CACACA",
-            fontSize: "16px",
-            textAlign: "center",
-            border: "none",
-            outline: "none"
-        };
-
-        return (
-
-            <div className={"row"}>
-                <div className={"col-3"} style={{textAlign: "right", paddingTop: "10px"}}>
-                    {i18n.t('competition_results.messages')}
-                </div>
-                <div className={"col-6"}>
-                    <div>
-                        <MessagesListContainer messages={this.props.messages}/>
-                    </div>
-                </div>
+const ReadonlyMessagesContainer = ({messages}) => {
+    const {t} = useTranslation();
+    return (
+        <>
+            <div className={"readonly-messages-list-title-container"}>
+                {t('competition_results.messages')}
             </div>
-        )
-    }
+            <MessagesListContainer messages={messages}/>
+        </>
+    )
 }
 
-export default withTranslation('translation')(ReadonlyMessagesContainer);
+export default ReadonlyMessagesContainer;

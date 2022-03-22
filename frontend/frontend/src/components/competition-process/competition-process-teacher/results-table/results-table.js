@@ -1,5 +1,4 @@
 import React from "react";
-import ReactDOM from 'react-dom'
 
 import "./results-table.css";
 import round from "../../../../helpers/round-helper";
@@ -10,28 +9,6 @@ class CompetitionResultsTable extends React.Component {
 
     constructor(props) {
         super(props);
-
-        this.refsMap = new Map();
-        this.refsCount = new Map();
-
-        this.setPopupRef = (element, column) => {
-            this.refsMap.set(column, element);
-            this.refsCount.set(column, 0);
-        }
-    }
-
-    shouldShowStrategy = () => {
-        return this.props.showStrategy ?? false;
-    };
-
-    togglePopup = (column) => {
-        let node = ReactDOM.findDOMNode(this.refsMap.get(column));
-        node.classList.toggle("show")
-
-        if (this.refsCount.get(column)) {
-            node.classList.toggle("hide");
-        }
-        this.refsCount.set(column, this.refsCount.get(column) + 1)
     }
 
     teamsPermutation = (teamsCount) => {
@@ -60,36 +37,12 @@ class CompetitionResultsTable extends React.Component {
                 {
                     this.teamsPermutation(teamsCount).map(el => {
                         let style = {};
-                        let className;
-                        let popup;
                         if (bannedTeams.includes(el)) {
                             style['backgroundColor'] = '#ffffed';
                         }
-                        let onClick_ = () => {};
-                        if (this.shouldShowStrategy()) {
-                            className = "popup";
-                            const strat = el in this.props.strategy ? this.props.strategy[el]['strategy'] : this.props.i18n.t("competition_process.teacher.table.no_strategy");
-                            popup = (
-                                <div>
-                                <span className={"popuptext"} ref={(element) => {
-                                    this.setPopupRef(element, el);
-                                }}>{strat}
-                                </span>
-                                    <span className={"popup-text-table-header"}><u>{el}</u></span>
-                                </div>
-                            );
-                            onClick_ = () => {
-                                this.togglePopup(el);
-                            }
-                        } else {
-                            popup = el;
-                        }
-                        console.log({resultsTableEl: el});
                         return (
-                            <td key={el} style={style} onClick={onClick_}>
-                                <div className={className}>
-                                    {popup}
-                                </div>
+                            <td key={el} style={style}>
+                                {el}
                             </td>
                         );
                     })
@@ -228,6 +181,7 @@ class CompetitionResultsTable extends React.Component {
     };
 
     render() {
+        console.log({results: this.props.results})
         const {teamsCount, roundsCount, bannedTeams=[]} = this.props;
         return (
             <div style={{width: "100%"}}>

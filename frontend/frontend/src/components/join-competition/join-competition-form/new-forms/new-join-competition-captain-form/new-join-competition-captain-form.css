@@ -4,7 +4,8 @@
     padding: 30px;
     margin-top: 45px;
     width: 40%;
-    min-width: 500px;
+    min-width: 450px;
+    max-width: 550px;
     margin-left: auto;
     margin-right: auto;
 }

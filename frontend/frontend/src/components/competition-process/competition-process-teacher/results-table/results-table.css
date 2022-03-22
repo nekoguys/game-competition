@@ -11,7 +11,7 @@ table.competition-process-teacher-table th, table.competition-process-teacher-ta
 
 }
 
-.popup {
+.results-table-popup {
     position: relative;
     display: inline-block;
     cursor: pointer;
@@ -21,7 +21,12 @@ table.competition-process-teacher-table th, table.competition-process-teacher-ta
     user-select: none;
 }
 
-.popup .popuptext {
+.results-table-popup-text {
+    position: absolute;
+    z-index: 2;
+}
+
+.results-table-popup .results-table-popup-text {
     opacity: 0;
     min-width: 20em;
     background-color: #555;
@@ -36,7 +41,7 @@ table.competition-process-teacher-table th, table.competition-process-teacher-ta
     margin-left: -10em;
 }
 
-.popup .popuptext::after {
+.results-table-popup .results-table-popup-text::after {
     content: "";
     position: absolute;
     top: 100%;
@@ -47,7 +52,7 @@ table.competition-process-teacher-table th, table.competition-process-teacher-ta
     border-color: #555 transparent transparent transparent;
 }
 
-.popup .show {
+.results-table-popup .results-table-popup-show {
     visibility: visible;
     opacity: 1;
     -webkit-animation: fadeIn 600ms;
@@ -55,15 +60,23 @@ table.competition-process-teacher-table th, table.competition-process-teacher-ta
     transition: opacity 0.5s ease-out;
 }
 
-.popup .hide {
-    /*visibility: hidden;*/
+.results-table-popup .results-table-popup-hide {
+    visibility: hidden;
     transition: opacity 0.5s ease-out;
     opacity: 0;
 }
 
 .popup-text-table-header {
-    text-underline-color: blue;
-    text-underline: blue;
-    color: blue;
+    color: rgba(63, 100, 155, 0.7);
+    transform: translateY(-1px);
 }
 
+.popup-text-table-header:after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    display: block;
+    height: 1.5px;
+    background-color: rgba(63, 100, 155, 0.7);
+    bottom: 2px;
+}

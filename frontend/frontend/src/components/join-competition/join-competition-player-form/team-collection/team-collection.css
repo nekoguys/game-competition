@@ -6,17 +6,20 @@
     max-height: 5%;
 }
 
-.team-collection-strategy-holder {
-    padding-top: 7px;
-    padding-right: 40px;
-    width: 100%;
+.team-collection-strategy-holder-hidden {
+    display: none;
+}
+
+.team-collection-strategy-title {
+    font-size: 18px;
+    color: rgba(0, 0, 0, 0.6);
 }
 
 .team-collection-strategy-span {
-    margin-left: 20px;
-    border-radius: 0.5em;
+    border-radius: 10px;
     background-color: #F4F4F4;
-    padding: 0.5em;
+    color: rgba(0, 0, 0, 0.6);
+    padding: 8px 15px;
     width: 100%;
     display: inline-block;
 }

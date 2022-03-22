@@ -1,6 +1,10 @@
 export default function processMessagesEvents(newMessage, messages) {
     const data = JSON.parse(newMessage.data);
-    const date = new Date(data.sendTime * 1000);
+    return processMessageParsedEvent(data, messages);
+}
+
+export function parseMessage(message) {
+    const date = new Date(message.sendTime * 1000);
     const dateStr = date.toLocaleDateString("en-US", {
         hour: 'numeric',
         minute: 'numeric',
@@ -8,39 +12,15 @@ export default function processMessagesEvents(newMessage, messages) {
         month: 'short',
     });
 
-    const messageElem = {
-        message: data.message,
+    return {
+        message: message.message,
         dateStr: dateStr,
-        timestamp: data.sendTime
+        timestamp: message.sendTime
     };
-
-    const index = messages.findIndex(el => {
-        return el.message === messageElem.message && el.timestamp === messageElem.timestamp;
-    });
-
-    if (index === -1) {
-        messages = [messageElem].concat(messages);
-    } else {
-        messages[index] = messageElem;
-    }
-
-    return {messages: messages};
 }
 
 export function processMessageParsedEvent(newMessage, messages) {
-    const date = new Date(newMessage.sendTime * 1000);
-    const dateStr = date.toLocaleDateString("en-US", {
-        hour: 'numeric',
-        minute: 'numeric',
-        day: 'numeric',
-        month: 'short',
-    });
-
-    const messageElem = {
-        message: newMessage.message,
-        dateStr: dateStr,
-        timestamp: newMessage.sendTime
-    };
+    const messageElem = parseMessage(newMessage);
 
     const index = messages.findIndex(el => {
         return el.message === messageElem.message && el.timestamp === messageElem.timestamp;
