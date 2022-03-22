@@ -4,6 +4,17 @@ import {useTranslation} from "react-i18next";
 
 import "./messages.css";
 
+export const SelfControlledDefaultToggle = ({expandedAtStart = false, title, children}) => {
+    const [expanded, setExpanded] = useState(expandedAtStart);
+    return (
+        <>
+            <DefaultToggle title={title} expanded={expanded} setExpanded={setExpanded}/>
+            {expanded ? children : null}
+        </>
+
+    )
+}
+
 export const DefaultToggle = ({title, expanded, setExpanded, children}) => {
     return (
         <div className={"competition-process-default-toggle-centered-inner-container"}>
@@ -48,6 +59,7 @@ const MessagesContainer = ({
                            setExpanded={setExpanded}>
                 {badge}
             </DefaultToggle>
+            {expanded ? <div className={"competition-process-messages-toggle-content-spacer"}/> : null}
             <div className={"competition-process-student-toggle-content"}>
                 {res}
             </div>

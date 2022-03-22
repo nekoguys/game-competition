@@ -148,6 +148,9 @@
     "team": "Команда ",
     "continue": "Продолжить",
     "ended": "Закончена",
-    "messages": "Сообщения:"
+    "messages": "Сообщения:",
+    "teams": "Команды",
+    "description": "Описание",
+    "team_members_title": "Участники"
   }
 }

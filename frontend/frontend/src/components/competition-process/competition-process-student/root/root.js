@@ -295,11 +295,13 @@ const CompetitionProcessStudentRootNew = ({fetchers, eventSources, showNotificat
                     <div style={{paddingTop: "20px"}}>
                         <StrategySubmissionComponent
                             strategyText={competitionState.fetchedStrategy}
-                            isExpanded={false} onChange={(text) => {
-                            setCompetitionState(prevValue => {
-                                return {...prevValue, fetchedStrategy: text}
-                            });
-                        }}
+                            isExpanded={false}
+                            setStrategyText={(text) => {
+                                setCompetitionState(prevValue => {
+                                    return {...prevValue, fetchedStrategy: text}
+                                });
+                            }
+                            }
                             onSubmit={() => submitStrategy()}/>
                     </div>
                 </div>

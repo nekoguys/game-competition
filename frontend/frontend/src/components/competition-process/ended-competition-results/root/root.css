@@ -1,0 +1,71 @@
+.ended-results-table-messages-spacer {
+    height: 40px;
+}
+
+.ended-results-description-messages-spacer {
+    height: 20px;
+}
+
+.ended-results-bottom-content {
+    max-width: 600px;
+    margin-right: auto;
+    margin-left: auto;
+}
+
+.ended-results-bottom-content .instruction-holder {
+    /*background-color: #DCDBDB;*/
+    background-color: #F4F4F4;
+    text-align: left;
+    /**/
+    margin-left: 20px;
+    margin-right: 20px;
+    font-size: 17px;
+    padding: 8px 15px;
+}
+
+.ended-results-table-scroll-holder {
+    overflow-x: scroll;
+}
+
+.ended-results-table-visible-holder {
+    overflow-y: visible;
+}
+
+.ended-results-bottom-content .competition-process-teacher-message-style {
+    /*background-color: #DCDBDB;*/
+    background-color: #F4F4F4;
+
+    margin-left: 20px;
+    margin-right: 20px;
+}
+
+.competition-process-single-message-text {
+    font-size: 17px;
+}
+
+.ended-results-bottom-content .new-team-element-holder {
+    padding: 8px 15px;
+    border-radius: 10px;
+}
+
+.ended-results-bottom-content .team-name-text {
+    font-size: 17px;
+}
+
+.ended-results-teams-description-spacer {
+    height: 20px;
+}
+
+.ended-results-teams-toggle-spacer {
+    height: 15px;
+}
+
+.ended-results-teams-title-content-spacer {
+    height: 5px;
+}
+
+.ended-results-bottom-content .team-members-collection-holder {
+    padding: 8px 15px;
+    border-radius: 10px;
+    margin-top: 0;
+}

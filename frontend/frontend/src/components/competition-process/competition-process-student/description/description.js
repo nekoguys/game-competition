@@ -11,7 +11,8 @@ const DescriptionHolder = ({instruction}) => {
     let res;
     if (expanded) {
         res = (
-            <div style={{paddingTop: "10px"}}>
+            <div>
+                <div className={"instruction-holder-top-spacer"}/>
                 <div className={"instruction-holder"}>
                     {instruction}
                 </div>

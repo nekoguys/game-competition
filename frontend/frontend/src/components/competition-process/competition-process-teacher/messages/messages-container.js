@@ -41,8 +41,8 @@ export class MessagesListContainer extends React.Component {
         return (
             <div>
                 {messages.map(el => {
-                    return <div key={el.dateStr + el.message} style={{marginTop: "7px"}}><SingleMessageContainer
-                        message={el}/></div>
+                    return <div key={el.dateStr + el.message} className={"competition-process-message-container-root"}>
+                        <SingleMessageContainer message={el}/></div>
                 })}
             </div>
         )
