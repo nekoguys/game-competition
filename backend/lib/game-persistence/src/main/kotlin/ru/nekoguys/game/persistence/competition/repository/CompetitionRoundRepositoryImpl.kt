@@ -103,13 +103,6 @@ class CompetitionRoundRepositoryImpl(
         sessionId: CommonSession.Id,
         roundNumber: Int
     ) {
-        insertDbRound(sessionId, roundNumber)
-    }
-
-    private suspend fun insertDbRound(
-        sessionId: CommonSession.Id,
-        roundNumber: Int
-    ) {
         databaseClient
             .sql(
                 """
@@ -125,14 +118,7 @@ class CompetitionRoundRepositoryImpl(
 
     override suspend fun endRound(
         sessionId: CommonSession.Id,
-        roundNumber: Int
-    ) {
-        updateRoundEndTime(sessionId, roundNumber)
-    }
-
-    private suspend fun updateRoundEndTime(
-        sessionId: CommonSession.Id,
-        roundNumber: Int
+        roundNumber: Int,
     ) {
         databaseClient
             .sql(
@@ -144,6 +130,28 @@ class CompetitionRoundRepositoryImpl(
             )
             .bind("sessionId", sessionId.number)
             .bind("roundNumber", roundNumber)
+            .then()
+            .awaitSingleOrNull()
+    }
+
+    override suspend fun updatePrice(
+        sessionId: CommonSession.Id,
+        roundNumber: Int,
+        price: Double,
+        defaultIncome: Double,
+    ) {
+        databaseClient
+            .sql(
+                """
+                UPDATE competition_round_infos
+                SET price = :price, default_income = :defaultIncome
+                WHERE session_id = :sessionId AND round_number = :roundNumber
+                """.trimIndent()
+            )
+            .bind("sessionId", sessionId.number)
+            .bind("roundNumber", roundNumber)
+            .bind("price", price)
+            .bind("defaultIncome", defaultIncome)
             .then()
             .awaitSingleOrNull()
     }
@@ -173,5 +181,7 @@ private fun createCompetitionRound(
             answers = answers.map { it as CompetitionRoundAnswer.WithIncome },
             startTime = dbCompetitionRound.startTime,
             endTime = dbCompetitionRound.endTime!!,
+            price = dbCompetitionRound.price!!,
+            defaultIncome = dbCompetitionRound.defaultIncome!!,
         )
     }

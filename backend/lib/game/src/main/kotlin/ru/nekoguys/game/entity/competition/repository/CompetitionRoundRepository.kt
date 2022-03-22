@@ -23,6 +23,13 @@ interface CompetitionRoundRepository {
         roundNumber: Int,
     )
 
+    suspend fun updatePrice(
+        sessionId: CommonSession.Id,
+        roundNumber: Int,
+        price: Double,
+        defaultIncome: Double,
+    )
+
     suspend fun update(
         round: CompetitionRound,
     )
