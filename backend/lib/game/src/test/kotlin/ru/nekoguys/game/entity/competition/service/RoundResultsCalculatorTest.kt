@@ -81,7 +81,7 @@ class RoundResultsCalculatorTest {
             createAnswer(secondTeamId, 30),
         )
 
-        val (incomes, bannedTeamsIds, price) = RoundResultsCalculator
+        val (incomes, bannedTeamsIds, price, defaultIncome) = RoundResultsCalculator
             .calculateResults(customSettings, answers)
 
         assertThat(price)
@@ -90,8 +90,10 @@ class RoundResultsCalculatorTest {
             .isEqualTo(6.0 * 10 - 10 * 10 - 10 * 2 - 3, within(1e-7))
         assertThat(incomes.getValue(secondTeamId))
             .isEqualTo(6.0 * 30 - 30 * 30 - 30 * 2 - 3, within(1e-7))
-        assertThat(incomes.getValue(thirdTeamId))
+        assertThat(defaultIncome)
             .isEqualTo(-3.0, within(1e-7))
+        assertThat(incomes[thirdTeamId])
+            .isNull()
         assertThat(bannedTeamsIds)
             .containsExactly(secondTeamId)
     }
