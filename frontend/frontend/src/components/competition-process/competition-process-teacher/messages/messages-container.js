@@ -29,6 +29,7 @@ class MessagesContainer extends React.Component {
         return (
             <div>
                 <SendMessageContainer onSubmit={this.props.sendMessageCallBack}/>
+                <div className={"messages-container-send-message-container-spacer"}/>
                 <MessagesListContainer messages={this.props.messages}/>
             </div>
         )

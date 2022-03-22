@@ -58,17 +58,17 @@ const NewTeamCollectionElement = ({
                 </div>
             </div>
             <div className={"team-collection-unwind-content"}>
-                <div
-                    className={(showingMembers && strategy.show) ? "team-collection-strategy-holder" : "team-collection-strategy-holder-hidden"}>
-                    <TeamCollectionStrategyElement strategy={strategy.strategy}/>
-                </div>
-                <div className={"team-collection-strategy-members-spacer"}/>
                 <div className={showingMembers ? "team-members-container" : "team-members-container-hidden"}>
                     {
                         strategy.show ? <TeamMembersTitle/> : null
                     }
                     <div className={"ended-results-teams-title-content-spacer"}/>
                     <NewTeamMembersElement members={members}/>
+                </div>
+                <div className={"team-collection-strategy-members-spacer"}/>
+                <div
+                    className={(showingMembers && strategy.show) ? "team-collection-strategy-holder" : "team-collection-strategy-holder-hidden"}>
+                    <TeamCollectionStrategyElement strategy={strategy.strategy}/>
                 </div>
             </div>
         </div>

@@ -185,8 +185,7 @@ class CompetitionResultsTable extends React.Component {
         const {teamsCount, roundsCount, bannedTeams=[]} = this.props;
         return (
             <div style={{width: "100%"}}>
-                <div
-                    style={{textAlign: "center", fontSize: "23px", paddingBottom: "10px", color: "rgba(0, 0, 0, 0.6)"}}>
+                <div className={"results-table-header-title"}>
                     {this.props.i18n.t("competition_process.teacher.table.stats")}
                 </div>
 
