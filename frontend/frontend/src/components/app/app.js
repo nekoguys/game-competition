@@ -479,7 +479,7 @@ const competitionResults = {
             }
         }))
     },
-    real: (pin) => apiFetcher(pin, (pin) => ApiHelper.competitionInfoForResultsTable(pin))
+    real: (pin) => apiFetcher(pin, (pin) => ApiHelper.competitionAllResults(pin))
 }[fetcherType]
 
 export const CompetitionProcessTeacherBodyNew = (props) => {

@@ -208,8 +208,9 @@ class CompetitionService(
                         .sumOf { round ->
                             round as CompetitionRound.Ended
                             round.answers
-                                .first { it.teamId == team.id }
-                                .income
+                                .firstOrNull { it.teamId == team.id }
+                                ?.income
+                                ?: round.defaultIncome
                         }
                 }
                 .map { it.numberInGame },
