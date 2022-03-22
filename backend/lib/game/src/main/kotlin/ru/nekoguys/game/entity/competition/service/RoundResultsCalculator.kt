@@ -11,11 +11,10 @@ object RoundResultsCalculator {
     ): RoundResults {
         val price = calculatePrice(settings, roundAnswers)
         val teamLossLimit = settings.teamLossLimit
-        val bannedTeamIds = mutableListOf<CompetitionTeam.Id>()
-
         val defaultIncome = -getTotalCosts(settings, 0)
+
+        val bannedTeamIds = mutableListOf<CompetitionTeam.Id>()
         val incomes = mutableMapOf<CompetitionTeam.Id, Double>()
-            .withDefault { defaultIncome }
 
         for (answer in roundAnswers) {
             val totalCost = getTotalCosts(settings, answer.production)
@@ -31,6 +30,7 @@ object RoundResultsCalculator {
             results = incomes,
             bannedTeamIds = bannedTeamIds,
             price = price,
+            defaultIncome = defaultIncome,
         )
     }
 
@@ -67,4 +67,5 @@ data class RoundResults(
     val results: Map<CompetitionTeam.Id, Double>,
     val bannedTeamIds: List<CompetitionTeam.Id>,
     val price: Double,
+    val defaultIncome: Double,
 )

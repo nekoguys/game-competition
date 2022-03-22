@@ -7,6 +7,8 @@ data class DbCompetitionRoundInfo(
     var roundNumber: Int,
     var startTime: LocalDateTime,
     var endTime: LocalDateTime? = null,
+    var price: Double?,
+    var defaultIncome: Double?
 ) {
     val isEnded: Boolean
         get() = endTime != null

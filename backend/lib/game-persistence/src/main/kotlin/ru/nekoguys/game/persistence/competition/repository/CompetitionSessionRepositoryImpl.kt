@@ -156,9 +156,7 @@ class CompetitionSessionRepositoryImpl(
         val oldTeams = from.teamsOrNull.orEmpty().toSet()
         val newTeams = to.teamsOrNull.orEmpty().filter { it !in oldTeams }
         if (newTeams.isNotEmpty()) {
-            launch {
-                TODO("Обновление команд ещё не готово")
-            }
+            TODO("Обновление команд ещё не готово")
         }
     }
 

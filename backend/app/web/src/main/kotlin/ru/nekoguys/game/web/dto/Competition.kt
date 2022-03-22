@@ -80,3 +80,19 @@ data class CheckGamePinRequest(
 data class CheckGamePinResponse(
     val exists: Boolean,
 ) : WebResponse(HttpStatus.OK)
+
+data class CompetitionResultsResponse(
+    val competitionName: String,
+    val instruction: String,
+    val prices: Map<Int, Double>,
+    val income: Map<Int, Map<Int, Double>>,
+    val produced: Map<Int, Map<Int, Int>>,
+    val teams: List<TeamUpdateNotification>,
+    val teamsOrderInDecreasingByTotalPrice: List<Int>,
+    val messages: List<AnnouncementEvent>,
+    val strategyHolders: Map<Int, StrategyDto>, // IStrategySubmissionService.StrategyHolder
+) : WebResponse(HttpStatus.OK)
+
+data class StrategyDto(
+    val strategy: String,
+)

@@ -11,9 +11,7 @@ import ru.nekoguys.game.entity.competition.rule.CompetitionCommand
 import ru.nekoguys.game.entity.competition.service.CompetitionProcessException
 import ru.nekoguys.game.entity.competition.service.CompetitionProcessService
 import ru.nekoguys.game.entity.user.repository.UserRepository
-import ru.nekoguys.game.web.dto.CreateCompetitionRequest
-import ru.nekoguys.game.web.dto.CreateCompetitionResponse
-import ru.nekoguys.game.web.dto.GetCompetitionResponse
+import ru.nekoguys.game.web.dto.*
 import java.time.LocalDateTime
 
 @Service
@@ -147,6 +145,81 @@ class CompetitionService(
         } catch (ex: CompetitionProcessException) {
             error("Can't change competition settings")
         }
+    }
+
+    suspend fun getCompetitionResults(
+        sessionPin: String,
+    ): CompetitionResultsResponse? {
+        val sessionId = sessionPinDecoder
+            .decodeIdFromPinUnsafe(sessionPin)
+            ?: return null
+
+        val session = competitionSessionRepository
+            .findAll(
+                listOf(sessionId),
+                CompetitionSession.WithStage,
+                CompetitionSession.WithSettings,
+                CompetitionSession.WithRounds,
+                CompetitionSession.WithTeams,
+            )
+            .singleOrNull() ?: return null
+
+        if (session.stage !is CompetitionStage.Ended) {
+            return null
+        }
+
+        return CompetitionResultsResponse(
+            competitionName = session.settings.name,
+            instruction = session.settings.instruction,
+            prices = session.rounds
+                .associateBy(CompetitionRound::roundNumber) {
+                    (it as CompetitionRound.Ended).price
+                },
+            income = session.rounds
+                .map { it as CompetitionRound.Ended }
+                .associateBy(CompetitionRound::roundNumber) { round ->
+                    val answers = round.answers.associateBy { it.teamId }
+                    session.teams
+                        .associateBy(CompetitionTeam::numberInGame) { answers[it.id] }
+                        .mapValues { (_, answer) ->
+                            answer?.income ?: round.defaultIncome
+                        }
+                },
+            produced = session.rounds
+                .associateBy(CompetitionRound::roundNumber) { round ->
+                    val answers = round.answers.associateBy { it.teamId }
+                    session.teams
+                        .associateBy(CompetitionTeam::numberInGame) { answers[it.id] }
+                        .mapValues { (_, answer) -> answer?.production ?: 0 }
+                },
+            teams = session.teams
+                .sortedBy { it.numberInGame }
+                .map { team ->
+                    TeamUpdateNotification(
+                        teamName = team.name,
+                        idInGame = team.numberInGame,
+                        teamMembers = team.students
+                            .map { it.user.email }
+                    )
+                },
+            teamsOrderInDecreasingByTotalPrice = session.teams
+                .sortedByDescending { team ->
+                    session.rounds
+                        .sumOf { round ->
+                            round as CompetitionRound.Ended
+                            round.answers
+                                .firstOrNull { it.teamId == team.id }
+                                ?.income
+                                ?: round.defaultIncome
+                        }
+                }
+                .map { it.numberInGame },
+            messages = emptyList(),
+            strategyHolders = session.teams
+                .associateBy(CompetitionTeam::numberInGame) {
+                    StrategyDto(it.strategy ?: "")
+                },
+        )
     }
 }
 

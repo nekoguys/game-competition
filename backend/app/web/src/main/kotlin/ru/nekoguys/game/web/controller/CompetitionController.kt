@@ -98,4 +98,27 @@ class CompetitionController(
                 competitionSettings = request.extractCompetitionSettings(),
             )
         }
+
+    @GetMapping(value = ["/competition_results/{sessionPin}"])
+    @PreAuthorize("hasRole('STUDENT')")
+    suspend fun getCompetitionResults(
+        @PathVariable sessionPin: String,
+    ): ResponseEntity<CompetitionResultsResponse> =
+        wrapServiceCall {
+            competitionService.getCompetitionResults(
+                sessionPin = sessionPin
+            )
+        }
+    /*
+    @GetMapping(value = "/competition_results/{pin}")
+    @PreAuthorize("hasRole('STUDENT')")
+    public Mono<ResponseEntity> competitionResults(@PathVariable String pin) {
+        log.info("GET: /api/competitions/competition_results/{}", pin);
+        return this.competitionsRepository.findByPin(pin).map(el -> {
+            return (ResponseEntity)ResponseEntity.ok(resultsFormatter.getCompetitionResults(el));
+        }).switchIfEmpty(Mono.defer(() -> {
+            return Mono.just(ResponseEntity.badRequest().body(ResponseMessage.of("Competition with pin: " + pin + " not found")));
+        })).onErrorResume(ex -> Mono.just(ResponseEntity.badRequest().body(ResponseMessage.of(ex.getMessage()))));
+    }
+     */
 }

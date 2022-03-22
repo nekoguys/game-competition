@@ -38,7 +38,7 @@ suspend fun <T : WebResponse> wrapServiceCall(block: suspend () -> T?): Response
     level = DeprecationLevel.WARNING,
 )
 fun <T : WebResponse> T?.toResponseEntity(
-    ifEmpty: HttpStatus = HttpStatus.NOT_FOUND,
+    ifEmpty: HttpStatus = HttpStatus.BAD_REQUEST,
 ): ResponseEntity<T> =
     if (this != null) {
         ResponseEntity.status(status).body(this)

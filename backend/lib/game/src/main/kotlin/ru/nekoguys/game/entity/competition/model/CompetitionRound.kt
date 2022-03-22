@@ -22,6 +22,8 @@ sealed interface CompetitionRound {
         override val answers: List<CompetitionRoundAnswer.WithIncome>,
         override val startTime: LocalDateTime,
         val endTime: LocalDateTime,
+        val price: Double,
+        val defaultIncome: Double,
     ) : CompetitionRound
 }
 

@@ -87,10 +87,12 @@ CREATE TABLE competition_team_members
 
 CREATE TABLE competition_round_infos
 (
-    session_id   BIGINT    NOT NULL,
-    round_number INT       NOT NULL,
-    start_time   TIMESTAMP NOT NULL,
-    end_time     TIMESTAMP NULL,
+    session_id     BIGINT    NOT NULL,
+    round_number   INT       NOT NULL,
+    start_time     TIMESTAMP NOT NULL,
+    end_time       TIMESTAMP NULL,
+    price          FLOAT     NULL,
+    default_income FLOAT     NULL,
     PRIMARY KEY (session_id, round_number)
 );
 
