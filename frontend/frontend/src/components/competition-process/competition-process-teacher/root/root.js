@@ -15,7 +15,7 @@ const CompetitionProcessTeacherRootNew = ({showNotification}) => {
         if (didEnd && !prevDidEnd) {
             showNotification().success("Attention", "Game has ended", 2500);
             setTimeout(() => {
-                navigate("/competition/results/" + pin);
+                navigate("/competitions/results/" + pin);
             }, 2500);
         }
     }, [didEnd])
