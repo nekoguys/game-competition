@@ -315,6 +315,12 @@ const allInOneTeacherStream = {
                 teamIdInGame: 1,
             },
             {
+                lastEventId: Constants.ANSWER_EVENT_ID,
+                roundNumber: 1,
+                teamAnswer: 11,
+                teamIdInGame: 2,
+            },
+            {
                 lastEventId: Constants.RESULT_EVENT_ID,
                 roundNumber: 1,
                 income: 100.1,
@@ -324,6 +330,40 @@ const allInOneTeacherStream = {
                 lastEventId: Constants.PRICE_EVENT_ID,
                 roundNumber: 1,
                 price: 15
+            },
+            {
+                lastEventId: Constants.ANSWER_EVENT_ID,
+                roundNumber: 2,
+                teamAnswer: 11,
+                teamIdInGame: 1,
+            },
+            {
+                lastEventId: Constants.ANSWER_EVENT_ID,
+                roundNumber: 2,
+                teamAnswer: 20,
+                teamIdInGame: 2,
+            },
+            {
+                lastEventId: Constants.ANSWER_EVENT_ID,
+                roundNumber: 3,
+                teamAnswer: 8,
+                teamIdInGame: 1,
+            },
+            {
+                lastEventId: Constants.ANSWER_EVENT_ID,
+                roundNumber: 3,
+                teamAnswer: 8,
+                teamIdInGame: 2,
+            },
+            {
+                lastEventId: Constants.PRICE_EVENT_ID,
+                roundNumber: 2,
+                price: 25
+            },
+            {
+                lastEventId: Constants.PRICE_EVENT_ID,
+                roundNumber: 3,
+                price: 20
             },
             {
                 lastEventId: Constants.MESSAGE_EVENT_ID,

@@ -11,6 +11,8 @@ import ChangeRoundLengthContainer from "../change-round-length-container";
 import {useTranslation} from "react-i18next";
 import usePrevious from "../../../../helpers/use-previous-hook";
 import {RoundAndTimerHolder} from "../../competition-process-student/root/root";
+import {CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis} from "recharts";
+import {SelfControlledDefaultToggle} from "../../competition-process-student/messages/messages";
 
 const defaultState = {
     currentRoundNumber: 0,
@@ -122,7 +124,9 @@ const CompetitionProcessTeacherBodyNew = (
         if (banDTO.type === "cancel") {
             updateCertainFields({bannedTeams: []})
         } else {
-            updateCertainFields({bannedTeams: [...competitionState.bannedTeams, banDTO.teamIdInGame]});
+            setCompetitionState(prevState => {
+                return {...prevState, bannedTeams: [...prevState.bannedTeams, banDTO.teamIdInGame]}
+            });
             showNotification().warning(`Team ${banDTO.teamIdInGame} "${banDTO.teamName}" was banned`, 'BAN', 3000);
         }
     }
@@ -131,7 +135,9 @@ const CompetitionProcessTeacherBodyNew = (
         if (priceDTO.type === "cancel") {
             updateCertainFields({prices: {}});
         } else {
-            updateCertainFields({prices: {...competitionState.prices, [priceDTO.roundNumber]: priceDTO.price}})
+            setCompetitionState(prevState => {
+                return {...prevState, prices: {...prevState.prices, [priceDTO.roundNumber]: priceDTO.price}}
+            })
         }
     }
 
@@ -292,6 +298,20 @@ class CompetitionProcessTeacherActive extends React.Component {
                 <div/>
             )
         }
+        const pricesGraphData = Object.entries(this.props.prices)
+            .sort((lhs, rhs) => lhs[0] - rhs[0])
+            .map(([roundNumber, price]) => {
+                return {roundNumber, price}
+            })
+
+        const productionGraphData = Object.entries(this.props.answers)
+            .map(([key, value]) => {
+                return {
+                    roundNumber: key,
+                    production: Object.values(value).reduce((a, b) => a + b, 0).toFixed(1)
+                }
+            })
+        console.log({productionGraphData})
         return (
             <div>
                 <RoundAndTimerHolder roundNumber={roundText} timeTillRoundEnd={timeLeft}/>
@@ -316,10 +336,63 @@ class CompetitionProcessTeacherActive extends React.Component {
                     <div className={"competition-process-teacher-round-length-messages-spacer"}/>
                     <MessagesContainer messages={this.props.messages}
                                        sendMessageCallBack={this.props.sendMessageCallBack}/>
-                </div>
+                    <div className={"competition-process-teacher-price-graph-container-spacer"}/>
+                    <SelfControlledDefaultToggle title={"Графики"}>
+                        <div className={"competition-process-teacher-price-graph-container-top-spacer"}/>
+                        <div className={"competition-process-teacher-price-graph-container"}>
+                            <div className={"competition-process-teacher-price-graph-title"}>График цены</div>
+                            <div className={"competition-process-teacher-price-graph-wrapper"}>
+                                <GenericGraph data={pricesGraphData} dataKey={"price"} valuePrefix={"Цена"}/>
+                            </div>
+                        </div>
+                        <div className={"competition-process-teacher-price-graph-container-spacer"}/>
+                        <div className={"competition-process-teacher-price-graph-container"}>
+                            <div className={"competition-process-teacher-price-graph-title"}>График производства</div>
+                            <div className={"competition-process-teacher-price-graph-wrapper"}>
+                                <GenericGraph data={productionGraphData} dataKey={"production"}
+                                              valuePrefix={"Производство"}/>
+                            </div>
+                        </div>
+                    </SelfControlledDefaultToggle>
 
+                </div>
             </div>
         )
+    }
+}
+
+const GenericGraph = ({data, dataKey, valuePrefix}) => {
+    // const data = Object.entries(prices)
+    //     .sort((lhs, rhs) => lhs[0] - rhs[0])
+    //     .map(([roundNumber, price]) =>{ return { roundNumber, price } })
+    // console.log({data, entries: Object.entries({1: 15, 2: 20, 3: 25, 4: 18})});
+
+    return (
+        <ResponsiveContainer width={"100%"} height={"100%"}>
+            <LineChart data={data} height={300} width={600}>
+                <CartesianGrid stroke="#ccc" fill={"#fff"} fillOpacity={0.8}/>
+                <Line type="monotone" dataKey={dataKey} stroke="#BBC2D3" strokeWidth={3}/>
+                <XAxis {...defaultXAxisParams}/>
+                <Tooltip {...defaultTooltipParams(valuePrefix)} />
+                <YAxis tick={{fill: "rgba(0, 0, 0, 0.6)"}} type={"number"}
+                       domain={[dataMin => (dataMin / 3 * 2).toFixed(1), dataMax => (dataMax + dataMax / 5).toFixed(1)]}/>
+            </LineChart>
+        </ResponsiveContainer>
+
+    )
+}
+
+const defaultXAxisParams = {
+    tick: {
+        fill: "rgba(0, 0, 0, 0.6)"
+    },
+    dataKey: "roundNumber"
+}
+
+const defaultTooltipParams = (valuePrefix) => {
+    return {
+        labelFormatter: (label) => `Раунд: ${label}`,
+        formatter: (value, _, __) => [`${valuePrefix}: ${value}`, null]
     }
 }
 
