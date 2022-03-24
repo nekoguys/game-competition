@@ -41,7 +41,7 @@ const JoinCompetitionForm = ({showNotification, pinCheckFetcher, processToCreate
     return (
         <div>
             <div className={"page-title form-title"}>
-                Войти в игру
+                {t('join_competition.captain.enter')}
             </div>
         <div style={{display: "flex"}}>
 
