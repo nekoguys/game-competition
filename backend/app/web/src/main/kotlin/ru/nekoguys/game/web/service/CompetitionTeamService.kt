@@ -188,6 +188,6 @@ private fun CompetitionCreateTeamMessage.toNewTeamMemberNotification() =
 
 private fun CompetitionJoinTeamMessage.toNewTeamMemberNotification() =
     TeamMemberUpdateNotification(
-        name = membersEmails.last(),
+        name = newMemberEmail,
         isCaptain = false
     )

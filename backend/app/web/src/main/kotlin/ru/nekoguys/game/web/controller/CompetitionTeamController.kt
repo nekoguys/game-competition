@@ -73,6 +73,7 @@ class CompetitionTeamController(
         "/all_join_events",
         produces = [MediaType.TEXT_EVENT_STREAM_VALUE],
     )
+    @PreAuthorize("hasRole('STUDENT')")
     fun allJoinEvents(
         principal: Principal,
         @PathVariable sessionPin: String,

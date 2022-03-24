@@ -15,6 +15,7 @@ data class CompetitionJoinTeamMessage(
     val teamName: String,
     val idInGame: Int,
     val membersEmails: List<String>,
+    val newMemberEmail: String = "",
 ) : CompetitionMessage()
 
 @Component
@@ -47,7 +48,11 @@ class CompetitionJoinTeamRule(
 
         val newTeam = doUpdate(player, oldTeam)
 
-        return createResponse(command, newTeam)
+        return createResponse(
+            command = command,
+            studentEmail = player.user.email,
+            team = newTeam,
+        )
     }
 
     private fun findTeamToUpdate(
@@ -98,6 +103,7 @@ class CompetitionJoinTeamRule(
 
     private suspend fun createResponse(
         command: CompetitionCommand.JoinTeam,
+        studentEmail: String,
         team: CompetitionTeam,
     ): List<GameMessage<CompetitionTeam.Id, CompetitionJoinTeamMessage>> {
         val memberEmails = userRepository
@@ -111,6 +117,7 @@ class CompetitionJoinTeamRule(
                     teamName = command.teamName,
                     idInGame = team.numberInGame,
                     membersEmails = memberEmails,
+                    newMemberEmail = studentEmail,
                 )
             }
         }
