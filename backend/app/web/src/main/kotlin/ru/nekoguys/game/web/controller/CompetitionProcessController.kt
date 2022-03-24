@@ -97,7 +97,7 @@ class CompetitionProcessController(
                 .asServerSentEventStream("answerStream"),
             competitionProcessService
                 .myResultsEventsFlow(sessionPin, principal.name)
-                .asServerSentEventStream("answerStream"),
+                .asServerSentEventStream("resultStream"),
             competitionProcessService
                 .priceEventsFlow(sessionPin)
                 .asServerSentEventStream("pricesStream"),
