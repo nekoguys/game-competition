@@ -41,8 +41,8 @@ class CompetitionCollectionElement extends React.Component {
         if (this.props.isAnyCloneable) {
             button = <div className={"clone-button"}>
                 <DefaultSubmitButton text={this.props.i18n.t('competition_history.clone')} onClick={(ev) => {
-                    console.log(this);
-                    this.props.history('/competitions/create/', {initialState: this.props.item});
+                    console.log({competitionCollectionElement: this.props});
+                    this.props.history('/competitions/create/', {state: {...this.props.item}});
                     ev.stopPropagation();
                 }}/>
             </div>

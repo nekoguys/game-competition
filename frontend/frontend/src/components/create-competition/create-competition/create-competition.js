@@ -13,7 +13,8 @@ import {makeStartingCompetitionForm, toCompetitionFormJsonObject} from "../../..
 const CreateCompetition = ({isUpdateMode, fetchers, showNotification}) => {
     const {t} = useTranslation();
     const location = useLocation();
-    const initialState = location?.state?.initialState || makeStartingCompetitionForm();
+    const initialState = location?.state || makeStartingCompetitionForm();
+    console.log({initialState, location});
     const [formState, setFormState] = useState(initialState);
     const params = useParams();
     const navigate = useNavigate();
