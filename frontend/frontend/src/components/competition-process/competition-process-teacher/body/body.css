@@ -38,6 +38,31 @@
     height: 20px;
 }
 
+.competition-process-teacher-price-graph-container-spacer {
+    height: 40px;
+}
+
+.competition-process-teacher-price-graph-container-top-spacer {
+    height: 10px;
+}
+
+.competition-process-teacher-price-graph-container {
+    height: 250px;
+    margin-left: 20px;
+    margin-right: 20px;
+}
+
+.competition-process-teacher-price-graph-wrapper {
+    margin-left: -30px;
+    height: 100%;
+}
+
+.competition-process-teacher-price-graph-title {
+    font-size: 16px;
+    text-align: center;
+    color: rgba(0, 0, 0, 0.6);
+}
+
 @media (max-width: 500px) {
     .game-state-holder {
         border-radius: 15px;
@@ -56,5 +81,18 @@
 
     .competition-process-teacher-results-table-round-length-spacer {
         height: 10px;
+    }
+
+    .competition-process-teacher-price-graph-container-spacer {
+        height: 20px;
+    }
+
+    .competition-process-teacher-price-graph-title {
+        font-size: 14px;
+    }
+
+    .competition-process-teacher-price-graph-container {
+        margin-left: 0;
+        margin-right: 0;
     }
 }
