@@ -21,7 +21,7 @@ const NewJoinCompetitionMemberForm = ({fetchers, eventSources, showNotification}
             console.log({newTeam, teams});
             setTeams(prevValue => {
                 const teams = [...prevValue];
-                const teamIndex = teams.map(el => el.teamIdInGame).indexOf(newTeam.teamIdInGame)
+                const teamIndex = teams.map(el => el.idInGame).indexOf(newTeam.idInGame)
                 if (teamIndex !== -1) {
                     teams[teamIndex] = newTeam;
                 } else {
