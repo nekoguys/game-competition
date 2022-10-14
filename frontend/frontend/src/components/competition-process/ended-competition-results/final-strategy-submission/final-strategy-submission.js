@@ -86,8 +86,8 @@ class FinalStrategySubmissionComponent extends React.Component {
                         {i18n.t('competition_results.team') + this.state.teamIdInGame + ": " + this.state.teamName}
                     </div>
                     <div style={{paddingTop: "30px"}}>
-                        <StrategySubmissionComponent defaultText={this.state.fetchedStrategy} isExpanded={true}
-                                                     onSubmit={this.submitStrategy}/>
+                        <StrategySubmissionComponent strategyText={this.state.fetchedStrategy} setStrategyText={strategy => {this.setState({fetchedStrategy: strategy})}} isExpandedByDefault={true}
+                                                     onSubmit={() => this.submitStrategy(this.state.fetchedStrategy)}/>
                     </div>
                     <div style={{paddingTop: "30px"}} className={"row justify-content-center"}>
                         <div style={{width: "20%", minWidth: "15em"}}>
