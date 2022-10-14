@@ -63,7 +63,7 @@ class CompetitionHistory extends React.Component {
             }
         } else if (item.state.toLowerCase() === "draft") {
             if (isTeacher) {
-                this.props.history('/competitions/draft_competition/' + item.pin, {initialState: item})
+                this.props.history('/competitions/draft_competition/' + item.pin, {state: item})
             }
         }
     };
