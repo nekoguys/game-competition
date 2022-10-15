@@ -90,6 +90,13 @@ class CompetitionProcessService(
                     roundNumber = (to as CompetitionStage.InProcess).round,
                 )
 
+            to is CompetitionStage.WaitingStart ->
+                RoundEvent.NewRound(
+                    roundLength = 0,
+                    beginTime = timeStamp.toEpochSecond(ZoneOffset.UTC),
+                    roundNumber = 0
+                )
+
             else -> null
         }
 
