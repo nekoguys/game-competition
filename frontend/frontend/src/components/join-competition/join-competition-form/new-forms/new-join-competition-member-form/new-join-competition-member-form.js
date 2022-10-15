@@ -42,6 +42,9 @@ const NewJoinCompetitionMemberForm = ({fetchers, eventSources, showNotification}
             setTimeout(() => {
                 navigate("/competitions/waiting_room/" + pin);
             }, 1500);
+        }).catch(err => {
+            console.log(err);
+            showNotification().error(`${err}`, "Error", 2500);
         })
     }
     const filteredTeams = teams.filter((team) => team.teamName.includes(teamSearchString));
