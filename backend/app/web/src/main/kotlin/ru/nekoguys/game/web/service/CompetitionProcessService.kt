@@ -91,9 +91,9 @@ class CompetitionProcessService(
                 )
 
             to is CompetitionStage.WaitingStart ->
-                RoundEvent.NewRound(
+                RoundEvent.EndRound(
                     roundLength = 0,
-                    beginTime = timeStamp.toEpochSecond(ZoneOffset.UTC),
+                    isEndOfGame = false,
                     roundNumber = 0
                 )
 
