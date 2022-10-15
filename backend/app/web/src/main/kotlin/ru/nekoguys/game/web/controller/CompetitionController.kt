@@ -96,6 +96,7 @@ class CompetitionController(
                 userEmail = principal.name,
                 sessionPin = sessionPin,
                 competitionSettings = request.extractCompetitionSettings(),
+                state = request.state
             )
         }
 

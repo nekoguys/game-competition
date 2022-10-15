@@ -27,6 +27,10 @@ class CompetitionChangeSettingsRule(
         )
         require(player.user.id == competition.creatorId)
 
+        command.stage.let {
+            competitionSessionRepository.update(competition, competition.copy(stage = it))
+        }
+
         competitionSettingsRepository
             .update(player.sessionId, command.newSettings)
         return emptyList()
@@ -40,3 +44,4 @@ suspend fun CompetitionChangeSettingsRule.changeSettings(
     require(player is CompetitionPlayer.Teacher) { "Player $player must be teacher" }
     return process(player, command)
 }
+

@@ -29,6 +29,7 @@ sealed class CompetitionCommand {
 
     data class ChangeCompetitionSettings(
         val newSettings: CompetitionSettings,
+        val stage: CompetitionStage? = null
     ) : CompetitionCommand()
 
     object Start : CompetitionCommand()

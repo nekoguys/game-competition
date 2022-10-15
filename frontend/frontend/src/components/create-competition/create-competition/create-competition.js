@@ -34,7 +34,7 @@ const CreateCompetition = ({isUpdateMode, fetchers, showNotification}) => {
 
     const onOpenRegistrationClick = () => {
         let obj = {...toCompetitionFormJsonObject(formState), state: "Registration"};
-
+        console.log("onOpenRegistrationClick", {obj});
         if (isUpdateMode) {
             onUpdateDraftCompetition(obj, () => {
                 navigate("/competitions/after_registration_opened/" + params.pin);

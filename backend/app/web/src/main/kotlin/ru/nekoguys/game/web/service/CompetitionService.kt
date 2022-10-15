@@ -114,6 +114,7 @@ class CompetitionService(
     suspend fun changeCompetitionSettings(
         userEmail: String,
         sessionPin: String,
+        state: String?,
         competitionSettings: CompetitionSettings,
     ): GetCompetitionResponse {
         val user = userRepository.findByEmail(userEmail)
@@ -126,7 +127,8 @@ class CompetitionService(
                 sessionId = sessionId,
                 user = user,
                 command = CompetitionCommand.ChangeCompetitionSettings(
-                    newSettings = competitionSettings
+                    newSettings = competitionSettings,
+                    stage = state?.toCompetitionStage()
                 )
             )
 
