@@ -52,20 +52,23 @@ const CompetitionParamsForm = ({onFormStateUpdated, state = makeStartingCompetit
                     <InputFieldWithTitle value={formState.teamLossUpperbound} title={"Максимальный убыток"} onChangeCallback={makeChangeHandler("teamLossUpperbound")}/>
                 </div>
                 <div className={"game-form__field"}>
-                    <InputFieldWithTitle value={formState.instruction} title={"Инструкция для студентов"} onChangeCallback={makeChangeHandler("instruction")}/>
+                    <InputFieldWithTitle value={formState.instruction} title={"Инструкция для студентов"}
+                                         onChangeCallback={makeChangeHandler("instruction")}/>
                 </div>
                 <div className={"game-form__field"}>
-                    <CheckboxField checked={formState.shouldShowStudentPreviousRoundResults} title={"Показывать студентам результаты предыдущих раундов"}
-                    onChangeCallback={makeChangeHandler("shouldShowStudentPreviousRoundResults")}/>
+                    <CheckboxField checked={formState.shouldShowStudentPreviousRoundResults}
+                                   title={"Показывать студентам результаты предыдущих раундов"}
+                                   onChangeCallback={makeChangeHandler("shouldShowStudentPreviousRoundResults")}/>
                 </div>
                 <div className={"game-form__field"}>
-                    <CheckboxField checked={formState.shouldShowResultTableInEnd} title={"После окончания игры показывать студентам результаты всех команд"}
-                    onChangeCallback={makeChangeHandler("shouldShowResultTableInEnd")}/>
+                    <CheckboxField checked={formState.shouldShowResultTableInEnd}
+                                   title={"После окончания игры показывать студентам результаты всех команд"}
+                                   onChangeCallback={makeChangeHandler("shouldShowResultTableInEnd")}/>
                 </div>
-                <div className={"game-form__field"}>
-                    <CheckboxField checked={formState.isAutoRoundEnding} title={"Автоматическое проведение игры"}
-                    onChangeCallback={makeChangeHandler("isAutoRoundEnding")}/>
-                </div>
+                {/*<div className={"game-form__field"}>*/}
+                {/*    <CheckboxField checked={formState.isAutoRoundEnding} title={"Автоматическое проведение игры"}*/}
+                {/*    onChangeCallback={makeChangeHandler("isAutoRoundEnding")}/>*/}
+                {/*</div>*/}
             </div>
 
         </form>
