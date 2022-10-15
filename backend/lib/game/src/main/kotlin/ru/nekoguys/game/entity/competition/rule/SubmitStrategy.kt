@@ -72,7 +72,7 @@ class CompetitionSubmitStrategyRule(
     }
 
     companion object {
-        const val MINUTES_TO_WAIT = 10L
+        const val MINUTES_TO_WAIT = 15L
         const val MAX_STRATEGY_LENGTH = 300
     }
 }
