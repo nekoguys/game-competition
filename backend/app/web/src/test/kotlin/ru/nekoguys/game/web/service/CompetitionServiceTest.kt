@@ -162,6 +162,7 @@ class CompetitionServiceTest @Autowired constructor(
                 userEmail = teacher.email,
                 sessionPin = session.pin,
                 competitionSettings = newSettings,
+                state = null
             )
         }
 

@@ -29,6 +29,7 @@ sealed class CompetitionCommand {
 
     data class ChangeCompetitionSettings(
         val newSettings: CompetitionSettings,
+        val stage: CompetitionStage? = null
     ) : CompetitionCommand()
 
     object Start : CompetitionCommand()
@@ -135,6 +136,8 @@ class CompetitionRootRule(
                 banTeamRule.banTeam(player, command)
             is CompetitionCommand.ChangeCompetitionSettings ->
                 changeSettingsRule.changeSettings(player, command)
+//            is CompetitionCommand.ChangeCompetitionSettingsAndState ->
+//                changeSettingsAndStateRule.changeSettings(player, command)
             is CompetitionCommand.SendAnnouncement ->
                 sendAnnouncementRule.sendAnnouncement(player, command)
         }
