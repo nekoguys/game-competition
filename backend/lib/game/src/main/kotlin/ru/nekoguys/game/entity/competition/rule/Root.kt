@@ -136,8 +136,6 @@ class CompetitionRootRule(
                 banTeamRule.banTeam(player, command)
             is CompetitionCommand.ChangeCompetitionSettings ->
                 changeSettingsRule.changeSettings(player, command)
-//            is CompetitionCommand.ChangeCompetitionSettingsAndState ->
-//                changeSettingsAndStateRule.changeSettings(player, command)
             is CompetitionCommand.SendAnnouncement ->
                 sendAnnouncementRule.sendAnnouncement(player, command)
         }
