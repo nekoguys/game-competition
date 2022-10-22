@@ -9,6 +9,7 @@ import {NavbarHeaderWithFetcher} from "../app/app";
 import ShowSettingsToggle from "./internal/show-settings-toggle";
 import NewTeamCollection
     from "../join-competition/join-competition-form/new-forms/new-join-competition-member-form/team-collection";
+import {useWithAuthenticatedHook} from "../../helpers/with-authenticated";
 
 
 const AfterRegistrationOpenedNewComponent = ({eventSources, fetchers, showNotification}) => {
@@ -19,6 +20,8 @@ const AfterRegistrationOpenedNewComponent = ({eventSources, fetchers, showNotifi
     const [expanded, setExpanded] = useState(false);
     const [formState, setFormState] = useState({});
     const {pin} = params;
+
+    useWithAuthenticatedHook();
 
     useEffect(() => {
         const eventSource = eventSources.teams(pin);

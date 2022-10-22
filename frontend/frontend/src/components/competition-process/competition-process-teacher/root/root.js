@@ -4,6 +4,7 @@ import "./root.css";
 import {CompetitionProcessTeacherBodyNew, NavbarHeaderWithFetcher} from "../../../app/app";
 import withRedirect from "../../../../helpers/redirect-helper";
 import {useNavigate, useParams} from "react-router";
+import withAuthenticated from "../../../../helpers/with-authenticated";
 
 const CompetitionProcessTeacherRootNew = ({showNotification}) => {
     const [didEnd, setDidEnd] = useState(false);
@@ -40,4 +41,4 @@ const CompetitionProcessTeacherRootNew = ({showNotification}) => {
     )
 }
 
-export default (withRedirect(CompetitionProcessTeacherRootNew));
+export default withAuthenticated(withRedirect(CompetitionProcessTeacherRootNew));

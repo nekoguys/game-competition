@@ -9,7 +9,7 @@ import DescriptionHolder from "../description";
 import {processMessageParsedEvent} from "../../../../helpers/messages-event-source-helper";
 import {processParsedRoundEvent} from "../../../../helpers/rounds-event-source-helper";
 import OneRoundResultsTable from "../one-round-results-table";
-import withAuthenticated from "../../../../helpers/with-authenticated";
+import withAuthenticated, {useWithAuthenticatedHook} from "../../../../helpers/with-authenticated";
 
 import * as Constants from "../../../../helpers/constants";
 import StrategySubmissionComponent from "../../strategy-submission";
@@ -43,6 +43,8 @@ const CompetitionProcessStudentRootNew = ({fetchers, eventSources, showNotificat
     const isRoundEndedPrevValue = usePrevious(competitionState.isCurrentRoundEnded)
     const timerId = useRef(null);
     const navigate = useNavigate();
+
+    useWithAuthenticatedHook();
 
     useEffect(() => {
         if (competitionState.isCurrentRoundEnded) {
@@ -325,5 +327,5 @@ export const RoundAndTimerHolder = ({roundNumber, timeTillRoundEnd}) => {
     </>
 }
 
-export default withAuthenticated(CompetitionProcessStudentRootNew);
+export default CompetitionProcessStudentRootNew;
 
