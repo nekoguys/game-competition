@@ -33,8 +33,8 @@ const NewJoinCompetitionCaptainForm = ({fetchers, captainEmailProvider, showNoti
                 showNotification().success("Team created successfully", "Success", notificationTimeout);
                 navigate("/competitions/waiting_room/" + pin)
             })
-            .catch(_ => {
-                showNotification().error("Encountered Error", "Error", notificationTimeout)
+            .catch(err => {
+                showNotification().error(err.message, "Error", notificationTimeout)
             })
     }
 
