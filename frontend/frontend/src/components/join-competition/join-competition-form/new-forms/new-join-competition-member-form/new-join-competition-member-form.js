@@ -5,12 +5,15 @@ import "../../../../../helpers/common.css";
 import "./new-join-competition-member-form.css";
 import NewTeamCollection from "./team-collection";
 import {NavbarHeaderWithFetcher} from "../../../../app/app";
+import {useWithAuthenticatedHook} from "../../../../../helpers/with-authenticated";
 
 const NewJoinCompetitionMemberForm = ({fetchers, eventSources, showNotification}) => {
     const {t} = useTranslation();
     const navigate = useNavigate();
     const [teams, setTeams] = useState([]);
     const [teamSearchString, setTeamSearchString] = useState("");
+
+    useWithAuthenticatedHook();
 
     const matchParams = useParams();
     const {pin} = matchParams;

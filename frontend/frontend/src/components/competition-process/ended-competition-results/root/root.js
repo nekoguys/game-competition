@@ -11,6 +11,7 @@ import NewTeamCollection
     from "../../../join-competition/join-competition-form/new-forms/new-join-competition-member-form/team-collection";
 import {SelfControlledDefaultToggle} from "../../competition-process-student/messages/messages";
 import {MessagesListContainer} from "../../competition-process-teacher/messages/messages-container";
+import {useWithAuthenticatedHook} from "../../../../helpers/with-authenticated";
 
 const defaultState = {
     competitionName: "name",
@@ -28,6 +29,8 @@ const EndedCompetitionResultsRootNew = ({fetchers}) => {
     const [competitionState, setCompetitionState] = useState(defaultState);
     const {pin} = useParams();
     const {t} = useTranslation();
+
+    useWithAuthenticatedHook();
 
     const fetchResults = () => {
         fetchers.competitionResults(pin).then(resp => {

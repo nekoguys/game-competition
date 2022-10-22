@@ -2,7 +2,7 @@ import React, {useEffect, useState} from "react";
 import "./waiting-room.css";
 
 import {NavbarHeaderWithFetcher as NavbarHeader} from "../../app/app";
-import withAuthenticated from "../../../helpers/with-authenticated";
+import withAuthenticated, {useWithAuthenticatedHook} from "../../../helpers/with-authenticated";
 
 import {useNavigate, useParams} from "react-router";
 import {useTranslation} from "react-i18next";
@@ -15,6 +15,8 @@ const NewStudentsWaitingRoom = ({eventSources, fetchers, showNotification}) => {
     const [teamName, setTeamName] = useState("");
     const {pin} = useParams();
     const navigate = useNavigate()
+
+    useWithAuthenticatedHook();
 
     useEffect(() => {
         const eventSource = eventSources.teamMembers(pin);
@@ -127,4 +129,4 @@ const TeamPasswordContainer = ({password = ""}) => {
     )
 }
 
-export default withAuthenticated(NewStudentsWaitingRoom);
+export default NewStudentsWaitingRoom;

@@ -6,6 +6,7 @@ import {useTranslation} from "react-i18next";
 import {useNavigate, useParams} from "react-router";
 import DefaultSubmitButton from "../../../../common/default-submit-button";
 import {NavbarHeaderWithFetcher} from "../../../../app/app";
+import {useWithAuthenticatedHook} from "../../../../../helpers/with-authenticated";
 
 
 const NewJoinCompetitionCaptainForm = ({fetchers, captainEmailProvider, showNotification}) => {
@@ -13,6 +14,8 @@ const NewJoinCompetitionCaptainForm = ({fetchers, captainEmailProvider, showNoti
     const matchParams = useParams();
     const {pin} = matchParams;
     const navigate = useNavigate();
+
+    useWithAuthenticatedHook();
 
     const [form, setForm] = useState({teamName: "", password: ""})
     const createButtonDisabled = !(form.teamName.length >= 4 && form.password.length >= 4)

@@ -8,6 +8,7 @@ import "./create-competition.css";
 import {useTranslation} from "react-i18next";
 import {useLocation, useNavigate, useParams} from "react-router";
 import {makeStartingCompetitionForm, toCompetitionFormJsonObject} from "../../../helpers/competition-params-helper";
+import withAuthenticated, {useWithAuthenticatedHook} from "../../../helpers/with-authenticated";
 
 
 const CreateCompetition = ({isUpdateMode, fetchers, showNotification}) => {
@@ -18,6 +19,8 @@ const CreateCompetition = ({isUpdateMode, fetchers, showNotification}) => {
     const [formState, setFormState] = useState(initialState);
     const params = useParams();
     const navigate = useNavigate();
+
+    useWithAuthenticatedHook();
 
     const onSaveAsDraftClick = () => {
         const obj = {...toCompetitionFormJsonObject(formState), state: "Draft"};

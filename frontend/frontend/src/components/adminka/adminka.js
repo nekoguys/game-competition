@@ -11,6 +11,7 @@ import ApiHelper from "../../helpers/api-helper";
 import showNotification from "../../helpers/notification-helper";
 import withRedirect from "../../helpers/redirect-helper";
 import {isAdmin} from "../../helpers/role-helper";
+import withAuthenticated from "../../helpers/with-authenticated";
 
 
 class Modal extends React.Component {
@@ -391,4 +392,4 @@ class AdminkaComponent extends React.Component {
     }
 }
 
-export default withRedirect(AdminkaComponent, isAdmin);
+export default withAuthenticated(withRedirect(AdminkaComponent, isAdmin));
